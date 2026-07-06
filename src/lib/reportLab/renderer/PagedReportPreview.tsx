@@ -108,6 +108,18 @@ const pagedCss = `
   outline: 2px solid #b58a44;
   background: rgba(181, 138, 68, 0.06);
 }
+.reportlab .rl-prose-editable p {
+  orphans: 1 !important;
+  widows: 1 !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+.reportlab .rl-biomarker:has(.rl-prose-editable),
+.reportlab .rl-conclusion:has(.rl-prose-editable),
+.reportlab .rl-callout:has(.rl-prose-editable) {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
 `;
 
 interface Props {
@@ -308,30 +320,17 @@ export function PagedReportPreview({
 
       const isEditable = editableRef.current;
 
-      // ВАЖНО: если в DOM уже есть contentEditable-правки, react state их
-      // не видит (setDraft — no-op при наборе). Собираем актуальные drafts
-      // из DOM и заново рендерим html — иначе paged.js возьмёт устаревший
-      // html и сотрёт правки пользователя.
+      // ВАЖНО: если в DOM уже есть contentEditable-правки, React state их
+      // не видит (setDraft — no-op при наборе). Для ручного reflow НЕ гоняем
+      // контент через html→markdown→ReactMarkdown: этот roundtrip склеивает
+      // мягкие Enter'ы и поднимает текст обратно вверх. Вместо этого берём
+      // live HTML из текущих editable-фрагментов и подставляем его в чистый
+      // исходный HTML отчёта перед Paged.js.
       let currentHtml = htmlRef.current;
       if (isEditable && output.querySelector("[data-editable-id]")) {
-        const w = window as typeof window & {
-          __reportLabCollectDrafts?: () => Record<string, string>;
-        };
-        const liveDrafts = w.__reportLabCollectDrafts?.();
-        if (liveDrafts && Object.keys(liveDrafts).length > 0) {
-          try {
-            currentHtml = renderToStaticMarkup(
-              <StaticReportEditorProvider
-                drafts={liveDrafts}
-                mode="edit"
-                coverOverrides={coverOverridesRef.current}
-              >
-                <ReportDocument report={reportRef.current} />
-              </StaticReportEditorProvider>,
-            );
-          } catch (e) {
-            console.error("[report-preview] live html rebuild failed", e);
-          }
+        const liveHtmlDrafts = collectEditableHtmlDrafts(output);
+        if (Object.keys(liveHtmlDrafts).length > 0) {
+          currentHtml = applyEditableHtmlDrafts(currentHtml, liveHtmlDrafts);
         }
       }
 
@@ -625,6 +624,49 @@ function needsReflow(output: HTMLElement): boolean {
   return false;
 }
 
+function editableSelector(id: string): string {
+  return `[data-editable-id="${id.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
+}
+
+function sanitizeEditableHtml(html: string): string {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  template.content
+    .querySelectorAll<HTMLElement>("[data-ref], [data-split-from], [data-split-to], [data-previous-break-after]")
+    .forEach((el) => {
+      el.removeAttribute("data-ref");
+      el.removeAttribute("data-split-from");
+      el.removeAttribute("data-split-to");
+      el.removeAttribute("data-previous-break-after");
+    });
+  return template.innerHTML;
+}
+
+function collectEditableHtmlDrafts(output: HTMLElement): Record<string, string> {
+  const ids = new Set(
+    Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id]"))
+      .map((el) => el.getAttribute("data-editable-id"))
+      .filter((id): id is string => Boolean(id)),
+  );
+  const next: Record<string, string> = {};
+  ids.forEach((id) => {
+    const parts = Array.from(output.querySelectorAll<HTMLElement>(editableSelector(id)));
+    next[id] = sanitizeEditableHtml(parts.map((p) => p.innerHTML).join(""));
+  });
+  return next;
+}
+
+function applyEditableHtmlDrafts(baseHtml: string, drafts: Record<string, string>): string {
+  const template = document.createElement("template");
+  template.innerHTML = baseHtml;
+  Object.entries(drafts).forEach(([id, draftHtml]) => {
+    template.content.querySelectorAll<HTMLElement>(editableSelector(id)).forEach((el) => {
+      el.innerHTML = draftHtml || "<p></p>";
+    });
+  });
+  return template.innerHTML;
+}
+
 /**
  * После того как paged.js отрисовал страницы, ищем блоки `[data-editable-id]`
  * и превращаем их в contentEditable. paged.js может расщепить один блок на две
@@ -645,10 +687,7 @@ function installEditableOverlay(
   const toolbar = ensureToolbar(output);
 
   const collectMarkdown = (id: string): string => {
-    const parts = Array.from(
-      output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
-    );
-    const combined = parts.map((p) => p.innerHTML).join("");
+    const combined = collectEditableHtmlDrafts(output)[id] ?? "";
     return htmlToMarkdown(combined);
   };
 

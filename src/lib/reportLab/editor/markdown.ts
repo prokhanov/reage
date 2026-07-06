@@ -85,7 +85,11 @@ export function markdownToHtml(md: string): string {
       continue;
     }
 
-    // Paragraph — собираем до пустой строки
+    // Paragraph — собираем до пустой строки.
+    // ВАЖНО: одиночные \n внутри параграфа — это реальные Enter'ы из
+    // inline contentEditable. Их нельзя склеивать пробелом: при ручном
+    // «Обновить страницы» текст поднимается обратно вверх и визуальные
+    // переносы пользователя исчезают. Поэтому рендерим их как <br>.
     const buf: string[] = [line];
     i++;
     while (
@@ -98,7 +102,7 @@ export function markdownToHtml(md: string): string {
       buf.push(lines[i]);
       i++;
     }
-    html.push(`<p>${inlineMdToHtml(buf.join(" "))}</p>`);
+    html.push(`<p>${buf.map(inlineMdToHtml).join("<br>")}</p>`);
   }
 
   return html.join("") || "<p></p>";
@@ -108,7 +112,10 @@ export function markdownToHtml(md: string): string {
 
 function nodeToMd(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) {
-    return (node.textContent || "").replace(/\s+/g, " ");
+    return (node.textContent || "")
+      .replace(/\u00a0/g, " ")
+      .replace(/[\t\f\v ]+/g, " ")
+      .replace(/\n+/g, " ");
   }
   if (node.nodeType !== Node.ELEMENT_NODE) return "";
   const el = node as HTMLElement;
@@ -126,6 +133,23 @@ function nodeToMd(node: Node): string {
     default:
       return inner;
   }
+}
+
+function preserveExplicitLineBreaks(s: string): string {
+  const normalized = s
+    .replace(/\r\n/g, "\n")
+    .replace(/[\t ]+\n/g, "\n")
+    .replace(/\n[\t ]+/g, "\n")
+    .replace(/[\t ]{2,}/g, " ");
+
+  if (!normalized.includes("\n")) return normalized.trim();
+
+  // Пустые строки и trailing <br> кодируем zero-width marker'ом, чтобы
+  // markdownToHtml не выкинул поставленные пользователем Enter'ы при reflow.
+  return normalized
+    .split("\n")
+    .map((line) => line.trim() || EMPTY_BLOCK_MARKER)
+    .join("\n");
 }
 
 export function htmlToMarkdown(html: string): string {
@@ -177,9 +201,9 @@ export function htmlToMarkdown(html: string): string {
       }
       case "p":
       default:
-        out.push(nodeToMd(el).trim() || EMPTY_BLOCK_MARKER);
+        out.push(preserveExplicitLineBreaks(nodeToMd(el)) || EMPTY_BLOCK_MARKER);
     }
   });
 
-  return out.filter(Boolean).join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  return out.filter(Boolean).join("\n\n").trim();
 }
