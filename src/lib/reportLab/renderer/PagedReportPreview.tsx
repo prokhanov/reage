@@ -294,6 +294,8 @@ export function PagedReportPreview({
   htmlRef.current = html;
   const editableRef = useRef(editable);
   editableRef.current = editable;
+  const reportRef = useRef(report);
+  reportRef.current = report;
 
   useEffect(() => {
     const output = outputRef.current;
@@ -304,8 +306,35 @@ export function PagedReportPreview({
     const build = async () => {
       if (token.cancelled) return;
 
-      const currentHtml = htmlRef.current;
       const isEditable = editableRef.current;
+
+      // ВАЖНО: если в DOM уже есть contentEditable-правки, react state их
+      // не видит (setDraft — no-op при наборе). Собираем актуальные drafts
+      // из DOM и заново рендерим html — иначе paged.js возьмёт устаревший
+      // html и сотрёт правки пользователя.
+      let currentHtml = htmlRef.current;
+      if (isEditable && output.querySelector("[data-editable-id]")) {
+        const w = window as typeof window & {
+          __reportLabCollectDrafts?: () => Record<string, string>;
+        };
+        const liveDrafts = w.__reportLabCollectDrafts?.();
+        if (liveDrafts && Object.keys(liveDrafts).length > 0) {
+          try {
+            currentHtml = renderToStaticMarkup(
+              <StaticReportEditorProvider
+                drafts={liveDrafts}
+                mode="edit"
+                coverOverrides={coverOverridesRef.current}
+              >
+                <ReportDocument report={reportRef.current} />
+              </StaticReportEditorProvider>,
+            );
+          } catch (e) {
+            console.error("[report-preview] live html rebuild failed", e);
+          }
+        }
+      }
+
 
       // Сохраняем caret/scroll ДО перепагинации.
       const hasExisting = !!output.querySelector(".pagedjs_pages");
@@ -371,6 +400,10 @@ export function PagedReportPreview({
             }
           }
         }
+        // Метка «только что перепагинировали» — блокирует немедленный
+        // повторный reflow (в новой раскладке overflow-check ещё может
+        // ложно сработать на первом кадре).
+        output.dataset.rlReflowedAt = String(Date.now());
 
         if (signalReady) {
           requestAnimationFrame(() => emitReady({ pages: flow.pages?.length ?? flow.total ?? null }));
@@ -388,6 +421,9 @@ export function PagedReportPreview({
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
     triggerReflowRef.current = () => {
+      // Cooldown: не даём reflow пойти в цикл сразу после предыдущего.
+      const last = Number(output.dataset.rlReflowedAt || 0);
+      if (last && Date.now() - last < 600) return;
       runQueueRef.current = runQueueRef.current.then(build, build);
     };
 
