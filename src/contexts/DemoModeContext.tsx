@@ -179,26 +179,6 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Демо-режим доступен ТОЛЬКО пациентам. Если у пользователя нет роли
-      // patient (например, superadmin/doctor/admin) — принудительно выключаем
-      // и чистим флаг в БД, чтобы устаревшее значение больше не всплывало.
-      const { data: patientRole } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('user_id', userId)
-        .eq('role', 'patient')
-        .maybeSingle();
-
-      if (!patientRole) {
-        setDemoMode(false);
-        setDemoData(null);
-        await supabase
-          .from('profiles')
-          .update({ demo_mode_enabled: false })
-          .eq('id', userId)
-          .eq('demo_mode_enabled', true);
-        return;
-      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -233,22 +213,9 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       const userId = await getUserId();
       if (!userId) return false;
 
-      // Гард по роли: не-пациентам включать демо-режим запрещено.
+      // Проверка «есть ли реальные анализы» — защита данных, не роль.
       if (enabled) {
-        const { data: patientRole } = await supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('user_id', userId)
-          .eq('role', 'patient')
-          .maybeSingle();
-        if (!patientRole) {
-          toast({
-            title: "Демо-режим недоступен",
-            description: "Демо-режим доступен только пациентам.",
-            variant: "destructive"
-          });
-          return false;
-        }
+
 
         const { count } = await supabase
           .from('analyses')
