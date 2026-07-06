@@ -132,7 +132,13 @@ interface Props {
   onEditBlur?: (editableId: string, markdown: string) => void;
 }
 
-type CaretSnapshot = { editableId: string; offset: number } | null;
+type CaretSnapshot = {
+  editableId: string;
+  startOffset: number;
+  endOffset: number;
+  /** Viewport-Y каретки на момент снапшота — для компенсации скролла после reflow. */
+  caretViewportY: number | null;
+} | null;
 
 function emitReady(extra?: Record<string, unknown>) {
   const w = window as unknown as {
@@ -207,6 +213,12 @@ function ensureToolbar(container: HTMLElement): HTMLDivElement {
       /* ignore */
     }
     document.execCommand(cmd, false, val);
+    // Проверить, изменилась ли высота: bold обычно нет — без reflow;
+    // списки/H2/H3 — почти всегда да.
+    const sched = (container as HTMLElement & {
+      __rlScheduleReflow?: (force?: boolean) => void;
+    }).__rlScheduleReflow;
+    if (sched) sched(cmd !== "bold" && cmd !== "italic");
   };
   bar.append(
     mkBtn("<b>B</b>", "Полужирный", () => exec("bold")),
@@ -260,6 +272,8 @@ export function PagedReportPreview({
   // Сериализация ребилдов: один Previewer одновременно, иначе Paged.js падает
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
+  // Ссылка на функцию перепагинации — вызывается из DOM-оверлея на overflow.
+  const triggerReflowRef = useRef<() => void>(() => {});
 
   const draftsSnapshot = drafts ?? {};
   const html = useMemo(
@@ -275,6 +289,11 @@ export function PagedReportPreview({
       ),
     [report, draftsSnapshot, editable, coverOverrides],
   );
+  // Актуальный html доступен из imperative триггера reflow.
+  const htmlRef = useRef(html);
+  htmlRef.current = html;
+  const editableRef = useRef(editable);
+  editableRef.current = editable;
 
   useEffect(() => {
     const output = outputRef.current;
@@ -285,14 +304,17 @@ export function PagedReportPreview({
     const build = async () => {
       if (token.cancelled) return;
 
+      const currentHtml = htmlRef.current;
+      const isEditable = editableRef.current;
+
       // Сохраняем caret/scroll ДО перепагинации.
       const hasExisting = !!output.querySelector(".pagedjs_pages");
-      const caret: CaretSnapshot = hasExisting && editable ? saveCaret(output) : null;
+      const caret: CaretSnapshot = hasExisting && isEditable ? saveCaret(output) : null;
       const scrollContainer = getScrollContainer(output);
       const scrollTop = scrollContainer?.scrollTop ?? 0;
 
       const content = document.createElement("template");
-      content.innerHTML = html;
+      content.innerHTML = currentHtml;
 
       // Запоминаем существующие страницы: их удалим ПОСЛЕ того, как
       // Paged.js допишет новые — никакого пустого промежутка на экране.
@@ -318,7 +340,7 @@ export function PagedReportPreview({
         oldPages.forEach((el) => el.remove());
         output.dataset.paged = "ready";
 
-        if (editable) {
+        if (isEditable) {
           installEditableOverlay(
             output,
             (id, md) => onEditChangeRef.current?.(id, md),
@@ -326,14 +348,28 @@ export function PagedReportPreview({
               onEditBlurRef.current?.(id, md);
               onEditChangeRef.current?.(id, md);
             },
+            () => triggerReflowRef.current(),
           );
           installCoverInlineEditor(
             output,
             coverOverridesRef.current,
             (next) => onCoverOverridesChangeRef.current?.(next),
           );
-          if (caret) restoreCaret(output, caret);
           if (scrollContainer) scrollContainer.scrollTop = scrollTop;
+          if (caret) {
+            const newY = restoreCaret(output, caret);
+            // Scroll-компенсация: если после reflow каретка визуально
+            // ускакала — доскроллим на разницу, чтобы пользователь не
+            // почувствовал прыжок (важно для клика Bold и вставки Enter).
+            if (
+              scrollContainer &&
+              caret.caretViewportY != null &&
+              newY != null
+            ) {
+              const dy = newY - caret.caretViewportY;
+              if (Math.abs(dy) > 2) scrollContainer.scrollTop += dy;
+            }
+          }
         }
 
         if (signalReady) {
@@ -350,6 +386,11 @@ export function PagedReportPreview({
       }
     };
 
+    // Imperative-триггер: доступен во время всей жизни useEffect.
+    triggerReflowRef.current = () => {
+      runQueueRef.current = runQueueRef.current.then(build, build);
+    };
+
     // Сериализация через .then-цепочку: следующий build стартует только
     // ПОСЛЕ того как предыдущий завершил свой Previewer.preview.
     runQueueRef.current = runQueueRef.current.then(build, build);
@@ -358,6 +399,7 @@ export function PagedReportPreview({
 
     return () => {
       token.cancelled = true;
+      triggerReflowRef.current = () => {};
       // output НЕ чистим — swap следующего успешного билда его обновит.
     };
   }, [html, signalReady, editable]);
@@ -408,75 +450,134 @@ function saveCaret(output: HTMLElement): CaretSnapshot {
   const id = el.getAttribute("data-editable-id");
   if (!id) return null;
 
-  // Считаем offset в plain-text по всем фрагментам этого id, в порядке DOM.
+  // Плоский offset считаем в plain-text по всем фрагментам этого id, в DOM-порядке.
+  // (paged.js мог расщепить блок на 2+ страницы).
   const fragments = Array.from(
     output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
   );
-  let offset = 0;
-  for (const frag of fragments) {
-    if (frag.contains(range.startContainer) || frag === range.startContainer) {
-      const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
-      let n: Node | null;
-      while ((n = walker.nextNode())) {
-        if (n === range.startContainer) {
-          offset += range.startOffset;
-          return { editableId: id, offset };
+
+  const offsetIn = (container: Node, containerOffset: number): number => {
+    let acc = 0;
+    for (const frag of fragments) {
+      if (frag.contains(container) || frag === container) {
+        const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+        let n: Node | null;
+        while ((n = walker.nextNode())) {
+          if (n === container) return acc + containerOffset;
+          acc += (n.textContent || "").length;
         }
-        offset += (n.textContent || "").length;
+        // сам фрагмент — контейнер без текстовых потомков
+        return acc + containerOffset;
       }
-      // startContainer сам является фрагментом (нет текстовых потомков)
-      return { editableId: id, offset: offset + range.startOffset };
+      acc += (frag.textContent || "").length;
     }
-    offset += (frag.textContent || "").length;
+    return acc;
+  };
+
+  const startOffset = offsetIn(range.startContainer, range.startOffset);
+  const endOffset = range.collapsed
+    ? startOffset
+    : offsetIn(range.endContainer, range.endOffset);
+
+  // Y-координата каретки в viewport — для scroll-компенсации после reflow.
+  let caretViewportY: number | null = null;
+  try {
+    const r = range.getClientRects()[0] ?? range.getBoundingClientRect();
+    if (r && (r.top || r.bottom)) caretViewportY = r.top;
+  } catch {
+    /* ignore */
   }
-  return { editableId: id, offset };
+
+  return { editableId: id, startOffset, endOffset, caretViewportY };
 }
 
-function restoreCaret(output: HTMLElement, caret: NonNullable<CaretSnapshot>) {
+/** Возвращает viewport-Y каретки после restore — для scroll-компенсации. */
+function restoreCaret(
+  output: HTMLElement,
+  caret: NonNullable<CaretSnapshot>,
+): number | null {
   const fragments = Array.from(
     output.querySelectorAll<HTMLElement>(
       `[data-editable-id="${caret.editableId}"]`,
     ),
   );
-  if (!fragments.length) return;
+  if (!fragments.length) return null;
 
-  let remaining = caret.offset;
-  for (const frag of fragments) {
-    const total = (frag.textContent || "").length;
-    if (remaining > total) {
-      remaining -= total;
-      continue;
-    }
-    const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
-    let n: Node | null;
-    while ((n = walker.nextNode())) {
-      const len = (n.textContent || "").length;
-      if (remaining <= len) {
-        try {
-          const range = document.createRange();
-          range.setStart(n, Math.max(0, Math.min(remaining, len)));
-          range.collapse(true);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-          frag.focus({ preventScroll: true });
-        } catch {
-          /* ignore */
-        }
-        return;
+  // Находит { node, offset } внутри списка фрагментов для плоского text-offset.
+  const locate = (
+    target: number,
+  ): { node: Node; offset: number; frag: HTMLElement } | null => {
+    let remaining = target;
+    for (const frag of fragments) {
+      const total = (frag.textContent || "").length;
+      if (remaining > total) {
+        remaining -= total;
+        continue;
       }
-      remaining -= len;
+      const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+      let n: Node | null;
+      while ((n = walker.nextNode())) {
+        const len = (n.textContent || "").length;
+        if (remaining <= len) {
+          return { node: n, offset: Math.max(0, Math.min(remaining, len)), frag };
+        }
+        remaining -= len;
+      }
+      return { node: frag, offset: 0, frag };
     }
-    // fragment без текстовых узлов
-    try {
-      frag.focus({ preventScroll: true });
-    } catch {
-      /* ignore */
-    }
-    return;
+    const last = fragments[fragments.length - 1];
+    return { node: last, offset: 0, frag: last };
+  };
+
+  const startLoc = locate(caret.startOffset);
+  const endLoc =
+    caret.endOffset !== caret.startOffset ? locate(caret.endOffset) : startLoc;
+  if (!startLoc || !endLoc) return null;
+
+  try {
+    const range = document.createRange();
+    range.setStart(startLoc.node, startLoc.offset);
+    range.setEnd(endLoc.node, endLoc.offset);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+    startLoc.frag.focus({ preventScroll: true });
+
+    const r = range.getClientRects()[0] ?? range.getBoundingClientRect();
+    return r && (r.top || r.bottom) ? r.top : null;
+  } catch {
+    return null;
   }
-  // fallback — фокус в конец последнего фрагмента
-  fragments[fragments.length - 1].focus({ preventScroll: true });
+}
+
+/**
+ * Проверяет, требуется ли полная перепагинация Paged.js после live-правок
+ * в contentEditable. Быстро, ~O(N страниц).
+ *   overflow  — контент вылез за низ страницы;
+ *   underfill — на предыдущей странице освободилось место (актуально при
+ *               массовом удалении), и первый блок следующей мог бы подтянуться.
+ */
+function needsReflow(output: HTMLElement): boolean {
+  const contents = Array.from(
+    output.querySelectorAll<HTMLElement>(".pagedjs_page_content"),
+  );
+  if (!contents.length) return false;
+  for (const c of contents) {
+    if (c.scrollHeight - c.clientHeight > 1) return true;
+  }
+  const pages = Array.from(output.querySelectorAll<HTMLElement>(".pagedjs_page"));
+  for (let i = 0; i < pages.length - 1; i++) {
+    const content = pages[i].querySelector<HTMLElement>(".pagedjs_page_content");
+    if (!content) continue;
+    const free = content.clientHeight - content.scrollHeight;
+    if (free <= 24) continue;
+    const nextContent = pages[i + 1].querySelector<HTMLElement>(".pagedjs_page_content");
+    const firstBlock = nextContent?.firstElementChild as HTMLElement | null;
+    if (!firstBlock) continue;
+    // если самый первый блок следующей страницы физически влез бы наверх — reflow
+    if (firstBlock.offsetHeight + 8 <= free) return true;
+  }
+  return false;
 }
 
 /**
@@ -484,15 +585,17 @@ function restoreCaret(output: HTMLElement, caret: NonNullable<CaretSnapshot>) {
  * и превращаем их в contentEditable. paged.js может расщепить один блок на две
  * страницы — тогда мы соединяем HTML всех фрагментов.
  *
- * onChange вызывается на каждом input (debounced ~150ms) — родитель кладёт
- * markdown в drafts → React перерендеривает превью → Paged.js пересобирает
- * страницы, и весь текст ниже съезжает в реальном времени, как в Google Docs.
- * onBlur вызывается при потере фокуса (используем для финального сохранения).
+ * onChange вызывается на blur (для совместимости — драфты собираются
+ * из DOM в момент «Сохранить», см. window.__reportLabCollectDrafts).
+ * Полная перепагинация Paged.js запускается ТОЛЬКО когда контент реально
+ * вылез за границу страницы или наверху освободилось место — как в Google
+ * Docs, набор без переполнения обходится без реф-лоу.
  */
 function installEditableOverlay(
   output: HTMLElement,
   onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
+  triggerReflow: () => void,
 ) {
   const toolbar = ensureToolbar(output);
 
@@ -522,6 +625,27 @@ function installEditableOverlay(
   };
   w.__reportLabCollectDrafts = collectAllMarkdown;
 
+  // ─── Debounced overflow-check ───────────────────────────────────────────
+  // rAF + trailing 250 мс: одна проверка на пачку keystroke'ов; если layout
+  // требует пересборки — дёргаем triggerReflow (build с сохранением caret).
+  let reflowTimer: number | null = null;
+  let rafId: number | null = null;
+  const scheduleReflowCheck = (force = false) => {
+    if (reflowTimer !== null) window.clearTimeout(reflowTimer);
+    const delay = force ? 0 : 250;
+    reflowTimer = window.setTimeout(() => {
+      reflowTimer = null;
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (needsReflow(output)) triggerReflow();
+      });
+    }, delay);
+  };
+  // экспонируем для bubble-toolbar (Bold/Italic/списки).
+  (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
+    __rlScheduleReflow = scheduleReflowCheck;
+
   const editables = Array.from(
     output.querySelectorAll<HTMLElement>("[data-editable-id]"),
   );
@@ -529,27 +653,21 @@ function installEditableOverlay(
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
 
-    let inputTimer: number | null = null;
     el.addEventListener("input", (event) => {
-      const id = el.getAttribute("data-editable-id");
-      if (!id) return;
-      if (inputTimer !== null) window.clearTimeout(inputTimer);
       const inputType = (event as InputEvent).inputType;
-      const delay = inputType === "insertParagraph" || inputType === "insertLineBreak" ? 0 : 150;
-      inputTimer = window.setTimeout(() => {
-        inputTimer = null;
-        onChange(id, collectMarkdown(id));
-      }, delay);
+      // Enter/удаление пустой строки могут сразу изменить высоту блока —
+      // не ждём idle, проверяем на ближайшем кадре.
+      const force =
+        inputType === "insertParagraph" ||
+        inputType === "insertLineBreak" ||
+        inputType === "deleteContentBackward" ||
+        inputType === "deleteContentForward";
+      scheduleReflowCheck(force);
     });
-
 
     el.addEventListener("blur", () => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
-      if (inputTimer !== null) {
-        window.clearTimeout(inputTimer);
-        inputTimer = null;
-      }
       onBlur(id, collectMarkdown(id));
       setTimeout(() => {
         if (!output.contains(document.activeElement)) {
@@ -558,6 +676,7 @@ function installEditableOverlay(
       }, 100);
     });
   });
+
 
 
   const showToolbar = () => {
