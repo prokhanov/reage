@@ -157,11 +157,62 @@ function roundToReasonable(value: number): number {
 export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual", onModeChange, onAutoImported, onAutoClose }: AnalysisStep1Props) {
   const [showHealthDialog, setShowHealthDialog] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [plans, setPlans] = useState<Array<{ id: string; name: string; count: number }>>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [plansLoading, setPlansLoading] = useState(false);
   const { viewAsUserId } = useContext(ViewAsPatientContext);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!showHealthDialog || plans.length > 0 || !viewAsUserId) return;
+    setPlansLoading(true);
+    (async () => {
+      try {
+        const [plansRes, pbRes, subRes] = await Promise.all([
+          supabase.from("subscription_plans").select("id, name").order("name"),
+          supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+          supabase
+            .from("subscriptions")
+            .select("plan_id")
+            .eq("user_id", viewAsUserId)
+            .eq("status", "active")
+            .maybeSingle(),
+        ]);
+        if (plansRes.error) throw plansRes.error;
+        if (pbRes.error) throw pbRes.error;
+
+        const counts = new Map<string, number>();
+        (pbRes.data || []).forEach((row: any) => {
+          counts.set(row.plan_id, (counts.get(row.plan_id) || 0) + 1);
+        });
+        const list = (plansRes.data || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          count: counts.get(p.id) || 0,
+        }));
+        setPlans(list);
+
+        const activePlanId = subRes.data?.plan_id as string | undefined;
+        const defaultId =
+          (activePlanId && list.find((p) => p.id === activePlanId)?.id) ||
+          list[0]?.id ||
+          null;
+        setSelectedPlanId(defaultId);
+      } catch (err: any) {
+        console.error("Error loading plans:", err);
+        toast({ title: "Ошибка загрузки тарифов", description: err.message, variant: "destructive" });
+      } finally {
+        setPlansLoading(false);
+      }
+    })();
+  }, [showHealthDialog, viewAsUserId, plans.length, toast]);
+
   const handleGenerateMock = async (healthLevel: number) => {
     if (!viewAsUserId || !onMockGenerate) return;
+    if (!selectedPlanId) {
+      toast({ title: "Выберите тариф", variant: "destructive" });
+      return;
+    }
     setGenerating(true);
     setShowHealthDialog(false);
 
