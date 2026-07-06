@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PagedReportPreview } from "@/lib/reportLab/renderer";
-import type { ProkhanovReport } from "@/lib/reportLab/types";
+import type { LabReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 
-const FALLBACK_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+const FALLBACK_REPORT = prokhanovReportRaw as unknown as LabReport;
 
 type VerifyState = "checking" | "allowed" | "denied";
 
@@ -37,7 +37,7 @@ export default function ReportPreview() {
   const [params] = useSearchParams();
   const token = params.get("token");
   const [state, setState] = useState<VerifyState>("checking");
-  const [report, setReport] = useState<ProkhanovReport>(FALLBACK_REPORT);
+  const [report, setReport] = useState<LabReport>(FALLBACK_REPORT);
 
   // Форсируем светлую тему для рендера PDF — иначе тёмный фон приложения
   // просачивается в поля страницы и колонтитулы (тёмные полосы вокруг листа).
@@ -87,7 +87,7 @@ export default function ReportPreview() {
         });
         if (cancelled) return;
         if (res.ok) {
-          const payload = (await res.json()) as { report?: ProkhanovReport };
+          const payload = (await res.json()) as { report?: LabReport };
           if (payload?.report) {
             setReport(payload.report);
             reportLog("snapshot_loaded");

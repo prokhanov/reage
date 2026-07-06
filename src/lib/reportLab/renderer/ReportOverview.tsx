@@ -1,10 +1,10 @@
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
 
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
 }
 
 /**

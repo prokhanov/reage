@@ -1,4 +1,4 @@
-import type { ProkhanovReport, ReportRecommendationRow } from "../types";
+import type { LabReport, ReportRecommendationRow } from "../types";
 
 /**
  * Собирает текст рекомендации обратно из draft-блоков.
@@ -159,7 +159,7 @@ export function assembleRecommendationText(
 }
 
 export function collectDirtyRecommendations(
-  report: ProkhanovReport,
+  report: LabReport,
   drafts: Record<string, string>,
 ): Array<{ id: string; text: string }> {
   const changed: Array<{ id: string; text: string }> = [];

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 import {
   buildBiomarkerIndex,
   calcAge,
@@ -14,7 +14,7 @@ import { ReportPrescriptions } from "./ReportPrescriptions";
 import "../theme.css";
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
   /**
    * Если true — рендер объявит `window.__reportReady = true` после того,
    * как шрифты и все страницы отрисованы. Используется Playwright'ом.

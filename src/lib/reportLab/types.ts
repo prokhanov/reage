@@ -8,7 +8,7 @@
  *   - pdfmake
  *
  * Единственный вход в рендерер — сериализованный отчёт в формате
- * `ProkhanovReport` (см. src/data/prokhanovReport.json). Дальнейшая
+ * `LabReport` (см. src/data/prokhanovReport.json). Дальнейшая
  * миграция на живые данные из БД произойдёт позже — сейчас всё живёт
  * из замороженного JSON-снапшота.
  */
@@ -72,7 +72,7 @@ export interface ReportRecommendationRow {
   created_at: string;
 }
 
-export interface ProkhanovReport {
+export interface LabReport {
   version: 1;
   generatedAt: string;
   patient: ReportPatient;

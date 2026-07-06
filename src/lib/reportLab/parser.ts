@@ -16,7 +16,7 @@
 import type {
   BiomarkerStatus,
   ParsedCategory,
-  ProkhanovReport,
+  LabReport,
   ReportBiomarker,
   ReportBlock,
   ResolvedRange,
@@ -45,19 +45,19 @@ const NON_CATEGORY_TYPES = new Set([
 
 // ─── Публичные функции ────────────────────────────────────────────────────
 
-export function getPatientDataRecord(report: ProkhanovReport) {
+export function getPatientDataRecord(report: LabReport) {
   return report.recommendations.find((r) => r.type === "Данные пациента");
 }
 
-export function getSummaryRecord(report: ProkhanovReport) {
+export function getSummaryRecord(report: LabReport) {
   return report.recommendations.find((r) => r.type === "Общее резюме");
 }
 
-export function getPrescriptionsRecord(report: ProkhanovReport) {
+export function getPrescriptionsRecord(report: LabReport) {
   return report.recommendations.find((r) => r.type === "Назначения");
 }
 
-export function getCategoryRecords(report: ProkhanovReport) {
+export function getCategoryRecords(report: LabReport) {
   return report.recommendations
     .filter((r) => !NON_CATEGORY_TYPES.has(r.type))
     .sort(
@@ -68,7 +68,7 @@ export function getCategoryRecords(report: ProkhanovReport) {
 
 /** Мапа code → биомаркер, для быстрого поиска при парсинге. */
 export function buildBiomarkerIndex(
-  report: ProkhanovReport,
+  report: LabReport,
 ): Map<string, ReportBiomarker> {
   const index = new Map<string, ReportBiomarker>();
   for (const b of report.biomarkers) {

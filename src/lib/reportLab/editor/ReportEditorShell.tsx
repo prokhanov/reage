@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { notify as toast } from "@/lib/toast";
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 import {
   ReportEditorProvider,
   useReportEditor,
@@ -11,8 +11,8 @@ import {
 import { collectDirtyRecommendations } from "./assemble";
 
 interface Props {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   /** Persist changes to Supabase.recommendations. Если false — только локально. */
   persist?: boolean;
@@ -23,8 +23,8 @@ function Toolbar({
   onReportUpdate,
   persist,
 }: {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   persist: boolean;
 }) {
   const ctx = useReportEditor();
@@ -145,8 +145,8 @@ function ShellInner({
   children,
   persist,
 }: {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   persist: boolean;
 }) {

@@ -1,9 +1,9 @@
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 import { getPatientDataRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
 }
 
 const HTML_COMMENT_RE = /<!--[\s\S]*?(?:-->|→|\n)/g;

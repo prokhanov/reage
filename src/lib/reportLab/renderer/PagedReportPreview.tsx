@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
@@ -111,7 +111,7 @@ const pagedCss = `
 `;
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
   height?: number | string;
   signalReady?: boolean;
   chrome?: "framed" | "plain";

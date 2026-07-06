@@ -9,10 +9,10 @@ import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
 import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
-import type { ProkhanovReport } from "@/lib/reportLab/types";
+import type { LabReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
-const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+const INITIAL_REPORT = prokhanovReportRaw as unknown as LabReport;
 
 type PdfLogLevel = "info" | "success" | "error";
 type PdfLogEntry = {
@@ -56,9 +56,9 @@ function collectLiveEditorDrafts(): Record<string, string> {
 }
 
 function applyDraftsToReport(
-  source: ProkhanovReport,
+  source: LabReport,
   drafts: Record<string, string>,
-): ProkhanovReport {
+): LabReport {
   if (Object.keys(drafts).length === 0) return source;
   return {
     ...source,
@@ -96,7 +96,7 @@ export default function ReportVisualsTest() {
   const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
-  const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
+  const [report, setReport] = useState<LabReport>(INITIAL_REPORT);
   const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
@@ -532,7 +532,7 @@ function EditablePagedPreview({
   paginated,
   editable,
 }: {
-  report: ProkhanovReport;
+  report: LabReport;
   paginated: boolean;
   editable: boolean;
 }) {
