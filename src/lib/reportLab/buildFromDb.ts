@@ -218,6 +218,11 @@ export async function buildLabReportFromDb(
     effect: row.effect ?? null,
   }));
 
+  const coverOverrides: CoverOverrides | null =
+    analysisRow.cover_overrides && typeof analysisRow.cover_overrides === "object"
+      ? (analysisRow.cover_overrides as CoverOverrides)
+      : null;
+
   const report: LabReport = {
     version: 1,
     generatedAt: new Date().toISOString(),
@@ -226,6 +231,7 @@ export async function buildLabReportFromDb(
     recommendations,
     biomarkers,
     prescriptions,
+    coverOverrides,
   };
 
   return report;
