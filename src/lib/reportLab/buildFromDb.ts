@@ -125,7 +125,7 @@ export async function buildLabReportFromDb(
     await Promise.all([
       supabase
         .from("analyses")
-        .select("id, date, lab_name, note, health_index, biological_age")
+        .select("id, date, lab_name, note, health_index, biological_age, cover_overrides")
         .eq("id", analysisId)
         .maybeSingle(),
       supabase
