@@ -687,9 +687,6 @@ function installEditableOverlay(
     // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
     // Save через window.__reportLabCollectDrafts().
 
-      scheduleReflowCheck(force);
-    });
-
     el.addEventListener("blur", () => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
