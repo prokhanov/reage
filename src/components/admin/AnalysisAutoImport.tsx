@@ -328,7 +328,54 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     }
   }
 
+  // Считает расчётные биомаркеры (HOMA-IR, LDL, ApoB/A1, FAI и т.д.) на основе
+  // распознанных значений и возвращает массив записей analysis_values для вставки.
+  async function buildDerivedValueRows(
+    analysisId: string,
+    recognized: RecognizedItem[],
+  ): Promise<Array<{ analysis_id: string; biomarker_id: string; value: number; unit_override: null }>> {
+    // Собираем входы по кодам, пропуская уже расчётные (если такие были распознаны)
+    const inputs: Record<string, number> = {};
+    const presentCodes = new Set<string>();
+    for (const r of recognized) {
+      if (!r.biomarker_code) continue;
+      presentCodes.add(r.biomarker_code);
+      if (CALCULATED_BIOMARKER_CODES.has(r.biomarker_code)) continue;
+      const numericEdited = parseFloat((r.edited_value || "").replace(",", "."));
+      const num = Number.isFinite(numericEdited)
+        ? numericEdited
+        : (r.use_expected_unit && r.value_converted !== null
+          ? r.value_converted
+          : r.value_numeric ?? NaN);
+      if (Number.isFinite(num)) inputs[r.biomarker_code] = num as number;
+    }
+
+    const derived = computeAllDerivedValues(inputs, {
+      age: patient.age,
+      sex: patient.gender,
+    });
+    if (derived.size === 0) return [];
+
+    // Не перезаписываем уже импортированные расчётные значения
+    const codesToInsert = Array.from(derived.keys()).filter((c) => !presentCodes.has(c));
+    if (!codesToInsert.length) return [];
+
+    const { data: bms } = await (supabase
+      .from("biomarkers") as any)
+      .select("id, code")
+      .in("code", codesToInsert);
+    if (!bms || !bms.length) return [];
+
+    return (bms as Array<{ id: string; code: string }>).map((b) => ({
+      analysis_id: analysisId,
+      biomarker_id: b.id,
+      value: derived.get(b.code) as number,
+      unit_override: null,
+    }));
+  }
+
   async function importAll() {
+
     if (!viewAsUserId) return;
     const ready = entries.filter(e => e.status === "done" && e.result);
     if (!ready.length) {
