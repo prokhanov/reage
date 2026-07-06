@@ -559,8 +559,26 @@ export function EditReportDialog({
         `}</style>
         <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>Редактирование отчета</DialogTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <DialogTitle>Редактирование отчета</DialogTitle>
+                {ENABLE_REPORT_V2 && analysisId && (
+                  <ToggleGroup
+                    type="single"
+                    size="sm"
+                    value={viewMode}
+                    onValueChange={(v) => v && handleViewModeChange(v as "classic" | "v2")}
+                    className="rounded-md border bg-muted/40 p-0.5"
+                  >
+                    <ToggleGroupItem value="classic" className="h-7 px-2 text-xs data-[state=on]:bg-background">
+                      Классический
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="v2" className="h-7 px-2 text-xs data-[state=on]:bg-background">
+                      Новый <UiBadge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">Beta</UiBadge>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
@@ -586,6 +604,7 @@ export function EditReportDialog({
               Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
             </DialogDescription>
           </DialogHeader>
+
 
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             {loading ? (
