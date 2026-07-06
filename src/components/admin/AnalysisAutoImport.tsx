@@ -19,6 +19,10 @@ import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { BiomarkerValueCell } from "@/components/admin/BiomarkerValueCell";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import {
+  computeAllDerivedValues,
+  CALCULATED_BIOMARKER_CODES,
+} from "@/lib/calculatedBiomarkers";
+import {
   Upload,
   FileText,
   CheckCircle2,
