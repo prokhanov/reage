@@ -344,9 +344,22 @@ export function PagedReportPreview({
       const content = document.createElement("template");
       content.innerHTML = currentHtml;
 
-      // Запоминаем существующие страницы: их удалим ПОСЛЕ того, как
-      // Paged.js допишет новые — никакого пустого промежутка на экране.
+      // Paged.js нельзя запускать прямо в output со старыми страницами:
+      // его resize/underflow observers могут смотреть на соседей из прошлого
+      // прогона и падать/резать фрагменты. Считаем в невидимом scratch-слое,
+      // а после успешного preview атомарно меняем старые страницы на новые.
       const oldPages = Array.from(output.querySelectorAll(".pagedjs_pages"));
+      const scratch = document.createElement("div");
+      scratch.setAttribute("aria-hidden", "true");
+      scratch.style.cssText = [
+        "position:absolute",
+        "inset:0",
+        "z-index:-1",
+        "visibility:hidden",
+        "pointer-events:none",
+        "overflow:visible",
+      ].join(";");
+      output.appendChild(scratch);
 
       try {
         await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
@@ -355,17 +368,16 @@ export function PagedReportPreview({
         const flow = await previewer.preview(
           content.content,
           [{ "reportLab.css": `${themeCss}\n${pagedCss}` }],
-          output,
+          scratch,
         );
         if (token.cancelled) {
-          // Rollback: удалим то, что этот build добавил, чтобы не копилось.
-          Array.from(output.querySelectorAll(".pagedjs_pages"))
-            .filter((el) => !oldPages.includes(el))
-            .forEach((el) => el.remove());
+          scratch.remove();
           return;
         }
 
         oldPages.forEach((el) => el.remove());
+        Array.from(scratch.childNodes).forEach((node) => output.appendChild(node));
+        scratch.remove();
         output.dataset.paged = "ready";
 
         if (isEditable) {
@@ -415,6 +427,7 @@ export function PagedReportPreview({
         };
         // eslint-disable-next-line no-console
         console.error("[report-preview] paged_render_failed", e);
+        scratch.remove();
       }
     };
 
