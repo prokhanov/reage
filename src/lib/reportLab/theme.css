@@ -200,13 +200,28 @@ html, body {
 }
 .reportlab .rl-callout,
 .reportlab .rl-stats,
-.reportlab .rl-biomarker,
 .reportlab .rl-rx,
 .reportlab .rl-h1,
 .reportlab .rl-h2,
 .reportlab .rl-h3 {
   break-inside: avoid-page;
   page-break-inside: avoid;
+}
+/* Карточка биомаркера может продлеваться на следующую страницу
+   (рамка перенесётся автоматически), но верхний блок с названием+шкалой
+   должен оставаться цельным — иначе визуально ломается. */
+.reportlab .rl-biomarker {
+  break-inside: auto;
+  page-break-inside: auto;
+}
+.reportlab .rl-bio-head,
+.reportlab .rl-bio-scale {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+.reportlab .rl-bio-head {
+  break-after: avoid-page;
+  page-break-after: avoid;
 }
 .reportlab .rl-section-header,
 .reportlab .rl-prose h2,
@@ -215,6 +230,7 @@ html, body {
   break-after: avoid-page;
   page-break-after: avoid;
 }
+
 
 /* ─── Обложка ────────────────────────────────────────────────────────────── */
 .reportlab .rl-cover-top {
