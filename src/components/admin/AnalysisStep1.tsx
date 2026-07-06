@@ -217,17 +217,20 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
     setShowHealthDialog(false);
 
     try {
-      // Fetch patient profile and all biomarkers in parallel
-      const [profileRes, biomarkersRes] = await Promise.all([
+      // Fetch patient profile, all biomarkers, and plan biomarkers in parallel
+      const [profileRes, biomarkersRes, planBmRes] = await Promise.all([
         supabase.from("profiles").select("birth_date, gender").eq("id", viewAsUserId).single(),
         supabase.from("biomarkers").select("*").order("display_order"),
+        supabase.from("plan_biomarkers").select("biomarker_id").eq("plan_id", selectedPlanId),
       ]);
 
       if (profileRes.error) throw profileRes.error;
       if (biomarkersRes.error) throw biomarkersRes.error;
+      if (planBmRes.error) throw planBmRes.error;
 
       const profile = profileRes.data;
       const biomarkers = biomarkersRes.data;
+      const allowedIds = new Set<string>((planBmRes.data || []).map((r: any) => r.biomarker_id));
       const age = calculateAge(profile.birth_date);
       const gender = (profile.gender === "female" ? "female" : "male") as "male" | "female";
       const weights = HEALTH_WEIGHTS[healthLevel];
@@ -235,6 +238,7 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
       const values: Array<{ biomarkerId: string; value: string; unitOverride?: string }> = [];
 
       for (const bm of biomarkers) {
+        if (!allowedIds.has(bm.id)) continue;
         // Расчётные биомаркеры пропускаем — заполним их формулами после генерации.
         if (CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
 
