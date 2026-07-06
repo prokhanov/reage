@@ -11,6 +11,7 @@ import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import type { LabReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
+import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as LabReport;
 
@@ -98,6 +99,23 @@ export default function ReportVisualsTest() {
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
   const [report, setReport] = useState<LabReport>(INITIAL_REPORT);
   const readyPdfUrlRef = useRef<string | null>(null);
+
+  // Debug: ?analysisId=…&userId=… загружает реальные данные пациента,
+  // чтобы сверять визуально с эталоном на замороженном JSON.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const analysisId = params.get("analysisId");
+    const userId = params.get("userId");
+    if (!analysisId || !userId) return;
+    let cancelled = false;
+    buildLabReportFromDb(analysisId, userId)
+      .then((r) => { if (!cancelled) setReport(r); })
+      .catch((e) => {
+        console.error("[ReportVisualsTest] real-data load failed", e);
+        toast.error("Не удалось загрузить реальный отчёт", e instanceof Error ? e.message : String(e));
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const appendPdfLog = useCallback(
     (level: PdfLogLevel, message: string, details?: string) => {
