@@ -506,8 +506,19 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               if (vErr) throw vErr;
             }
 
+            // Автоматически считаем производные показатели
+            const derivedRows = await buildDerivedValueRows(
+              analysis.id,
+              Array.from(byBm.values()),
+            );
+            if (derivedRows.length) {
+              const { error: dErr } = await supabase.from("analysis_values").insert(derivedRows);
+              if (dErr) console.warn("derived insert failed", dErr);
+            }
+
             updateEntry(e.id, { status: "imported" });
             created++;
+
           } catch (err: any) {
             console.error("import error", err);
             updateEntry(e.id, { status: "error", error: err?.message || "Не удалось импортировать" });
