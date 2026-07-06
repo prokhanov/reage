@@ -635,7 +635,17 @@ function installEditableOverlay(
  */
 
 
-function installCoverInlineEditor(output: HTMLElement) {
+// Дефолтные значения градиента — соответствуют theme.css (rl-cover).
+const DEFAULT_C1 = "#1c2f47";
+const DEFAULT_C2 = "#0f1b2d";
+const DEFAULT_C3 = "#0a1220";
+const DEFAULT_ANGLE = 160;
+
+function installCoverInlineEditor(
+  output: HTMLElement,
+  initialOverrides: CoverOverrides | null,
+  onChange: (next: CoverOverrides | null) => void,
+) {
   const cover = output.querySelector<HTMLElement>("[data-cover-root]");
   if (!cover) return;
 
@@ -653,6 +663,9 @@ function installCoverInlineEditor(output: HTMLElement) {
     v.style.padding = "0 2px";
     v.style.borderRadius = "2px";
   });
+
+  // Помечаем элементы, у которых пользователь правил innerHTML.
+  const htmlDirty = new Set<string>();
 
   // ─── Постоянная панель обложки (фон / сброс всего) ─────────────────────
   const bgBar = document.createElement("div");
@@ -680,22 +693,53 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgLabel.textContent = "Фон";
   bgLabel.style.opacity = "0.8";
 
-  // Дефолтные значения градиента — соответствуют theme.css (rl-cover).
-  const DEFAULT_C1 = "#1c2f47";
-  const DEFAULT_C2 = "#0f1b2d";
-  const DEFAULT_C3 = "#0a1220";
-  const DEFAULT_ANGLE = 160;
-
+  const initialBg = initialOverrides?.background ?? null;
   const state = {
-    mode: "gradient" as "solid" | "gradient",
-    c1: DEFAULT_C1,
-    c2: DEFAULT_C2,
-    c3: DEFAULT_C3,
-    angle: DEFAULT_ANGLE,
-    solid: DEFAULT_C2,
+    mode: (initialBg?.mode ?? "gradient") as "solid" | "gradient",
+    c1: initialBg?.c1 ?? DEFAULT_C1,
+    c2: initialBg?.c2 ?? DEFAULT_C2,
+    c3: initialBg?.c3 ?? DEFAULT_C3,
+    angle: initialBg?.angle ?? DEFAULT_ANGLE,
+    solid: initialBg?.solid ?? DEFAULT_C2,
+    hasBgOverride: !!initialBg,
   };
 
+  // Собираем актуальный snapshot overrides из DOM и локального state.
+  const collectOverrides = (): CoverOverrides | null => {
+    const elements: NonNullable<CoverOverrides["elements"]> = {};
+    for (const el of els) {
+      const key = el.getAttribute("data-cover-el");
+      if (!key) continue;
+      const rec: NonNullable<CoverOverrides["elements"]>[string] = {};
+      const s = el.style;
+      if (s.transform) rec.transform = s.transform;
+      if (s.fontSize) rec.fontSize = s.fontSize;
+      if (s.color) rec.color = s.color;
+      if (s.textAlign) rec.textAlign = s.textAlign;
+      if (s.fontWeight) rec.fontWeight = s.fontWeight;
+      if (s.fontStyle) rec.fontStyle = s.fontStyle;
+      if (htmlDirty.has(key)) rec.html = el.innerHTML;
+      if (Object.keys(rec).length > 0) elements[key] = rec;
+    }
+    const background = state.hasBgOverride
+      ? state.mode === "solid"
+        ? { mode: "solid" as const, solid: state.solid }
+        : {
+            mode: "gradient" as const,
+            c1: state.c1,
+            c2: state.c2,
+            c3: state.c3,
+            angle: state.angle,
+          }
+      : null;
+    if (!background && Object.keys(elements).length === 0) return null;
+    return { background, elements };
+  };
+
+  const emit = () => onChange(collectOverrides());
+
   const applyBg = () => {
+    state.hasBgOverride = true;
     if (state.mode === "solid") {
       cover.style.background = state.solid;
     } else {
