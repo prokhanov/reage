@@ -427,15 +427,24 @@ export function PagedReportPreview({
       runQueueRef.current = runQueueRef.current.then(build, build);
     };
 
+    // Публичный триггер для ручной кнопки «Обновить страницы» —
+    // без cooldown, без проверок: пользователь явно попросил пересчёт.
+    const w = window as typeof window & {
+      __reportLabReflow?: () => void;
+    };
+    w.__reportLabReflow = () => {
+      runQueueRef.current = runQueueRef.current.then(build, build);
+    };
+
     // Сериализация через .then-цепочку: следующий build стартует только
     // ПОСЛЕ того как предыдущий завершил свой Previewer.preview.
     runQueueRef.current = runQueueRef.current.then(build, build);
 
-
-
     return () => {
       token.cancelled = true;
       triggerReflowRef.current = () => {};
+      const ww = window as typeof window & { __reportLabReflow?: () => void };
+      if (ww.__reportLabReflow === w.__reportLabReflow) delete ww.__reportLabReflow;
       // output НЕ чистим — swap следующего успешного билда его обновит.
     };
   }, [html, signalReady, editable]);

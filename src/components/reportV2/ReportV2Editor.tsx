@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,8 +179,23 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
     );
   }
 
+  const refreshPagination = useCallback(() => {
+    const w = window as typeof window & { __reportLabReflow?: () => void };
+    w.__reportLabReflow?.();
+  }, []);
+
   const toolbarExtras = (
     <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={refreshPagination}
+        disabled={!paginated}
+        title="Пересчитать разбиение на страницы"
+      >
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Обновить страницы
+      </Button>
       <Button
         variant={paginated ? "default" : "outline"}
         size="sm"
