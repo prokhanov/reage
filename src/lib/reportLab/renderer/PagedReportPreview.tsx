@@ -579,15 +579,17 @@ function needsReflow(output: HTMLElement): boolean {
  * и превращаем их в contentEditable. paged.js может расщепить один блок на две
  * страницы — тогда мы соединяем HTML всех фрагментов.
  *
- * onChange вызывается на каждом input (debounced ~150ms) — родитель кладёт
- * markdown в drafts → React перерендеривает превью → Paged.js пересобирает
- * страницы, и весь текст ниже съезжает в реальном времени, как в Google Docs.
- * onBlur вызывается при потере фокуса (используем для финального сохранения).
+ * onChange вызывается на blur (для совместимости — драфты собираются
+ * из DOM в момент «Сохранить», см. window.__reportLabCollectDrafts).
+ * Полная перепагинация Paged.js запускается ТОЛЬКО когда контент реально
+ * вылез за границу страницы или наверху освободилось место — как в Google
+ * Docs, набор без переполнения обходится без реф-лоу.
  */
 function installEditableOverlay(
   output: HTMLElement,
   onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
+  triggerReflow: () => void,
 ) {
   const toolbar = ensureToolbar(output);
 
@@ -617,6 +619,27 @@ function installEditableOverlay(
   };
   w.__reportLabCollectDrafts = collectAllMarkdown;
 
+  // ─── Debounced overflow-check ───────────────────────────────────────────
+  // rAF + trailing 250 мс: одна проверка на пачку keystroke'ов; если layout
+  // требует пересборки — дёргаем triggerReflow (build с сохранением caret).
+  let reflowTimer: number | null = null;
+  let rafId: number | null = null;
+  const scheduleReflowCheck = (force = false) => {
+    if (reflowTimer !== null) window.clearTimeout(reflowTimer);
+    const delay = force ? 0 : 250;
+    reflowTimer = window.setTimeout(() => {
+      reflowTimer = null;
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (needsReflow(output)) triggerReflow();
+      });
+    }, delay);
+  };
+  // экспонируем для bubble-toolbar (Bold/Italic/списки).
+  (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
+    __rlScheduleReflow = scheduleReflowCheck;
+
   const editables = Array.from(
     output.querySelectorAll<HTMLElement>("[data-editable-id]"),
   );
@@ -624,27 +647,21 @@ function installEditableOverlay(
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
 
-    let inputTimer: number | null = null;
     el.addEventListener("input", (event) => {
-      const id = el.getAttribute("data-editable-id");
-      if (!id) return;
-      if (inputTimer !== null) window.clearTimeout(inputTimer);
       const inputType = (event as InputEvent).inputType;
-      const delay = inputType === "insertParagraph" || inputType === "insertLineBreak" ? 0 : 150;
-      inputTimer = window.setTimeout(() => {
-        inputTimer = null;
-        onChange(id, collectMarkdown(id));
-      }, delay);
+      // Enter/удаление пустой строки могут сразу изменить высоту блока —
+      // не ждём idle, проверяем на ближайшем кадре.
+      const force =
+        inputType === "insertParagraph" ||
+        inputType === "insertLineBreak" ||
+        inputType === "deleteContentBackward" ||
+        inputType === "deleteContentForward";
+      scheduleReflowCheck(force);
     });
-
 
     el.addEventListener("blur", () => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
-      if (inputTimer !== null) {
-        window.clearTimeout(inputTimer);
-        inputTimer = null;
-      }
       onBlur(id, collectMarkdown(id));
       setTimeout(() => {
         if (!output.contains(document.activeElement)) {
@@ -653,6 +670,7 @@ function installEditableOverlay(
       }, 100);
     });
   });
+
 
 
   const showToolbar = () => {
