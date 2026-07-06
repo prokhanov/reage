@@ -147,18 +147,18 @@ Deno.serve(async (req) => {
       if (!support.blocking) {
         logError("preview_support_check_inconclusive_continue", support);
       } else {
-      logError("preview_frontend_outdated", support);
-      return json(
-        {
-          error: "preview_frontend_outdated",
-          requestId,
-          details:
-            "Опубликованная preview-страница ещё не умеет читать свежий JSON-снимок отчёта. Иначе PDF снова будет старой версией.",
-          previewBase,
-          reason: support.reason,
-        },
-        409,
-      );
+        logError("preview_frontend_outdated", support);
+        return json(
+          {
+            error: "preview_frontend_outdated",
+            requestId,
+            details:
+              "Опубликованная preview-страница ещё не умеет читать свежий JSON-снимок отчёта. Иначе PDF снова будет старой версией.",
+            previewBase,
+            reason: support.reason,
+          },
+          409,
+        );
       }
     }
   }
