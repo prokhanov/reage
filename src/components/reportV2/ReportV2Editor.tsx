@@ -179,27 +179,34 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
     );
   }
 
-  const toolbar = (
+  const toolbarExtras = (
+    <>
+      <Button
+        variant={paginated ? "default" : "outline"}
+        size="sm"
+        onClick={() => setPaginated((v) => !v)}
+      >
+        {paginated ? "Постранично" : "Потоком"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
+        {rendering ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Download className="mr-2 h-4 w-4" />
+        )}
+        Скачать PDF (v2)
+      </Button>
+    </>
+  );
+
+  const toolbarWrap = (extra: React.ReactNode) => (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
       <div className="text-xs text-muted-foreground">
         <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant={paginated ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPaginated((v) => !v)}
-        >
-          {paginated ? "Постранично" : "Потоком"}
-        </Button>
-        <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
-          {rendering ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 h-4 w-4" />
-          )}
-          Скачать PDF (v2)
-        </Button>
+        {extra}
+        {toolbarExtras}
       </div>
     </div>
   );
@@ -207,7 +214,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
   if (mode === "view") {
     return (
       <div className="report-v2-scope">
-        {toolbar}
+        {toolbarWrap(null)}
         <Alert className="mb-3">
           <Info className="h-4 w-4" />
           <AlertDescription className="text-xs">
@@ -230,14 +237,28 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
 
   return (
     <div className="report-v2-scope">
-      {toolbar}
-      <ReportEditorShell report={report} onReportUpdate={handleReportUpdate} persist>
+      <ReportEditorShell
+        report={report}
+        onReportUpdate={handleReportUpdate}
+        persist
+        initialMode="edit"
+        hideToolbar
+      >
         {({ mode: shellMode }) => (
-          <EditablePreview
-            report={report}
-            paginated={paginated}
-            editable={shellMode === "edit"}
-          />
+          <>
+            {toolbarWrap(
+              <ReportEditorToolbar
+                report={report}
+                onReportUpdate={handleReportUpdate}
+                persist
+              />,
+            )}
+            <EditablePreview
+              report={report}
+              paginated={paginated}
+              editable={shellMode === "edit"}
+            />
+          </>
         )}
       </ReportEditorShell>
     </div>
