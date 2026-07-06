@@ -607,7 +607,18 @@ export function EditReportDialog({
 
 
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            {loading ? (
+            {viewMode === "v2" && ENABLE_REPORT_V2 && analysisId && analysisUserId ? (
+              <div className="flex-1 overflow-auto min-h-0">
+                <ReportV2Editor
+                  analysisId={analysisId}
+                  userId={analysisUserId}
+                  mode="edit"
+                  onSaved={loadRecommendations}
+                />
+              </div>
+            ) : viewMode === "v2" && ENABLE_REPORT_V2 && !analysisUserId ? (
+              <AdminCenterLoader />
+            ) : loading ? (
               <AdminCenterLoader />
             ) : (
               <div className="flex-1 overflow-hidden flex flex-col">
