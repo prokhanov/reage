@@ -920,6 +920,7 @@ function installCoverInlineEditor(
     const next = Math.max(6, currentPx(selected) + delta);
     selected.style.fontSize = `${next}px`;
     positionPanel();
+    emit();
   };
 
   const nudge = (dx: number, dy: number) => {
@@ -930,6 +931,7 @@ function installCoverInlineEditor(
     const y = (m ? parseFloat(m[2]) : 0) + dy;
     selected.style.transform = `translate(${x}px, ${y}px)`;
     positionPanel();
+    emit();
   };
 
   const resetEl = () => {
@@ -940,7 +942,10 @@ function installCoverInlineEditor(
     selected.style.textAlign = "";
     selected.style.fontWeight = "";
     selected.style.fontStyle = "";
+    const key = selected.getAttribute("data-cover-el");
+    if (key) htmlDirty.delete(key);
     positionPanel();
+    emit();
   };
 
   const toggleStyle = (prop: "fontWeight" | "fontStyle" | "textAlign", on: string, off: string) => {
@@ -948,6 +953,7 @@ function installCoverInlineEditor(
     const cur = selected.style[prop];
     selected.style[prop] = cur === on ? off : on;
     positionPanel();
+    emit();
   };
 
   // Row 1: text formatting
