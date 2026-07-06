@@ -219,7 +219,7 @@ serve(async (req) => {
       supabase.from("subscriptions").select("plan_id, status, start_date, subscription_plans(name, display_name)").eq("user_id", targetUserId).eq("status", "active").order("start_date", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("analysis_bookings").select("booking_date, status").eq("user_id", targetUserId).gte("booking_date", new Date().toISOString().slice(0, 10)).order("booking_date", { ascending: true }),
       supabase.from("prescription_adherence").select("status").eq("user_id", targetUserId).gte("date", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10)),
-      supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).eq("status", "processed").not("biological_age", "is", null).order("date", { ascending: true }),
+      supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).not("biological_age", "is", null).order("date", { ascending: true }),
     ]);
 
 
