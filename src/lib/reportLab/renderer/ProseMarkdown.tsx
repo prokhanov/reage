@@ -60,16 +60,14 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
               const text = extractText(children).trim();
               if (text === "Интерпретация биомаркеров") {
                 return (
-                  <p
-                    {...props}
-                    className="rl-page-break-before rl-subheading"
-                  >
+                  <p {...props} className="rl-subheading">
                     {children}
                   </p>
                 );
               }
               return <p {...props}>{children}</p>;
             },
+
           }}
         >
           {clean}
