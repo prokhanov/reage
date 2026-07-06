@@ -9,7 +9,7 @@
 //
 // Секреты (создаются перед первым деплоем — см. README):
 //   REPORT_PREVIEW_HMAC_SECRET   — общий с mint-preview-token, HMAC ключ.
-//   PREVIEW_BASE_URL             — https://reage.lovable.app (или test.reage.life)
+//   PREVIEW_BASE_URL             — https://reage.life (production через Coolify) или test.reage.life
 //   REPORT_RENDERER_URL          — https://reage-report-renderer.fly.dev
 //   REPORT_RENDERER_AUTH_TOKEN   — совпадает с AUTH_TOKEN на Fly-стороне.
 
@@ -144,6 +144,9 @@ Deno.serve(async (req) => {
   if (snapshotStored) {
     const support = await previewSupportsSnapshot(previewBase);
     if (!support.ok) {
+      if (!support.blocking) {
+        logError("preview_support_check_inconclusive_continue", support);
+      } else {
       logError("preview_frontend_outdated", support);
       return json(
         {
@@ -156,6 +159,7 @@ Deno.serve(async (req) => {
         },
         409,
       );
+      }
     }
   }
 
@@ -252,14 +256,20 @@ interface TokenClaims { reportId: string; exp: number }
 
 async function previewSupportsSnapshot(
   previewBase: string,
-): Promise<{ ok: true } | { ok: false; reason: string }> {
+): Promise<{ ok: true } | { ok: false; reason: string; blocking: boolean }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PREVIEW_SUPPORT_TIMEOUT_MS);
   try {
     const htmlRes = await fetch(`${previewBase}/internal/report-preview`, {
+      headers: {
+        "Cache-Control": "no-cache",
+        "User-Agent": "ReAge-PDF-SupportCheck/1.0",
+      },
       signal: controller.signal,
     });
-    if (!htmlRes.ok) return { ok: false, reason: `preview_html_http_${htmlRes.status}` };
+    if (!htmlRes.ok) {
+      return { ok: false, reason: `preview_html_http_${htmlRes.status}`, blocking: false };
+    }
     const html = await htmlRes.text();
     const assetMatches = [...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))["']/gi)]
       .map((m) => m[1])
@@ -276,12 +286,12 @@ async function previewSupportsSnapshot(
         return { ok: true };
       }
     }
-    return { ok: false, reason: "snapshot_loader_not_found_in_published_assets" };
+    return { ok: false, reason: "snapshot_loader_not_found_in_published_assets", blocking: true };
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") {
-      return { ok: false, reason: "preview_support_check_timeout" };
+      return { ok: false, reason: "preview_support_check_timeout", blocking: false };
     }
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    return { ok: false, reason: e instanceof Error ? e.message : String(e), blocking: false };
   } finally {
     clearTimeout(timeout);
   }
