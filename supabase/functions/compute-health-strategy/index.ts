@@ -212,14 +212,14 @@ serve(async (req) => {
 
     const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
-      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, aging_weight))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
+      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, aging_weight))").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).order("date", { ascending: false }).limit(1),
       supabase.from("prescriptions").select("*").eq("user_id", targetUserId).eq("is_archived", false),
       supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
       supabase.from("complaints").select("main_complaints, goals, lifestyle").eq("user_id", targetUserId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("subscriptions").select("plan_id, status, start_date, subscription_plans(name, display_name)").eq("user_id", targetUserId).eq("status", "active").order("start_date", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("analysis_bookings").select("booking_date, status").eq("user_id", targetUserId).gte("booking_date", new Date().toISOString().slice(0, 10)).order("booking_date", { ascending: true }),
       supabase.from("prescription_adherence").select("status").eq("user_id", targetUserId).gte("date", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10)),
-      supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).eq("status", "processed").not("biological_age", "is", null).order("date", { ascending: true }),
+      supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).not("biological_age", "is", null).order("date", { ascending: true }),
     ]);
 
 
