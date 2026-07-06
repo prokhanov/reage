@@ -661,24 +661,20 @@ function installEditableOverlay(
   };
   w.__reportLabCollectDrafts = collectAllMarkdown;
 
-  // ─── Debounced overflow-check ───────────────────────────────────────────
-  // rAF + trailing 250 мс: одна проверка на пачку keystroke'ов; если layout
-  // требует пересборки — дёргаем triggerReflow (build с сохранением caret).
-  let reflowTimer: number | null = null;
-  let rafId: number | null = null;
-  const scheduleReflowCheck = (force = false) => {
-    if (reflowTimer !== null) window.clearTimeout(reflowTimer);
-    const delay = force ? 0 : 250;
-    reflowTimer = window.setTimeout(() => {
-      reflowTimer = null;
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        if (needsReflow(output)) triggerReflow();
-      });
-    }, delay);
+  // ─── Live-reflow отключён ───────────────────────────────────────────────
+  // Попытка автоматической перепагинации во время набора приводила к потере
+  // текста: htmlToMarkdown-roundtrip после Enter/split мог дропнуть куски
+  // блока, и Paged.js рендерил уже без них. До появления инкрементального
+  // layout'а держим правки полностью в contentEditable DOM, а Paged.js
+  // пересобирает страницы ОДИН раз — при «Сохранить» (см. handleReportUpdate
+  // в ReportV2Editor). Если во время набора текст переполнит границу
+  // страницы — он визуально клипнется, но не будет утерян.
+  const scheduleReflowCheck = (_force = false) => {
+    void _force;
+    // no-op: пересчёт страниц происходит только при явном сохранении.
+    void triggerReflow;
   };
-  // экспонируем для bubble-toolbar (Bold/Italic/списки).
+  // Экспонируем для совместимости с bubble-toolbar (Bold/Italic/H2/H3).
   (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
     __rlScheduleReflow = scheduleReflowCheck;
 
@@ -688,16 +684,9 @@ function installEditableOverlay(
   editables.forEach((el) => {
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
+    // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
+    // Save через window.__reportLabCollectDrafts().
 
-    el.addEventListener("input", (event) => {
-      const inputType = (event as InputEvent).inputType;
-      // Enter/удаление пустой строки могут сразу изменить высоту блока —
-      // не ждём idle, проверяем на ближайшем кадре.
-      const force =
-        inputType === "insertParagraph" ||
-        inputType === "insertLineBreak" ||
-        inputType === "deleteContentBackward" ||
-        inputType === "deleteContentForward";
       scheduleReflowCheck(force);
     });
 
