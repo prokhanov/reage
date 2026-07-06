@@ -179,10 +179,11 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
     );
   }
 
-  const refreshPagination = useCallback(() => {
+  const refreshPagination = () => {
     const w = window as typeof window & { __reportLabReflow?: () => void };
     w.__reportLabReflow?.();
-  }, []);
+  };
+
 
   const toolbarExtras = (
     <>
