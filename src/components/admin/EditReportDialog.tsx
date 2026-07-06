@@ -19,6 +19,13 @@ import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { sanitizeLifestyle, extractFollowUpsFromLifestyle, mergeFollowUps } from "@/components/prescriptions/AdvisorySections";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Badge as UiBadge } from "@/components/ui/badge";
+import { ReportV2Editor } from "@/components/reportV2/ReportV2Editor";
+
+/** Beta-флаг нового рендерера отчётов. Снять в false → тумблер и v2 исчезают. */
+const ENABLE_REPORT_V2 = true;
+const REPORT_V2_STORAGE_KEY = "editReportViewMode";
 
 interface Recommendation {
   id: string;
