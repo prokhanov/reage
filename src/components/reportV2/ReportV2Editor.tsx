@@ -276,12 +276,19 @@ function EditablePreview({
 }) {
   const ctx = useReportEditor();
   if (!paginated) return <ReportDocument report={report} />;
+  // ВАЖНО: во время набора мы НЕ обновляем React-состояние drafts,
+  // иначе Paged.js перезапускает полную пагинацию на каждый keystroke
+  // (курсор прыгает, ощутимые лаги). Правки уже видны в DOM
+  // (contentEditable). Фактические drafts собираются из DOM в момент
+  // «Сохранить» через window.__reportLabCollectDrafts().
   return (
     <PagedReportPreview
       report={report}
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
-      onEditChange={(id, md) => ctx?.setDraft(id, md)}
+      onEditChange={() => {
+        /* no-op: не триггерим re-render/re-pagination */
+      }}
       coverOverrides={ctx?.coverOverrides ?? report.coverOverrides ?? null}
       onCoverOverridesChange={(next) => ctx?.setCoverOverrides(next)}
     />

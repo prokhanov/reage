@@ -58,7 +58,14 @@ export function ReportEditorToolbar({
   };
 
   const save = async () => {
-    const changed = collectDirtyRecommendations(report, drafts).map((c) => ({
+    // Правки собираем из DOM (contentEditable — источник истины во время набора),
+    // а не из ctx.drafts — во время редактирования мы не обновляем React state,
+    // чтобы не перезапускать Paged.js на каждый keystroke.
+    const w = window as typeof window & {
+      __reportLabCollectDrafts?: () => Record<string, string>;
+    };
+    const liveDrafts = w.__reportLabCollectDrafts?.() ?? drafts;
+    const changed = collectDirtyRecommendations(report, liveDrafts).map((c) => ({
       ...c,
       // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
       text: cleanMarkdownArtifacts(c.text),
@@ -144,8 +151,7 @@ function ModeBanner() {
       <div>
         Режим редактирования: кликните по тексту, выделите фрагмент — появится
         панель форматирования (жирный/курсив, выравнивание, цвет, размер).
-        После потери фокуса разметка пересчитается и текст сдвинется по
-        страницам.
+        Текст пересчитается по страницам после нажатия «Сохранить».
       </div>
       <div className="text-[11px] opacity-90">
         Переменные обложки (в тексте — как <code>{"{{имя}}"}</code>):{" "}
