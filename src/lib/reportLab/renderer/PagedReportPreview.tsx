@@ -213,6 +213,12 @@ function ensureToolbar(container: HTMLElement): HTMLDivElement {
       /* ignore */
     }
     document.execCommand(cmd, false, val);
+    // Проверить, изменилась ли высота: bold обычно нет — без reflow;
+    // списки/H2/H3 — почти всегда да.
+    const sched = (container as HTMLElement & {
+      __rlScheduleReflow?: (force?: boolean) => void;
+    }).__rlScheduleReflow;
+    if (sched) sched(cmd !== "bold" && cmd !== "italic");
   };
   bar.append(
     mkBtn("<b>B</b>", "Полужирный", () => exec("bold")),
