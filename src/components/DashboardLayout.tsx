@@ -16,18 +16,11 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { demoMode, toggleDemoMode } = useDemoMode();
-  const { isViewMode } = useViewAsUser();
-  const { data: roleData, isLoading: isRoleLoading } = useUserRole();
 
-  // В режиме "просмотр как пациент" показываем баннер, если у пациента включён демо-режим,
-  // чтобы ЛК выглядел один в один как у клиента.
-  const canShowDemoBanner = isViewMode
-    ? demoMode
-    : demoMode &&
-      !isRoleLoading &&
-      roleData?.isPatient === true &&
-      roleData?.userRole === "Пациент" &&
-      !roleData?.isSuperAdmin;
+  // Баннер показываем всегда, когда демо-режим включён — и у пациента,
+  // и у админа (в том числе в режиме "просмотр как пациент").
+  const canShowDemoBanner = demoMode;
+
 
   
 
