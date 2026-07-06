@@ -279,6 +279,8 @@ export function getFormulaDescription(code: string): string | null {
       return "ApoB / ApoA1";
     case "non-HDL":
       return "Общий холестерин − HDL";
+    case "FAI":
+      return "Тестостерон общий / SHBG × 100";
     default:
       return null;
   }
