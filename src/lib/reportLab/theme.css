@@ -676,3 +676,14 @@ html, body {
 .reportlab .rl-editable-wrap .ProseMirror h3:first-child {
   margin-top: 0;
 }
+
+/* Гарантируем видимую подсветку выделения в contentEditable-блоках
+   отчёта (paged.js использует column-fragmentation, из-за чего браузерная
+   подсветка первого символа иногда «съедается»). */
+.reportlab [data-editable-id] ::selection,
+.reportlab [data-editable-id]::selection,
+.reportlab .rl-editable-wrap .ProseMirror ::selection,
+.reportlab .rl-editable-wrap .ProseMirror::selection {
+  background: rgba(181, 138, 68, 0.35);
+  color: inherit;
+}

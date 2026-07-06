@@ -21,8 +21,8 @@ interface ReportEditorState {
 
 const Ctx = createContext<ReportEditorState | null>(null);
 
-export function ReportEditorProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<Mode>("view");
+export function ReportEditorProvider({ children, initialMode = "view" }: { children: ReactNode; initialMode?: Mode }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const setDraft = useCallback((id: string, markdown: string) => {

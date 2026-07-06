@@ -906,24 +906,22 @@ export function EditReportDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
+          <div className="flex justify-end gap-3 pt-4 shrink-0">
             <Button
               onClick={handleSaveChanges}
               disabled={saving || loading}
-              title={viewMode === "v2" ? "Сохранить статус (текст правится в шапке v2-редактора)" : undefined}
             >
               {saving ? (
                 <>
                   <ButtonSpinner className="mr-2" />
                   Сохранение...
                 </>
-              ) : viewMode === "v2" ? (
-                "Сохранить статус"
               ) : (
-                "Сохранить изменения"
+                "Сохранить"
               )}
             </Button>
           </div>
+
 
           {(qaRunning || qaEvents.length > 0) && (
             <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">

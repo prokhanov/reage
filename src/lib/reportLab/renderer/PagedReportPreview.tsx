@@ -195,6 +195,13 @@ function ensureToolbar(container: HTMLElement): HTMLDivElement {
   };
 
   const exec = (cmd: string, val?: string) => {
+    // Заставляем execCommand использовать теги (<b>/<i>) вместо inline-style,
+    // иначе htmlToMarkdown теряет форматирование при ре-рендере.
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+    } catch {
+      /* ignore */
+    }
     document.execCommand(cmd, false, val);
   };
   bar.append(
