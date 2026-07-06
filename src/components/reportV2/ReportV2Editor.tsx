@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { notify as toast } from "@/lib/toast";
 import { PagedReportPreview, ReportDocument } from "@/lib/reportLab/renderer";
-import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
+import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
