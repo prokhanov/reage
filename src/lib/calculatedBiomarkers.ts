@@ -167,18 +167,26 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     },
     precision: 1,
   },
-  // OSI-proxy = (MDA / GSH) × 1000 — прокси-индекс оксидативного стресса.
-  // Низкие значения = баланс в сторону антиоксидантной защиты; высокие = окислительный перевес.
+  // Соотношение ApoB / ApoA1 — независимый маркер атерогенного риска.
   {
-    outputCode: "OSI-proxy",
-    requiredInputs: ["MDA", "GSH"],
-    compute: ({ MDA, GSH }) => {
-      if (!GSH || GSH <= 0) return null;
-      return (MDA / GSH) * 1000;
+    outputCode: "ApoB/A1",
+    requiredInputs: ["ApoB", "ApoA1"],
+    compute: ({ ApoB, ApoA1 }) => {
+      if (ApoA1 <= 0) return null;
+      return ApoB / ApoA1;
     },
-    precision: 3,
+    precision: 2,
   },
-
+  // non-HDL холестерин = Общий холестерин − HDL (ммоль/л)
+  {
+    outputCode: "non-HDL",
+    requiredInputs: ["TC", "HDL"],
+    compute: ({ TC, HDL }) => {
+      const v = TC - HDL;
+      return v > 0 ? v : null;
+    },
+    precision: 2,
+  },
 ];
 
 
@@ -257,8 +265,10 @@ export function getFormulaDescription(code: string): string | null {
       return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
     case "TSAT":
       return "Fe / (Трансферрин × 25.1) × 100";
-    case "OSI-proxy":
-      return "(MDA / GSH) × 1000";
+    case "ApoB/A1":
+      return "ApoB / ApoA1";
+    case "non-HDL":
+      return "Общий холестерин − HDL";
     default:
       return null;
   }
