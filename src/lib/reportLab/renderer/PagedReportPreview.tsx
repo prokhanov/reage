@@ -266,6 +266,8 @@ export function PagedReportPreview({
   // Сериализация ребилдов: один Previewer одновременно, иначе Paged.js падает
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
+  // Ссылка на функцию перепагинации — вызывается из DOM-оверлея на overflow.
+  const triggerReflowRef = useRef<() => void>(() => {});
 
   const draftsSnapshot = drafts ?? {};
   const html = useMemo(
@@ -281,6 +283,11 @@ export function PagedReportPreview({
       ),
     [report, draftsSnapshot, editable, coverOverrides],
   );
+  // Актуальный html доступен из imperative триггера reflow.
+  const htmlRef = useRef(html);
+  htmlRef.current = html;
+  const editableRef = useRef(editable);
+  editableRef.current = editable;
 
   useEffect(() => {
     const output = outputRef.current;
@@ -291,14 +298,17 @@ export function PagedReportPreview({
     const build = async () => {
       if (token.cancelled) return;
 
+      const currentHtml = htmlRef.current;
+      const isEditable = editableRef.current;
+
       // Сохраняем caret/scroll ДО перепагинации.
       const hasExisting = !!output.querySelector(".pagedjs_pages");
-      const caret: CaretSnapshot = hasExisting && editable ? saveCaret(output) : null;
+      const caret: CaretSnapshot = hasExisting && isEditable ? saveCaret(output) : null;
       const scrollContainer = getScrollContainer(output);
       const scrollTop = scrollContainer?.scrollTop ?? 0;
 
       const content = document.createElement("template");
-      content.innerHTML = html;
+      content.innerHTML = currentHtml;
 
       // Запоминаем существующие страницы: их удалим ПОСЛЕ того, как
       // Paged.js допишет новые — никакого пустого промежутка на экране.
@@ -324,7 +334,7 @@ export function PagedReportPreview({
         oldPages.forEach((el) => el.remove());
         output.dataset.paged = "ready";
 
-        if (editable) {
+        if (isEditable) {
           installEditableOverlay(
             output,
             (id, md) => onEditChangeRef.current?.(id, md),
@@ -332,14 +342,28 @@ export function PagedReportPreview({
               onEditBlurRef.current?.(id, md);
               onEditChangeRef.current?.(id, md);
             },
+            () => triggerReflowRef.current(),
           );
           installCoverInlineEditor(
             output,
             coverOverridesRef.current,
             (next) => onCoverOverridesChangeRef.current?.(next),
           );
-          if (caret) restoreCaret(output, caret);
           if (scrollContainer) scrollContainer.scrollTop = scrollTop;
+          if (caret) {
+            const newY = restoreCaret(output, caret);
+            // Scroll-компенсация: если после reflow каретка визуально
+            // ускакала — доскроллим на разницу, чтобы пользователь не
+            // почувствовал прыжок (важно для клика Bold и вставки Enter).
+            if (
+              scrollContainer &&
+              caret.caretViewportY != null &&
+              newY != null
+            ) {
+              const dy = newY - caret.caretViewportY;
+              if (Math.abs(dy) > 2) scrollContainer.scrollTop += dy;
+            }
+          }
         }
 
         if (signalReady) {
@@ -356,6 +380,11 @@ export function PagedReportPreview({
       }
     };
 
+    // Imperative-триггер: доступен во время всей жизни useEffect.
+    triggerReflowRef.current = () => {
+      runQueueRef.current = runQueueRef.current.then(build, build);
+    };
+
     // Сериализация через .then-цепочку: следующий build стартует только
     // ПОСЛЕ того как предыдущий завершил свой Previewer.preview.
     runQueueRef.current = runQueueRef.current.then(build, build);
@@ -364,6 +393,7 @@ export function PagedReportPreview({
 
     return () => {
       token.cancelled = true;
+      triggerReflowRef.current = () => {};
       // output НЕ чистим — swap следующего успешного билда его обновит.
     };
   }, [html, signalReady, editable]);
