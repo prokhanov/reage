@@ -17,16 +17,20 @@ interface Props {
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   /** Persist changes to Supabase.recommendations. Если false — только локально. */
   persist?: boolean;
+  /** Starting mode (default "view"). */
+  initialMode?: "view" | "edit";
+  /** Скрыть встроенный тулбар — родитель отрисует его сам через ReportEditorToolbar. */
+  hideToolbar?: boolean;
 }
 
-function Toolbar({
+export function ReportEditorToolbar({
   report,
   onReportUpdate,
-  persist,
+  persist = true,
 }: {
   report: LabReport;
   onReportUpdate: (next: LabReport) => void;
-  persist: boolean;
+  persist?: boolean;
 }) {
   const ctx = useReportEditor();
   const [saving, setSaving] = useState(false);
