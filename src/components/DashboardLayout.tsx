@@ -6,8 +6,6 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
-import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { useUserRole } from "@/hooks/useUserRole";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
