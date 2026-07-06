@@ -132,7 +132,13 @@ interface Props {
   onEditBlur?: (editableId: string, markdown: string) => void;
 }
 
-type CaretSnapshot = { editableId: string; offset: number } | null;
+type CaretSnapshot = {
+  editableId: string;
+  startOffset: number;
+  endOffset: number;
+  /** Viewport-Y каретки на момент снапшота — для компенсации скролла после reflow. */
+  caretViewportY: number | null;
+} | null;
 
 function emitReady(extra?: Record<string, unknown>) {
   const w = window as unknown as {
