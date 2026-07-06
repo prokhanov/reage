@@ -87,6 +87,7 @@ export type Database = {
         Row: {
           biological_age: number | null
           biomarkers_metadata: Json | null
+          cover_overrides: Json | null
           created_at: string
           date: string
           health_index: number | null
@@ -99,6 +100,7 @@ export type Database = {
         Insert: {
           biological_age?: number | null
           biomarkers_metadata?: Json | null
+          cover_overrides?: Json | null
           created_at?: string
           date: string
           health_index?: number | null
@@ -111,6 +113,7 @@ export type Database = {
         Update: {
           biological_age?: number | null
           biomarkers_metadata?: Json | null
+          cover_overrides?: Json | null
           created_at?: string
           date?: string
           health_index?: number | null

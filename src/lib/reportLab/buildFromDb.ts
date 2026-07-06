@@ -10,6 +10,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type {
+  CoverOverrides,
   LabReport,
   ReportAnalysis,
   ReportBiomarker,
@@ -34,6 +35,7 @@ type AnalysisRow = {
   note: string | null;
   health_index: number | null;
   biological_age: number | null;
+  cover_overrides: unknown;
 };
 
 type ValueRow = {
@@ -123,7 +125,7 @@ export async function buildLabReportFromDb(
     await Promise.all([
       supabase
         .from("analyses")
-        .select("id, date, lab_name, note, health_index, biological_age")
+        .select("id, date, lab_name, note, health_index, biological_age, cover_overrides")
         .eq("id", analysisId)
         .maybeSingle(),
       supabase
@@ -216,6 +218,11 @@ export async function buildLabReportFromDb(
     effect: row.effect ?? null,
   }));
 
+  const coverOverrides: CoverOverrides | null =
+    analysisRow.cover_overrides && typeof analysisRow.cover_overrides === "object"
+      ? (analysisRow.cover_overrides as CoverOverrides)
+      : null;
+
   const report: LabReport = {
     version: 1,
     generatedAt: new Date().toISOString(),
@@ -224,6 +231,7 @@ export async function buildLabReportFromDb(
     recommendations,
     biomarkers,
     prescriptions,
+    coverOverrides,
   };
 
   return report;

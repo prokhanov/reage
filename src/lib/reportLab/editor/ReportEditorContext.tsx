@@ -2,10 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import type { CoverOverrides } from "../types";
 
 type Mode = "view" | "edit";
 
@@ -17,13 +19,34 @@ interface ReportEditorState {
   flushDraftsFromDom: () => Record<string, string>;
   resetDrafts: () => void;
   drafts: Record<string, string>;
+  /** Правки обложки в процессе редактирования (не сохранённые). */
+  coverOverrides: CoverOverrides | null;
+  setCoverOverrides: (v: CoverOverrides | null) => void;
+  /** Оригинальный snapshot из БД — нужен для точного сравнения при сохранении. */
+  initialCoverOverrides: CoverOverrides | null;
 }
 
 const Ctx = createContext<ReportEditorState | null>(null);
 
-export function ReportEditorProvider({ children, initialMode = "view" }: { children: ReactNode; initialMode?: Mode }) {
+export function ReportEditorProvider({
+  children,
+  initialMode = "view",
+  initialCoverOverrides = null,
+}: {
+  children: ReactNode;
+  initialMode?: Mode;
+  initialCoverOverrides?: CoverOverrides | null;
+}) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [coverOverrides, setCoverOverrides] = useState<CoverOverrides | null>(
+    initialCoverOverrides,
+  );
+
+  // Если родитель перезагрузил report — синхронизируем стартовые overrides.
+  useEffect(() => {
+    setCoverOverrides(initialCoverOverrides);
+  }, [initialCoverOverrides]);
 
   const setDraft = useCallback((id: string, markdown: string) => {
     setDrafts((d) => ({ ...d, [id]: markdown }));
@@ -42,11 +65,34 @@ export function ReportEditorProvider({ children, initialMode = "view" }: { child
     return { ...drafts, ...liveDrafts };
   }, [drafts]);
 
-  const resetDrafts = useCallback(() => setDrafts({}), []);
+  const resetDrafts = useCallback(() => {
+    setDrafts({});
+    setCoverOverrides(initialCoverOverrides);
+  }, [initialCoverOverrides]);
 
   const value = useMemo(
-    () => ({ mode, setMode, getDraft, setDraft, flushDraftsFromDom, resetDrafts, drafts }),
-    [mode, getDraft, setDraft, flushDraftsFromDom, resetDrafts, drafts],
+    () => ({
+      mode,
+      setMode,
+      getDraft,
+      setDraft,
+      flushDraftsFromDom,
+      resetDrafts,
+      drafts,
+      coverOverrides,
+      setCoverOverrides,
+      initialCoverOverrides,
+    }),
+    [
+      mode,
+      getDraft,
+      setDraft,
+      flushDraftsFromDom,
+      resetDrafts,
+      drafts,
+      coverOverrides,
+      initialCoverOverrides,
+    ],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -60,10 +106,12 @@ export function ReportEditorProvider({ children, initialMode = "view" }: { child
 export function StaticReportEditorProvider({
   drafts,
   mode,
+  coverOverrides = null,
   children,
 }: {
   drafts: Record<string, string>;
   mode: Mode;
+  coverOverrides?: CoverOverrides | null;
   children: ReactNode;
 }) {
   const value = useMemo<ReportEditorState>(
@@ -75,8 +123,11 @@ export function StaticReportEditorProvider({
       setDraft: () => {},
       flushDraftsFromDom: () => drafts,
       resetDrafts: () => {},
+      coverOverrides,
+      setCoverOverrides: () => {},
+      initialCoverOverrides: coverOverrides,
     }),
-    [drafts, mode],
+    [drafts, mode, coverOverrides],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

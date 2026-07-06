@@ -23,6 +23,11 @@ interface Props {
   hideToolbar?: boolean;
 }
 
+/** Глубокое сравнение JSON-совместимых значений (достаточно для CoverOverrides). */
+function jsonEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 export function ReportEditorToolbar({
   report,
   onReportUpdate,
@@ -36,7 +41,7 @@ export function ReportEditorToolbar({
   const [saving, setSaving] = useState(false);
   if (!ctx) return null;
 
-  const { mode, setMode, drafts, resetDrafts } = ctx;
+  const { mode, setMode, drafts, resetDrafts, coverOverrides } = ctx;
 
   if (mode === "view") {
     return (
@@ -58,7 +63,9 @@ export function ReportEditorToolbar({
       // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
       text: cleanMarkdownArtifacts(c.text),
     }));
-    if (changed.length === 0) {
+    const coverDirty = !jsonEqual(coverOverrides, report.coverOverrides ?? null);
+
+    if (changed.length === 0 && !coverDirty) {
       toast.info("Ничего не изменилось");
       resetDrafts();
       setMode("view");
@@ -74,19 +81,31 @@ export function ReportEditorToolbar({
             .eq("id", c.id);
           if (error) throw error;
         }
+        if (coverDirty) {
+          const { error } = await supabase
+            .from("analyses")
+            .update({ cover_overrides: (coverOverrides ?? null) as never })
+            .eq("id", report.analysis.id);
+          if (error) throw error;
+        }
       }
       const updatedRecs = report.recommendations.map((r) => {
         const hit = changed.find((c) => c.id === r.id);
         return hit ? { ...r, text: hit.text } : r;
       });
-      onReportUpdate({ ...report, recommendations: updatedRecs });
+      onReportUpdate({
+        ...report,
+        recommendations: updatedRecs,
+        coverOverrides: coverDirty ? coverOverrides : report.coverOverrides ?? null,
+      });
       resetDrafts();
       setMode("view");
+      const parts: string[] = [];
+      if (changed.length > 0) parts.push(`разделов: ${changed.length}`);
+      if (coverDirty) parts.push("обложка");
       toast.success(
         "Сохранено",
-        persist
-          ? `Обновлено разделов: ${changed.length}`
-          : `Правки применены локально: ${changed.length}`,
+        persist ? `Обновлено — ${parts.join(", ")}` : `Правки применены локально: ${parts.join(", ")}`,
       );
     } catch (e) {
       console.error(e);
@@ -189,7 +208,10 @@ export function ReportEditorShell({
   hideToolbar = false,
 }: Props) {
   return (
-    <ReportEditorProvider initialMode={initialMode}>
+    <ReportEditorProvider
+      initialMode={initialMode}
+      initialCoverOverrides={report.coverOverrides ?? null}
+    >
       <ShellInner
         report={report}
         onReportUpdate={onReportUpdate}
@@ -201,4 +223,3 @@ export function ReportEditorShell({
     </ReportEditorProvider>
   );
 }
-

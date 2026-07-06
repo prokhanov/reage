@@ -72,6 +72,32 @@ export interface ReportRecommendationRow {
   created_at: string;
 }
 
+/** Persisted per-analysis правки обложки V2. NULL/отсутствие = дефолтный шаблон. */
+export interface CoverOverrides {
+  background?: {
+    mode: "solid" | "gradient";
+    c1?: string;
+    c2?: string;
+    c3?: string;
+    angle?: number;
+    solid?: string;
+  } | null;
+  /** Ключ — значение атрибута `data-cover-el` в ReportCover.tsx */
+  elements?: Record<
+    string,
+    {
+      transform?: string;
+      fontSize?: string;
+      color?: string;
+      textAlign?: string;
+      fontWeight?: string;
+      fontStyle?: string;
+      /** Пользовательская правка innerHTML блока (если менялся текст). */
+      html?: string;
+    }
+  >;
+}
+
 export interface LabReport {
   version: 1;
   generatedAt: string;
@@ -80,6 +106,7 @@ export interface LabReport {
   recommendations: ReportRecommendationRow[];
   biomarkers: ReportBiomarker[];
   prescriptions?: ReportPrescription[];
+  coverOverrides?: CoverOverrides | null;
 }
 
 export interface ReportPrescription {

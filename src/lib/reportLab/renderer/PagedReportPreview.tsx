@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
-import type { LabReport } from "../types";
+import type { CoverOverrides, LabReport } from "../types";
 
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
@@ -117,7 +117,11 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
-  
+  /** Стартовые overrides обложки (из БД / контекста). */
+  coverOverrides?: CoverOverrides | null;
+  /** Коллбэк на любое изменение обложки в инлайн-редакторе. */
+  onCoverOverridesChange?: (next: CoverOverrides | null) => void;
+
   /**
    * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
    * и на blur — родитель должен положить markdown в drafts, что
@@ -238,7 +242,8 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
-  
+  coverOverrides = null,
+  onCoverOverridesChange,
   onEditChange,
   onEditBlur,
 }: Props) {
@@ -248,6 +253,10 @@ export function PagedReportPreview({
   onEditChangeRef.current = onEditChange;
   const onEditBlurRef = useRef(onEditBlur);
   onEditBlurRef.current = onEditBlur;
+  const onCoverOverridesChangeRef = useRef(onCoverOverridesChange);
+  onCoverOverridesChangeRef.current = onCoverOverridesChange;
+  const coverOverridesRef = useRef<CoverOverrides | null>(coverOverrides);
+  coverOverridesRef.current = coverOverrides;
   // Сериализация ребилдов: один Previewer одновременно, иначе Paged.js падает
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -259,11 +268,12 @@ export function PagedReportPreview({
         <StaticReportEditorProvider
           drafts={draftsSnapshot}
           mode={editable ? "edit" : "view"}
+          coverOverrides={coverOverrides}
         >
           <ReportDocument report={report} />
         </StaticReportEditorProvider>,
       ),
-    [report, draftsSnapshot, editable],
+    [report, draftsSnapshot, editable, coverOverrides],
   );
 
   useEffect(() => {
@@ -317,7 +327,11 @@ export function PagedReportPreview({
               onEditChangeRef.current?.(id, md);
             },
           );
-          installCoverInlineEditor(output);
+          installCoverInlineEditor(
+            output,
+            coverOverridesRef.current,
+            (next) => onCoverOverridesChangeRef.current?.(next),
+          );
           if (caret) restoreCaret(output, caret);
           if (scrollContainer) scrollContainer.scrollTop = scrollTop;
         }
@@ -621,7 +635,17 @@ function installEditableOverlay(
  */
 
 
-function installCoverInlineEditor(output: HTMLElement) {
+// Дефолтные значения градиента — соответствуют theme.css (rl-cover).
+const DEFAULT_C1 = "#1c2f47";
+const DEFAULT_C2 = "#0f1b2d";
+const DEFAULT_C3 = "#0a1220";
+const DEFAULT_ANGLE = 160;
+
+function installCoverInlineEditor(
+  output: HTMLElement,
+  initialOverrides: CoverOverrides | null,
+  onChange: (next: CoverOverrides | null) => void,
+) {
   const cover = output.querySelector<HTMLElement>("[data-cover-root]");
   if (!cover) return;
 
@@ -639,6 +663,9 @@ function installCoverInlineEditor(output: HTMLElement) {
     v.style.padding = "0 2px";
     v.style.borderRadius = "2px";
   });
+
+  // Помечаем элементы, у которых пользователь правил innerHTML.
+  const htmlDirty = new Set<string>();
 
   // ─── Постоянная панель обложки (фон / сброс всего) ─────────────────────
   const bgBar = document.createElement("div");
@@ -666,22 +693,53 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgLabel.textContent = "Фон";
   bgLabel.style.opacity = "0.8";
 
-  // Дефолтные значения градиента — соответствуют theme.css (rl-cover).
-  const DEFAULT_C1 = "#1c2f47";
-  const DEFAULT_C2 = "#0f1b2d";
-  const DEFAULT_C3 = "#0a1220";
-  const DEFAULT_ANGLE = 160;
-
+  const initialBg = initialOverrides?.background ?? null;
   const state = {
-    mode: "gradient" as "solid" | "gradient",
-    c1: DEFAULT_C1,
-    c2: DEFAULT_C2,
-    c3: DEFAULT_C3,
-    angle: DEFAULT_ANGLE,
-    solid: DEFAULT_C2,
+    mode: (initialBg?.mode ?? "gradient") as "solid" | "gradient",
+    c1: initialBg?.c1 ?? DEFAULT_C1,
+    c2: initialBg?.c2 ?? DEFAULT_C2,
+    c3: initialBg?.c3 ?? DEFAULT_C3,
+    angle: initialBg?.angle ?? DEFAULT_ANGLE,
+    solid: initialBg?.solid ?? DEFAULT_C2,
+    hasBgOverride: !!initialBg,
   };
 
+  // Собираем актуальный snapshot overrides из DOM и локального state.
+  const collectOverrides = (): CoverOverrides | null => {
+    const elements: NonNullable<CoverOverrides["elements"]> = {};
+    for (const el of els) {
+      const key = el.getAttribute("data-cover-el");
+      if (!key) continue;
+      const rec: NonNullable<CoverOverrides["elements"]>[string] = {};
+      const s = el.style;
+      if (s.transform) rec.transform = s.transform;
+      if (s.fontSize) rec.fontSize = s.fontSize;
+      if (s.color) rec.color = s.color;
+      if (s.textAlign) rec.textAlign = s.textAlign;
+      if (s.fontWeight) rec.fontWeight = s.fontWeight;
+      if (s.fontStyle) rec.fontStyle = s.fontStyle;
+      if (htmlDirty.has(key)) rec.html = el.innerHTML;
+      if (Object.keys(rec).length > 0) elements[key] = rec;
+    }
+    const background = state.hasBgOverride
+      ? state.mode === "solid"
+        ? { mode: "solid" as const, solid: state.solid }
+        : {
+            mode: "gradient" as const,
+            c1: state.c1,
+            c2: state.c2,
+            c3: state.c3,
+            angle: state.angle,
+          }
+      : null;
+    if (!background && Object.keys(elements).length === 0) return null;
+    return { background, elements };
+  };
+
+  const emit = () => onChange(collectOverrides());
+
   const applyBg = () => {
+    state.hasBgOverride = true;
     if (state.mode === "solid") {
       cover.style.background = state.solid;
     } else {
@@ -698,6 +756,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     i.addEventListener("input", () => {
       onChange(i.value);
       applyBg();
+      emit();
     });
     return i;
   };
@@ -707,10 +766,11 @@ function installCoverInlineEditor(output: HTMLElement) {
     "background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 4px;font:inherit;cursor:pointer";
   modeSel.innerHTML =
     '<option value="gradient">Градиент</option><option value="solid">Однотонный</option>';
+  modeSel.value = state.mode;
   const solidWrap = document.createElement("span");
   const gradWrap = document.createElement("span");
-  gradWrap.style.cssText = "display:flex;gap:4px;align-items:center";
-  solidWrap.style.cssText = "display:none;gap:4px;align-items:center";
+  gradWrap.style.cssText = `display:${state.mode === "gradient" ? "flex" : "none"};gap:4px;align-items:center`;
+  solidWrap.style.cssText = `display:${state.mode === "solid" ? "flex" : "none"};gap:4px;align-items:center`;
 
   const c1 = mkColor(state.c1, (v) => (state.c1 = v));
   const c2 = mkColor(state.c2, (v) => (state.c2 = v));
@@ -725,6 +785,7 @@ function installCoverInlineEditor(output: HTMLElement) {
   angle.addEventListener("input", () => {
     state.angle = parseInt(angle.value, 10);
     applyBg();
+    emit();
   });
   gradWrap.append(c1, c2, c3, angle);
 
@@ -736,6 +797,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     gradWrap.style.display = state.mode === "gradient" ? "flex" : "none";
     solidWrap.style.display = state.mode === "solid" ? "flex" : "none";
     applyBg();
+    emit();
   });
 
   const bgReset = document.createElement("button");
@@ -760,6 +822,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     state.c3 = DEFAULT_C3;
     state.angle = DEFAULT_ANGLE;
     state.solid = DEFAULT_C2;
+    state.hasBgOverride = false;
     modeSel.value = "gradient";
     c1.value = DEFAULT_C1;
     c2.value = DEFAULT_C2;
@@ -775,7 +838,11 @@ function installCoverInlineEditor(output: HTMLElement) {
       e.style.textAlign = "";
       e.style.fontWeight = "";
       e.style.fontStyle = "";
+      const key = e.getAttribute("data-cover-el");
+      if (key) htmlDirty.delete(key);
     });
+    // Полный сброс: overrides снимаются, БД получит NULL.
+    onChange(null);
   });
 
   bgBar.append(bgLabel, modeSel, gradWrap, solidWrap, bgReset);
@@ -853,6 +920,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     const next = Math.max(6, currentPx(selected) + delta);
     selected.style.fontSize = `${next}px`;
     positionPanel();
+    emit();
   };
 
   const nudge = (dx: number, dy: number) => {
@@ -863,6 +931,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     const y = (m ? parseFloat(m[2]) : 0) + dy;
     selected.style.transform = `translate(${x}px, ${y}px)`;
     positionPanel();
+    emit();
   };
 
   const resetEl = () => {
@@ -873,7 +942,10 @@ function installCoverInlineEditor(output: HTMLElement) {
     selected.style.textAlign = "";
     selected.style.fontWeight = "";
     selected.style.fontStyle = "";
+    const key = selected.getAttribute("data-cover-el");
+    if (key) htmlDirty.delete(key);
     positionPanel();
+    emit();
   };
 
   const toggleStyle = (prop: "fontWeight" | "fontStyle" | "textAlign", on: string, off: string) => {
@@ -881,6 +953,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     const cur = selected.style[prop];
     selected.style[prop] = cur === on ? off : on;
     positionPanel();
+    emit();
   };
 
   // Row 1: text formatting
@@ -904,6 +977,7 @@ function installCoverInlineEditor(output: HTMLElement) {
   colorInput.addEventListener("input", () => {
     if (!selected) return;
     selected.style.color = colorInput.value;
+    emit();
   });
   row1.append(colorLabel, colorInput);
 
@@ -990,6 +1064,12 @@ function installCoverInlineEditor(output: HTMLElement) {
       el.contentEditable = "true";
       el.focus();
     });
+    // Отслеживаем ручную правку текста в contentEditable.
+    el.addEventListener("input", () => {
+      const key = el.getAttribute("data-cover-el");
+      if (key) htmlDirty.add(key);
+      emit();
+    });
     el.addEventListener("mousedown", (e) => {
       if ((e.target as HTMLElement).isContentEditable) return;
       if (el.contentEditable === "true") return;
@@ -1013,6 +1093,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     positionPanel();
   };
   const onUp = () => {
+    if (dragging) emit();
     dragging = false;
   };
   document.addEventListener("mousemove", onMove);
