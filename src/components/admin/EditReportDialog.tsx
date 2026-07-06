@@ -206,8 +206,27 @@ export function EditReportDialog({
     if (open) {
       loadRecommendations();
       loadPrescriptions();
+      // Подтянем user_id анализа — нужен адаптеру buildLabReportFromDb.
+      (async () => {
+        const { data } = await supabase
+          .from("analyses")
+          .select("user_id")
+          .eq("id", analysisId)
+          .maybeSingle();
+        setAnalysisUserId((data as { user_id?: string } | null)?.user_id ?? null);
+      })();
     }
   }, [open, analysisId]);
+
+  const handleViewModeChange = (next: "classic" | "v2") => {
+    if (next === viewMode) return;
+    setViewMode(next);
+    try {
+      localStorage.setItem(REPORT_V2_STORAGE_KEY, next);
+    } catch {
+      // ignore
+    }
+  };
 
   const loadPrescriptions = async () => {
     try {
