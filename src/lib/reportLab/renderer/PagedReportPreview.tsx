@@ -414,75 +414,134 @@ function saveCaret(output: HTMLElement): CaretSnapshot {
   const id = el.getAttribute("data-editable-id");
   if (!id) return null;
 
-  // Считаем offset в plain-text по всем фрагментам этого id, в порядке DOM.
+  // Плоский offset считаем в plain-text по всем фрагментам этого id, в DOM-порядке.
+  // (paged.js мог расщепить блок на 2+ страницы).
   const fragments = Array.from(
     output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
   );
-  let offset = 0;
-  for (const frag of fragments) {
-    if (frag.contains(range.startContainer) || frag === range.startContainer) {
-      const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
-      let n: Node | null;
-      while ((n = walker.nextNode())) {
-        if (n === range.startContainer) {
-          offset += range.startOffset;
-          return { editableId: id, offset };
+
+  const offsetIn = (container: Node, containerOffset: number): number => {
+    let acc = 0;
+    for (const frag of fragments) {
+      if (frag.contains(container) || frag === container) {
+        const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+        let n: Node | null;
+        while ((n = walker.nextNode())) {
+          if (n === container) return acc + containerOffset;
+          acc += (n.textContent || "").length;
         }
-        offset += (n.textContent || "").length;
+        // сам фрагмент — контейнер без текстовых потомков
+        return acc + containerOffset;
       }
-      // startContainer сам является фрагментом (нет текстовых потомков)
-      return { editableId: id, offset: offset + range.startOffset };
+      acc += (frag.textContent || "").length;
     }
-    offset += (frag.textContent || "").length;
+    return acc;
+  };
+
+  const startOffset = offsetIn(range.startContainer, range.startOffset);
+  const endOffset = range.collapsed
+    ? startOffset
+    : offsetIn(range.endContainer, range.endOffset);
+
+  // Y-координата каретки в viewport — для scroll-компенсации после reflow.
+  let caretViewportY: number | null = null;
+  try {
+    const r = range.getClientRects()[0] ?? range.getBoundingClientRect();
+    if (r && (r.top || r.bottom)) caretViewportY = r.top;
+  } catch {
+    /* ignore */
   }
-  return { editableId: id, offset };
+
+  return { editableId: id, startOffset, endOffset, caretViewportY };
 }
 
-function restoreCaret(output: HTMLElement, caret: NonNullable<CaretSnapshot>) {
+/** Возвращает viewport-Y каретки после restore — для scroll-компенсации. */
+function restoreCaret(
+  output: HTMLElement,
+  caret: NonNullable<CaretSnapshot>,
+): number | null {
   const fragments = Array.from(
     output.querySelectorAll<HTMLElement>(
       `[data-editable-id="${caret.editableId}"]`,
     ),
   );
-  if (!fragments.length) return;
+  if (!fragments.length) return null;
 
-  let remaining = caret.offset;
-  for (const frag of fragments) {
-    const total = (frag.textContent || "").length;
-    if (remaining > total) {
-      remaining -= total;
-      continue;
-    }
-    const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
-    let n: Node | null;
-    while ((n = walker.nextNode())) {
-      const len = (n.textContent || "").length;
-      if (remaining <= len) {
-        try {
-          const range = document.createRange();
-          range.setStart(n, Math.max(0, Math.min(remaining, len)));
-          range.collapse(true);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-          frag.focus({ preventScroll: true });
-        } catch {
-          /* ignore */
-        }
-        return;
+  // Находит { node, offset } внутри списка фрагментов для плоского text-offset.
+  const locate = (
+    target: number,
+  ): { node: Node; offset: number; frag: HTMLElement } | null => {
+    let remaining = target;
+    for (const frag of fragments) {
+      const total = (frag.textContent || "").length;
+      if (remaining > total) {
+        remaining -= total;
+        continue;
       }
-      remaining -= len;
+      const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+      let n: Node | null;
+      while ((n = walker.nextNode())) {
+        const len = (n.textContent || "").length;
+        if (remaining <= len) {
+          return { node: n, offset: Math.max(0, Math.min(remaining, len)), frag };
+        }
+        remaining -= len;
+      }
+      return { node: frag, offset: 0, frag };
     }
-    // fragment без текстовых узлов
-    try {
-      frag.focus({ preventScroll: true });
-    } catch {
-      /* ignore */
-    }
-    return;
+    const last = fragments[fragments.length - 1];
+    return { node: last, offset: 0, frag: last };
+  };
+
+  const startLoc = locate(caret.startOffset);
+  const endLoc =
+    caret.endOffset !== caret.startOffset ? locate(caret.endOffset) : startLoc;
+  if (!startLoc || !endLoc) return null;
+
+  try {
+    const range = document.createRange();
+    range.setStart(startLoc.node, startLoc.offset);
+    range.setEnd(endLoc.node, endLoc.offset);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+    startLoc.frag.focus({ preventScroll: true });
+
+    const r = range.getClientRects()[0] ?? range.getBoundingClientRect();
+    return r && (r.top || r.bottom) ? r.top : null;
+  } catch {
+    return null;
   }
-  // fallback — фокус в конец последнего фрагмента
-  fragments[fragments.length - 1].focus({ preventScroll: true });
+}
+
+/**
+ * Проверяет, требуется ли полная перепагинация Paged.js после live-правок
+ * в contentEditable. Быстро, ~O(N страниц).
+ *   overflow  — контент вылез за низ страницы;
+ *   underfill — на предыдущей странице освободилось место (актуально при
+ *               массовом удалении), и первый блок следующей мог бы подтянуться.
+ */
+function needsReflow(output: HTMLElement): boolean {
+  const contents = Array.from(
+    output.querySelectorAll<HTMLElement>(".pagedjs_page_content"),
+  );
+  if (!contents.length) return false;
+  for (const c of contents) {
+    if (c.scrollHeight - c.clientHeight > 1) return true;
+  }
+  const pages = Array.from(output.querySelectorAll<HTMLElement>(".pagedjs_page"));
+  for (let i = 0; i < pages.length - 1; i++) {
+    const content = pages[i].querySelector<HTMLElement>(".pagedjs_page_content");
+    if (!content) continue;
+    const free = content.clientHeight - content.scrollHeight;
+    if (free <= 24) continue;
+    const nextContent = pages[i + 1].querySelector<HTMLElement>(".pagedjs_page_content");
+    const firstBlock = nextContent?.firstElementChild as HTMLElement | null;
+    if (!firstBlock) continue;
+    // если самый первый блок следующей страницы физически влез бы наверх — reflow
+    if (firstBlock.offsetHeight + 8 <= free) return true;
+  }
+  return false;
 }
 
 /**
