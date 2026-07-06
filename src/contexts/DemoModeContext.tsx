@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { resolveDemoModeAccess } from "@/lib/demoModeAccess";
 
 export interface DemoData {
   profile: any;
@@ -171,6 +172,20 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const getUserRoles = useCallback(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error fetching roles for demo mode:', error);
+      return [];
+    }
+
+    return (data || []).map((row) => row.role);
+  }, []);
+
   const fetchDemoModeStatus = useCallback(async () => {
     try {
       const userId = await getUserId();
@@ -186,6 +201,22 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', userId)
         .maybeSingle();
 
+      const roles = await getUserRoles(userId);
+      const access = resolveDemoModeAccess(roles, !!viewAsUserId);
+
+      if (!access.allowed) {
+        if (profile?.demo_mode_enabled && access.shouldClearOwnDemoFlag) {
+          await supabase
+            .from('profiles')
+            .update({ demo_mode_enabled: false })
+            .eq('id', userId);
+        }
+
+        setDemoMode(false);
+        setDemoData(null);
+        return;
+      }
+
       if (profile?.demo_mode_enabled) {
         setDemoMode(true);
         await loadDemoData(profile);
@@ -198,25 +229,44 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, [getUserId, loadDemoData]);
+  }, [getUserId, getUserRoles, loadDemoData, viewAsUserId]);
 
   useEffect(() => {
-    // Пере-запрашиваем статус демо-режима при смене просматриваемого пользователя,
-    // иначе суперадмин со своим demoMode=true видит его в режиме "просмотр как пациент".
+    // Пере-запрашиваем статус демо-режима при смене просматриваемого пользователя.
     setLoading(true);
     fetchDemoModeStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewAsUserId]);
+  }, [fetchDemoModeStatus, viewAsUserId]);
 
   const toggleDemoMode = useCallback(async (enabled: boolean): Promise<boolean> => {
     try {
       const userId = await getUserId();
       if (!userId) return false;
 
-      // Проверка «есть ли реальные анализы» — защита данных, не роль.
       if (enabled) {
+        const roles = await getUserRoles(userId);
+        const access = resolveDemoModeAccess(roles, !!viewAsUserId);
 
+        if (!access.allowed) {
+          if (access.shouldClearOwnDemoFlag) {
+            await supabase
+              .from('profiles')
+              .update({ demo_mode_enabled: false })
+              .eq('id', userId);
+          }
 
+          setDemoMode(false);
+          setDemoData(null);
+          toast({
+            title: "Демо-режим недоступен",
+            description: viewAsUserId
+              ? "Демо-режим можно включить только в кабинете пациента."
+              : "На служебном аккаунте демо-данные не используются. Откройте кабинет пациента и включите демо-режим там.",
+            variant: "destructive"
+          });
+          return false;
+        }
+
+        // Проверка «есть ли реальные анализы» — защита данных пациента.
         const { count } = await supabase
           .from('analyses')
           .select('*', { count: 'exact', head: true })
@@ -271,7 +321,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       });
       return false;
     }
-  }, [getUserId, loadDemoData, toast]);
+  }, [getUserId, getUserRoles, loadDemoData, toast, viewAsUserId]);
 
   return (
     <DemoModeContext.Provider

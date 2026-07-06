@@ -15,8 +15,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { demoMode, toggleDemoMode } = useDemoMode();
 
-  // Баннер показываем всегда, когда демо-режим включён — и у пациента,
-  // и у админа (в том числе в режиме "просмотр как пациент").
+  // Баннер показываем только когда контекст разрешил демо-режим:
+  // пациенту на своём аккаунте или админу в кабинете пациента.
   const canShowDemoBanner = demoMode;
 
 
