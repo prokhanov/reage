@@ -121,6 +121,9 @@ const App = () => (
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            {/* /email-unsubscribe — путь, который использует Lovable email-API
+                в футере транзакционных/auth-писем. НЕ переименовывать. */}
+            <Route path="/email-unsubscribe" element={<Unsubscribe />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/onboarding/:step" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />

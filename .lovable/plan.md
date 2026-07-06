@@ -1,65 +1,68 @@
-## Цель
+## Диагноз
 
-Редактор beta должен вести себя как Google Docs: набор — мгновенный, страницы обычно не «дёргаются», а перепагинация запускается только когда текст реально вылез за границу страницы (или, наоборот, освободилось место, и следующая страница может подтянуться). Клик по Bold в bubble-меню не должен смещать курсор.
+Пример ссылки из письма: `https://test.reage.life/email-unsubscribe?token=4b39b4f0-0ddd-4fef-b4c9-3191066c9d0f`.
 
-## Что не так сейчас
+Три независимых бага:
 
-- Любой keystroke → `setDraft` → React ре-рендер → полная пересборка Paged.js (~сотни мс) → сохранение/восстановление caret по plain-text offset. На длинных отчётах это лаги + иногда caret восстанавливается в другой строке (визуальный «прыжок вверх»).
-- `execCommand("bold")` бросает `input` → та же цепочка. Даже если жирный не меняет длину текста, реф-лоу paged.js может перенести блок на другую страницу — курсор оказывается на строку выше.
-- Мой предыдущий фикс (репагинация только по «Сохранить») откатывается — он противоречил задаче.
+1. **Путь `/email-unsubscribe` не существует** — его нет в `src/App.tsx` и нет в `deploy/nginx/default.conf` (whitelist). На прод nginx отдаёт 404 (см. памятку: SPA-fallback только по whitelist). Именно это и видит пользователь.
+2. **Ссылка ведёт на test-домен** — Lovable email-API берёт публичный URL из настроек Lovable-проекта (`test.reage.life`), а прод (Coolify, `reage.life`) он не знает. База Supabase у test и прод одна → очередь одна → footer генерируется единственным base URL.
+3. **`src/pages/Unsubscribe.tsx` бьёт напрямую в `*.supabase.co`** и в функцию `drip-unsubscribe` (HMAC-токены). Токен из футера — UUID из таблицы `email_unsubscribe_tokens`, обрабатывается `handle-email-unsubscribe`. Прямой домен Supabase вдобавок нарушает правило памятки про `api.reage.life` (блокировки РКН).
 
-## Итоговое поведение
+## Что делаем
 
-1. Набор текста — только в contentEditable-DOM, без React state и без Paged.js. Никаких лагов на клавишу.
-2. После каждого `input`/`keyup` — тихий overflow-check, скоалесированный через `requestAnimationFrame` + 250 мс idle-debounce.
-3. Триггеры полной перепагинации Paged.js:
-   - **Overflow:** хотя бы у одной `.pagedjs_page_content` `scrollHeight > clientHeight + 1` (текст вылез за низ страницы).
-   - **Under-fill:** после `.pagedjs_page` идёт ещё одна страница, а на текущей осталось свободного места больше, чем занимает первый блок следующей страницы (текст можно подтянуть наверх — актуально при удалении).
-   - `Enter` (новый параграф) / `Backspace` в начале блока — форс-репагинация без ожидания idle.
-4. Перед репагинацией — снапшот caret и scrollTop; после — точный restore (см. ниже).
-5. Bold/Italic/H2/H3/списки в bubble-меню больше не вызывают перепагинацию, если длина/структура блока не изменилась (bold не меняет ничего, что влияет на layout вне того же блока — блок не должен «уезжать»).
+### 1. Новый универсальный роут `/email-unsubscribe`
 
-## Фикс прыжка курсора на Bold
+- Добавить в `src/App.tsx` роут `/email-unsubscribe` → компонент `Unsubscribe` (тот же).
+- Оставить существующий роут `/unsubscribe` как алиас (для старых drip-ссылок из уже отправленных писем — обратная совместимость).
+- В `deploy/nginx/default.conf` рядом со строкой `/unsubscribe` добавить:
+  ```
+  location = /email-unsubscribe { try_files /index.html =404; }
+  ```
+- Пометить в конфиге комментарием, что это путь, который использует Lovable email-API (не переименовывать).
 
-- В `installEditableOverlay` перед `execCommand` сохраняем расширенный snapshot: `{ editableId, startOffset, endOffset, isRangeSelection }` (не только start).
-- После действия — сразу пересобираем Selection через тот же fragment-walker (уже есть в `restoreCaret`), но с сохранением диапазона выделения, не только курсора.
-- Дополнительно: если репагинация всё-таки сработала (overflow), после её завершения смотрим bounding rect восстановленного caret, сравниваем со снятым до перепагинации; если Y-сдвиг > высоты строки — доскроллим контейнер на разницу, чтобы визуально caret остался в том же месте экрана (нет «прыжка»).
+### 2. Универсальный `Unsubscribe.tsx`
 
-## Что откатить из предыдущей итерации
+Переписать логику так, чтобы страница работала для обоих типов токенов и **не** хардкодила `*.supabase.co`:
 
-- В `EditablePreview` вернуть `onEditChange={(id, md) => ctx?.setDraft(id, md)}` — но `setDraft` должен обновлять внутренний ref-буфер, НЕ вызывая ре-рендер React (см. ниже). React state обновляется только при `Save`/`Cancel`/включении режима.
-- В `ReportEditorToolbar.save()` источник истины по-прежнему — `window.__reportLabCollectDrafts()` (уже сделано, оставляем).
-- Баннер: «Пагинация обновляется автоматически, когда текст выходит за границу страницы».
+- Импортировать общий клиент: `import { supabase } from "@/integrations/supabase/client"` — он уже использует `VITE_SUPABASE_URL` = `https://api.reage.life` в прод-сборке (Fly-прокси, обход РКН).
+- Определять тип токена по формату:
+  - UUID (`^[0-9a-f-]{36}$`) → `handle-email-unsubscribe` (GET-валидация, POST-подтверждение) — футер транзакционных/auth-писем.
+  - Иначе (base64.base64 через точку) → `drip-unsubscribe` — HMAC из drip-серии.
+- Вызовы через `supabase.functions.invoke(...)`, а не `fetch` на прямой URL. Это автоматически подтягивает `apikey`, `Authorization: anon` и корректный base URL.
+- UI-состояния (loading / ready / done / error / already_unsubscribed) сохраняем; добавить текст «вы больше не будете получать письма серии …» / «вы отписаны от всех уведомлений» в зависимости от ответа.
+
+### 3. Кросс-доменный редирект test → прод
+
+Даже с рабочим роутом пользователи будут падать на `test.reage.life`. Два варианта, оба реализуемые без правки Lovable:
+
+- **Основной (в React):** в самом `Unsubscribe.tsx` при монтировании — если `window.location.hostname === "test.reage.life"`, сразу `window.location.replace("https://reage.life/email-unsubscribe" + window.location.search)` **до** любых сетевых вызовов. Токен универсальный (одна БД), обработается на прод-фронте.
+- **Дублирующий (в nginx test — если используется отдельный конфиг):** `location = /email-unsubscribe { return 301 https://reage.life$request_uri; }`. Если test.reage.life хостится на Lovable без своего nginx — этот шаг пропускаем и полагаемся только на React-редирект.
+
+Итог: любые письма Lovable-инфры (пока base URL = test) в итоге приземлятся на прод. Позже, если Lovable-настройки проекта переключим на `reage.life`, футер сразу пойдёт правильно, а редирект просто перестанет срабатывать.
+
+### 4. Проверка после деплоя
+
+- Прямое открытие `https://reage.life/email-unsubscribe?token=<UUID>` → страница «Подтвердить отписку» → успех.
+- Прямое открытие `https://reage.life/unsubscribe?token=<HMAC>` (старая drip-ссылка) → работает как раньше.
+- `https://test.reage.life/email-unsubscribe?token=…` → мгновенный 301/replace на прод.
+- F5, инкогнито, переход из письма — везде без 404.
+- В `Network` — запросы уходят на `api.reage.life/functions/v1/...`, а не на `*.supabase.co`.
+
+## Что НЕ меняем
+
+- `handle-email-unsubscribe`, `drip-unsubscribe`, `process-email-queue`, `email_unsubscribe_tokens`, `email_unsubscribes` — трогать не нужно, backend уже корректный.
+- Публичный URL Lovable-проекта — не переключаем на прод, иначе сломаем превью и test-стенд. Проблему решает клиентский редирект.
+- `/unsubscribe` не удаляем, оставляем ради уже разосланных drip-ссылок.
 
 ## Технические детали
 
 Файлы:
-- `src/lib/reportLab/renderer/PagedReportPreview.tsx`
-  - `installEditableOverlay`: убрать 150 мс debounce `onChange`. Оставить `input`-listener, но пусть он вызывает `scheduleReflowCheck()` вместо React-колбэка.
-  - Новый `scheduleReflowCheck()`: `rAF` + 250 мс trailing debounce; форс-режим на `insertParagraph`/`deleteContentBackward` при пустом блоке.
-  - Новый `needsReflow(output): boolean` — проходит по `.pagedjs_page_content`:
-    - overflow, если `el.scrollHeight - el.clientHeight > 1`;
-    - under-fill, если у страницы есть sibling-страница ниже и `el.clientHeight - el.scrollHeight > firstBlockOfNextPage.offsetHeight + 8`.
-  - Если `needsReflow` — дёргаем `triggerReflow()` (собственный колбэк, поднятый до `PagedReportPreview`), который: 1) снимает caret+scroll, 2) вызывает существующий `runQueueRef` build с текущим `html`, 3) restore caret+scroll+смещение scrollTop на дельту Y caret.
-  - `showToolbar`/bubble: `mousedown preventDefault` уже есть — оставляем. После `exec()` вручную вызываем `scheduleReflowCheck()` (bold обычно не триггерит overflow, значит ничего не будет).
-- `src/lib/reportLab/editor/ReportEditorContext.tsx`
-  - `setDraft`: писать в `draftsRef.current` (mutable), НЕ дёргать `setState`. Экспонировать `getDrafts()` для save. Внешний `drafts` в контексте оставить для сравнения при отмене (снапшот из initial).
-  - `resetDrafts()` очищает и ref, и state.
-- `src/components/reportV2/ReportV2Editor.tsx`
-  - `EditablePreview`: восстановить `onEditChange={(id, md) => ctx?.setDraft(id, md)}`. `drafts` больше не будет менять html при наборе (setDraft теперь молчит). Начальные drafts всё ещё нужны для первого монтирования — оставляем как есть.
-- `src/lib/reportLab/editor/ReportEditorShell.tsx`
-  - `save()`: использовать `w.__reportLabCollectDrafts()` (уже сделано), доп. — обновить баннер `ModeBanner`.
+- `src/pages/Unsubscribe.tsx` — переписать: убрать `FN_URL`, использовать `supabase.functions.invoke`, добавить определение типа токена, добавить редирект с test-домена.
+- `src/App.tsx` — добавить `<Route path="/email-unsubscribe" element={<Unsubscribe />} />`.
+- `deploy/nginx/default.conf` — добавить `location = /email-unsubscribe { try_files /index.html =404; }` с комментарием.
 
-## Обратная совместимость
+Ассеты не задействованы. Миграции БД не нужны. Edge Functions не пересобираем.
 
-- Публичный API `ReportEditorContext.drafts` остаётся, `setDraft` продолжает существовать (просто перестаёт триггерить ре-рендер). Классический редактор v1 не затронут.
-- `PagedReportPreview` props без изменений; `onEditChange` теперь опционален по факту (можно передавать no-op).
-- Snapshot/PDF/edge-функции не затрагиваются.
+## Открытые вопросы
 
-## Приёмка
-
-- Набор в длинном отчёте (5+ страниц) — 0 видимых лагов, курсор не прыгает.
-- Клик по Bold на выделенном фрагменте — текст жирнеет, выделение сохраняется, курсор/скролл на месте.
-- Ввод текста, который вылезает за границу страницы, — через ~0.25 сек происходит одна плавная перепагинация, каретка остаётся в том же визуальном месте.
-- Массовое удаление — следующая страница подтягивается наверх без ручных действий.
-- «Сохранить» пишет актуальные правки из DOM в БД (регресс не допустим).
+Ни одного блокирующего — если позже вы захотите заодно переключить Lovable-проекта на прод-URL, это сделается в интерфейсе Lovable, а не в коде, и мой редирект тогда просто перестанет срабатывать.
