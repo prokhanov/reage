@@ -1,10 +1,10 @@
-import type { ProkhanovReport, ReportPrescription } from "../types";
+import type { LabReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
 
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
 }
 
 interface LifestyleData {

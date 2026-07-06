@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ReportDocument } from "./ReportDocument";
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
   /** Высота фрейма в пикселях. По умолчанию 85vh. */
   height?: number | string;
 }

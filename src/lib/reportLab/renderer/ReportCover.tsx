@@ -1,10 +1,10 @@
-import type { ProkhanovReport } from "../types";
+import type { LabReport } from "../types";
 import { formatRuDate } from "../parser";
 import { useReportEditor } from "../editor/ReportEditorContext";
 import logoLight from "@/assets/reage-logo-light.png";
 
 interface Props {
-  report: ProkhanovReport;
+  report: LabReport;
 }
 
 /**

@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { notify as toast } from "@/lib/toast";
-import type { ProkhanovReport } from "../types";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
+import type { LabReport } from "../types";
 import {
   ReportEditorProvider,
   useReportEditor,
@@ -11,8 +12,8 @@ import {
 import { collectDirtyRecommendations } from "./assemble";
 
 interface Props {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   /** Persist changes to Supabase.recommendations. Если false — только локально. */
   persist?: boolean;
@@ -23,8 +24,8 @@ function Toolbar({
   onReportUpdate,
   persist,
 }: {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   persist: boolean;
 }) {
   const ctx = useReportEditor();
@@ -48,7 +49,11 @@ function Toolbar({
   };
 
   const save = async () => {
-    const changed = collectDirtyRecommendations(report, drafts);
+    const changed = collectDirtyRecommendations(report, drafts).map((c) => ({
+      ...c,
+      // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
+      text: cleanMarkdownArtifacts(c.text),
+    }));
     if (changed.length === 0) {
       toast.info("Ничего не изменилось");
       resetDrafts();
@@ -145,8 +150,8 @@ function ShellInner({
   children,
   persist,
 }: {
-  report: ProkhanovReport;
-  onReportUpdate: (next: ProkhanovReport) => void;
+  report: LabReport;
+  onReportUpdate: (next: LabReport) => void;
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   persist: boolean;
 }) {

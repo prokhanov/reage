@@ -19,6 +19,13 @@ import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { sanitizeLifestyle, extractFollowUpsFromLifestyle, mergeFollowUps } from "@/components/prescriptions/AdvisorySections";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Badge as UiBadge } from "@/components/ui/badge";
+import { ReportV2Editor } from "@/components/reportV2/ReportV2Editor";
+
+/** Beta-флаг нового рендерера отчётов. Снять в false → тумблер и v2 исчезают. */
+const ENABLE_REPORT_V2 = true;
+const REPORT_V2_STORAGE_KEY = "editReportViewMode";
 
 interface Recommendation {
   id: string;
@@ -91,6 +98,16 @@ export function EditReportDialog({
   const [qaRunning, setQaRunning] = useState(false);
   const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
   const [qaCompleted, setQaCompleted] = useState(false);
+  const [viewMode, setViewMode] = useState<"classic" | "v2">(() => {
+    if (!ENABLE_REPORT_V2) return "classic";
+    try {
+      const saved = localStorage.getItem(REPORT_V2_STORAGE_KEY);
+      return saved === "v2" ? "v2" : "classic";
+    } catch {
+      return "classic";
+    }
+  });
+  const [analysisUserId, setAnalysisUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const runQaCheck = async () => {
@@ -189,8 +206,27 @@ export function EditReportDialog({
     if (open) {
       loadRecommendations();
       loadPrescriptions();
+      // Подтянем user_id анализа — нужен адаптеру buildLabReportFromDb.
+      (async () => {
+        const { data } = await supabase
+          .from("analyses")
+          .select("user_id")
+          .eq("id", analysisId)
+          .maybeSingle();
+        setAnalysisUserId((data as { user_id?: string } | null)?.user_id ?? null);
+      })();
     }
   }, [open, analysisId]);
+
+  const handleViewModeChange = (next: "classic" | "v2") => {
+    if (next === viewMode) return;
+    setViewMode(next);
+    try {
+      localStorage.setItem(REPORT_V2_STORAGE_KEY, next);
+    } catch {
+      // ignore
+    }
+  };
 
   const loadPrescriptions = async () => {
     try {
@@ -523,8 +559,26 @@ export function EditReportDialog({
         `}</style>
         <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>Редактирование отчета</DialogTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <DialogTitle>Редактирование отчета</DialogTitle>
+                {ENABLE_REPORT_V2 && analysisId && (
+                  <ToggleGroup
+                    type="single"
+                    size="sm"
+                    value={viewMode}
+                    onValueChange={(v) => v && handleViewModeChange(v as "classic" | "v2")}
+                    className="rounded-md border bg-muted/40 p-0.5"
+                  >
+                    <ToggleGroupItem value="classic" className="h-7 px-2 text-xs data-[state=on]:bg-background">
+                      Классический
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="v2" className="h-7 px-2 text-xs data-[state=on]:bg-background">
+                      Новый <UiBadge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">Beta</UiBadge>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
@@ -551,8 +605,20 @@ export function EditReportDialog({
             </DialogDescription>
           </DialogHeader>
 
+
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            {loading ? (
+            {viewMode === "v2" && ENABLE_REPORT_V2 && analysisId && analysisUserId ? (
+              <div className="flex-1 overflow-auto min-h-0">
+                <ReportV2Editor
+                  analysisId={analysisId}
+                  userId={analysisUserId}
+                  mode="edit"
+                  onSaved={loadRecommendations}
+                />
+              </div>
+            ) : viewMode === "v2" && ENABLE_REPORT_V2 && !analysisUserId ? (
+              <AdminCenterLoader />
+            ) : loading ? (
               <AdminCenterLoader />
             ) : (
               <div className="flex-1 overflow-hidden flex flex-col">
@@ -844,12 +910,15 @@ export function EditReportDialog({
             <Button
               onClick={handleSaveChanges}
               disabled={saving || loading}
+              title={viewMode === "v2" ? "Сохранить статус (текст правится в шапке v2-редактора)" : undefined}
             >
               {saving ? (
                 <>
                   <ButtonSpinner className="mr-2" />
                   Сохранение...
                 </>
+              ) : viewMode === "v2" ? (
+                "Сохранить статус"
               ) : (
                 "Сохранить изменения"
               )}
