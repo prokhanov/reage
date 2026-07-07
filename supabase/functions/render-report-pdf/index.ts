@@ -106,10 +106,12 @@ Deno.serve(async (req) => {
     logError("roles_lookup_failed", rolesErr.message);
     return json({ error: "roles_lookup_failed", requestId, details: rolesErr.message }, 500);
   }
-  const isSuper = (roles || []).some((r: any) => r.role === "superadmin");
-  if (!isSuper) {
-    logError("forbidden", { roles: (roles || []).map((r: any) => r.role) });
-    return json({ error: "forbidden", requestId, roles: (roles || []).map((r: any) => r.role) }, 403);
+  const allowedRoles = new Set(["superadmin", "admin", "doctor", "patient"]);
+  const roleList = (roles || []).map((r: any) => r.role);
+  const allowed = roleList.some((r: string) => allowedRoles.has(r));
+  if (!allowed) {
+    logError("forbidden", { roles: roleList });
+    return json({ error: "forbidden", requestId, roles: roleList }, 403);
   }
 
   const reportId = (body.reportId || "prokhanov").trim();
