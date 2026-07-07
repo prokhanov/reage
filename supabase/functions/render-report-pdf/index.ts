@@ -94,25 +94,12 @@ Deno.serve(async (req) => {
   }
   log("authenticated", { userId: userRes.user.id });
 
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
-  const { data: roles, error: rolesErr } = await admin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userRes.user.id);
-  if (rolesErr) {
-    logError("roles_lookup_failed", rolesErr.message);
-    return json({ error: "roles_lookup_failed", requestId, details: rolesErr.message }, 500);
-  }
-  const allowedRoles = new Set(["superadmin", "admin", "doctor", "patient"]);
-  const roleList = (roles || []).map((r: any) => r.role);
-  const allowed = roleList.some((r: string) => allowedRoles.has(r));
-  if (!allowed) {
-    logError("forbidden", { roles: roleList });
-    return json({ error: "forbidden", requestId, roles: roleList }, 403);
-  }
+  // Доступ к рендеру PDF: любой аутентифицированный пользователь.
+  // Контент отчёта фронт передаёт в теле запроса (уже собран из данных,
+  // к которым у пользователя есть доступ по RLS), поэтому проверять
+  // конкретные роли/модули здесь избыточно и ломает кастомные роли
+  // (patient, doctor, admin, а также любые новые роли с доступом к разделу).
+
 
   const reportId = (body.reportId || "prokhanov").trim();
   const exp = Math.floor(Date.now() / 1000) + TOKEN_TTL_SEC;
