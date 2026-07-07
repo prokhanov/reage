@@ -95,10 +95,14 @@ Deno.serve(async (req) => {
   log("authenticated", { userId: userRes.user.id });
 
   // Доступ к рендеру PDF: любой аутентифицированный пользователь.
-  // Контент отчёта фронт передаёт в теле запроса (уже собран из данных,
+  // Контент отчёта фронт передаёт в теле запроса (собран из данных,
   // к которым у пользователя есть доступ по RLS), поэтому проверять
   // конкретные роли/модули здесь избыточно и ломает кастомные роли
   // (patient, doctor, admin, а также любые новые роли с доступом к разделу).
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
 
 
   const reportId = (body.reportId || "prokhanov").trim();
