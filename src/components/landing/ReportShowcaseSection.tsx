@@ -498,15 +498,19 @@ function ReportStack() {
     { src: reportPage61, alt: "Персональные рекомендации" },
   ];
   return (
-    <div className="relative mx-auto w-full max-w-[640px]" style={{ aspectRatio: "1 / 1.1" }}>
+    <div
+      className="relative mx-auto w-full max-w-[560px] overflow-visible"
+      style={{ aspectRatio: "1 / 1.15" }}
+    >
       {/* Glow */}
       <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
       {shots.map((s, i) => {
-        // Horizontal staircase: bigger cards, title on top-left, others peeking out to the right/below
+        // Larger cards, ~15% overlap → step ≈ 62% of card width
+        // card width 70% of container; step 60% of container = 14% overlap of card
         const positions = [
-          "left-0 top-0 z-30",
-          "left-[22%] top-[10%] z-20",
-          "left-[44%] top-[20%] z-10",
+          "left-[-8%] top-0 z-30",
+          "left-[52%] top-[7%] z-20",
+          "left-[112%] top-[14%] z-10",
         ];
         return (
           <img
@@ -514,7 +518,7 @@ function ReportStack() {
             src={s.src}
             alt={s.alt}
             loading="lazy"
-            className={`absolute w-[56%] rounded-xl border border-border/60 bg-card shadow-2xl ${positions[i]}`}
+            className={`absolute w-[70%] rounded-xl border border-border/60 bg-card shadow-2xl ${positions[i]}`}
             style={{ aspectRatio: "1 / 1.4142" }}
           />
         );
