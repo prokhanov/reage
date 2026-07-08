@@ -95,9 +95,9 @@ const biomarkerCategories = [
 function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
   return (
     <div className="p-6 md:p-8 lg:p-10 flex flex-col gap-6 h-full">
-      <h3 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3 min-h-[3.5rem]">
+      <h3 className="text-xl md:text-2xl lg:text-[26px] font-bold text-foreground flex items-center gap-3">
         <cat.icon className="w-7 h-7 text-primary shrink-0" strokeWidth={1.75} />
-        <span>{cat.name}</span>
+        <span className="whitespace-nowrap">{cat.name}</span>
       </h3>
 
       <div>
