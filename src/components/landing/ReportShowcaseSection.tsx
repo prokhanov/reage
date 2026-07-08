@@ -541,7 +541,7 @@ export function ReportShowcaseSection() {
           </div>
 
           {/* Right: features */}
-          <div className="order-1 lg:order-2 space-y-3">
+          <div className="order-1 lg:order-1 space-y-3">
             {reportFeatures.map((feature, index) => {
               const Icon = feature.icon;
               const active = index === idx;
