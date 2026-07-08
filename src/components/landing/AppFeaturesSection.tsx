@@ -32,6 +32,7 @@ import {
   Bot,
   User,
 } from "lucide-react";
+import dashboardMockV9 from "@/assets/landing-v2/dashboard-mock-light-v9.png";
 
 type SectionKey =
   | "dashboard"
@@ -154,83 +155,14 @@ const order: SectionKey[] = [
 /* =================== WIDGETS =================== */
 
 function DashboardWidgets() {
-  const systems = [
-    { label: "Сердце", value: 92, icon: Heart, token: "--status-optimal" },
-    { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
-    { label: "Иммунитет", value: 84, icon: ShieldCheck, token: "--status-optimal" },
-    { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
-    { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
-  ];
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-      {/* Bio age */}
-      <div className={`${glass} p-4 col-span-2 sm:col-span-1`}>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
-          Биологический возраст
-        </div>
-        <div className="flex items-end gap-2">
-          <div className="text-4xl font-bold tabular-nums">34.5</div>
-          <div className="text-sm text-muted-foreground mb-1">из 38 лет</div>
-        </div>
-        <div className="mt-2 inline-flex items-center gap-1 text-xs text-status-optimal font-medium">
-          <TrendingDown className="w-3.5 h-3.5" /> −1.2 за 6 мес
-        </div>
-        <div className="mt-3 h-1.5 rounded-full bg-muted/60 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: "78%" }} />
-        </div>
-      </div>
-
-      {/* Health index */}
-      <div className={`${glass} p-4 col-span-2 sm:col-span-1`}>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
-          Индекс здоровья
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative w-16 h-16">
-            <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-              <circle cx="18" cy="18" r="15" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
-              <circle
-                cx="18" cy="18" r="15" fill="none"
-                stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={`${82 * 0.94} 100`}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-base font-bold">82</div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs text-foreground/80">Лучше, чем у 87% людей вашего возраста</div>
-            <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-status-optimal font-medium">
-              <TrendingUp className="w-3 h-3" /> +4 пункта
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Systems */}
-      <div className={`${glass} p-4 col-span-2`}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-            5 систем организма
-          </span>
-          <span className="text-[11px] text-primary font-semibold">общий 77%</span>
-        </div>
-        <div className="space-y-2">
-          {systems.map((s) => {
-            const Icon = s.icon;
-            const color = `hsl(var(${s.token}))`;
-            return (
-              <div key={s.label} className="flex items-center gap-2">
-                <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-                <span className="text-xs text-foreground/90 flex-1 truncate">{s.label}</span>
-                <span className="text-[11px] font-semibold tabular-nums w-9 text-right">{s.value}%</span>
-                <div className="w-24 sm:w-32 h-1.5 bg-muted/60 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${s.value}%`, backgroundColor: color }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+    <div className={`${glass} p-2 sm:p-3 overflow-hidden`}>
+      <img
+        src={dashboardMockV9}
+        alt="Контрольная панель ReAge — биологический возраст, индекс здоровья и рейтинг систем"
+        className="w-full h-auto rounded-xl block"
+        loading="lazy"
+      />
     </div>
   );
 }
