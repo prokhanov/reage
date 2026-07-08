@@ -35,7 +35,8 @@ const Index = () => {
         <ComparisonSection />
         <HowItWorksSection />
       </div>
-      <BenefitsSection />
+      {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
+      {/* <BenefitsSection /> */}
       <BiomarkersDeepDiveSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
