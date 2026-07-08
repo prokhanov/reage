@@ -494,14 +494,14 @@ import reportPage61 from "@/assets/landing-v2/report-page-61.png";
 
 function PreviewCardsRow() {
   const shots = [
-    { src: reportPage01, alt: "Титульная страница отчёта ReAge", rotate: "-rotate-3", z: "z-10", mt: "mt-6" },
+    { src: reportPage01, alt: "Титульная страница отчёта ReAge", rotate: "-rotate-3", z: "z-10", mt: "mt-8" },
     { src: reportPage13, alt: "Раздел сердечно-сосудистой системы", rotate: "rotate-0", z: "z-20", mt: "mt-0" },
-    { src: reportPage61, alt: "Персональные рекомендации", rotate: "rotate-3", z: "z-10", mt: "mt-6" },
+    { src: reportPage61, alt: "Персональные рекомендации", rotate: "rotate-3", z: "z-10", mt: "mt-8" },
   ];
   return (
-    <div className="relative">
+    <div className="relative h-full flex items-center">
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
-      <div className="relative grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="relative grid grid-cols-3 gap-2 sm:gap-3 w-full">
         {shots.map((s) => (
           <div
             key={s.alt}
@@ -512,7 +512,6 @@ function PreviewCardsRow() {
               alt={s.alt}
               loading="lazy"
               className="w-full h-auto block"
-              style={{ aspectRatio: "1 / 1.4142", objectFit: "cover", objectPosition: "top" }}
             />
           </div>
         ))}
