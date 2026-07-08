@@ -576,7 +576,7 @@ export function ReportShowcaseSection() {
         </div>
 
         {/* Split: features (left) + stacked screenshots (right) */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
           {/* Left: static feature tiles */}
           <div className="order-2 lg:order-1 space-y-3">
             {reportFeatures.map((feature) => {
