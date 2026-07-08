@@ -487,21 +487,42 @@ function ReportMockup({
   );
 }
 
+import reportPage01 from "@/assets/landing-v2/report-page-01.png";
+import reportPage13 from "@/assets/landing-v2/report-page-13.png";
+import reportPage61 from "@/assets/landing-v2/report-page-61.png";
+
+function ReportStack() {
+  const shots = [
+    { src: reportPage01, alt: "Титульная страница отчёта" },
+    { src: reportPage13, alt: "Сердечно-сосудистая система" },
+    { src: reportPage61, alt: "Персональные рекомендации" },
+  ];
+  return (
+    <div className="relative mx-auto w-full max-w-[520px] aspect-[1/1.15]">
+      {/* Glow */}
+      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      {shots.map((s, i) => {
+        const positions = [
+          "top-0 left-0 -rotate-6",
+          "top-[8%] left-1/2 -translate-x-1/2 rotate-0 z-10",
+          "bottom-0 right-0 rotate-6",
+        ];
+        return (
+          <img
+            key={s.src}
+            src={s.src}
+            alt={s.alt}
+            loading="lazy"
+            className={`absolute w-[62%] rounded-xl border border-border/60 bg-card shadow-2xl ${positions[i]}`}
+            style={{ aspectRatio: "1 / 1.4142" }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function ReportShowcaseSection() {
-  const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState(1);
-  const [paused, setPaused] = useState(false);
-  const stopAuto = () => setPaused(true);
-
-  useEffect(() => {
-    if (paused) return;
-    const id = setInterval(() => {
-      setDir(1);
-      setIdx((i) => (i + 1) % reportFeatures.length);
-    }, 8000);
-    return () => clearInterval(id);
-  }, [paused]);
-
   return (
     <section className="py-12 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
@@ -521,57 +542,25 @@ export function ReportShowcaseSection() {
           </p>
         </div>
 
-        {/* Split: mockup + features */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start max-w-6xl mx-auto">
-          {/* Left: report mockup */}
-          <div className="order-2 lg:order-2 px-2 sm:px-6 lg:px-4">
-
-            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
-
-            {/* CTA under mockup on mobile/tablet */}
-            <div className="pt-6 lg:hidden flex justify-center">
-              <Link to="/example-report" className="inline-block w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto group">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Посмотреть пример отчёта
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Right: features */}
-          <div className="order-1 lg:order-1 space-y-3">
-            {reportFeatures.map((feature, index) => {
+        {/* Split: features (left) + stacked screenshots (right) */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center max-w-6xl mx-auto">
+          {/* Left: static feature tiles */}
+          <div className="order-2 lg:order-1 space-y-3">
+            {reportFeatures.map((feature) => {
               const Icon = feature.icon;
-              const active = index === idx;
               return (
-                <motion.button
+                <div
                   key={feature.title}
-                  type="button"
-                  onClick={() => { stopAuto(); setDir(index > idx ? 1 : -1); setIdx(index); }}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.4, delay: index * 0.08 }}
-                  className={`w-full text-left flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border backdrop-blur-sm transition-all ${
-                    active
-                      ? "bg-primary/5 border-primary/50 shadow-md shadow-primary/10"
-                      : "bg-card/50 border-border/50 hover:bg-card/80 hover:border-primary/30"
-                  }`}
+                  className="w-full text-left flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm"
                 >
-                  <div
-                    className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                      active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                    }`}
-                  >
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
                     <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0">
                     <h4 className="font-semibold mb-1 leading-tight text-sm sm:text-base">{feature.title}</h4>
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
-                </motion.button>
+                </div>
               );
             })}
 
@@ -586,6 +575,20 @@ export function ReportShowcaseSection() {
             </div>
           </div>
 
+          {/* Right: overlapping screenshots */}
+          <div className="order-1 lg:order-2 px-2 sm:px-6 lg:px-4">
+            <ReportStack />
+
+            <div className="pt-6 lg:hidden flex justify-center">
+              <Link to="/example-report" className="inline-block w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto group">
+                  <Eye className="w-5 h-5 mr-2" />
+                  Посмотреть пример отчёта
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>
