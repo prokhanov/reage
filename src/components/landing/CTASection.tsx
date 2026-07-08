@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Mail, Phone, MessageCircle, Instagram, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoDark from "@/assets/reage-logo-dark.png";
 import { useRegisterGuard } from "@/components/RegisterGuard";
@@ -8,6 +9,7 @@ import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 export function CTASection() {
   const { requestRegister } = useRegisterGuard();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
 
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
