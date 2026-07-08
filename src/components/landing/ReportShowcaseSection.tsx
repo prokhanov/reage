@@ -491,9 +491,11 @@ function ReportMockup({
 import reportPage01 from "@/assets/landing-v2/report-page-01.png";
 import reportPage13 from "@/assets/landing-v2/report-page-13.png";
 import reportPage61 from "@/assets/landing-v2/report-page-61.png";
+import dashboardMock from "@/assets/landing-v2/dashboard-mock.png";
 
 function PreviewCardsRow() {
   const shots = [
+    { src: dashboardMock, alt: "Контрольная панель личного кабинета ReAge" },
     { src: reportPage01, alt: "Титульная страница отчёта ReAge" },
     { src: reportPage13, alt: "Раздел сердечно-сосудистой системы" },
     { src: reportPage61, alt: "Персональные рекомендации" },
