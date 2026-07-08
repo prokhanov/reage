@@ -1,28 +1,34 @@
-import { Syringe, FileText, Stethoscope, TrendingUp } from "lucide-react";
+import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp } from "lucide-react";
 
 const steps = [
   {
     icon: Syringe,
     num: "01",
-    title: "Берём анализы",
+    title: "Сдаёте анализы",
     caption: "Выезд медсестры на дом или визит в клинику — за 10–15 минут.",
   },
   {
     icon: FileText,
     num: "02",
-    title: "Готовим отчёт",
+    title: "Получаете отчёт",
     caption: "Расшифровываем 100+ показателей и рассчитываем биовозраст.",
   },
   {
     icon: Stethoscope,
     num: "03",
-    title: "Даём рекомендации",
+    title: "Консультация врача",
+    caption: "Разбираем результаты и отвечаем на ваши вопросы.",
+  },
+  {
+    icon: ListChecks,
+    num: "04",
+    title: "Внедряете рекомендации",
     caption: "Персональный план по питанию, БАДам и образу жизни.",
   },
   {
     icon: TrendingUp,
-    num: "04",
-    title: "Следим в динамике",
+    num: "05",
+    title: "Отслеживаете динамику",
     caption: "3–4 чекапа в год, корректируем стратегию по результатам.",
   },
 ];
@@ -38,7 +44,7 @@ export function HowItWorksSection() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
-            <span className="text-sm font-medium text-primary">4 простых шага</span>
+            <span className="text-sm font-medium text-primary">5 простых шагов</span>
           </div>
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in"
