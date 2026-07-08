@@ -44,7 +44,7 @@ export function HowItWorksSection() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
-            <span className="text-sm font-medium text-primary">4 простых шага</span>
+            <span className="text-sm font-medium text-primary">5 простых шагов</span>
           </div>
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in"
