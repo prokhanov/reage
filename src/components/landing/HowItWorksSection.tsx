@@ -1,28 +1,34 @@
-import { Syringe, FileText, Stethoscope, TrendingUp } from "lucide-react";
+import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp } from "lucide-react";
 
 const steps = [
   {
     icon: Syringe,
     num: "01",
-    title: "Берём анализы",
+    title: "Сдаёте анализы",
     caption: "Выезд медсестры на дом или визит в клинику — за 10–15 минут.",
   },
   {
     icon: FileText,
     num: "02",
-    title: "Готовим отчёт",
+    title: "Получаете отчёт",
     caption: "Расшифровываем 100+ показателей и рассчитываем биовозраст.",
   },
   {
     icon: Stethoscope,
     num: "03",
-    title: "Даём рекомендации",
+    title: "Консультация врача",
+    caption: "Разбираем результаты и отвечаем на ваши вопросы.",
+  },
+  {
+    icon: ListChecks,
+    num: "04",
+    title: "Внедряете рекомендации",
     caption: "Персональный план по питанию, БАДам и образу жизни.",
   },
   {
     icon: TrendingUp,
-    num: "04",
-    title: "Следим в динамике",
+    num: "05",
+    title: "Отслеживаете динамику",
     caption: "3–4 чекапа в год, корректируем стратегию по результатам.",
   },
 ];
