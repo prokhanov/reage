@@ -54,7 +54,7 @@ export function CTASection() {
                     variant="outline"
                     className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-foreground group"
                   >
-                    <Link to="/subscription">
+                    <Link to="/register">
                       <CreditCard className="mr-2 w-5 h-5 text-accent" />
                       Оформить подписку
                     </Link>
