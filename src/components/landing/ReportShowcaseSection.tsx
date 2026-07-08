@@ -504,7 +504,7 @@ function PreviewCardsRow() {
   const prev = () => setActive((active - 1 + n) % n);
 
   return (
-    <div className="relative h-full flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center">
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
 
       <div
