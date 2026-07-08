@@ -535,7 +535,7 @@ export function ReportShowcaseSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl opacity-30" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] gap-10 lg:gap-14 items-stretch max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.55fr)] gap-8 lg:gap-10 items-stretch max-w-7xl mx-auto">
           {/* Left: heading + feature tiles + CTA */}
           <div className="order-2 lg:order-1">
             <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold leading-tight mb-6">
