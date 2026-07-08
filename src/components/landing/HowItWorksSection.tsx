@@ -72,9 +72,6 @@ export function HowItWorksSection() {
                     <div className="w-16 h-16 rounded-xl border border-primary/30 bg-primary/5 flex items-center justify-center shadow-[0_0_15px_hsl(var(--primary)/0.1)] group-hover:border-primary/60 group-hover:shadow-[0_0_25px_hsl(var(--primary)/0.25)] transition-all duration-300 backdrop-blur-sm">
                       <Icon className="w-7 h-7 text-primary" strokeWidth={1.5} />
                     </div>
-                    <span className="absolute -bottom-2 font-mono text-[11px] tracking-widest text-primary bg-background px-2 border border-primary/25 rounded-full">
-                      {step.num}
-                    </span>
                   </div>
 
                   {/* Title + caption */}
