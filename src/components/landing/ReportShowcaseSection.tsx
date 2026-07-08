@@ -499,7 +499,7 @@ function PreviewCardsRow() {
     { src: reportPage61, alt: "Персональные рекомендации", rotate: "rotate-3", z: "z-10", mt: "mt-8" },
   ];
   return (
-    <div className="relative h-full flex items-center lg:-mr-16 xl:-mr-24">
+    <div className="relative h-full flex items-center">
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
       <div className="relative grid grid-cols-3 gap-3 sm:gap-4 w-full">
         {shots.map((s) => (
