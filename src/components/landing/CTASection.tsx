@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Mail, Phone, MessageCircle, Instagram, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoDark from "@/assets/reage-logo-dark.png";
 import { useRegisterGuard } from "@/components/RegisterGuard";
@@ -8,6 +9,7 @@ import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 export function CTASection() {
   const { requestRegister } = useRegisterGuard();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
 
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
@@ -47,13 +49,15 @@ export function CTASection() {
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                   <Button 
+                    asChild
                     size="lg"
                     variant="outline"
-                    onClick={() => setIsFeedbackOpen(true)}
                     className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-foreground group"
                   >
-                    <MessageSquare className="mr-2 w-5 h-5 text-accent" />
-                    Задать вопрос
+                    <Link to="/subscription">
+                      <CreditCard className="mr-2 w-5 h-5 text-accent" />
+                      Оформить подписку
+                    </Link>
                   </Button>
                 </div>
                 
