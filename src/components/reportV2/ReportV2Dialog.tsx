@@ -17,7 +17,7 @@ interface Props {
 export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[100dvh] w-screen max-w-none rounded-none p-0 overflow-hidden sm:h-[90vh] sm:w-[95vw] sm:max-w-6xl sm:rounded-lg flex flex-col">
+      <DialogContent className="h-[100dvh] w-screen max-w-none rounded-none p-0 overflow-hidden top-0 left-0 translate-x-0 translate-y-0 sm:h-[95vh] sm:top-2 sm:left-1/2 sm:-translate-x-1/2 sm:translate-y-0 sm:w-[95vw] sm:max-w-6xl sm:rounded-lg flex flex-col">
         <DialogTitle className="sr-only">
           {mode === "edit" ? "Редактор отчёта" : "Просмотр отчёта"}
         </DialogTitle>
