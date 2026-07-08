@@ -55,7 +55,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(null);
