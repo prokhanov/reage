@@ -524,7 +524,8 @@ export function ReportShowcaseSection() {
         {/* Split: mockup + features */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start max-w-6xl mx-auto">
           {/* Left: report mockup */}
-          <div className="order-2 lg:order-1 px-2 sm:px-6 lg:px-4">
+          <div className="order-2 lg:order-2 px-2 sm:px-6 lg:px-4">
+
             <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
 
             {/* CTA under mockup on mobile/tablet */}
