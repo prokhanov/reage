@@ -57,6 +57,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
 import ReportPreview from "./pages/internal/ReportPreview";
+import ReportV2Standalone from "./pages/internal/ReportV2Standalone";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
@@ -132,6 +133,8 @@ const App = () => (
             {/* Internal report preview для Playwright; защищён HMAC-токеном
                 внутри самой страницы, никаких сессий/хедеров/сайдбара. */}
             <Route path="/internal/report-preview" element={<ReportPreview />} />
+            {/* Полностраничный отчёт v2 (открытие в новой вкладке из ЛК). */}
+            <Route path="/internal/report-v2" element={<ReportV2Standalone />} />
 
 
 
