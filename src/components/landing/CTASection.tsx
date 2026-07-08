@@ -99,9 +99,8 @@ export function Footer() {
               alt="ReAge"
               className="h-8 w-auto mb-3"
             />
-            <div className="text-sm text-foreground/70 leading-relaxed">
-              <p>Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.</p>
-            </div>
+          </div>
+
 
           </div>
 
