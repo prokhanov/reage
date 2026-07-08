@@ -510,10 +510,6 @@ export function ReportShowcaseSection() {
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-8 md:mb-16 animate-fade-in">
-          <Badge className="mb-4 md:mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm hover:bg-primary/10 transition-none">
-            <Sparkles className="w-4 h-4 mr-2 inline" />
-            Что я получу?
-          </Badge>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
             <span className="text-foreground">Ваш </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
