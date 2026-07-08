@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,12 @@ interface Props {
   mode: "view" | "edit";
   /** Колбэк после успешного сейва — чтобы родитель мог перечитать данные. */
   onSaved?: () => void;
+  /**
+   * Компактный режим для ЛК пациента / view-as-patient:
+   * скрывает служебную мета-строку, подсказку и переключатели пагинации,
+   * добавляет кнопку «Открыть в новом окне».
+   */
+  compact?: boolean;
 }
 
 const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
