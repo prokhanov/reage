@@ -537,7 +537,7 @@ export function ReportShowcaseSection() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center max-w-6xl mx-auto">
-          {/* Left: heading + checklist + CTA */}
+          {/* Left: heading + feature tiles + CTA */}
           <div className="order-2 lg:order-1">
             <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold leading-tight mb-6">
               <span className="text-foreground">Вы получаете не просто анализы — </span>
@@ -547,12 +547,25 @@ export function ReportShowcaseSection() {
             </h2>
 
             <ul className="space-y-3 mb-8">
-              {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-3 text-base text-foreground/85">
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>{b}</span>
-                </li>
-              ))}
+              {reportFeatures.map((f) => {
+                const Icon = f.icon;
+                return (
+                  <li
+                    key={f.pageId}
+                    className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/60 backdrop-blur-sm px-4 py-3"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-4.5 h-4.5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-foreground">{f.title}</div>
+                      <div className="text-[12px] text-muted-foreground leading-snug mt-0.5">
+                        {f.description}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
 
             <Link to="/example-report" className="inline-block">
@@ -563,6 +576,7 @@ export function ReportShowcaseSection() {
               </Button>
             </Link>
           </div>
+
 
           {/* Right: three preview cards */}
           <div className="order-1 lg:order-2">
