@@ -233,7 +233,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         ) : (
           <Download className="mr-2 h-4 w-4" />
         )}
-        Скачать PDF (v2)
+        Скачать PDF
       </Button>
     </>
   );
