@@ -93,7 +93,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border">
+      <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border" hideCloseButton>
         <DialogHeader className="p-6 pb-4 text-left">
           <div className="flex items-start justify-between gap-4">
             <div>
