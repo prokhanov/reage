@@ -78,7 +78,7 @@ export function HowItWorksSection() {
                   </div>
 
                   {/* Title + caption */}
-                  <h3 className="mt-8 text-lg md:text-xl font-bold text-foreground tracking-tight">
+                  <h3 className="mt-8 text-base md:text-lg font-bold text-foreground tracking-tight whitespace-nowrap">
                     {step.title}
                   </h3>
                   <p className="mt-2 text-sm md:text-[15px] text-muted-foreground leading-relaxed max-w-[220px]">
