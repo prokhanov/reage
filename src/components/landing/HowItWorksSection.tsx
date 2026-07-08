@@ -11,7 +11,7 @@ const steps = [
     icon: FileText,
     num: "02",
     title: "Получаете отчёт",
-    caption: "Расшифровываем 100+ показателей\u00a0",
+    caption: "Расшифровываем 85+ показателей\u00a0",
   },
   {
     icon: Stethoscope,
