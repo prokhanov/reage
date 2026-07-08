@@ -103,9 +103,11 @@ const LandingV2 = () => {
         <Block>
           <HowItWorksBlock />
         </Block>
+        {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
           <BenefitsBlock />
         </Block>
+        */}
       </Blocks>
     </div>
   );
