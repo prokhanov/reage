@@ -487,34 +487,102 @@ function ReportMockup({
   );
 }
 
-// ============ Screenshot preview cards ============
+// ============ Screenshot preview stack ============
 import reportPage01 from "@/assets/landing-v2/report-page-01.png";
 import reportPage13 from "@/assets/landing-v2/report-page-13.png";
 import reportPage61 from "@/assets/landing-v2/report-page-61.png";
 
 function PreviewCardsRow() {
   const shots = [
-    { src: reportPage01, alt: "Титульная страница отчёта ReAge", rotate: "-rotate-3", z: "z-10", mt: "mt-8" },
-    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы", rotate: "rotate-0", z: "z-20", mt: "mt-0" },
-    { src: reportPage61, alt: "Персональные рекомендации", rotate: "rotate-3", z: "z-10", mt: "mt-8" },
+    { src: reportPage01, alt: "Титульная страница отчёта ReAge" },
+    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы" },
+    { src: reportPage61, alt: "Персональные рекомендации" },
   ];
+  const [active, setActive] = useState(0);
+  const n = shots.length;
+  const next = () => setActive((active + 1) % n);
+  const prev = () => setActive((active - 1 + n) % n);
+
   return (
-    <div className="relative h-full flex items-center">
+    <div className="relative h-full flex flex-col items-center justify-center">
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
-      <div className="relative grid grid-cols-3 gap-3 sm:gap-4 w-full">
-        {shots.map((s) => (
-          <div
-            key={s.alt}
-            className={`${s.mt} ${s.z} ${s.rotate} rounded-xl overflow-hidden border border-border/60 bg-card shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/5 transition-transform hover:-translate-y-1 hover:rotate-0`}
-          >
-            <img
-              src={s.src}
-              alt={s.alt}
-              loading="lazy"
-              className="w-full h-auto block"
+
+      <div
+        className="relative w-full max-w-[520px] mx-auto"
+        style={{ aspectRatio: "1 / 1.35" }}
+      >
+        {shots.map((s, i) => {
+          // Position relative to active: 0 = front, 1 = one behind, 2 = two behind (wraps)
+          const offset = (i - active + n) % n;
+          // Front-most = offset 0
+          const styles = [
+            // front
+            { x: 0, y: 0, scale: 1, rotate: 0, z: 30, opacity: 1 },
+            // second (peeks from right)
+            { x: 36, y: 18, scale: 0.94, rotate: 3, z: 20, opacity: 0.9 },
+            // third (peeks further)
+            { x: 68, y: 34, scale: 0.88, rotate: 5, z: 10, opacity: 0.75 },
+          ];
+          const st = styles[offset] ?? styles[styles.length - 1];
+          const isFront = offset === 0;
+
+          return (
+            <motion.button
+              key={s.alt}
+              type="button"
+              onClick={() => (isFront ? next() : setActive(i))}
+              aria-label={isFront ? "Следующая страница" : `Показать: ${s.alt}`}
+              className="absolute inset-0 rounded-xl overflow-hidden border border-border/60 bg-card shadow-[0_25px_60px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              animate={{
+                x: st.x,
+                y: st.y,
+                scale: st.scale,
+                rotate: st.rotate,
+                opacity: st.opacity,
+              }}
+              transition={{ type: "spring", stiffness: 220, damping: 26 }}
+              style={{ zIndex: st.z, cursor: "pointer" }}
+            >
+              <img
+                src={s.src}
+                alt={s.alt}
+                loading="lazy"
+                draggable={false}
+                className="w-full h-full object-cover object-top block pointer-events-none"
+              />
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* Nav */}
+      <div className="relative z-40 mt-6 flex items-center justify-center gap-3">
+        <button
+          onClick={prev}
+          className="w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          aria-label="Предыдущая"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <div className="flex items-center gap-1.5">
+          {shots.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className={`h-1.5 rounded-full transition-all ${
+                i === active ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+              }`}
+              aria-label={`Страница ${i + 1}`}
             />
-          </div>
-        ))}
+          ))}
+        </div>
+        <button
+          onClick={next}
+          className="w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          aria-label="Следующая"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
