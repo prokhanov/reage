@@ -508,7 +508,7 @@ function PreviewCardsRow() {
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
 
       <div
-        className="relative w-full max-w-[720px] mx-auto"
+        className="relative w-full max-w-[520px] mx-auto"
         style={{ aspectRatio: "1 / 1.35" }}
       >
         {shots.map((s, i) => {
