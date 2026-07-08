@@ -487,140 +487,218 @@ function ReportMockup({
   );
 }
 
-import reportPage01 from "@/assets/landing-v2/report-page-01.png";
-import reportPage13 from "@/assets/landing-v2/report-page-13.png";
-import reportPage61 from "@/assets/landing-v2/report-page-61.png";
+// ============ Reference-style preview cards ============
 
-function ReportStack() {
-  const shots = [
-    { src: reportPage01, alt: "Титульная страница отчёта" },
-    { src: reportPage13, alt: "Сердечно-сосудистая система" },
-    { src: reportPage61, alt: "Персональные рекомендации" },
+// Card 1 — Общая картина (bio age + silhouette)
+function CardBigPicture() {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
+      <div className="text-sm font-semibold mb-3">Общая картина</div>
+      <div className="flex-1 flex items-stretch gap-3">
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Биологический возраст
+          </div>
+          <div className="mt-1 leading-none">
+            <span className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">32</span>
+            <span className="text-base font-semibold text-foreground/80 ml-1">года</span>
+          </div>
+          <div className="mt-2 text-[11px] text-muted-foreground">Фактический возраст: 40</div>
+          <p className="mt-3 text-[11px] leading-relaxed text-foreground/75">
+            Ваш биологический возраст ниже фактического. Отличный результат!
+          </p>
+        </div>
+        {/* Silhouette */}
+        <div className="w-14 shrink-0 relative flex items-center justify-center">
+          <svg viewBox="0 0 60 140" className="w-full h-auto" fill="none">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
+              </linearGradient>
+            </defs>
+            {/* head */}
+            <circle cx="30" cy="12" r="8" fill="url(#bodyGrad)" />
+            {/* torso */}
+            <path
+              d="M18 24 Q30 20 42 24 L46 60 Q44 78 40 92 L36 128 L32 128 L30 96 L28 128 L24 128 L20 92 Q16 78 14 60 Z"
+              fill="url(#bodyGrad)"
+            />
+            {/* arms */}
+            <path d="M18 26 L10 62 L14 64 L22 32 Z" fill="url(#bodyGrad)" />
+            <path d="M42 26 L50 62 L46 64 L38 32 Z" fill="url(#bodyGrad)" />
+            {/* highlight dots */}
+            {[
+              { x: 30, y: 40 },
+              { x: 30, y: 60 },
+              { x: 26, y: 80 },
+              { x: 34, y: 80 },
+              { x: 30, y: 108 },
+            ].map((d, i) => (
+              <circle key={i} cx={d.x} cy={d.y} r="1.6" fill="hsl(var(--primary-foreground))" opacity="0.9" />
+            ))}
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Card 2 — Системы организма
+function CardSystems() {
+  const rows = [
+    { name: "Сердечно-сосудистая", value: 95, icon: "❤️" },
+    { name: "Метаболизм", value: 82, icon: "⚡" },
+    { name: "Иммунная система", value: 78, icon: "🛡️" },
+    { name: "Энергетический обмен", value: 85, icon: "🔋" },
+    { name: "Гормональная система", value: 80, icon: "🧬" },
   ];
   return (
-    <div
-      className="relative mx-auto w-full max-w-[640px]"
-      style={{ aspectRatio: "1 / 0.78" }}
-    >
-      {/* Ambient gradient glow */}
-      <div className="absolute -inset-10 bg-gradient-hero opacity-25 blur-[80px] rounded-[3rem] pointer-events-none" />
-      {/* Subtle grid lines behind for style */}
-      <div
-        className="absolute inset-0 opacity-[0.07] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-        }}
-      />
-
-      {shots.map((s, i) => {
-        // Horizontal staircase: card ~46% container, step ~39% => overlap ~15%
-        // gentle rotations for editorial feel
-        const layout = [
-          { left: "0%", top: "0%", z: 30, rot: "-3deg" },
-          { left: "39%", top: "8%", z: 20, rot: "0deg" },
-          { left: "78%", top: "16%", z: 10, rot: "3deg" },
-        ][i];
-        return (
-          <div
-            key={s.src}
-            className="absolute w-[46%] transition-transform duration-500 ease-out hover:-translate-y-2"
-            style={{
-              left: layout.left,
-              top: layout.top,
-              zIndex: layout.z,
-              transform: `rotate(${layout.rot})`,
-              transformOrigin: "center center",
-            }}
-          >
-            <div className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] bg-card">
-              <img
-                src={s.src}
-                alt={s.alt}
-                loading="lazy"
-                className="w-full h-auto block"
-                style={{ aspectRatio: "1 / 1.4142" }}
-              />
-              {/* soft top gloss */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/5 to-transparent" />
-              {/* primary edge highlight */}
-              <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/20" />
-            </div>
+    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
+      <div className="text-sm font-semibold mb-3">Системы организма</div>
+      <div className="flex-1 flex flex-col justify-between gap-2">
+        {rows.map((r) => (
+          <div key={r.name} className="flex items-center gap-2 text-[11px]">
+            <span className="text-primary text-sm leading-none w-4 shrink-0">{r.icon}</span>
+            <span className="flex-1 min-w-0 truncate text-foreground/85">{r.name}</span>
+            <span className="font-semibold tabular-nums text-primary">{r.value}%</span>
           </div>
-        );
-      })}
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Card 3 — Динамика показателей
+function CardDynamics() {
+  // Two simple trend polylines
+  const green = [55, 48, 42, 38, 32, 28, 24];
+  const orange = [40, 44, 42, 46, 44, 48, 46];
+  const w = 200;
+  const h = 90;
+  const step = w / (green.length - 1);
+  const toPath = (arr: number[]) =>
+    arr.map((v, i) => `${i === 0 ? "M" : "L"} ${i * step} ${v}`).join(" ");
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm font-semibold">Динамика показателей</div>
+        <div className="flex items-center gap-1 text-[9px]">
+          {["6 мес.", "1 год", "Все время"].map((t, i) => (
+            <span
+              key={t}
+              className={`px-1.5 py-0.5 rounded-full border ${
+                i === 1
+                  ? "border-primary/50 text-primary bg-primary/10"
+                  : "border-border/50 text-muted-foreground"
+              }`}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col">
+        <svg viewBox={`0 0 ${w} ${h + 14}`} className="w-full h-auto">
+          {/* gridlines */}
+          {[0, 1, 2, 3].map((i) => (
+            <line
+              key={i}
+              x1="0"
+              x2={w}
+              y1={(h / 3) * i}
+              y2={(h / 3) * i}
+              stroke="hsl(var(--border))"
+              strokeOpacity="0.4"
+              strokeDasharray="2 3"
+            />
+          ))}
+          <path d={toPath(green)} stroke="hsl(142 71% 45%)" strokeWidth="1.6" fill="none" />
+          <path d={toPath(orange)} stroke="hsl(38 92% 55%)" strokeWidth="1.6" fill="none" />
+          {green.map((v, i) => (
+            <circle key={"g" + i} cx={i * step} cy={v} r="1.8" fill="hsl(142 71% 45%)" />
+          ))}
+          {orange.map((v, i) => (
+            <circle key={"o" + i} cx={i * step} cy={v} r="1.8" fill="hsl(38 92% 55%)" />
+          ))}
+          {["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл"].map((m, i) => (
+            <text
+              key={m}
+              x={i * step}
+              y={h + 12}
+              fontSize="7"
+              textAnchor="middle"
+              fill="hsl(var(--muted-foreground))"
+            >
+              {m}
+            </text>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function PreviewCardsRow() {
+  return (
+    <div className="relative">
+      {/* Ambient glow */}
+      <div className="absolute -inset-6 bg-gradient-hero opacity-15 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="relative grid grid-cols-3 gap-2 sm:gap-3 min-h-[240px] sm:min-h-[260px]">
+        <CardBigPicture />
+        <CardSystems />
+        <CardDynamics />
+      </div>
     </div>
   );
 }
 
 export function ReportShowcaseSection() {
+  const bullets = [
+    "Целостная картина вашего здоровья",
+    "Понимание рисков и причин изменений",
+    "Персональные рекомендации и план действий",
+    "Динамика показателей во времени",
+    "Поддержка врача и сопровождение",
+  ];
+
   return (
     <section className="py-12 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl opacity-30" />
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-16 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            <span className="text-foreground">Ваш </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
-              персональный отчёт на понятном языке
-            </span>
-          </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Дорожная карта вашего здоровья: расшифровка всех показателей и персональные рекомендации
-          </p>
-        </div>
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center max-w-6xl mx-auto">
+          {/* Left: heading + checklist + CTA */}
+          <div className="order-2 lg:order-1">
+            <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold leading-tight mb-6">
+              <span className="text-foreground">Вы получаете не просто анализы — </span>
+              <span className="bg-gradient-hero bg-clip-text text-transparent">
+                вы получаете понимание
+              </span>
+            </h2>
 
-        {/* Split: features (left) + stacked screenshots (right) */}
-        <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
-          {/* Left: static feature tiles */}
-          <div className="order-2 lg:order-1 space-y-3">
-            {reportFeatures.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="w-full text-left flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm"
-                >
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-semibold mb-1 leading-tight text-sm sm:text-base">{feature.title}</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-                  </div>
-                </div>
-              );
-            })}
+            <ul className="space-y-3 mb-8">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-start gap-3 text-base text-foreground/85">
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
 
-            <div className="pt-4 hidden lg:block">
-              <Link to="/example-report" className="inline-block w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto group">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Посмотреть пример отчёта
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </div>
+            <Link to="/example-report" className="inline-block">
+              <Button size="lg" className="group">
+                <Eye className="w-5 h-5 mr-2" />
+                Посмотреть пример отчёта
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
           </div>
 
-          {/* Right: overlapping screenshots */}
-          <div className="order-1 lg:order-2 px-2 sm:px-6 lg:px-4">
-            <ReportStack />
-
-            <div className="pt-6 lg:hidden flex justify-center">
-              <Link to="/example-report" className="inline-block w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto group">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Посмотреть пример отчёта
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </div>
+          {/* Right: three preview cards */}
+          <div className="order-1 lg:order-2">
+            <PreviewCardsRow />
           </div>
         </div>
       </div>
