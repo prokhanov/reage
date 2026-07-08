@@ -611,9 +611,6 @@ export function ReportShowcaseSection() {
               персональный отчёт на понятном языке
             </span>
           </h2>
-          <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Дорожная карта вашего здоровья: расшифровка всех показателей и персональные рекомендации
-          </p>
         </div>
 
         <div className="grid lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.55fr)] gap-8 lg:gap-10 items-start max-w-7xl mx-auto">
