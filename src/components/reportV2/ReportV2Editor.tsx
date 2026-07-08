@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,12 @@ interface Props {
   mode: "view" | "edit";
   /** Колбэк после успешного сейва — чтобы родитель мог перечитать данные. */
   onSaved?: () => void;
+  /**
+   * Компактный режим для ЛК пациента / view-as-patient:
+   * скрывает служебную мета-строку, подсказку и переключатели пагинации,
+   * добавляет кнопку «Открыть в новом окне».
+   */
+  compact?: boolean;
 }
 
 const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
@@ -49,7 +55,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(null);
@@ -185,25 +191,42 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
   };
 
 
+  const openInNewWindow = () => {
+    const url = `/internal/report-v2?analysisId=${encodeURIComponent(
+      analysisId,
+    )}&userId=${encodeURIComponent(userId)}&mode=${mode}`;
+    window.open(url, "_blank", "noopener");
+  };
+
   const toolbarExtras = (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={refreshPagination}
-        disabled={!paginated}
-        title="Пересчитать разбиение на страницы"
-      >
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Обновить страницы
-      </Button>
-      <Button
-        variant={paginated ? "default" : "outline"}
-        size="sm"
-        onClick={() => setPaginated((v) => !v)}
-      >
-        {paginated ? "Постранично" : "Потоком"}
-      </Button>
+      {!compact && (
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshPagination}
+            disabled={!paginated}
+            title="Пересчитать разбиение на страницы"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Обновить страницы
+          </Button>
+          <Button
+            variant={paginated ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPaginated((v) => !v)}
+          >
+            {paginated ? "Постранично" : "Потоком"}
+          </Button>
+        </>
+      )}
+      {compact && (
+        <Button size="sm" variant="outline" onClick={openInNewWindow}>
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Открыть в новом окне
+        </Button>
+      )}
       <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
         {rendering ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -217,9 +240,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
 
   const toolbarWrap = (extra: React.ReactNode) => (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
-      <div className="text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
-      </div>
+      {compact ? (
+        <div />
+      ) : (
+        <div className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         {extra}
         {toolbarExtras}
@@ -231,12 +258,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved }: Props) {
     return (
       <div className="report-v2-scope">
         {toolbarWrap(null)}
-        <Alert className="mb-3">
-          <Info className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            Просмотр. Правка текста, назначений и статуса — через классический редактор.
-          </AlertDescription>
-        </Alert>
+        {!compact && (
+          <Alert className="mb-3">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Просмотр. Правка текста, назначений и статуса — через классический редактор.
+            </AlertDescription>
+          </Alert>
+        )}
         {paginated ? (
           <PagedReportPreview
             report={report}
