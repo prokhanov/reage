@@ -102,8 +102,6 @@ export function Footer() {
           </div>
 
 
-          </div>
-
           <div className="md:col-span-5 lg:col-span-4 md:text-right">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">
               Связаться с нами
