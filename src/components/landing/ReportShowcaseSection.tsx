@@ -487,18 +487,16 @@ function ReportMockup({
   );
 }
 
-// ============ Vector HTML preview stack (crisp at any DPR) ============
-import {
-  PreviewCover,
-  PreviewSection,
-  PreviewPrescriptions,
-} from "./ReportPagePreviews";
+// ============ Screenshot preview stack ============
+import reportPage01 from "@/assets/landing-v2/report-page-01.png";
+import reportPage13 from "@/assets/landing-v2/report-page-13.png";
+import reportPage61 from "@/assets/landing-v2/report-page-61.png";
 
 function PreviewCardsRow() {
   const shots = [
-    { node: <PreviewCover />, alt: "Титульная страница отчёта ReAge" },
-    { node: <PreviewSection />, alt: "Раздел сердечно-сосудистой системы" },
-    { node: <PreviewPrescriptions />, alt: "Персональные рекомендации" },
+    { src: reportPage01, alt: "Титульная страница отчёта ReAge" },
+    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы" },
+    { src: reportPage61, alt: "Персональные рекомендации" },
   ];
   const [active, setActive] = useState(0);
   const n = shots.length;
@@ -514,10 +512,15 @@ function PreviewCardsRow() {
         style={{ aspectRatio: "1 / 1.35" }}
       >
         {shots.map((s, i) => {
+          // Position relative to active: 0 = front, 1 = one behind, 2 = two behind (wraps)
           const offset = (i - active + n) % n;
+          // Front-most = offset 0
           const styles = [
+            // front
             { x: 0, y: 0, scale: 1, rotate: 0, z: 30, opacity: 1 },
+            // second (peeks from right)
             { x: 36, y: 18, scale: 0.94, rotate: 3, z: 20, opacity: 0.9 },
+            // third (peeks further)
             { x: 68, y: 34, scale: 0.88, rotate: 5, z: 10, opacity: 0.75 },
           ];
           const st = styles[offset] ?? styles[styles.length - 1];
@@ -538,9 +541,15 @@ function PreviewCardsRow() {
                 opacity: st.opacity,
               }}
               transition={{ type: "spring", stiffness: 220, damping: 26 }}
-              style={{ zIndex: st.z, cursor: "pointer", containerType: "inline-size" }}
+              style={{ zIndex: st.z, cursor: "pointer" }}
             >
-              {s.node}
+              <img
+                src={s.src}
+                alt={s.alt}
+                loading="lazy"
+                draggable={false}
+                className="w-full h-full object-cover object-top block pointer-events-none"
+              />
             </motion.button>
           );
         })}
