@@ -487,167 +487,35 @@ function ReportMockup({
   );
 }
 
-// ============ Reference-style preview cards ============
-
-// Card 1 — Общая картина (bio age + silhouette)
-function CardBigPicture() {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
-      <div className="text-sm font-semibold mb-3">Общая картина</div>
-      <div className="flex-1 flex items-stretch gap-3">
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Биологический возраст
-          </div>
-          <div className="mt-1 leading-none">
-            <span className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">32</span>
-            <span className="text-base font-semibold text-foreground/80 ml-1">года</span>
-          </div>
-          <div className="mt-2 text-[11px] text-muted-foreground">Фактический возраст: 40</div>
-          <p className="mt-3 text-[11px] leading-relaxed text-foreground/75">
-            Ваш биологический возраст ниже фактического. Отличный результат!
-          </p>
-        </div>
-        {/* Silhouette */}
-        <div className="w-14 shrink-0 relative flex items-center justify-center">
-          <svg viewBox="0 0 60 140" className="w-full h-auto" fill="none">
-            <defs>
-              <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
-              </linearGradient>
-            </defs>
-            {/* head */}
-            <circle cx="30" cy="12" r="8" fill="url(#bodyGrad)" />
-            {/* torso */}
-            <path
-              d="M18 24 Q30 20 42 24 L46 60 Q44 78 40 92 L36 128 L32 128 L30 96 L28 128 L24 128 L20 92 Q16 78 14 60 Z"
-              fill="url(#bodyGrad)"
-            />
-            {/* arms */}
-            <path d="M18 26 L10 62 L14 64 L22 32 Z" fill="url(#bodyGrad)" />
-            <path d="M42 26 L50 62 L46 64 L38 32 Z" fill="url(#bodyGrad)" />
-            {/* highlight dots */}
-            {[
-              { x: 30, y: 40 },
-              { x: 30, y: 60 },
-              { x: 26, y: 80 },
-              { x: 34, y: 80 },
-              { x: 30, y: 108 },
-            ].map((d, i) => (
-              <circle key={i} cx={d.x} cy={d.y} r="1.6" fill="hsl(var(--primary-foreground))" opacity="0.9" />
-            ))}
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Card 2 — Системы организма
-function CardSystems() {
-  const rows = [
-    { name: "Сердечно-сосудистая", value: 95, icon: "❤️" },
-    { name: "Метаболизм", value: 82, icon: "⚡" },
-    { name: "Иммунная система", value: 78, icon: "🛡️" },
-    { name: "Энергетический обмен", value: 85, icon: "🔋" },
-    { name: "Гормональная система", value: 80, icon: "🧬" },
-  ];
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
-      <div className="text-sm font-semibold mb-3">Системы организма</div>
-      <div className="flex-1 flex flex-col justify-between gap-2">
-        {rows.map((r) => (
-          <div key={r.name} className="flex items-center gap-2 text-[11px]">
-            <span className="text-primary text-sm leading-none w-4 shrink-0">{r.icon}</span>
-            <span className="flex-1 min-w-0 truncate text-foreground/85">{r.name}</span>
-            <span className="font-semibold tabular-nums text-primary">{r.value}%</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Card 3 — Динамика показателей
-function CardDynamics() {
-  // Two simple trend polylines
-  const green = [55, 48, 42, 38, 32, 28, 24];
-  const orange = [40, 44, 42, 46, 44, 48, 46];
-  const w = 200;
-  const h = 90;
-  const step = w / (green.length - 1);
-  const toPath = (arr: number[]) =>
-    arr.map((v, i) => `${i === 0 ? "M" : "L"} ${i * step} ${v}`).join(" ");
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-semibold">Динамика показателей</div>
-        <div className="flex items-center gap-1 text-[9px]">
-          {["6 мес.", "1 год", "Все время"].map((t, i) => (
-            <span
-              key={t}
-              className={`px-1.5 py-0.5 rounded-full border ${
-                i === 1
-                  ? "border-primary/50 text-primary bg-primary/10"
-                  : "border-border/50 text-muted-foreground"
-              }`}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="flex-1 flex flex-col">
-        <svg viewBox={`0 0 ${w} ${h + 14}`} className="w-full h-auto">
-          {/* gridlines */}
-          {[0, 1, 2, 3].map((i) => (
-            <line
-              key={i}
-              x1="0"
-              x2={w}
-              y1={(h / 3) * i}
-              y2={(h / 3) * i}
-              stroke="hsl(var(--border))"
-              strokeOpacity="0.4"
-              strokeDasharray="2 3"
-            />
-          ))}
-          <path d={toPath(green)} stroke="hsl(142 71% 45%)" strokeWidth="1.6" fill="none" />
-          <path d={toPath(orange)} stroke="hsl(38 92% 55%)" strokeWidth="1.6" fill="none" />
-          {green.map((v, i) => (
-            <circle key={"g" + i} cx={i * step} cy={v} r="1.8" fill="hsl(142 71% 45%)" />
-          ))}
-          {orange.map((v, i) => (
-            <circle key={"o" + i} cx={i * step} cy={v} r="1.8" fill="hsl(38 92% 55%)" />
-          ))}
-          {["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл"].map((m, i) => (
-            <text
-              key={m}
-              x={i * step}
-              y={h + 12}
-              fontSize="7"
-              textAnchor="middle"
-              fill="hsl(var(--muted-foreground))"
-            >
-              {m}
-            </text>
-          ))}
-        </svg>
-      </div>
-    </div>
-  );
-}
+// ============ Screenshot preview cards ============
+import reportPage01 from "@/assets/landing-v2/report-page-01.png";
+import reportPage13 from "@/assets/landing-v2/report-page-13.png";
+import reportPage61 from "@/assets/landing-v2/report-page-61.png";
 
 function PreviewCardsRow() {
+  const shots = [
+    { src: reportPage01, alt: "Титульная страница отчёта ReAge", rotate: "-rotate-3", z: "z-10", mt: "mt-6" },
+    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы", rotate: "rotate-0", z: "z-20", mt: "mt-0" },
+    { src: reportPage61, alt: "Персональные рекомендации", rotate: "rotate-3", z: "z-10", mt: "mt-6" },
+  ];
   return (
     <div className="relative">
-      {/* Ambient glow */}
-      <div className="absolute -inset-6 bg-gradient-hero opacity-15 blur-3xl rounded-[2rem] pointer-events-none" />
-      <div className="relative grid grid-cols-3 gap-2 sm:gap-3 min-h-[240px] sm:min-h-[260px]">
-        <CardBigPicture />
-        <CardSystems />
-        <CardDynamics />
+      <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="relative grid grid-cols-3 gap-2 sm:gap-3">
+        {shots.map((s) => (
+          <div
+            key={s.alt}
+            className={`${s.mt} ${s.z} ${s.rotate} rounded-xl overflow-hidden border border-border/60 bg-card shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/5 transition-transform hover:-translate-y-1 hover:rotate-0`}
+          >
+            <img
+              src={s.src}
+              alt={s.alt}
+              loading="lazy"
+              className="w-full h-auto block"
+              style={{ aspectRatio: "1 / 1.4142", objectFit: "cover", objectPosition: "top" }}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
