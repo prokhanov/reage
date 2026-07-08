@@ -188,18 +188,18 @@ export function WhereToTestSection() {
 
       {/* Map block */}
       {showMap && (
-        <div className="container mx-auto px-4 mt-2">
+        <div className="relative z-10 container mx-auto px-4 mt-2">
           <div className="flex justify-center">
             <button
               type="button"
               onClick={() => setMapOpen((v) => !v)}
-              className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+              className="inline-flex items-center gap-2 text-primary hover:underline font-semibold text-lg md:text-xl"
               aria-expanded={mapOpen}
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-5 h-5" />
               {mapOpen ? "Скрыть карту" : "Посмотреть адреса клиник на карте"}
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${mapOpen ? "rotate-180" : ""}`}
+                className={`w-5 h-5 transition-transform ${mapOpen ? "rotate-180" : ""}`}
               />
             </button>
           </div>
