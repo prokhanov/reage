@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Home, Building2, MapPin } from "lucide-react";
+import { Home, Building2, MapPin, ChevronDown } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import LabLocationsMap, {
@@ -67,6 +68,8 @@ export function WhereToTestSection() {
   const [ctx, setCtx] = useState<LandingContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState<CityKey>("moscow");
+  const [mapOpen, setMapOpen] = useState(false);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -185,10 +188,28 @@ export function WhereToTestSection() {
 
       {/* Map block */}
       {showMap && (
+        <div className="container mx-auto px-4 mt-2">
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setMapOpen((v) => !v)}
+              className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+              aria-expanded={mapOpen}
+            >
+              <MapPin className="w-4 h-4" />
+              {mapOpen ? "Скрыть карту" : "Посмотреть адреса клиник на карте"}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${mapOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showMap && mapOpen && (
         <div
-          className="animate-fade-in"
+          className="animate-fade-in mt-6"
           style={{
-            animationDelay: "0.3s",
             position: "relative",
             width: "100vw",
             marginLeft: "calc(-50vw + 50%)",
