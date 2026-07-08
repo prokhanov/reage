@@ -603,16 +603,22 @@ export function ReportShowcaseSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl opacity-30" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.55fr)] gap-8 lg:gap-10 items-stretch max-w-7xl mx-auto">
-          {/* Left: heading + feature tiles + CTA */}
-          <div className="order-2 lg:order-1">
-            <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold leading-tight mb-6">
-              <span className="text-foreground">Вы получаете не просто анализы — </span>
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
-                вы получаете понимание
-              </span>
-            </h2>
+        {/* Section title */}
+        <div className="max-w-7xl mx-auto mb-10 md:mb-14 text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold leading-tight">
+            <span className="text-foreground">Ваш </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">
+              персональный отчёт на понятном языке
+            </span>
+          </h2>
+          <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+            Дорожная карта вашего здоровья: расшифровка всех показателей и персональные рекомендации
+          </p>
+        </div>
 
+        <div className="grid lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.55fr)] gap-8 lg:gap-10 items-start max-w-7xl mx-auto">
+          {/* Left: feature tiles + CTA */}
+          <div className="order-2 lg:order-1">
             <ul className="space-y-3 mb-8">
               {reportFeatures.map((f) => {
                 const Icon = f.icon;
@@ -644,13 +650,13 @@ export function ReportShowcaseSection() {
             </Link>
           </div>
 
-
-          {/* Right: three preview cards */}
+          {/* Right: preview stack */}
           <div className="order-1 lg:order-2">
             <PreviewCardsRow />
           </div>
         </div>
       </div>
+
     </section>
   );
 }
