@@ -499,28 +499,56 @@ function ReportStack() {
   ];
   return (
     <div
-      className="relative mx-auto w-full max-w-[560px] overflow-visible"
-      style={{ aspectRatio: "1 / 1.15" }}
+      className="relative mx-auto w-full max-w-[640px]"
+      style={{ aspectRatio: "1 / 0.78" }}
     >
-      {/* Glow */}
-      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      {/* Ambient gradient glow */}
+      <div className="absolute -inset-10 bg-gradient-hero opacity-25 blur-[80px] rounded-[3rem] pointer-events-none" />
+      {/* Subtle grid lines behind for style */}
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+        }}
+      />
+
       {shots.map((s, i) => {
-        // Larger cards, ~15% overlap → step ≈ 62% of card width
-        // card width 70% of container; step 60% of container = 14% overlap of card
-        const positions = [
-          "left-[-8%] top-0 z-30",
-          "left-[52%] top-[7%] z-20",
-          "left-[112%] top-[14%] z-10",
-        ];
+        // Horizontal staircase: card ~46% container, step ~39% => overlap ~15%
+        // gentle rotations for editorial feel
+        const layout = [
+          { left: "0%", top: "0%", z: 30, rot: "-3deg" },
+          { left: "39%", top: "8%", z: 20, rot: "0deg" },
+          { left: "78%", top: "16%", z: 10, rot: "3deg" },
+        ][i];
         return (
-          <img
+          <div
             key={s.src}
-            src={s.src}
-            alt={s.alt}
-            loading="lazy"
-            className={`absolute w-[70%] rounded-xl border border-border/60 bg-card shadow-2xl ${positions[i]}`}
-            style={{ aspectRatio: "1 / 1.4142" }}
-          />
+            className="absolute w-[46%] transition-transform duration-500 ease-out hover:-translate-y-2"
+            style={{
+              left: layout.left,
+              top: layout.top,
+              zIndex: layout.z,
+              transform: `rotate(${layout.rot})`,
+              transformOrigin: "center center",
+            }}
+          >
+            <div className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] bg-card">
+              <img
+                src={s.src}
+                alt={s.alt}
+                loading="lazy"
+                className="w-full h-auto block"
+                style={{ aspectRatio: "1 / 1.4142" }}
+              />
+              {/* soft top gloss */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/5 to-transparent" />
+              {/* primary edge highlight */}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/20" />
+            </div>
+          </div>
         );
       })}
     </div>
@@ -548,7 +576,7 @@ export function ReportShowcaseSection() {
         </div>
 
         {/* Split: features (left) + stacked screenshots (right) */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
           {/* Left: static feature tiles */}
           <div className="order-2 lg:order-1 space-y-3">
             {reportFeatures.map((feature) => {
