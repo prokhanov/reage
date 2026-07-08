@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Home, Building2, MapPin } from "lucide-react";
+import { Home, Building2, MapPin, ChevronDown } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import LabLocationsMap, {
