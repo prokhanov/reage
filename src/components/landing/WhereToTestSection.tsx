@@ -68,6 +68,8 @@ export function WhereToTestSection() {
   const [ctx, setCtx] = useState<LandingContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState<CityKey>("moscow");
+  const [mapOpen, setMapOpen] = useState(false);
+
 
   useEffect(() => {
     let cancelled = false;
