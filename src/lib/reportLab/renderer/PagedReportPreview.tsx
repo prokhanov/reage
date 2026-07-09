@@ -77,6 +77,7 @@ const pagedCss = `
    пагинация остаются идентичными десктопу — как просмотр PDF. */
 .rl-paged-shell-framed .rl-paged-output {
   --rl-fit-zoom: 1;
+  margin-inline: auto;
 }
 .rl-paged-shell-framed .pagedjs_pages {
   transform: scale(var(--rl-fit-zoom, 1));
@@ -490,43 +491,79 @@ export function PagedReportPreview({
     const shell = shellRef.current;
     const output = outputRef.current;
     if (!shell || !output) return;
-    // A4 при 96dpi ≈ 794 CSS px.
-    const PAGE_W = 794;
+    // A4 при 96dpi ≈ 794 CSS px. Реальную ширину берём из Paged.js DOM,
+    // чтобы мобильный масштаб считался от того же листа, что и десктоп/PDF.
+    const DEFAULT_PAGE_W = 794;
     let zoom = 1;
-    const applyOutputSize = () => {
+
+    const measurePages = () => {
       const pages = output.querySelector<HTMLElement>(".pagedjs_pages");
-      if (!pages) return;
-      // scrollHeight/Width игнорирует transform — берём натуральные размеры.
-      const naturalH = pages.scrollHeight;
-      const naturalW = pages.scrollWidth || PAGE_W;
+      if (!pages) return null;
+      const firstPage = pages.querySelector<HTMLElement>(".pagedjs_page");
+      const naturalW = pages.scrollWidth || firstPage?.scrollWidth || DEFAULT_PAGE_W;
+      const naturalH = pages.scrollHeight || firstPage?.scrollHeight || 0;
+      return { pages, naturalW, naturalH };
+    };
+
+    const applyOutputSize = () => {
+      const measured = measurePages();
+      if (!measured) return;
+      const { naturalH, naturalW } = measured;
       // 64px = padding 32px сверху и снизу у .rl-paged-shell-framed .rl-paged-output
       output.style.width = `${Math.ceil(naturalW * zoom)}px`;
       output.style.height = `${Math.ceil(naturalH * zoom) + 64}px`;
     };
+
     const applyZoom = () => {
-      const w = shell.clientWidth;
+      const measured = measurePages();
+      const w = shell.clientWidth || shell.getBoundingClientRect().width;
       if (!w) return;
-      const avail = w - 8;
-      zoom = Math.min(1, avail / PAGE_W);
+      const naturalW = measured?.naturalW || DEFAULT_PAGE_W;
+      zoom = Math.min(1, w / naturalW);
       output.style.setProperty("--rl-fit-zoom", zoom.toFixed(4));
       applyOutputSize();
     };
-    applyZoom();
-    const roShell = new ResizeObserver(applyZoom);
+
+    let raf = 0;
+    const timers: number[] = [];
+    const scheduleZoom = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        applyZoom();
+        // Paged.js и диалог могут стабилизировать ширину на следующем кадре.
+        requestAnimationFrame(applyZoom);
+      });
+    };
+    const scheduleStabilizedZoom = () => {
+      scheduleZoom();
+      [80, 250, 800].forEach((delay) => timers.push(window.setTimeout(applyZoom, delay)));
+    };
+
+    scheduleStabilizedZoom();
+    const roShell = new ResizeObserver(scheduleStabilizedZoom);
     roShell.observe(shell);
-    const roOutput = new ResizeObserver(applyOutputSize);
-    roOutput.observe(output);
+    const roPages = new ResizeObserver(scheduleZoom);
+    const existingPages = output.querySelector<HTMLElement>(".pagedjs_pages");
+    if (existingPages) roPages.observe(existingPages);
     // MutationObserver — Paged.js подменяет .pagedjs_pages целиком.
     const mo = new MutationObserver(() => {
       const pages = output.querySelector<HTMLElement>(".pagedjs_pages");
-      if (pages) roOutput.observe(pages);
-      applyOutputSize();
+      if (pages) roPages.observe(pages);
+      // Важно пересчитать именно zoom, а не только высоту: при открытии в
+      // мобильном диалоге первый замер иногда приходит из ещё нераскрытого
+      // контейнера, из-за чего лист оставался в половину экрана.
+      scheduleStabilizedZoom();
     });
     mo.observe(output, { childList: true, subtree: true });
+    window.visualViewport?.addEventListener("resize", scheduleStabilizedZoom);
     return () => {
+      if (raf) cancelAnimationFrame(raf);
+      timers.forEach((timer) => window.clearTimeout(timer));
       roShell.disconnect();
-      roOutput.disconnect();
+      roPages.disconnect();
       mo.disconnect();
+      window.visualViewport?.removeEventListener("resize", scheduleStabilizedZoom);
     };
   }, [chrome]);
 
