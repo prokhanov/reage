@@ -499,8 +499,9 @@ export function PagedReportPreview({
       // scrollHeight/Width игнорирует transform — берём натуральные размеры.
       const naturalH = pages.scrollHeight;
       const naturalW = pages.scrollWidth || PAGE_W;
+      // 64px = padding 32px сверху и снизу у .rl-paged-shell-framed .rl-paged-output
       output.style.width = `${Math.ceil(naturalW * zoom)}px`;
-      output.style.height = `${Math.ceil(naturalH * zoom)}px`;
+      output.style.height = `${Math.ceil(naturalH * zoom) + 64}px`;
     };
     const applyZoom = () => {
       const w = shell.clientWidth;
