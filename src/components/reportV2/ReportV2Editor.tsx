@@ -113,6 +113,18 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [onSaved],
   );
 
+  const navSections = useMemo<ReportNavSection[]>(() => {
+    if (!report) return [];
+    const items: ReportNavSection[] = [{ id: "cover", label: "Обложка" }];
+    if (getPatientDataRecord(report)) items.push({ id: "patient", label: "Данные пациента" });
+    items.push({ id: "overview", label: "Общее резюме" });
+    const cats = getCategoryRecords(report);
+    cats.forEach((rec, i) => items.push({ id: `category-${i + 1}`, label: rec.type }));
+    if (getPrescriptionsRecord(report)) items.push({ id: "prescriptions", label: "Рекомендации" });
+    return items;
+  }, [report]);
+
+
   const downloadPdf = useCallback(async () => {
     if (!report) return;
     setRendering(true);
