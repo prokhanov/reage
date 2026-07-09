@@ -115,7 +115,7 @@ export function ComparisonSection() {
     {
       feature: "Цена за год",
       reage: { text: "от 69 990₽" },
-      checkup: { text: "~30 000₽" },
+      checkup: { text: "~75 000₽" },
       labs: { text: "~80 000₽*" },
       genetics: { text: "~80 000₽" },
     },
