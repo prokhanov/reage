@@ -474,7 +474,8 @@ export function AppFeaturesSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-10 md:mb-14 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            <span className="text-foreground">Полный контроль в вашем </span>
+            <span className="text-foreground">Полный контроль в вашем</span>
+            <br />
             <span className="bg-gradient-hero bg-clip-text text-transparent">
               личном кабинете
             </span>
