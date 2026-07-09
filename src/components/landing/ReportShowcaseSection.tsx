@@ -548,7 +548,7 @@ function PreviewCardsRow() {
                 alt={s.alt}
                 loading="lazy"
                 draggable={false}
-                className="w-full h-full object-cover object-top block pointer-events-none"
+                className="w-full h-full object-cover object-top block pointer-events-none scale-[1.02]"
               />
             </motion.button>
           );
