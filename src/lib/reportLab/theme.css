@@ -207,12 +207,17 @@ html, body {
   break-inside: avoid-page;
   page-break-inside: avoid;
 }
-/* Карточка биомаркера может продлеваться на следующую страницу. Не держим
-   шапку+шкалу жёсткой связкой: иначе Paged.js переносит следующий маркер
-   целиком и оставляет пустой хвост/пустую рамку на предыдущем листе. */
+/* Карточка биомаркера может продлеваться на следующую страницу, но её
+   визуальная шапка (название + статус + шкала + диапазон) неделима. */
 .reportlab .rl-biomarker {
   break-inside: auto;
   page-break-inside: auto;
+}
+.reportlab .rl-bio-header {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 .reportlab .rl-bio-head {
   break-inside: avoid;
@@ -221,10 +226,10 @@ html, body {
   page-break-after: avoid;
 }
 .reportlab .rl-bio-scale {
-  break-inside: auto;
-  page-break-inside: auto;
-  break-after: auto;
-  page-break-after: auto;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .reportlab .rl-section-header,
@@ -483,6 +488,10 @@ html, body {
   margin: 0 0 4mm;
   box-decoration-break: slice;
   -webkit-box-decoration-break: slice;
+}
+.reportlab .rl-bio-header {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 .reportlab .rl-bio-body,
 .reportlab .rl-bio-body .rl-prose,
