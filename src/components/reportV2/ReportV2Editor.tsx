@@ -242,7 +242,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       {compact && (
         <Button size="sm" variant="outline" onClick={openInNewWindow}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          Открыть в новом окне
+          В новом окне
         </Button>
       )}
       <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
