@@ -10,7 +10,10 @@ import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/R
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
+import { getCategoryRecords, getPatientDataRecord, getPrescriptionsRecord } from "@/lib/reportLab/parser";
 import type { LabReport } from "@/lib/reportLab/types";
+import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
+
 
 interface Props {
   analysisId: string;
