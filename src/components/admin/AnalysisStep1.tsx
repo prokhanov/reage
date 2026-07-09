@@ -192,8 +192,13 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
         }));
         setPlans(list);
 
+        // По умолчанию выбираем экспертный тариф — в нём максимальный набор
+        // маркеров, включая расчётные. Это исключает ситуацию, когда мок
+        // случайно генерируется по basic/plus и получается неполный.
+        const expertPlan = list.find((p) => p.name?.toLowerCase() === "expert");
         const activePlanId = subRes.data?.plan_id as string | undefined;
         const defaultId =
+          expertPlan?.id ||
           (activePlanId && list.find((p) => p.id === activePlanId)?.id) ||
           list[0]?.id ||
           null;
