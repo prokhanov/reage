@@ -115,7 +115,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const navSections = useMemo<ReportNavSection[]>(() => {
     if (!report) return [];
-    const items: ReportNavSection[] = [{ id: "cover", label: "Обложка" }];
+    // Обложку в содержание не выносим — на неё юзер и так попадает первой.
+    const items: ReportNavSection[] = [];
     if (getPatientDataRecord(report)) items.push({ id: "patient", label: "Данные пациента" });
     items.push({ id: "overview", label: "Общее резюме" });
     const cats = getCategoryRecords(report);

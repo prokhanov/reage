@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
@@ -69,6 +69,12 @@ const pagedCss = `
 }
 .rl-paged-shell-framed .pagedjs_page:last-child {
   margin-bottom: 0 !important;
+}
+/* Fit-to-width для узких экранов (планшет/мобиль): страница A4 = 210mm,
+   зумим её так, чтобы влезала по ширине контейнера без горизонтального
+   скролла. Пользователь остаётся волен пинч-зумить через браузер. */
+.rl-paged-shell-framed .pagedjs_pages {
+  zoom: var(--rl-fit-zoom, 1);
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
@@ -465,13 +471,41 @@ export function PagedReportPreview({
   }, [html, signalReady, editable]);
 
 
+  // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) может
+  // не влезать в контейнер. Считаем zoom и прокидываем через CSS-переменную.
+  // На мобильном/планшете отдаём высоту наружу, чтобы не создавать внутренний
+  // горизонтальный скролл, а страница могла масштабироваться браузером.
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    if (chrome !== "framed") return;
+    const el = shellRef.current;
+    if (!el) return;
+    // A4 при 96dpi ≈ 794 CSS px.
+    const PAGE_W = 794;
+    const apply = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      const avail = w - 8; // небольшой отступ, чтобы не касаться краёв
+      const zoom = Math.min(1, avail / PAGE_W);
+      el.style.setProperty("--rl-fit-zoom", zoom.toFixed(4));
+      setNarrow(zoom < 0.999);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [chrome]);
 
   return (
     <div
+      ref={shellRef}
       className={chrome === "framed" ? "rl-paged-shell rl-paged-shell-framed" : "rl-paged-shell"}
       style={
         chrome === "framed"
-          ? { height: typeof height === "number" ? `${height}px` : height }
+          ? narrow
+            ? { height: "auto", maxHeight: "none", overflow: "visible" }
+            : { height: typeof height === "number" ? `${height}px` : height }
           : undefined
       }
     >
