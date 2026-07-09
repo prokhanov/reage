@@ -40,7 +40,7 @@ export function ReportPrescriptions({ report }: Props) {
   push("Сон и восстановление", lifestyle.sleep);
 
   return (
-    <section className="rl-page">
+    <section className="rl-page" data-section-id="prescriptions">
       <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
 
       {prescriptions.length > 0 && (
