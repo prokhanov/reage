@@ -121,8 +121,8 @@ export function WhereToTestSection() {
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-foreground">Там, где </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">удобно вам</span>
+            <span className="text-foreground">Сдавайте анализы там, </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">где удобно вам</span>
           </h2>
           <p
             className="text-base md:text-lg text-muted-foreground animate-fade-in"
