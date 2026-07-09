@@ -58,6 +58,17 @@ function scrollToSection(root: HTMLElement, id: string) {
   const container = findScrollContainer(root);
   const page =
     (target.closest(".pagedjs_page") as HTMLElement | null) ?? target;
+  const isDocumentScroll =
+    container === document.documentElement ||
+    container === document.body ||
+    container === document.scrollingElement;
+  if (isDocumentScroll) {
+    window.scrollTo({
+      top: window.scrollY + page.getBoundingClientRect().top - 16,
+      behavior: "smooth",
+    });
+    return;
+  }
   const cRect = container.getBoundingClientRect();
   const tRect = page.getBoundingClientRect();
   container.scrollTo({
