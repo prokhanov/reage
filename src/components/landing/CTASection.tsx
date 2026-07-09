@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Mail, Phone, MessageCircle, Instagram, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoDark from "@/assets/reage-logo-dark.png";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
@@ -98,11 +98,7 @@ export function Footer() {
         {/* Top: brand + contacts */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
           <div className="md:col-span-7 lg:col-span-8">
-            <img
-              src={logoDark}
-              alt="ReAge"
-              className="h-8 w-auto mb-3"
-            />
+            <ThemedLogo className="h-16 md:h-20 w-auto mb-3" />
           </div>
 
 

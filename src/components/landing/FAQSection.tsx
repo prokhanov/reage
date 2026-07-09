@@ -4,7 +4,7 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
-import { ThemedLogo } from "@/components/ThemedLogo";
+import logoDark from "@/assets/reage-logo-dark.png";
 
 
 
@@ -115,7 +115,7 @@ export function FAQSection() {
         {/* Logo */}
         <div className="flex justify-end mb-6 md:mb-8">
           <Link to="/">
-            <ThemedLogo className="h-16 md:h-20 w-auto" />
+            <img src={logoDark} alt="ReAge" className="h-10 md:h-12 w-auto" />
           </Link>
         </div>
 
