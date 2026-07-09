@@ -29,7 +29,12 @@ interface Props {
  */
 function findScrollContainer(root: HTMLElement): HTMLElement {
   const framed = root.querySelector<HTMLElement>(".rl-paged-shell-framed");
-  if (framed) return framed;
+  if (framed) {
+    const style = getComputedStyle(framed);
+    if (/(auto|scroll)/.test(style.overflowY) && framed.scrollHeight > framed.clientHeight) {
+      return framed;
+    }
+  }
   let el: HTMLElement | null = root;
   while (el && el !== document.body) {
     const style = getComputedStyle(el);
