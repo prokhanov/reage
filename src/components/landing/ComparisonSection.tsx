@@ -116,7 +116,7 @@ export function ComparisonSection() {
       feature: "Цена за год",
       reage: { text: "от 69 990₽" },
       checkup: { text: "~75 000₽" },
-      labs: { text: "~80 000₽*" },
+      labs: { text: "~80 000₽" },
       genetics: { text: "~80 000₽" },
     },
   ];
@@ -163,9 +163,6 @@ export function ComparisonSection() {
             </div>
           </div>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            * При регулярной сдаче расширенных панелей 3 раза в год
-          </p>
         </div>
       </div>
     </section>
