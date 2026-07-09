@@ -70,6 +70,12 @@ const pagedCss = `
 .rl-paged-shell-framed .pagedjs_page:last-child {
   margin-bottom: 0 !important;
 }
+/* Fit-to-width для узких экранов (планшет/мобиль): страница A4 = 210mm,
+   зумим её так, чтобы влезала по ширине контейнера без горизонтального
+   скролла. Пользователь остаётся волен пинч-зумить через браузер. */
+.rl-paged-shell-framed .pagedjs_pages {
+  zoom: var(--rl-fit-zoom, 1);
+}
 .pagedjs_pagebox,
 .pagedjs_margin-top,
 .pagedjs_margin-bottom,
