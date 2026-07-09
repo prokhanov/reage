@@ -532,7 +532,7 @@ function PreviewCardsRow() {
               type="button"
               onClick={() => (isFront ? next() : setActive(i))}
               aria-label={isFront ? "Следующая страница" : `Показать: ${s.alt}`}
-              className="absolute inset-0 rounded-xl overflow-hidden border border-border/60 bg-card shadow-[0_25px_60px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="absolute inset-0 rounded-xl overflow-hidden bg-card shadow-[0_25px_60px_-20px_rgba(0,0,0,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               animate={{
                 x: st.x,
                 y: st.y,
