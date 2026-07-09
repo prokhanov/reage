@@ -1,40 +1,29 @@
+## Проблема
+Отчёт всегда парсится и пагинируется одинаково (Paged.js гоняет один и тот же HTML с `@page A4` и media-queries на ширину нет). Но на моб/планшете к `.pagedjs_pages` применяется CSS `zoom: var(--rl-fit-zoom, 1)`. `zoom` — legacy-свойство: в Chromium оно тянет пересчёт layout детей, комбинируется с `.pagedjs_page { overflow: hidden }` и в ряде случаев режет визуально содержимое (последний биомаркер на странице «пропадает»). Также ResizeObserver, живущий в узком контейнере, может стартовать после первой пагинации и приводить к визуальному сдвигу.
+
+По ощущению это выглядит как «отчёт другой на мобиле», хотя фактически парсинг идентичный.
+
 ## Что делаем
-На моб/планшетe (< lg) sticky-панель в просмотре отчёта (`ReportV2Editor.tsx`) переделываем:
+Убираем адаптивную «zoom-подгонку» и делаем превью строго как PDF-viewer: одинаковый DOM, одинаковая раскладка, отличается только визуальный масштаб через `transform: scale()`, который не влияет на layout и не режет содержимое.
 
-- Позиция: `sticky top-0` с `-mx-4 -mt-4 px-4 py-2` (компенсируем родительский `p-4` в `ReportV2Dialog`), чтобы панель прилипала к самому верху дилога, край-в-край.
-- Фон: полностью непрозрачный `bg-background` (без `bg-muted/30`, без `backdrop-blur`, без opacity), тонкая нижняя граница `border-b border-border`, `shadow-sm`.
-- Слева: селект разделов на всю доступную ширину (`flex-1`).
-- Справа: две иконочные кнопки в ряд:
-  - `⋮` (Lucide `MoreVertical`) — открывает Popover c пунктами:
-    - «В новом окне» (только в `compact` режиме, как сейчас)
-    - «Скачать PDF»
-    - «Обновить страницы» + «Постранично/Потоком» (в не-`compact` режиме, чтобы не потерять функционал)
-  - `✕` (Lucide `X`) — закрывает диалог.
-- На десктопе (`lg:`) поведение остаётся прежним: панель с этими же кнопками в ряд, без kebab и без крестика (крестик и так есть у `DialogContent`).
+### 1. `src/lib/reportLab/renderer/PagedReportPreview.tsx`
+- Убрать использование CSS `zoom` в `pagedCss` (правило `.rl-paged-shell-framed .pagedjs_pages { zoom: var(--rl-fit-zoom, 1); }`).
+- Заменить fit-to-width через `zoom` на CSS `transform: scale(var(--rl-fit-zoom, 1))` с `transform-origin: top left`. Обернуть `.pagedjs_pages` в контейнер, у которого:
+  - `width: calc(210mm * var(--rl-fit-zoom, 1))` (визуальная ширина после скейла);
+  - `height: auto` (наследуется от scaled child через `min-height`, или считаем через ResizeObserver и выставляем через CSS-переменную `--rl-fit-visual-h`).
+- Логика вычисления `--rl-fit-zoom` остаётся: `min(1, availableWidth / 794)`. Убрать состояние `narrow`; вертикальный скролл всегда управляется одним и тем же родителем.
+- Убрать переключение `height: auto / maxHeight: none / overflow: visible` в JSX — всегда используем ту же геометрию, что и на десктопе (`overflow: auto`, `height` из пропса). Юзер может пинч-зумить браузером как в PDF-viewer.
 
-## Как передать «закрыть»
-`ReportV2Editor` сейчас не знает про диалог. Добавляем опциональный проп `onClose?: () => void`:
-- В `ReportV2Dialog` пробрасываем `onClose={() => onOpenChange(false)}`.
-- В `ReportV2Standalone` не пробрасываем — крестик там не показываем.
-- В `Recommendations.tsx`/других местах где `ReportV2Editor` рендерится без диалога — тоже не пробрасываем.
+### 2. Проверка отсутствия других адаптивных развилок
+- `chrome === "framed"` — оставляем как есть (это визуальная рамка «Google Docs», а не адаптация под устройство).
+- В `theme.css` и `pagedCss` больше нет `@media (max/min-width)` — подтверждено грепом.
+- Убедиться, что HTML, скармливаемый Paged.js (`html` из `renderToStaticMarkup`), не зависит от viewport (сейчас не зависит — просто перепроверить).
 
-## Файлы
-1. `src/components/reportV2/ReportV2Editor.tsx`
-   - Добавить проп `onClose`.
-   - Импорт `MoreVertical`, `X`; `Popover`, `PopoverTrigger`, `PopoverContent` из `@/components/ui/popover`.
-   - Переписать `toolbarWrap`: sticky top-0, непрозрачный фон, «раздвинуть» на края, справа kebab + ✕ (моб) / прежние inline-кнопки (`lg:flex`).
-   - Извлечь общий список действий (`refreshPagination`, `paginated toggle`, `openInNewWindow`, `downloadPdf`) в массив/фрагмент, чтобы использовать и в inline-виде, и внутри Popover.
-2. `src/components/reportV2/ReportV2Dialog.tsx`
-   - Передать `onClose={() => onOpenChange(false)}` в `ReportV2Editor`.
-   - Скрыть встроенный крестик у `DialogContent` (обычно есть по-умолчанию): либо оставить как есть если он и так спрятан, либо убедиться, что мы не рисуем два ✕. Проверить в момент имплементации.
+### 3. Sanity-тест визуально
+Playwright:
+- 1440×900 desktop и 390×844 mobile, один и тот же analysisId в `/internal/report-v2`. Дождаться `__reportReady`, посчитать `document.querySelectorAll('[data-editable-id]').length` и число `.pagedjs_page` — числа должны совпасть.
+- Скриншот первой страницы: одинаковое количество биомаркеров, ничего не обрезано снизу.
 
-## Что не трогаем
-- Сайдбар с разделами (`ReportSectionNav` `sidebar` variant) на десктопе.
-- Логику скролла/`useActiveSection`.
-- Всё, что не касается верхней панели.
-
-## Проверка
-Playwright 390×844 и 820×1180, `/internal/report-v2?...`:
-- панель у самого верха, непрозрачная, край-в-край;
-- kebab открывает меню с «В новом окне» и «Скачать PDF»;
-- ✕ (в диалоговом контексте) закрывает диалог.
+## Что НЕ трогаем
+- Парсер, `buildLabReportFromDb`, `ReportDocument`, `ReportSectionNav`, sticky-панель — они уже работают одинаково для всех устройств.
+- PDF-эндпоинт `render-report-pdf` — на серверный рендер эта правка вообще не влияет.

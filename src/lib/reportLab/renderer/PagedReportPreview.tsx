@@ -70,11 +70,18 @@ const pagedCss = `
 .rl-paged-shell-framed .pagedjs_page:last-child {
   margin-bottom: 0 !important;
 }
-/* Fit-to-width для узких экранов (планшет/мобиль): страница A4 = 210mm,
-   зумим её так, чтобы влезала по ширине контейнера без горизонтального
-   скролла. Пользователь остаётся волен пинч-зумить через браузер. */
+/* Fit-to-width для узких экранов (планшет/мобиль). Используем transform: scale
+   вместо CSS zoom: zoom пересчитывает layout детей и в связке с
+   .pagedjs_page { overflow: hidden } визуально режет содержимое (последние
+   биомаркеры на странице). transform: scale — чисто визуальный, layout и
+   пагинация остаются идентичными десктопу — как просмотр PDF. */
+.rl-paged-shell-framed .rl-paged-output {
+  --rl-fit-zoom: 1;
+}
 .rl-paged-shell-framed .pagedjs_pages {
-  zoom: var(--rl-fit-zoom, 1);
+  transform: scale(var(--rl-fit-zoom, 1));
+  transform-origin: top left;
+  width: 210mm;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
