@@ -113,8 +113,6 @@ export function FAQSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-
-        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
