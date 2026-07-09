@@ -35,7 +35,7 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <section className="relative py-12 md:py-16 overflow-hidden">
+    <section className="relative pt-4 md:pt-6 pb-12 md:pb-16 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
       <div className="absolute top-1/3 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
