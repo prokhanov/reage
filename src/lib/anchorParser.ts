@@ -349,6 +349,47 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       collect(buildCodeFirstParagraphRegex(code), false);
     }
 
+    // Code-first по НОРМАЛИЗОВАННОМУ коду: ловит кейсы, когда в скобках
+    // альтернативная форма записи кода — `(Lp(a))` → нормализуется в `lpa`
+    // и матчится к коду `LPA`. Без этого prohibиция парных скобок в
+    // `buildCodeFirstParagraphRegex` теряет биомаркеры типа Липопротеин(а).
+    {
+      const codeByNormalized = new Map<string, string>();
+      for (const c of biomarkerCodes) {
+        const norm = normalizeBiomarkerCode(c);
+        if (norm && !codeByNormalized.has(norm)) codeByNormalized.set(norm, c);
+      }
+      const paragraphRe =
+        /^(?!\s*#{1,6}\s)(?!\s*[-*•>])(?!\s*\d+[.)]\s)[ \t]*[^\n]{4,400}$/gm;
+      const parenRe =
+        /\(([^()\n]{1,40})\)|\(([^()\n]{0,20}\([^()\n]{0,15}\)[^()\n]{0,20})\)/g;
+      let lm: RegExpExecArray | null;
+      while ((lm = paragraphRe.exec(result)) !== null) {
+        const line = lm[0];
+        parenRe.lastIndex = 0;
+        let pm: RegExpExecArray | null;
+        while ((pm = parenRe.exec(line)) !== null) {
+          if (pm.index > 80) break;
+          const inner = (pm[1] ?? pm[2] ?? "").trim();
+          if (!inner) continue;
+          const norm = normalizeBiomarkerCode(inner);
+          if (!norm) continue;
+          const realCode = codeByNormalized.get(norm);
+          if (!realCode) continue;
+          if (hasBiomarkerAnchor(result, realCode)) break;
+          hits.push({
+            start: lm.index!,
+            end: lm.index! + line.length,
+            code: realCode,
+            nameLen: pm.index,
+            loose: false,
+          });
+          break;
+        }
+      }
+    }
+
+
     if (hits.length > 0) {
       // Sort by position; for the same position prefer longer name (more specific).
       hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);

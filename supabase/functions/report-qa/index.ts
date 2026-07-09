@@ -167,6 +167,50 @@ function injectMissingBiomarkerAnchors(
       if (m[0].length === 0) titleLineRe.lastIndex++;
     }
   }
+
+  // ── Code-first fallback: ловим строки вида
+  //   «<любое имя ≤80 символов> (CODE) описание…»
+  // где `(CODE)` в шапке строки. Работает, когда AI пишет имя биомаркера
+  // не так, как оно записано в БД (типичный кейс: `Липопротеин(а) (Lp(a))`).
+  // Сканируем по кодам из снапшота, а не по именам.
+  {
+    const codeByNormalized = new Map<string, string>();
+    for (const b of biomarkers) {
+      if (!b.code) continue;
+      const norm = normalizeBiomarkerCode(b.code);
+      if (norm && !codeByNormalized.has(norm)) codeByNormalized.set(norm, b.code);
+    }
+    const paragraphRe =
+      /^(?!\s*#{1,6}\s)(?!\s*[-*•>])(?!\s*\d+[.)]\s)[ \t]*[^\n]{4,400}$/gm;
+    const parenRe =
+      /\(([^()\n]{1,40})\)|\(([^()\n]{0,20}\([^()\n]{0,15}\)[^()\n]{0,20})\)/g;
+    paragraphRe.lastIndex = interpretationStart;
+    let lm: RegExpExecArray | null;
+    while ((lm = paragraphRe.exec(report)) !== null) {
+      if (lm.index! >= summaryStart) break;
+      const line = lm[0];
+      parenRe.lastIndex = 0;
+      let pm: RegExpExecArray | null;
+      while ((pm = parenRe.exec(line)) !== null) {
+        if (pm.index > 80) break;
+        const inner = (pm[1] ?? pm[2] ?? "").trim();
+        if (!inner) continue;
+        const norm = normalizeBiomarkerCode(inner);
+        if (!norm) continue;
+        const code = codeByNormalized.get(norm);
+        if (!code) continue;
+        if (anchoredCodes.has(norm)) break;
+        hits.push({
+          start: lm.index!,
+          end: lm.index! + line.length,
+          code,
+          nameLen: pm.index, // приоритет более длинному «имени» перед скобкой
+        });
+        break;
+      }
+    }
+  }
+
   if (hits.length === 0) return { text: report, injectedCodes: [] };
 
   hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
