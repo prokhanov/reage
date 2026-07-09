@@ -29,19 +29,21 @@ export function BiomarkerCard({ biomarker, commentary, gender, age = null, edita
 
   return (
     <div className={`rl-biomarker${editableId ? " rl-biomarker-editable" : ""}`}>
-      <div className="rl-bio-head">
-        <div className="rl-bio-title">
-          <h3 className="rl-bio-name">
-            {biomarker.name}
-            <span className="rl-bio-code">({biomarker.code.toUpperCase()})</span>
-          </h3>
+      <div className="rl-bio-header">
+        <div className="rl-bio-head">
+          <div className="rl-bio-title">
+            <h3 className="rl-bio-name">
+              {biomarker.name}
+              <span className="rl-bio-code">({biomarker.code.toUpperCase()})</span>
+            </h3>
+          </div>
+          <div className={`rl-bio-status ${bucket}`}>
+            <span className="dot" />
+            {label}
+          </div>
         </div>
-        <div className={`rl-bio-status ${bucket}`}>
-          <span className="dot" />
-          {label}
-        </div>
+        <BiomarkerScale biomarker={biomarker} gender={gender} age={age} />
       </div>
-      <BiomarkerScale biomarker={biomarker} gender={gender} age={age} />
       {(commentary || editableId) && (
         <div className="rl-bio-body">
           <ProseMarkdown markdown={commentary} editableId={editableId} />
