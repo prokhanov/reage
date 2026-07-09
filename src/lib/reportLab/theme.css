@@ -217,6 +217,8 @@ html, body {
 .reportlab .rl-bio-head {
   break-inside: avoid;
   page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 .reportlab .rl-bio-scale {
   break-inside: auto;
