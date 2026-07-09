@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Mail, Phone, MessageCircle, Instagram, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoDark from "@/assets/reage-logo-dark.png";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
