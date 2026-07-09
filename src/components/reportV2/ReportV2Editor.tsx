@@ -65,6 +65,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const [paginated, setPaginated] = useState(true);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     let cancelled = false;
