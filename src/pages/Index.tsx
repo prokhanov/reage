@@ -31,9 +31,9 @@ const Index = () => {
           }}
         />
         <HowItWorksBlock />
+        <HowItWorksSection />
         <WhyCheckupsFail />
         <ComparisonSection />
-        <HowItWorksSection />
       </div>
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
       {/* <BenefitsSection /> */}
