@@ -97,8 +97,8 @@ export function Footer() {
       <div className="relative z-10 container mx-auto px-6 max-w-7xl">
         {/* Top: brand + contacts */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
-          <div className="md:col-span-7 lg:col-span-8">
-            <ThemedLogo className="h-16 md:h-20 w-auto mb-3" />
+          <div className="md:col-span-7 lg:col-span-8 flex justify-center md:justify-start">
+            <ThemedLogo className="h-24 md:h-32 w-auto mb-3" />
           </div>
 
 
