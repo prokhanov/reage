@@ -12,7 +12,7 @@ import themeCss from "../theme.css?raw";
 const pagedCss = `
 .reportlab { padding: 0 !important; background: transparent !important; min-height: 0 !important; }
 .reportlab .rl-page {
-  width: auto !important;
+  width: 210mm !important;
   min-height: 0 !important;
   margin: 0 !important;
   box-shadow: none !important;
@@ -54,20 +54,20 @@ const pagedCss = `
   overflow: auto;
 }
 .rl-paged-shell-framed .rl-paged-output,
-.rl-paged-shell-framed .pagedjs_pages {
+.rl-paged-shell-framed > .rl-paged-output > .pagedjs_pages {
   background: #e6e7ea !important;
 }
 .rl-paged-shell-framed .rl-paged-output {
   padding: 32px 0 !important;
 }
-.rl-paged-shell-framed .pagedjs_page {
+.rl-paged-shell-framed > .rl-paged-output > .pagedjs_pages > .pagedjs_page {
   margin: 0 auto 48px !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.08),
     0 16px 36px -14px rgba(20, 36, 56, 0.38) !important;
 }
-.rl-paged-shell-framed .pagedjs_page:last-child {
+.rl-paged-shell-framed > .rl-paged-output > .pagedjs_pages > .pagedjs_page:last-child {
   margin-bottom: 0 !important;
 }
 /* Fit-to-width для узких экранов (планшет/мобиль). Используем transform: scale
@@ -79,7 +79,7 @@ const pagedCss = `
   --rl-fit-zoom: 1;
   margin-inline: auto;
 }
-.rl-paged-shell-framed .pagedjs_pages {
+.rl-paged-shell-framed > .rl-paged-output > .pagedjs_pages {
   transform: scale(var(--rl-fit-zoom, 1));
   transform-origin: top left;
   width: 210mm;
@@ -372,6 +372,9 @@ export function PagedReportPreview({
         "visibility:hidden",
         "pointer-events:none",
         "overflow:visible",
+        "width:210mm",
+        "min-width:210mm",
+        "max-width:210mm",
       ].join(";");
       output.appendChild(scratch);
 
