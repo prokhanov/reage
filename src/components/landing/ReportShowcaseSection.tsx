@@ -606,9 +606,10 @@ export function ReportShowcaseSection() {
         {/* Section title */}
         <div className="max-w-7xl mx-auto mb-10 md:mb-14 text-center">
           <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold leading-tight">
-            <span className="text-foreground">Ваш </span>
+            <span className="text-foreground">Ваш персональный отчёт</span>
+            <br />
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              персональный отчёт на понятном языке
+              на понятном языке
             </span>
           </h2>
         </div>
