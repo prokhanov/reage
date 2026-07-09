@@ -471,13 +471,41 @@ export function PagedReportPreview({
   }, [html, signalReady, editable]);
 
 
+  // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) может
+  // не влезать в контейнер. Считаем zoom и прокидываем через CSS-переменную.
+  // На мобильном/планшете отдаём высоту наружу, чтобы не создавать внутренний
+  // горизонтальный скролл, а страница могла масштабироваться браузером.
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    if (chrome !== "framed") return;
+    const el = shellRef.current;
+    if (!el) return;
+    // A4 при 96dpi ≈ 794 CSS px.
+    const PAGE_W = 794;
+    const apply = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      const avail = w - 8; // небольшой отступ, чтобы не касаться краёв
+      const zoom = Math.min(1, avail / PAGE_W);
+      el.style.setProperty("--rl-fit-zoom", zoom.toFixed(4));
+      setNarrow(zoom < 0.999);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [chrome]);
 
   return (
     <div
+      ref={shellRef}
       className={chrome === "framed" ? "rl-paged-shell rl-paged-shell-framed" : "rl-paged-shell"}
       style={
         chrome === "framed"
-          ? { height: typeof height === "number" ? `${height}px` : height }
+          ? narrow
+            ? { height: "auto", maxHeight: "none", overflow: "visible" }
+            : { height: typeof height === "number" ? `${height}px` : height }
           : undefined
       }
     >
