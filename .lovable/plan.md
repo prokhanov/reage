@@ -1,29 +1,40 @@
-## Задача
-Панель с кнопками и dropdown-навигацией отчёта должна закрепляться сверху при скролле на моб/планшете (на десктопе такое поведение и не требуется — там боковой sidebar сам всегда виден, но sticky панели не помешает).
+## Что делаем
+На моб/планшетe (< lg) sticky-панель в просмотре отчёта (`ReportV2Editor.tsx`) переделываем:
 
-## Правка
-Файл `src/components/reportV2/ReportV2Editor.tsx`, функция `toolbarWrap` (сейчас):
+- Позиция: `sticky top-0` с `-mx-4 -mt-4 px-4 py-2` (компенсируем родительский `p-4` в `ReportV2Dialog`), чтобы панель прилипала к самому верху дилога, край-в-край.
+- Фон: полностью непрозрачный `bg-background` (без `bg-muted/30`, без `backdrop-blur`, без opacity), тонкая нижняя граница `border-b border-border`, `shadow-sm`.
+- Слева: селект разделов на всю доступную ширину (`flex-1`).
+- Справа: две иконочные кнопки в ряд:
+  - `⋮` (Lucide `MoreVertical`) — открывает Popover c пунктами:
+    - «В новом окне» (только в `compact` режиме, как сейчас)
+    - «Скачать PDF»
+    - «Обновить страницы» + «Постранично/Потоком» (в не-`compact` режиме, чтобы не потерять функционал)
+  - `✕` (Lucide `X`) — закрывает диалог.
+- На десктопе (`lg:`) поведение остаётся прежним: панель с этими же кнопками в ряд, без kebab и без крестика (крестик и так есть у `DialogContent`).
 
-```tsx
-<div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
-```
+## Как передать «закрыть»
+`ReportV2Editor` сейчас не знает про диалог. Добавляем опциональный проп `onClose?: () => void`:
+- В `ReportV2Dialog` пробрасываем `onClose={() => onOpenChange(false)}`.
+- В `ReportV2Standalone` не пробрасываем — крестик там не показываем.
+- В `Recommendations.tsx`/других местах где `ReportV2Editor` рендерится без диалога — тоже не пробрасываем.
 
-Сделать её sticky:
+## Файлы
+1. `src/components/reportV2/ReportV2Editor.tsx`
+   - Добавить проп `onClose`.
+   - Импорт `MoreVertical`, `X`; `Popover`, `PopoverTrigger`, `PopoverContent` из `@/components/ui/popover`.
+   - Переписать `toolbarWrap`: sticky top-0, непрозрачный фон, «раздвинуть» на края, справа kebab + ✕ (моб) / прежние inline-кнопки (`lg:flex`).
+   - Извлечь общий список действий (`refreshPagination`, `paginated toggle`, `openInNewWindow`, `downloadPdf`) в массив/фрагмент, чтобы использовать и в inline-виде, и внутри Popover.
+2. `src/components/reportV2/ReportV2Dialog.tsx`
+   - Передать `onClose={() => onOpenChange(false)}` в `ReportV2Editor`.
+   - Скрыть встроенный крестик у `DialogContent` (обычно есть по-умолчанию): либо оставить как есть если он и так спрятан, либо убедиться, что мы не рисуем два ✕. Проверить в момент имплементации.
 
-```tsx
-<div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background/95 supports-[backdrop-filter]:bg-background/70 backdrop-blur px-3 py-2 shadow-sm">
-```
-
-Что это даёт:
-- В `ReportV2Dialog` scroll-контейнер — `<div className="flex-1 overflow-auto p-4 min-h-0">`. Sticky прилипает к его верху → панель всегда сверху, включая dropdown с разделами и кнопки «В новом окне» / «Скачать PDF».
-- В `/internal/report-v2` (`ReportV2Standalone`) scroll — window. Sticky прилипает к верху viewport.
-- На десктопе поведение одинаковое; sidebar (`aside` в `ReportSectionNav`) уже `max-h-[85vh]` и живёт слева — на него sticky панели не влияет.
-
-## Что НЕ трогаем
-- `ReportSectionNav`, `ReportV2Dialog`, `ReportV2Standalone` — правка одна, точечная.
-- Логика скролла/`useActiveSection` — работает от scroll-контейнера и не зависит от sticky-элемента.
+## Что не трогаем
+- Сайдбар с разделами (`ReportSectionNav` `sidebar` variant) на десктопе.
+- Логику скролла/`useActiveSection`.
+- Всё, что не касается верхней панели.
 
 ## Проверка
-Playwright:
-- 390×844 (моб) и 820×1180 (планшет), путь `/internal/report-v2?...`: проскроллить отчёт, убедиться, что панель остаётся у верха viewport, dropdown кликается и переносит к нужной секции.
-- 1440×900: панель по-прежнему сверху, sidebar-навигация справа не сломана.
+Playwright 390×844 и 820×1180, `/internal/report-v2?...`:
+- панель у самого верха, непрозрачная, край-в-край;
+- kebab открывает меню с «В новом окне» и «Скачать PDF»;
+- ✕ (в диалоговом контексте) закрывает диалог.
