@@ -155,9 +155,10 @@ export function ReportCover({ report }: Props) {
           "div",
           <>
             <div className="label">Биомаркеров</div>
-            <div className="value">104</div>
+            <div className="value">{report.biomarkers?.length ?? 0}</div>
           </>,
         )}
+
         {renderEl(
           "meta-systems",
           "rl-cover-meta-item",
