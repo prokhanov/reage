@@ -346,35 +346,43 @@ function injectHeadingBiomarkerAnchors(
   biomarkerIndex?: Map<string, ReportBiomarker>,
 ): string {
   if (!text) return text;
-  const existingAnchor = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/i;
-  if (existingAnchor.test(text)) return text;
   if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
+
+  // Пер-код дедуп: собираем коды, у которых УЖЕ есть <!-- anchor:biomarker … -->.
+  // Раньше здесь был глобальный early-exit — он отключал автопоиск для всех
+  // биомаркеров, если хотя бы один якорь стоял вручную. Из-за этого,
+  // например, Липопротеин(а) не превращался в карточку, если в разделе уже
+  // был анкер другого маркера.
+  const anchoredCodes = new Set<string>();
+  const anyAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+  for (const m of text.matchAll(anyAnchorRegex)) {
+    const norm = normalizeCode(m[1]);
+    if (norm) anchoredCodes.add(norm);
+  }
 
   // Индекс по нормализованному имени (для строк без явного `(CODE)`).
   const nameIndex = new Map<string, string>();
   for (const bio of biomarkerIndex.values()) {
     const key = normalizeName(bio.name);
     if (key && !nameIndex.has(key)) nameIndex.set(key, bio.code);
+    // Дополнительно — имя со снятыми хвостовыми скобками, «Витамин D (25-OH)» → «витамин d».
+    const stripped = normalizeName(bio.name.replace(/\s*\([^()]{1,20}\)\s*$/u, ""));
+    if (stripped && !nameIndex.has(stripped)) nameIndex.set(stripped, bio.code);
   }
 
-  // Строка-заголовок: опциональные `#`, любой короткий текст на своей строке.
-  // Захватываем строку целиком, чтобы позже проверить наличие `(CODE)` в конце
-  // либо совпадение всего текста с известным именем биомаркера.
+  interface Hit { start: number; end: number; code: string; nameLen: number }
+  const hits: Hit[] = [];
+
+  // ── Pass 1: короткая строка-заголовок «Имя» или «Имя (КОД)».
   const headingRegex =
     /^[ \t]*(?:#{1,6}[ \t]+)?([^\n]{1,140}?)[ \t]*$/gm;
   const codeInParensRegex = /\(([A-Za-zА-Яа-яЁё0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/;
-
-  interface Hit { start: number; end: number; code: string }
-  const hits: Hit[] = [];
   for (const m of text.matchAll(headingRegex)) {
     const line = (m[1] || "").trim();
     if (!line || line.length < 2) continue;
-    // Пропускаем «списковые» и служебные строки.
     if (/^[-*•>]/.test(line)) continue;
     if (/^\d+[.)]\s/.test(line)) continue;
     if (line.endsWith(":") || line.endsWith("：")) continue;
-    // Заголовок биомаркера — короткая строка без конца-точки/восклицания/вопроса
-    // и без «сборной» пунктуации внутри предложения.
     if (/[.!?…]$/.test(line)) continue;
     if (/\s—\s|\s–\s/.test(line)) continue;
 
@@ -385,13 +393,10 @@ function injectHeadingBiomarkerAnchors(
       if (normalized && biomarkerIndex.has(normalized)) code = cm[1].trim();
     }
     if (!code) {
-      // Совпадение по имени биомаркера целиком (без круглых скобок).
-      const nameKey = normalizeName(line);
-      const byName = nameIndex.get(nameKey);
+      const byName = nameIndex.get(normalizeName(line));
       if (byName) code = byName;
     }
     if (!code) {
-      // Фолбэк: имя без хвостовых скобок «Название (КОД)» → «название».
       const stripped = line.replace(/\s*\([^)]*\)\s*$/, "").trim();
       if (stripped && stripped !== line) {
         const byName2 = nameIndex.get(normalizeName(stripped));
@@ -399,28 +404,87 @@ function injectHeadingBiomarkerAnchors(
       }
     }
     if (!code) continue;
+    if (anchoredCodes.has(normalizeCode(code))) continue;
 
     hits.push({
       start: m.index ?? 0,
       end: (m.index ?? 0) + m[0].length,
       code,
+      nameLen: line.length,
     });
   }
+
+  // ── Pass 2: code-first параграф «<любое имя ≤80> (CODE) описание…».
+  // Ловит случаи, когда имя в БД содержит скобки (Липопротеин(а)) или AI
+  // пишет имя иначе, но код в скобках корректный.
+  const paragraphRegex =
+    /^(?!\s*#{1,6}\s)(?!\s*[-*•>])(?!\s*\d+[.)]\s)[ \t]*[^\n]{4,400}$/gm;
+  const parenTokenRegex =
+    /\(([^()\n]{1,40})\)|\(([^()\n]{0,20}\([^()\n]{0,15}\)[^()\n]{0,20})\)/g;
+  for (const lm of text.matchAll(paragraphRegex)) {
+    const lineStart = lm.index ?? 0;
+    const line = lm[0];
+    // Не трогаем строки-заголовки, уже пойманные Pass 1: они целиком совпадают.
+    if (hits.some((h) => h.start === lineStart && h.end === lineStart + line.length)) continue;
+    parenTokenRegex.lastIndex = 0;
+    let pm: RegExpExecArray | null;
+    while ((pm = parenTokenRegex.exec(line)) !== null) {
+      if (pm.index > 80) break; // скобка должна быть в «шапке» строки
+      const inner = (pm[1] ?? pm[2] ?? "").trim();
+      if (!inner) continue;
+      const norm = normalizeCode(inner);
+      if (!norm) continue;
+      const bio = biomarkerIndex.get(norm);
+      if (!bio) continue;
+      if (anchoredCodes.has(norm)) break;
+      hits.push({
+        start: lineStart,
+        end: lineStart + line.length,
+        code: bio.code,
+        nameLen: pm.index, // приоритет более «длинному» имени перед скобкой
+      });
+      break;
+    }
+  }
+
   if (hits.length === 0) return text;
 
+  // ── Сортировка/дедуп по коду и позиции.
   const boundaryRegex =
     /^[ \t]*(?:#{1,6}[ \t]+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)[^\n]*$/gim;
-  const findSectionBoundary = (from: number): number => {
-    boundaryRegex.lastIndex = from;
-    const m = boundaryRegex.exec(text);
-    return m ? m.index ?? text.length : text.length;
+  boundaryRegex.lastIndex = 0;
+  const bm = boundaryRegex.exec(text);
+  const summaryStart = bm ? bm.index ?? text.length : text.length;
+
+  hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
+  const seenCodes = new Set<string>(anchoredCodes);
+  const filtered: Hit[] = [];
+  let lastEnd = -1;
+  for (const h of hits) {
+    if (h.start >= summaryStart) continue;
+    if (h.start < lastEnd) continue;
+    const norm = normalizeCode(h.code);
+    if (seenCodes.has(norm)) continue;
+    filtered.push(h);
+    seenCodes.add(norm);
+    lastEnd = h.end;
+  }
+  if (filtered.length === 0) return text;
+
+  const findNextBoundary = (from: number): number => {
+    const headerRegex = /^#{1,2}[ \t]+/gm;
+    headerRegex.lastIndex = from;
+    const hm = headerRegex.exec(text);
+    const headerPos = hm ? hm.index ?? text.length : text.length;
+    return Math.min(headerPos, summaryStart);
   };
 
   let result = text;
-  for (let i = hits.length - 1; i >= 0; i--) {
-    const cur = hits[i];
-    const next = hits[i + 1];
-    const blockEnd = next ? next.start : findSectionBoundary(cur.end);
+  for (let i = filtered.length - 1; i >= 0; i--) {
+    const cur = filtered[i];
+    const next = filtered[i + 1];
+    const nextBoundary = next ? next.start : findNextBoundary(cur.end);
+    const blockEnd = Math.max(cur.end, nextBoundary);
     result =
       result.slice(0, blockEnd) +
       `\n<!-- anchor:biomarker_end -->\n` +
@@ -432,6 +496,7 @@ function injectHeadingBiomarkerAnchors(
   }
   return result;
 }
+
 
 function normalizeName(name: string): string {
   if (!name) return "";
