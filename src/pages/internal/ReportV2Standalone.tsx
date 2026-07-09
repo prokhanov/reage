@@ -68,7 +68,7 @@ function AccessGate({ analysisId, userId, mode }: { analysisId: string; userId: 
     );
   }
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="min-h-screen bg-background p-0 md:p-6">
       <ReportV2Editor analysisId={analysisId} userId={userId} mode={mode} compact />
     </div>
   );

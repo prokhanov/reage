@@ -27,7 +27,7 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode }:
         <DialogDescription className="sr-only">
           Персонализированный отчёт пациента.
         </DialogDescription>
-        <div className="flex-1 overflow-auto p-4 min-h-0">
+        <div className="flex-1 overflow-auto p-0 sm:p-4 min-h-0">
           {analysisId && userId ? (
             <ReportV2Editor
               analysisId={analysisId}
