@@ -478,30 +478,55 @@ export function PagedReportPreview({
   }, [html, signalReady, editable]);
 
 
-  // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) может
-  // не влезать в контейнер. Считаем zoom и прокидываем через CSS-переменную.
-  // На мобильном/планшете отдаём высоту наружу, чтобы не создавать внутренний
-  // горизонтальный скролл, а страница могла масштабироваться браузером.
+  // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) не
+  // влезает в контейнер. Применяем чисто визуальный transform: scale (CSS-переменная
+  // --rl-fit-zoom), при этом layout и пагинация остаются идентичными десктопу —
+  // как в PDF-viewer. Transform не меняет reserved-размер, поэтому вручную
+  // задаём высоту .rl-paged-output = scaledHeight, чтобы вертикальный скролл
+  // соответствовал видимому контенту, а горизонтальный не появлялся.
   const shellRef = useRef<HTMLDivElement>(null);
-  const [narrow, setNarrow] = useState(false);
   useEffect(() => {
     if (chrome !== "framed") return;
-    const el = shellRef.current;
-    if (!el) return;
+    const shell = shellRef.current;
+    const output = outputRef.current;
+    if (!shell || !output) return;
     // A4 при 96dpi ≈ 794 CSS px.
     const PAGE_W = 794;
-    const apply = () => {
-      const w = el.clientWidth;
-      if (!w) return;
-      const avail = w - 8; // небольшой отступ, чтобы не касаться краёв
-      const zoom = Math.min(1, avail / PAGE_W);
-      el.style.setProperty("--rl-fit-zoom", zoom.toFixed(4));
-      setNarrow(zoom < 0.999);
+    let zoom = 1;
+    const applyOutputSize = () => {
+      const pages = output.querySelector<HTMLElement>(".pagedjs_pages");
+      if (!pages) return;
+      // scrollHeight/Width игнорирует transform — берём натуральные размеры.
+      const naturalH = pages.scrollHeight;
+      const naturalW = pages.scrollWidth || PAGE_W;
+      output.style.width = `${Math.ceil(naturalW * zoom)}px`;
+      output.style.height = `${Math.ceil(naturalH * zoom)}px`;
     };
-    apply();
-    const ro = new ResizeObserver(apply);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const applyZoom = () => {
+      const w = shell.clientWidth;
+      if (!w) return;
+      const avail = w - 8;
+      zoom = Math.min(1, avail / PAGE_W);
+      output.style.setProperty("--rl-fit-zoom", zoom.toFixed(4));
+      applyOutputSize();
+    };
+    applyZoom();
+    const roShell = new ResizeObserver(applyZoom);
+    roShell.observe(shell);
+    const roOutput = new ResizeObserver(applyOutputSize);
+    roOutput.observe(output);
+    // MutationObserver — Paged.js подменяет .pagedjs_pages целиком.
+    const mo = new MutationObserver(() => {
+      const pages = output.querySelector<HTMLElement>(".pagedjs_pages");
+      if (pages) roOutput.observe(pages);
+      applyOutputSize();
+    });
+    mo.observe(output, { childList: true, subtree: true });
+    return () => {
+      roShell.disconnect();
+      roOutput.disconnect();
+      mo.disconnect();
+    };
   }, [chrome]);
 
   return (
@@ -510,9 +535,7 @@ export function PagedReportPreview({
       className={chrome === "framed" ? "rl-paged-shell rl-paged-shell-framed" : "rl-paged-shell"}
       style={
         chrome === "framed"
-          ? narrow
-            ? { height: "auto", maxHeight: "none", overflow: "visible" }
-            : { height: typeof height === "number" ? `${height}px` : height }
+          ? { height: typeof height === "number" ? `${height}px` : height }
           : undefined
       }
     >
