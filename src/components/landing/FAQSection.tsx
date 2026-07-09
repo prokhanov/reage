@@ -4,7 +4,7 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
-import { ThemedLogo } from "@/components/ThemedLogo";
+import logoDark from "@/assets/reage-logo-dark.png";
 
 
 
