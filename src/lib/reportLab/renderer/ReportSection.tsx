@@ -22,7 +22,7 @@ export function ReportSection({
 }: Props) {
   let proseIndex = 0;
   return (
-    <section className="rl-page">
+    <section className="rl-page" data-section-id={`category-${index}`}>
       <header className="rl-section-header">
         <div className="num">{String(index).padStart(2, "0")}</div>
         <div className="title" data-section-title={category.title}>

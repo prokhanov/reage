@@ -10,7 +10,10 @@ import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/R
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
+import { getCategoryRecords, getPatientDataRecord, getPrescriptionsRecord } from "@/lib/reportLab/parser";
 import type { LabReport } from "@/lib/reportLab/types";
+import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
+
 
 interface Props {
   analysisId: string;
@@ -62,6 +65,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const [paginated, setPaginated] = useState(true);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +112,18 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     },
     [onSaved],
   );
+
+  const navSections = useMemo<ReportNavSection[]>(() => {
+    if (!report) return [];
+    const items: ReportNavSection[] = [{ id: "cover", label: "Обложка" }];
+    if (getPatientDataRecord(report)) items.push({ id: "patient", label: "Данные пациента" });
+    items.push({ id: "overview", label: "Общее резюме" });
+    const cats = getCategoryRecords(report);
+    cats.forEach((rec, i) => items.push({ id: `category-${i + 1}`, label: rec.type }));
+    if (getPrescriptionsRecord(report)) items.push({ id: "prescriptions", label: "Рекомендации" });
+    return items;
+  }, [report]);
+
 
   const downloadPdf = useCallback(async () => {
     if (!report) return;
@@ -240,16 +257,41 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const toolbarWrap = (extra: React.ReactNode) => (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
-      {compact ? (
-        <div />
-      ) : (
-        <div className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
-        </div>
-      )}
+      <div className="flex items-center gap-2 min-w-0">
+        {/* Dropdown с разделами — виден на планшете/мобиле вместо боковой панели. */}
+        {navSections.length > 0 && (
+          <div className="lg:hidden">
+            <ReportSectionNav
+              sections={navSections}
+              containerRef={previewContainerRef}
+              variant="dropdown"
+            />
+          </div>
+        )}
+        {!compact && (
+          <div className="text-xs text-muted-foreground truncate hidden sm:block">
+            <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
+          </div>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         {extra}
         {toolbarExtras}
+      </div>
+    </div>
+  );
+
+  const withNav = (children: React.ReactNode) => (
+    <div className="flex gap-3 min-h-0">
+      {navSections.length > 0 && (
+        <ReportSectionNav
+          sections={navSections}
+          containerRef={previewContainerRef}
+          variant="sidebar"
+        />
+      )}
+      <div ref={previewContainerRef} className="flex-1 min-w-0">
+        {children}
       </div>
     </div>
   );
@@ -266,15 +308,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             </AlertDescription>
           </Alert>
         )}
-        {paginated ? (
-          <PagedReportPreview
-            report={report}
-            editable={false}
-            drafts={EMPTY_DRAFTS}
-            onEditChange={() => {}}
-          />
-        ) : (
-          <ReportDocument report={report} />
+        {withNav(
+          paginated ? (
+            <PagedReportPreview
+              report={report}
+              editable={false}
+              drafts={EMPTY_DRAFTS}
+              onEditChange={() => {}}
+            />
+          ) : (
+            <ReportDocument report={report} />
+          ),
         )}
       </div>
     );
@@ -298,17 +342,20 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
                 persist
               />,
             )}
-            <EditablePreview
-              report={report}
-              paginated={paginated}
-              editable={shellMode === "edit"}
-            />
+            {withNav(
+              <EditablePreview
+                report={report}
+                paginated={paginated}
+                editable={shellMode === "edit"}
+              />,
+            )}
           </>
         )}
       </ReportEditorShell>
     </div>
   );
 }
+
 
 function EditablePreview({
   report,

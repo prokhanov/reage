@@ -97,7 +97,7 @@ export function ReportCover({ report }: Props) {
   };
 
   return (
-    <div className="rl-page rl-cover" data-cover-root="1" style={rootStyle}>
+    <div className="rl-page rl-cover" data-cover-root="1" data-section-id="cover" style={rootStyle}>
       <div className="rl-cover-top">
         <div>
           <img

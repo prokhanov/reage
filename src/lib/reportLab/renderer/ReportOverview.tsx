@@ -17,7 +17,7 @@ export function ReportOverview({ report }: Props) {
   const age = calcAge(patient.birth_date, analysis.date);
 
   return (
-    <section className="rl-page">
+    <section className="rl-page" data-section-id="overview">
       <h1 className="rl-h1" data-section-title="Общее резюме">
         Общее резюме
       </h1>
