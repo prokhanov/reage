@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ParticleBackground } from "./ParticleBackground";
 
 // Контейнер изолирует layout/paint от карточки логина —
@@ -13,20 +14,16 @@ const blobStyle = (delay: string): React.CSSProperties => ({
   contain: "paint" as any,
 });
 
-export function AuthBackground() {
+// memo: у компонента нет пропсов, но родитель (Auth) ре-рендерился на каждое
+// нажатие клавиши. Мемоизация полностью убирает лишний реконсил blur-слоёв.
+export const AuthBackground = memo(function AuthBackground() {
   return (
     <>
       <ParticleBackground />
 
-      {/* Мобильная версия: 2 статичных пятна с лёгким blur, без анимаций.
-          Большие blur-слои + float-анимации убивают мобильный GPU. */}
-      <div
-        className="md:hidden absolute inset-0 pointer-events-none overflow-hidden"
-        aria-hidden
-      >
-        <div className="absolute -top-24 -left-16 w-[280px] h-[280px] bg-primary/15 rounded-full blur-[40px]" />
-        <div className="absolute -bottom-24 -right-16 w-[280px] h-[280px] bg-accent/15 rounded-full blur-[40px]" />
-      </div>
+      {/* На мобильных не рендерим декоративные blur-слои: даже статичные
+          пятна 280×280 с blur[40px] заставляют iOS Safari перекомпоновывать
+          композитные слои на каждый setState в форме ввода. */}
 
       {/* Десктоп/планшет: полная версия с 7 пятнами и плавающими анимациями */}
       <div
@@ -65,4 +62,4 @@ export function AuthBackground() {
       </div>
     </>
   );
-}
+});

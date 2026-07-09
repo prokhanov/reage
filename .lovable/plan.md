@@ -1,68 +1,49 @@
-## Диагноз
+## Причина тормозов
 
-Пример ссылки из письма: `https://test.reage.life/email-unsubscribe?token=4b39b4f0-0ddd-4fef-b4c9-3191066c9d0f`.
+Диагноз по коду `src/pages/Auth.tsx` (551 строка) + `AuthBackground.tsx`:
 
-Три независимых бага:
+1. **Каждое нажатие клавиши ре-рендерит весь `Auth`.** Состояние `formData`, `phone`, `otp`, вкладок и т.д. лежит на самом верху одного огромного компонента. При каждом символе React переобходит всё дерево: `AuthBackground`, `ThemedLogo` (logo 32×32 с eager-loading), `Tabs`, `Card` с декоративными blur-слоями, оба `TabsContent`.
 
-1. **Путь `/email-unsubscribe` не существует** — его нет в `src/App.tsx` и нет в `deploy/nginx/default.conf` (whitelist). На прод nginx отдаёт 404 (см. памятку: SPA-fallback только по whitelist). Именно это и видит пользователь.
-2. **Ссылка ведёт на test-домен** — Lovable email-API берёт публичный URL из настроек Lovable-проекта (`test.reage.life`), а прод (Coolify, `reage.life`) он не знает. База Supabase у test и прод одна → очередь одна → footer генерируется единственным base URL.
-3. **`src/pages/Unsubscribe.tsx` бьёт напрямую в `*.supabase.co`** и в функцию `drip-unsubscribe` (HMAC-токены). Токен из футера — UUID из таблицы `email_unsubscribe_tokens`, обрабатывается `handle-email-unsubscribe`. Прямой домен Supabase вдобавок нарушает правило памятки про `api.reage.life` (блокировки РКН).
+2. **`AuthBackground` не мемоизирован.** Он не зависит от ввода, но пересоздаёт JSX (в т.ч. `ParticleBackground`) при каждом нажатии. На iOS Safari даже пустой реконсил blur-элементов с `blur-[40px]` вызывает перекомпозицию GPU-слоёв.
 
-## Что делаем
+3. **Blur-пятна на мобильном.** В `AuthBackground` секция `md:hidden` показывает 2 круга 280×280 с `blur-[40px]`. Плюс `bg-gradient-dark` на всём экране + `overflow-hidden` без CSS containment → любое изменение стиля внутри карточки заставляет браузер перепроверять композитные слои по всему viewport.
 
-### 1. Новый универсальный роут `/email-unsubscribe`
+4. **`animate-fade-in` висит на `TabsContent`, `Card`, заголовке и футере.** При переключении вкладок и при монтировании они переигрываются; сама анимация дешёвая, но добавляет work на первом кадре ввода.
 
-- Добавить в `src/App.tsx` роут `/email-unsubscribe` → компонент `Unsubscribe` (тот же).
-- Оставить существующий роут `/unsubscribe` как алиас (для старых drip-ссылок из уже отправленных писем — обратная совместимость).
-- В `deploy/nginx/default.conf` рядом со строкой `/unsubscribe` добавить:
-  ```
-  location = /email-unsubscribe { try_files /index.html =404; }
-  ```
-- Пометить в конфиге комментарием, что это путь, который использует Lovable email-API (не переименовывать).
+5. **ThemedLogo с `eager`** грузится синхронно и в dev-режиме предупреждает про `fetchPriority` (видно в консоли) — сам по себе не тормозит ввод, но участвует в реконсиле.
 
-### 2. Универсальный `Unsubscribe.tsx`
+Ключевой вклад — пункты 1–3. Ввод «по одному символу» — классический симптом тяжёлого реконсила + перекомпозиции blur-слоёв на каждый setState.
 
-Переписать логику так, чтобы страница работала для обоих типов токенов и **не** хардкодила `*.supabase.co`:
+## План
 
-- Импортировать общий клиент: `import { supabase } from "@/integrations/supabase/client"` — он уже использует `VITE_SUPABASE_URL` = `https://api.reage.life` в прод-сборке (Fly-прокси, обход РКН).
-- Определять тип токена по формату:
-  - UUID (`^[0-9a-f-]{36}$`) → `handle-email-unsubscribe` (GET-валидация, POST-подтверждение) — футер транзакционных/auth-писем.
-  - Иначе (base64.base64 через точку) → `drip-unsubscribe` — HMAC из drip-серии.
-- Вызовы через `supabase.functions.invoke(...)`, а не `fetch` на прямой URL. Это автоматически подтягивает `apikey`, `Authorization: anon` и корректный base URL.
-- UI-состояния (loading / ready / done / error / already_unsubscribed) сохраняем; добавить текст «вы больше не будете получать письма серии …» / «вы отписаны от всех уведомлений» в зависимости от ответа.
+1. **Изолировать состояние форм от фона.**
+   - Вынести email-форму в отдельный компонент `EmailLoginForm` с локальным `useState` для `email`/`password`. `onSuccess`-колбэк наверх — только для тостов/навигации.
+   - Аналогично `PhoneLoginForm` (phone/otp/step/resend).
+   - `Auth.tsx` держит только `authMethod`, `forgotMode`, `session`. Ввод больше не ре-рендерит `AuthBackground`, `ThemedLogo`, соседнюю вкладку.
 
-### 3. Кросс-доменный редирект test → прод
+2. **Мемоизировать фон.**
+   - Обернуть `AuthBackground` в `React.memo(() => …)` (props нет — рендерится один раз).
+   - `ThemedLogo` в шапке — тоже `memo` (пропсы стабильны).
 
-Даже с рабочим роутом пользователи будут падать на `test.reage.life`. Два варианта, оба реализуемые без правки Lovable:
+3. **Убрать мобильные blur-слои и лишние анимации на мобильном.**
+   - В `AuthBackground` заменить 2 мобильных круга `blur-[40px]` на один статичный `bg-gradient-dark` (или удалить — они почти не видны за card).
+   - Убрать `animate-fade-in` с `TabsContent` (оставить только на самой карточке, один раз на маунт).
 
-- **Основной (в React):** в самом `Unsubscribe.tsx` при монтировании — если `window.location.hostname === "test.reage.life"`, сразу `window.location.replace("https://reage.life/email-unsubscribe" + window.location.search)` **до** любых сетевых вызовов. Токен универсальный (одна БД), обработается на прод-фронте.
-- **Дублирующий (в nginx test — если используется отдельный конфиг):** `location = /email-unsubscribe { return 301 https://reage.life$request_uri; }`. Если test.reage.life хостится на Lovable без своего nginx — этот шаг пропускаем и полагаемся только на React-редирект.
+4. **Добавить CSS containment.**
+   - На корневом `<div>` `/auth`: `style={{ contain: "layout paint" }}` — ограничивает область перекомпозиции карточкой.
 
-Итог: любые письма Lovable-инфры (пока base URL = test) в итоге приземлятся на прод. Позже, если Lovable-настройки проекта переключим на `reage.life`, футер сразу пойдёт правильно, а редирект просто перестанет срабатывать.
+5. **Проверка.**
+   - Запустить Playwright на localhost:8080/auth в мобильном viewport 390×844, замерить `page.evaluate(() => performance.now())` до/после серии `page.keyboard.type("test@example.com", {delay: 0})`, сравнить с текущим. Ожидание: время ввода 20 символов ≤ 200 мс.
 
-### 4. Проверка после деплоя
+## Что НЕ трогаем
 
-- Прямое открытие `https://reage.life/email-unsubscribe?token=<UUID>` → страница «Подтвердить отписку» → успех.
-- Прямое открытие `https://reage.life/unsubscribe?token=<HMAC>` (старая drip-ссылка) → работает как раньше.
-- `https://test.reage.life/email-unsubscribe?token=…` → мгновенный 301/replace на прод.
-- F5, инкогнито, переход из письма — везде без 404.
-- В `Network` — запросы уходят на `api.reage.life/functions/v1/...`, а не на `*.supabase.co`.
+- Логику авторизации, OTP, redirect, роли — только структура компонентов и стили.
+- Десктопный фон (7 плавающих blob'ов) — остаётся, там проблем нет.
+- `ParticleBackground` — уже отключён на мобильном.
 
-## Что НЕ меняем
+## Файлы
 
-- `handle-email-unsubscribe`, `drip-unsubscribe`, `process-email-queue`, `email_unsubscribe_tokens`, `email_unsubscribes` — трогать не нужно, backend уже корректный.
-- Публичный URL Lovable-проекта — не переключаем на прод, иначе сломаем превью и test-стенд. Проблему решает клиентский редирект.
-- `/unsubscribe` не удаляем, оставляем ради уже разосланных drip-ссылок.
-
-## Технические детали
-
-Файлы:
-- `src/pages/Unsubscribe.tsx` — переписать: убрать `FN_URL`, использовать `supabase.functions.invoke`, добавить определение типа токена, добавить редирект с test-домена.
-- `src/App.tsx` — добавить `<Route path="/email-unsubscribe" element={<Unsubscribe />} />`.
-- `deploy/nginx/default.conf` — добавить `location = /email-unsubscribe { try_files /index.html =404; }` с комментарием.
-
-Ассеты не задействованы. Миграции БД не нужны. Edge Functions не пересобираем.
-
-## Открытые вопросы
-
-Ни одного блокирующего — если позже вы захотите заодно переключить Lovable-проекта на прод-URL, это сделается в интерфейсе Lovable, а не в коде, и мой редирект тогда просто перестанет срабатывать.
+- `src/pages/Auth.tsx` — разбить на 2 подкомпонента, поднять только shared state.
+- `src/components/auth/EmailLoginForm.tsx` — новый.
+- `src/components/auth/PhoneLoginForm.tsx` — новый.
+- `src/components/AuthBackground.tsx` — `memo`, убрать мобильные blob'ы.
