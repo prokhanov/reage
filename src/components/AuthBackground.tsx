@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ParticleBackground } from "./ParticleBackground";
 
 // Контейнер изолирует layout/paint от карточки логина —
@@ -13,7 +14,9 @@ const blobStyle = (delay: string): React.CSSProperties => ({
   contain: "paint" as any,
 });
 
-export function AuthBackground() {
+// memo: у компонента нет пропсов, но родитель (Auth) ре-рендерился на каждое
+// нажатие клавиши. Мемоизация полностью убирает лишний реконсил blur-слоёв.
+export const AuthBackground = memo(function AuthBackground() {
   return (
     <>
       <ParticleBackground />
