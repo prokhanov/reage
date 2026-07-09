@@ -40,14 +40,13 @@ function round(v: number){if(Math.abs(v)>=100) return Math.round(v*10)/10; retur
 
 const WEIGHTS = [0.70,0.20,0.10,0.00]; // healthy
 
-const [{data: profile}, {data: biomarkers}, {data: planBm}] = await Promise.all([
-  supabase.from("profiles").select("birth_date, gender").eq("id", USER_ID).single(),
+const [{data: biomarkers}, {data: planBm}] = await Promise.all([
   supabase.from("biomarkers").select("*").order("display_order"),
   supabase.from("plan_biomarkers").select("biomarker_id").eq("plan_id", PLAN_ID),
 ]);
 const allowed = new Set((planBm||[]).map((r:any)=>r.biomarker_id));
-const age = calculateAge(profile!.birth_date);
-const gender = profile!.gender === "female" ? "female" : "male";
+const age = calculateAge("1988-10-23");
+const gender = "female" as "male" | "female";
 const values: {biomarkerId: string; value: string}[] = [];
 
 for (const bm of biomarkers!) {
