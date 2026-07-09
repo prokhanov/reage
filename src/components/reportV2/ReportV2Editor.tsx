@@ -257,7 +257,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   );
 
   const toolbarWrap = (extra: React.ReactNode) => (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+    <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background/95 supports-[backdrop-filter]:bg-background/70 backdrop-blur px-3 py-2 shadow-sm">
       <div className="flex items-center gap-2 min-w-0">
         {/* Dropdown с разделами — виден на планшете/мобиле вместо боковой панели. */}
         {navSections.length > 0 && (
