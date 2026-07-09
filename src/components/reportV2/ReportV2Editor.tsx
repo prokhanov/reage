@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { notify as toast } from "@/lib/toast";
@@ -28,7 +34,10 @@ interface Props {
    * добавляет кнопку «Открыть в новом окне».
    */
   compact?: boolean;
+  /** Если задан — в панели показывается кнопка ✕ (для диалогового окна). */
+  onClose?: () => void;
 }
+
 
 const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
 
@@ -58,7 +67,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(null);
@@ -216,6 +225,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     window.open(url, "_blank", "noopener");
   };
 
+  // Действия для десктопной панели (inline-кнопки).
   const toolbarExtras = (
     <>
       {!compact && (
@@ -256,12 +266,50 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     </>
   );
 
+  // Меню действий для моб/планшета — те же действия, но в kebab.
+  const mobileMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0" aria-label="Действия">
+          <MoreVertical className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        {compact && (
+          <DropdownMenuItem onSelect={openInNewWindow}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            В новом окне
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onSelect={downloadPdf} disabled={rendering}>
+          {rendering ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Скачать PDF
+        </DropdownMenuItem>
+        {!compact && (
+          <>
+            <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Обновить страницы
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setPaginated((v) => !v)}>
+              {paginated ? "Переключить: потоком" : "Переключить: постранично"}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   const toolbarWrap = (extra: React.ReactNode) => (
-    <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background/95 supports-[backdrop-filter]:bg-background/70 backdrop-blur px-3 py-2 shadow-sm">
-      <div className="flex items-center gap-2 min-w-0">
-        {/* Dropdown с разделами — виден на планшете/мобиле вместо боковой панели. */}
+    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-3 flex items-center gap-2 border-b bg-background px-3 py-2 shadow-sm sm:-mx-4 sm:-mt-4 lg:static lg:mx-0 lg:mt-0 lg:rounded-lg lg:border lg:bg-muted/30 lg:px-3 lg:py-2 lg:shadow-none">
+      {/* Левая часть: селект разделов (моб/планшет) + мета (десктоп). */}
+      <div className="flex flex-1 min-w-0 items-center gap-2">
         {navSections.length > 0 && (
-          <div className="lg:hidden">
+          <div className="lg:hidden flex-1 min-w-0">
             <ReportSectionNav
               sections={navSections}
               containerRef={previewContainerRef}
@@ -270,17 +318,37 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </div>
         )}
         {!compact && (
-          <div className="text-xs text-muted-foreground truncate hidden sm:block">
+          <div className="text-xs text-muted-foreground truncate hidden sm:hidden lg:block">
             <span className="font-medium text-foreground">Новый рендерер (Beta)</span> · {patientLabel}
           </div>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+
+      {/* Десктоп: inline-кнопки. */}
+      <div className="hidden lg:flex flex-wrap items-center gap-2">
         {extra}
         {toolbarExtras}
       </div>
+
+      {/* Моб/планшет: kebab + опциональный крестик. */}
+      <div className="flex lg:hidden items-center gap-1 shrink-0">
+        {extra}
+        {mobileMenu}
+        {onClose && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9"
+            onClick={onClose}
+            aria-label="Закрыть"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
     </div>
   );
+
 
   const withNav = (children: React.ReactNode) => (
     <div className="flex gap-3 min-h-0">

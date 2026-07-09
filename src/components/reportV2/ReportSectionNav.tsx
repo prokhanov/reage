@@ -148,11 +148,12 @@ export function ReportSectionNav({ sections, containerRef, variant }: Props) {
     return (
       <Select value={activeId ?? undefined} onValueChange={handleGo}>
         <SelectTrigger
-          className="h-9 w-[260px] max-w-[75vw] text-xs [&>span]:block [&>span]:truncate [&>span]:min-w-0"
+          className="h-9 w-full text-xs [&>span]:block [&>span]:truncate [&>span]:min-w-0"
           aria-label="Разделы отчёта"
         >
           <SelectValue placeholder="Раздел отчёта" />
         </SelectTrigger>
+
         <SelectContent className="max-h-[60vh]">
           {list.map((s) => (
             <SelectItem key={s.id} value={s.id} className="text-xs">
