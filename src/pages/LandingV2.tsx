@@ -6,6 +6,7 @@ import {
   REPORT_COLLAGE_DEFAULT_LAYOUTS,
   REPORT_COLLAGE_STORAGE_KEY,
 } from "@/components/landing/v2/ReportCollageBlock";
+import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
@@ -128,6 +129,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <ReportCollageBlock editMode={editOn} />
+        </Block>
+        <Block>
+          <ReportShowcaseSection />
         </Block>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>

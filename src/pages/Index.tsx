@@ -2,7 +2,7 @@ import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
-import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
+import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
@@ -38,7 +38,7 @@ const Index = () => {
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
       {/* <BenefitsSection /> */}
       <BiomarkersDeepDiveSection />
-      <ReportShowcaseSection />
+      <ReportCollageBlock />
       <AppFeaturesSection />
       
       <WhereToTestSection />
