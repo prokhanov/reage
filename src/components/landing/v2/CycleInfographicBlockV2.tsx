@@ -26,7 +26,7 @@ const STEPS: Step[] = [
 const CANVAS = 820;         // размер квадратного канваса
 const RADIUS_PCT = 34;      // радиус кольца, % от стороны канваса
 const CARD_W = 236;
-const CARD_H = 126;
+const CARD_H = 140;
 
 // первая карточка сверху; шаг 72° (5 равных секторов)
 const stepAngle = 360 / STEPS.length;
