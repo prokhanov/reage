@@ -1,4 +1,4 @@
-import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp, RefreshCw, type LucideIcon } from "lucide-react";
+import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp, RefreshCw, Heart, type LucideIcon } from "lucide-react";
 
 /**
  * CycleInfographicBlockV2 — самостоятельная перерисовка блока «Как это работает».
