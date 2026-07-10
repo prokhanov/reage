@@ -717,7 +717,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
               >
                 Оставить заявку
@@ -748,7 +748,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
               >
                 Оставить заявку
