@@ -75,6 +75,16 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Fire-and-forget Telegram notification (do not fail the request if this errors)
+    try {
+      await supabase.rpc('invoke_telegram_notify', {
+        p_event_type: 'feedback_received',
+        p_payload: { name, email, message },
+      })
+    } catch (tgErr) {
+      console.error('Telegram notify failed (non-fatal)', tgErr)
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
