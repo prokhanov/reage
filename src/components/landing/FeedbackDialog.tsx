@@ -66,6 +66,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
         body: {
           name: form.name.trim(),
           email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
           message: form.message.trim(),
         },
       });
