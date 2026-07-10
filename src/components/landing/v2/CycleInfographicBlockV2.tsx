@@ -15,11 +15,11 @@ type Step = {
 };
 
 const STEPS: Step[] = [
-  { num: "01", icon: Syringe,     title: "Сдаёте анализы",         subtitle: "На дому или в клинике — 100+ показателей" },
-  { num: "02", icon: FileText,    title: "Получаете отчёт",        subtitle: "Понятная расшифровка с интерпретацией врача" },
-  { num: "03", icon: Stethoscope, title: "Консультация врача",     subtitle: "Разбираем результаты и составляем стратегию" },
-  { num: "04", icon: ListChecks,  title: "Внедряете рекомендации", subtitle: "Питание, добавки, привычки — по персональному плану" },
-  { num: "05", icon: TrendingUp,  title: "Отслеживаете динамику",  subtitle: "Видите как показатели меняются в лучшую сторону" },
+  { num: "шаг 1", icon: Syringe,     title: "Сдаёте анализы",         subtitle: "На дому или в клинике — 100+ показателей" },
+  { num: "шаг 2", icon: FileText,    title: "Получаете отчёт",        subtitle: "Понятная расшифровка с интерпретацией врача" },
+  { num: "шаг 3", icon: Stethoscope, title: "Консультация врача",     subtitle: "Разбираем результаты и составляем стратегию" },
+  { num: "шаг 4", icon: ListChecks,  title: "Внедряете рекомендации", subtitle: "Питание, добавки, привычки — по персональному плану" },
+  { num: "шаг 5", icon: TrendingUp,  title: "Отслеживаете динамику",  subtitle: "Видите как показатели меняются в лучшую сторону" },
 ];
 
 // ───────────────────────── GEOMETRY ─────────────────────────
@@ -183,13 +183,13 @@ function StepCard({ step }: { step: Step }) {
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
             <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
           </div>
-          <span className="text-[11px] font-mono font-semibold tracking-widest text-muted-foreground/70">
+          <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/70 -mt-2 -mr-2">
             {step.num}
           </span>
         </div>
         <h3
           className={`text-[15px] font-semibold text-foreground leading-snug ${
-            step.num === "05" ? "whitespace-nowrap" : ""
+            step.num === "шаг 5" ? "whitespace-nowrap" : ""
           }`}
         >
           {step.title}
