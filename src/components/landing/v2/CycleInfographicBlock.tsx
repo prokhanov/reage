@@ -131,21 +131,22 @@ export function CycleInfographicBlock() {
             >
               <div className="relative">
                 <div className="absolute -inset-5 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.45)_0%,hsl(var(--accent)/0.25)_55%,transparent_100%)] blur-2xl" />
-                <div className="relative flex flex-col items-center justify-center w-[150px] h-[150px] rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border border-primary/20 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] text-center p-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-card border border-primary/20 mb-2">
-                    <Heart className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <div className="relative flex flex-col items-center justify-center w-[170px] h-[170px] rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border border-primary/20 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] text-center p-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-card border border-primary/20 mb-2">
+                    <Heart className="w-[18px] h-[18px] text-primary" strokeWidth={1.5} />
                   </div>
-                  <div className="font-heading text-[15px] font-semibold text-foreground leading-tight">
+                  <div className="font-heading text-[16px] font-semibold text-foreground leading-tight">
                     Ваше здоровье<br />под контролем
                   </div>
-                  <div className="font-display text-[9px] uppercase tracking-[0.18em] text-muted-foreground/80 mt-1">
+                  <div className="font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mt-1.5">
                     ЦИКЛ ПОВТОРЯЕТСЯ
                   </div>
-                  <div className="font-display text-[12px] text-foreground leading-snug">
+                  <div className="font-display text-[13px] text-foreground leading-snug">
                     2–4 раза в год
                   </div>
                 </div>
               </div>
+
 
             </div>
           </div>
