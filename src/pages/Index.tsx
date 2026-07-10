@@ -38,7 +38,7 @@ const Index = () => {
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
       {/* <BenefitsSection /> */}
       <BiomarkersDeepDiveSection />
-      <ReportShowcaseSection />
+      <ReportCollageBlock />
       <AppFeaturesSection />
       
       <WhereToTestSection />
