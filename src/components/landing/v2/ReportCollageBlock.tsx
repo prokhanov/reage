@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import card1 from "@/assets/report-card-1.png.asset.json";
 import card2 from "@/assets/report-card-2.png.asset.json";
@@ -317,22 +318,28 @@ function EditPanel({
     setLayout({ ...layout, [id]: { ...layout[id], [f]: v } });
   };
 
-  return (
-    <div className="fixed top-2 left-2 right-2 md:right-auto md:w-[340px] z-[9999] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl text-xs">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed left-2 right-2 md:right-auto md:w-[340px] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl text-xs pointer-events-auto"
+      style={{ top: "max(8px, env(safe-area-inset-top))", zIndex: 2147483647 }}
+    >
       <div className="flex items-center justify-between p-2 gap-2">
         <button
+          type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className="flex items-center gap-1.5 font-bold hover:opacity-70"
+          className="flex min-w-0 items-center gap-1.5 font-bold hover:opacity-70"
           title={collapsed ? "Развернуть" : "Свернуть"}
         >
           <span className="inline-block w-3 text-center">{collapsed ? "▸" : "▾"}</span>
-          Collage · {bp}
+          <span className="truncate">Collage · {bp}</span>
         </button>
         <div className="flex gap-1">
-          <button onClick={copyAll} className="px-2 py-1 bg-primary text-primary-foreground rounded text-[11px] font-semibold">
+          <button type="button" onClick={copyAll} className="px-2 py-1 bg-primary text-primary-foreground rounded text-[11px] font-semibold">
             Copy
           </button>
-          <button onClick={resetLayout} className="px-2 py-1 bg-muted rounded text-[11px]">
+          <button type="button" onClick={resetLayout} className="px-2 py-1 bg-muted rounded text-[11px]">
             Reset
           </button>
         </div>
@@ -372,7 +379,8 @@ function EditPanel({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 
