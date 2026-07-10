@@ -167,9 +167,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="feedback-phone">
-                Телефон <span className="text-muted-foreground font-normal">(необязательно)</span>
-              </Label>
+              <Label htmlFor="feedback-phone">Телефон</Label>
               <Input
                 id="feedback-phone"
                 type="tel"
