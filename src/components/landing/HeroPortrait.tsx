@@ -513,7 +513,7 @@ export function HeroPortrait() {
               <StatRow />
             </div>
             <div
-              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in"
+              className="flex flex-col gap-3 w-full sm:w-auto justify-center animate-fade-in"
               style={{ animationDelay: "0.4s" }}
             >
               <Button
