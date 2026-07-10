@@ -1,6 +1,7 @@
 import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
+import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 
@@ -102,6 +103,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <HowItWorksBlock />
+        </Block>
+        <Block>
+          <ReportCollageBlock />
         </Block>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
