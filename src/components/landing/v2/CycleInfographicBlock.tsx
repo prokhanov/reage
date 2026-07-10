@@ -33,15 +33,19 @@ const steps = [
   },
 ];
 
-const CANVAS_WIDTH = 940;
-const CANVAS_HEIGHT = 720;
-const CENTER_X = CANVAS_WIDTH / 2;
-const CENTER_Y = CANVAS_HEIGHT / 2;
-const RING_RADIUS = 250;
+const CANVAS_W = 940;
+const CANVAS_H = 720;
+// всё в процентах от адаптивного контейнера
+const CX = 50;
+const CY = 50;
+const RING_RX = (280 / CANVAS_W) * 100; // ~29.8%
+const RING_RY = (280 / CANVAS_H) * 100; // ~38.9%
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 152;
 
+// 5 карточек равномерно по кругу, первая строго сверху
 const cardAngles = [-90, -18, 54, 126, 198];
+const arrowAngles = [-54, 18, 90, 162, 234];
 
 export function CycleInfographicBlock() {
   return (
@@ -68,12 +72,20 @@ export function CycleInfographicBlock() {
           </p>
         </div>
 
-        {/* Desktop: circular layout */}
-        <div className="hidden lg:block relative mx-auto mt-2" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-          {/* Dashed circle + directional arrow markers */}
+        {/* Desktop: circular layout — адаптивный контейнер с aspect-ratio */}
+        <div
+          className="hidden lg:block relative mx-auto mt-2"
+          style={{
+            width: "100%",
+            maxWidth: CANVAS_W,
+            aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
+          }}
+        >
+          {/* Кольцо + стрелки направления */}
           <svg
             className="absolute inset-0 w-full h-full"
-            viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+            viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+            preserveAspectRatio="none"
             aria-hidden
           >
             <defs>
@@ -82,41 +94,39 @@ export function CycleInfographicBlock() {
                 <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.8" />
               </linearGradient>
             </defs>
-            <circle
-              cx={CENTER_X}
-              cy={CENTER_Y}
-              r={RING_RADIUS}
+            <ellipse
+              cx={CANVAS_W / 2}
+              cy={CANVAS_H / 2}
+              rx={(RING_RX / 100) * CANVAS_W}
+              ry={(RING_RY / 100) * CANVAS_H}
               fill="none"
               stroke="url(#cycleStroke)"
               strokeWidth="1.5"
               strokeDasharray="5 9"
               strokeLinecap="round"
             />
-            {/* Arrowhead markers between cards, pointing clockwise along the ring */}
-            {[-54, 18, 90, 162, 234].map((deg, i) => {
+            {arrowAngles.map((deg, i) => {
               const rad = (deg * Math.PI) / 180;
-              const x = CENTER_X + Math.cos(rad) * RING_RADIUS;
-              const y = CENTER_Y + Math.sin(rad) * RING_RADIUS;
-              // tangent direction (clockwise in screen coords) = angle + 90°
-              const rot = deg + 90;
+              const rx = (RING_RX / 100) * CANVAS_W;
+              const ry = (RING_RY / 100) * CANVAS_H;
+              const x = CANVAS_W / 2 + Math.cos(rad) * rx;
+              const y = CANVAS_H / 2 + Math.sin(rad) * ry;
+              // касательная к эллипсу в screen-space
+              const rot = (Math.atan2(rx * Math.cos(rad), -ry * Math.sin(rad)) * 180) / Math.PI;
               return (
                 <g key={i} transform={`translate(${x} ${y}) rotate(${rot})`}>
-                  <polygon
-                    points="-7,-5 9,0 -7,5"
-                    fill="hsl(var(--primary))"
-                    opacity="0.9"
-                  />
+                  <polygon points="-7,-5 9,0 -7,5" fill="hsl(var(--primary))" opacity="0.9" />
                 </g>
               );
             })}
           </svg>
 
-          {/* Center label — icon sits at exact geometric center of the ring */}
+          {/* Центр: иконка + подпись */}
           <div
             className="absolute flex flex-col items-center text-center animate-fade-in pointer-events-none"
             style={{
-              left: CENTER_X,
-              top: CENTER_Y,
+              left: `${CX}%`,
+              top: `${CY}%`,
               transform: "translate(-50%, -50%)",
               animationDelay: "0.6s",
             }}
@@ -137,19 +147,19 @@ export function CycleInfographicBlock() {
             </div>
           </div>
 
-          {/* Cards positioned on the circle */}
+          {/* Карточки по кругу — позиция в % внутри aspect-ratio контейнера */}
           {steps.map((step, i) => {
             const angle = cardAngles[i] * (Math.PI / 180);
-            const x = CENTER_X + Math.cos(angle) * RING_RADIUS;
-            const y = CENTER_Y + Math.sin(angle) * RING_RADIUS;
+            const xPct = CX + Math.cos(angle) * RING_RX;
+            const yPct = CY + Math.sin(angle) * RING_RY;
             const Icon = step.icon;
             return (
               <div
                 key={i}
                 className="absolute animate-fade-in"
                 style={{
-                  left: x,
-                  top: y,
+                  left: `${xPct}%`,
+                  top: `${yPct}%`,
                   transform: "translate(-50%, -50%)",
                   animationDelay: `${0.15 + i * 0.1}s`,
                 }}
@@ -178,6 +188,7 @@ export function CycleInfographicBlock() {
             );
           })}
         </div>
+
 
         {/* Mobile/Tablet: vertical timeline */}
         <div className="lg:hidden max-w-xl mx-auto">
