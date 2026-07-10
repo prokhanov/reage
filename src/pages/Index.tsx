@@ -30,8 +30,8 @@ const Index = () => {
               "linear-gradient(to bottom, hsl(210 85% 45% / 0.10) 0%, hsl(210 85% 45% / 0.04) 50%, transparent 100%)",
           }}
         />
-        <HowItWorksBlock />
         <CycleInfographicBlock />
+        <HowItWorksBlock />
         <WhyCheckupsFail />
         <ComparisonSection />
       </div>
