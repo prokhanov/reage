@@ -50,11 +50,12 @@ export const REPORT_COLLAGE_DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
     card4: { top: 350, left: 545, width: 165, rotate: 3 },
   },
   desktop: {
-    stat:  { top: 120, left: 30,  width: 400, rotate: 0 },
-    card1: { top: 20,  left: 470, width: 270, rotate: -3 },
-    card2: { top: 40,  left: 780, width: 280, rotate: 2 },
-    card3: { top: 350, left: 470, width: 270, rotate: -2 },
-    card4: { top: 370, left: 780, width: 280, rotate: 3 },
+    stat:  { top: 510, left: 56,  width: 381, rotate: 0 },
+    card1: { top: 3,   left: 89,  width: 500, rotate: -3 },
+    card2: { top: 5,   left: 591, width: 500, rotate: 2 },
+    card3: { top: 202, left: 98,  width: 500, rotate: -2 },
+    card4: { top: 355, left: 598, width: 500, rotate: 3 },
+
   },
 };
 
