@@ -72,14 +72,14 @@ export function CycleInfographicBlock() {
         <div className="hidden lg:block relative mx-auto mt-2" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
           {/* Dashed circle + directional arrow markers */}
           <svg
-            className="absolute inset-0 w-full h-full -rotate-90"
+            className="absolute inset-0 w-full h-full"
             viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
             aria-hidden
           >
             <defs>
               <linearGradient id="cycleStroke" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.75" />
-                <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.75" />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.8" />
               </linearGradient>
             </defs>
             <circle
@@ -92,36 +92,48 @@ export function CycleInfographicBlock() {
               strokeDasharray="5 9"
               strokeLinecap="round"
             />
-            {/* 5 arrowhead markers between cards, showing clockwise direction */}
-            {[36, 108, 180, 252, 324].map((deg, i) => {
-              const rad = (deg - 90) * (Math.PI / 180);
+            {/* Arrowhead markers between cards, pointing clockwise along the ring */}
+            {[-54, 18, 90, 162, 234].map((deg, i) => {
+              const rad = (deg * Math.PI) / 180;
               const x = CENTER_X + Math.cos(rad) * RING_RADIUS;
               const y = CENTER_Y + Math.sin(rad) * RING_RADIUS;
+              // tangent direction (clockwise in screen coords) = angle + 90°
+              const rot = deg + 90;
               return (
-                <polygon
-                  key={i}
-                  points="-6,-4 6,0 -6,4"
-                  fill="hsl(var(--primary))"
-                  opacity="0.7"
-                  transform={`translate(${x} ${y}) rotate(${deg})`}
-                />
+                <g key={i} transform={`translate(${x} ${y}) rotate(${rot})`}>
+                  <polygon
+                    points="-7,-5 9,0 -7,5"
+                    fill="hsl(var(--primary))"
+                    opacity="0.9"
+                  />
+                </g>
               );
             })}
           </svg>
 
-          {/* Center label */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
-            <div className="relative mb-4">
+          {/* Center label — icon sits at exact geometric center of the ring */}
+          <div
+            className="absolute flex flex-col items-center text-center animate-fade-in pointer-events-none"
+            style={{
+              left: CENTER_X,
+              top: CENTER_Y,
+              transform: "translate(-50%, -50%)",
+              animationDelay: "0.6s",
+            }}
+          >
+            <div className="relative">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
               <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
                 <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
               </div>
             </div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
-              Непрерывный цикл
-            </div>
-            <div className="text-[15px] font-medium text-foreground max-w-[200px] leading-snug">
-              Повторяется 2–4 раза в год
+            <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
+                Непрерывный цикл
+              </div>
+              <div className="text-[15px] font-medium text-foreground leading-snug">
+                Повторяется 2–4 раза в год
+              </div>
             </div>
           </div>
 
