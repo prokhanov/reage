@@ -490,6 +490,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
   const urlEdit = useEditMode();
   const isEdit = editMode ?? urlEdit;
   const ArtboardComp = isEdit ? EditArtboard : StaticArtboard;
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <section className="relative pt-8 md:pt-12 pb-8 md:pb-12 overflow-hidden">
@@ -511,18 +512,18 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
 
         <div className="mt-10 md:mt-14 flex flex-col items-center gap-6 animate-fade-in">
           <Button
-            asChild
             size="lg"
+            onClick={() => setDialogOpen(true)}
             className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
           >
-            <Link to="/example-report">
-              Посмотреть пример отчёта
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            Посмотреть пример отчёта
+            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <ExampleReportEmailForm />
         </div>
       </div>
+
+      <ExampleReportDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </section>
   );
 }
+
