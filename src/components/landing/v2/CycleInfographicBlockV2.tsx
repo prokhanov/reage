@@ -25,8 +25,8 @@ const STEPS: Step[] = [
 // ───────────────────────── GEOMETRY ─────────────────────────
 const CANVAS = 820;         // размер квадратного канваса
 const RADIUS_PCT = 38;      // радиус кольца, % от стороны канваса (φ-соотношение с центром)
-const CARD_W = 224;
-const CARD_H = 168;
+const CARD_W = 236;
+const CARD_H = 146;
 
 // первая карточка сверху; шаг 72° (5 равных секторов)
 const stepAngle = 360 / STEPS.length;
@@ -178,7 +178,7 @@ function StepCard({ step }: { step: Step }) {
       {/* hover-свечение */}
       <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
 
-      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col gap-2">
+      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col gap-2 overflow-hidden">
         <div className="flex items-start justify-between">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20 shrink-0">
             <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
@@ -187,8 +187,7 @@ function StepCard({ step }: { step: Step }) {
             {step.num}
           </span>
         </div>
-        <h3 className="text-[15px] font-semibold text-foreground leading-snug">
-
+        <h3 className="text-[14px] font-semibold text-foreground leading-snug whitespace-nowrap">
           {step.title}
         </h3>
         <p className="text-[12px] text-muted-foreground leading-snug">
