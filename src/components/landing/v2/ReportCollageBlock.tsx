@@ -349,7 +349,7 @@ export function ReportCollageBlock() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {edit ? <EditArtboard bp={bp} /> : <ReadArtboard bp={bp} />}
+          {edit ? <EditArtboard bp={bp} /> : <ReadArtboard />}
         </div>
       </div>
     </section>
