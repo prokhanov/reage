@@ -10,6 +10,12 @@ import heroMan from "@/assets/landing-v2/hero-couple-v9.webp";
 const glass =
   "hero-glass-card rounded-2xl";
 
+const heroGlassBackdropStyle = {
+  "--hero-glass-backdrop-image": `url(${heroMan})`,
+  "--hero-glass-backdrop-size": "560px 746px",
+  "--hero-glass-backdrop-position": "center 38%",
+} as React.CSSProperties;
+
 function useIsMobile() {
   const [m, setM] = useState(
     typeof window !== "undefined" ? window.innerWidth < 640 : false,
@@ -36,7 +42,7 @@ function CompactSystemsWidget() {
   const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
 
   return (
-    <div className={`${glass} p-2.5 sm:p-3`}>
+    <div className={`${glass} p-2.5 sm:p-3`} style={heroGlassBackdropStyle}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           {isMobile ? "СИСТЕМЫ" : "Системы организма"}
@@ -80,7 +86,7 @@ function CompactBiomarkersWidget() {
   ];
   const isMobile = useIsMobile();
   return (
-    <div className={`${glass} p-3`}>
+    <div className={`${glass} p-3`} style={heroGlassBackdropStyle}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           {isMobile ? "БИОМАРКЕРЫ" : "Ключевые биомаркеры"}
@@ -120,7 +126,7 @@ function RecommendationsWidget() {
   ];
   const isMobile = useIsMobile();
   return (
-    <div className={`${glass} p-3`}>
+    <div className={`${glass} p-3`} style={heroGlassBackdropStyle}>
       <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           {isMobile ? "НАЗНАЧЕНИЯ" : "Персональные назначения"}
@@ -144,7 +150,7 @@ function RecommendationsWidget() {
 function CompactBioAgeWidget() {
   const isMobile = useIsMobile();
   return (
-    <div className={`${glass} p-3.5`}>
+    <div className={`${glass} p-3.5`} style={heroGlassBackdropStyle}>
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
           {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
