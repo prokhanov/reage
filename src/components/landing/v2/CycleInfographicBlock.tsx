@@ -1,4 +1,4 @@
-import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp, RefreshCw } from "lucide-react";
+import { Syringe, FileText, Stethoscope, ListChecks, TrendingUp, Heart } from "lucide-react";
 
 const steps = [
   {
@@ -131,19 +131,23 @@ export function CycleInfographicBlock() {
             >
               <div className="relative">
                 <div className="absolute -inset-5 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.45)_0%,hsl(var(--accent)/0.25)_55%,transparent_100%)] blur-2xl" />
-                <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
+                <div className="relative flex flex-col items-center justify-center w-[170px] h-[170px] rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border border-primary/20 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] text-center p-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-card border border-primary/20 mb-2">
+                    <Heart className="w-[18px] h-[18px] text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div className="font-heading text-[16px] font-semibold text-foreground leading-tight">
+                    Ваше здоровье<br />под контролем
+                  </div>
+                  <div className="font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mt-1.5">
+                    ЦИКЛ ПОВТОРЯЕТСЯ
+                  </div>
+                  <div className="font-display text-[13px] text-foreground leading-snug">
+                    2–4 раза в год
+                  </div>
+                </div>
+              </div>
 
-                  <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
-                </div>
-              </div>
-              <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
-                <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
-                  Непрерывный цикл
-                </div>
-                <div className="text-[15px] font-medium text-foreground leading-snug">
-                  Повторяется 2–4 раза в год
-                </div>
-              </div>
+
             </div>
           </div>
 
@@ -232,17 +236,18 @@ export function CycleInfographicBlock() {
               })}
               <div className="relative pl-16 animate-fade-in" style={{ animationDelay: "0.6s" }}>
                 <div className="absolute left-0 top-0 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
-                  <RefreshCw className="w-5 h-5 text-primary" strokeWidth={1.75} />
+                  <Heart className="w-5 h-5 text-primary" strokeWidth={1.75} />
                 </div>
                 <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 p-4">
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-0.5">
-                    Непрерывный цикл
+                  <div className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-0.5">
+                    Ваше здоровье под контролем
                   </div>
-                  <div className="text-base font-semibold text-foreground">
-                    Повторяется 2–4 раза в год
+                  <div className="font-heading text-base font-semibold text-foreground">
+                    Цикл повторяется 2–4 раза в год
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
