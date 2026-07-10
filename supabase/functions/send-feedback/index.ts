@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
   }
 
   const { name, email, message } = parsed.data
+  const phone = parsed.data.phone?.trim() || undefined
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -119,6 +120,7 @@ Deno.serve(async (req) => {
     const telegramPromise = sendTelegramFeedbackNotification(supabase, supabaseUrl, {
       name,
       email,
+      phone,
       message,
     })
 
@@ -127,7 +129,7 @@ Deno.serve(async (req) => {
         templateName: 'feedback-notification',
         recipientEmail: 'team@reage.life',
         idempotencyKey,
-        templateData: { name, email, message, siteName: 'ReAge' },
+        templateData: { name, email, phone: phone ?? '—', message, siteName: 'ReAge' },
       },
     })
 
