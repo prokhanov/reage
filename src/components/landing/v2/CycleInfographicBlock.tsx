@@ -115,33 +115,37 @@ export function CycleInfographicBlock() {
             })}
           </svg>
 
-          {/* Центр: иконка + подпись */}
+          {/* Центр: иконка + подпись (позиционирование и анимация — на разных узлах) */}
           <div
-            className="absolute flex flex-col items-center text-center animate-fade-in pointer-events-none"
+            className="absolute pointer-events-none"
             style={{
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              animationDelay: "0.6s",
             }}
           >
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
-              <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
-                <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
+            <div
+              className="flex flex-col items-center text-center animate-fade-in"
+              style={{ animationDelay: "0.6s" }}
+            >
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
+                <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
+                  <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
+                </div>
               </div>
-            </div>
-            <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
-              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
-                Непрерывный цикл
-              </div>
-              <div className="text-[15px] font-medium text-foreground leading-snug">
-                Повторяется 2–4 раза в год
+              <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
+                <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
+                  Непрерывный цикл
+                </div>
+                <div className="text-[15px] font-medium text-foreground leading-snug">
+                  Повторяется 2–4 раза в год
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Карточки — та же формула, единый RADIUS_PCT для x и y */}
+          {/* Карточки — позиционирование на внешнем узле, анимация на внутреннем */}
           {steps.map((step, i) => {
             const angle = cardAngles[i] * (Math.PI / 180);
             const xPct = 50 + Math.cos(angle) * RADIUS_PCT;
@@ -150,37 +154,42 @@ export function CycleInfographicBlock() {
             return (
               <div
                 key={i}
-                className="absolute animate-fade-in"
+                className="absolute"
                 style={{
                   left: `${xPct}%`,
                   top: `${yPct}%`,
                   transform: "translate(-50%, -50%)",
-                  animationDelay: `${0.15 + i * 0.1}s`,
                 }}
               >
-                <div className="group relative" style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
-                  <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-70" />
-                  <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                  <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
-                        <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
+                <div
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${0.15 + i * 0.1}s` }}
+                >
+                  <div className="group relative" style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
+                    <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-70" />
+                    <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+                    <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
+                          <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold tracking-widest text-muted-foreground/70">
+                          {step.num}
+                        </span>
                       </div>
-                      <span className="text-[11px] font-mono font-semibold tracking-widest text-muted-foreground/70">
-                        {step.num}
-                      </span>
+                      <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug">
+                        {step.title}
+                      </h3>
+                      <p className="text-[12px] text-muted-foreground leading-snug">
+                        {step.subtitle}
+                      </p>
                     </div>
-                    <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug">
-                      {step.title}
-                    </h3>
-                    <p className="text-[12px] text-muted-foreground leading-snug">
-                      {step.subtitle}
-                    </p>
                   </div>
                 </div>
               </div>
             );
           })}
+
         </div>
 
         {/* Mobile/Tablet: вертикальный таймлайн */}
