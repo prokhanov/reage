@@ -1,6 +1,7 @@
 import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
+import { CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlock";
 import {
   ReportCollageBlock,
   REPORT_COLLAGE_DEFAULT_LAYOUTS,
@@ -126,6 +127,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <HowItWorksBlock />
+        </Block>
+        <Block>
+          <CycleInfographicBlock />
         </Block>
         <Block>
           <ReportCollageBlock editMode={editOn} />
