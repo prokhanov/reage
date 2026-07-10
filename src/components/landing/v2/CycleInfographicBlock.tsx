@@ -124,8 +124,8 @@ export function CycleInfographicBlock() {
           {/* Cards positioned on the circle */}
           {steps.map((step, i) => {
             const angle = (i * 72 - 90) * (Math.PI / 180);
-            const cx = CENTER + Math.cos(angle) * RADIUS;
-            const cy = CENTER + Math.sin(angle) * RADIUS;
+            const cx = CENTER + Math.cos(angle) * CARD_RADIUS;
+            const cy = CENTER + Math.sin(angle) * CARD_RADIUS;
             const Icon = step.icon;
             return (
               <div
@@ -138,10 +138,10 @@ export function CycleInfographicBlock() {
                   animationDelay: `${0.15 + i * 0.1}s`,
                 }}
               >
-                <div className="group relative w-[210px]">
+                <div className="group relative w-[220px] h-[168px]">
                   <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-70" />
                   <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                  <div className="relative rounded-2xl bg-card/95 backdrop-blur-md p-5 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)]">
+                  <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-5 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
                         <Icon className="w-5 h-5 text-primary" strokeWidth={1.75} />
@@ -153,7 +153,7 @@ export function CycleInfographicBlock() {
                     <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug">
                       {step.title}
                     </h3>
-                    <p className="text-[12.5px] text-muted-foreground leading-snug">
+                    <p className="text-[12px] text-muted-foreground leading-snug">
                       {step.subtitle}
                     </p>
                   </div>
