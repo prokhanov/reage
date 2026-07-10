@@ -167,6 +167,25 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="feedback-phone">
+                Телефон <span className="text-muted-foreground font-normal">(необязательно)</span>
+              </Label>
+              <Input
+                id="feedback-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                placeholder="+7 (999) 123-45-67"
+                className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
+                disabled={status === "loading"}
+              />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+            </div>
+
+
+            <div className="space-y-2">
               <Label htmlFor="feedback-message">Сообщение</Label>
               <Textarea
                 id="feedback-message"
