@@ -1,23 +1,32 @@
+import card1 from "@/assets/report-card-1.png.asset.json";
+import card2 from "@/assets/report-card-2.png.asset.json";
+import card3 from "@/assets/report-card-3.png.asset.json";
+import card4 from "@/assets/report-card-4.png.asset.json";
+
 const cards = [
   {
     num: "01",
-    title: "Биомаркеры с расшифровкой",
-    style: { left: "0%", top: "2%", rotate: -5, z: 10, w: 320 },
+    title: "Общее резюме",
+    img: card1.url,
+    style: { left: "0%", top: "2%", rotate: -5, z: 10, w: 340 },
   },
   {
     num: "02",
-    title: "Персональные назначения",
-    style: { left: "38%", top: "0%", rotate: 3, z: 20, w: 340 },
+    title: "Разбор по системам организма",
+    img: card2.url,
+    style: { left: "40%", top: "0%", rotate: 3, z: 20, w: 360 },
   },
   {
     num: "03",
-    title: "План питания и образа жизни",
-    style: { left: "8%", top: "48%", rotate: -2, z: 30, w: 340 },
+    title: "Биомаркеры с расшифровкой",
+    img: card3.url,
+    style: { left: "6%", top: "50%", rotate: -2, z: 30, w: 360 },
   },
   {
     num: "04",
-    title: "Динамика по системам организма",
-    style: { left: "46%", top: "52%", rotate: 4, z: 40, w: 360 },
+    title: "Персональные назначения",
+    img: card4.url,
+    style: { left: "46%", top: "54%", rotate: 4, z: 40, w: 370 },
   },
 ];
 
@@ -29,7 +38,6 @@ export function ReportCollageBlock() {
       <div className="relative z-10 container mx-auto px-4">
         {/* Desktop */}
         <div className="hidden md:grid grid-cols-12 gap-6 lg:gap-8 items-start max-w-7xl mx-auto">
-          {/* Left column */}
           <div className="col-span-5 sticky top-24 self-start">
             <div className="inline-block text-xs font-semibold tracking-[0.2em] text-primary uppercase mb-6">
               Ваш отчёт
@@ -52,8 +60,7 @@ export function ReportCollageBlock() {
             </p>
           </div>
 
-          {/* Right: collage */}
-          <div className="col-span-7 relative min-h-[820px]">
+          <div className="col-span-7 relative min-h-[860px]">
             {cards.map((c) => (
               <div
                 key={c.num}
@@ -74,10 +81,13 @@ export function ReportCollageBlock() {
                     {c.title}
                   </h3>
                 </div>
-                <div className="aspect-[4/5] rounded-xl bg-card border border-border shadow-2xl shadow-primary/10 overflow-hidden flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground/40">
-                    скрин {c.num}
-                  </span>
+                <div className="rounded-xl bg-card border border-border shadow-2xl shadow-primary/10 overflow-hidden">
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    className="w-full h-auto block"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             ))}
@@ -119,10 +129,13 @@ export function ReportCollageBlock() {
                     {c.title}
                   </h3>
                 </div>
-                <div className="aspect-[4/5] rounded-xl bg-card border border-border shadow-xl overflow-hidden flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground/40">
-                    скрин {c.num}
-                  </span>
+                <div className="rounded-xl bg-card border border-border shadow-xl overflow-hidden">
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    className="w-full h-auto block"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             ))}
