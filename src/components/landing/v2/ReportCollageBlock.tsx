@@ -63,7 +63,7 @@ export const REPORT_COLLAGE_STORAGE_KEY = "reportCollageLayoutV2";
 /* ===================== RENDERERS ===================== */
 
 function StatElement({ width }: { width: number }) {
-  const titleSize = Math.max(36, Math.min(54, width * 0.13));
+  const titleSize = Math.max(24, Math.min(38, width * 0.09));
   return (
     <div className="text-left">
       <div
@@ -72,7 +72,8 @@ function StatElement({ width }: { width: number }) {
       >
         50+ страниц
       </div>
-      <ul className="mt-4 space-y-2 text-sm md:text-[15px] text-muted-foreground">
+      <ul className="mt-3 space-y-1 text-sm md:text-[15px] text-muted-foreground">
+
         {[
           "Подробная расшифровка анализов",
           "Взаимосвязи показателей",
