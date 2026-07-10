@@ -269,7 +269,7 @@ export function HeroBlock() {
                 onClick={() => navigate("/auth")}
                 className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300"
               >
-                Войти в аккаунт
+                Оставить заявку
               </Button>
             </div>
           </div>
