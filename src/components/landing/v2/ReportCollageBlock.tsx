@@ -510,7 +510,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
 
         <ArtboardComp bp={bp} />
 
-        <div className="mt-10 md:mt-14 flex justify-center animate-fade-in">
+        <div className="mt-10 md:mt-14 flex flex-col items-center gap-6 animate-fade-in">
           <Button
             asChild
             size="lg"
@@ -521,6 +521,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
+          <ExampleReportEmailForm />
         </div>
       </div>
     </section>
