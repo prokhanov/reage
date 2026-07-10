@@ -415,10 +415,11 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
 
 /* ===================== MAIN ===================== */
 
-export function ReportCollageBlock() {
+export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
   const bp = useBreakpoint();
-  const editMode = useEditMode();
-  const ArtboardComp = editMode ? EditArtboard : StaticArtboard;
+  const urlEdit = useEditMode();
+  const isEdit = editMode ?? urlEdit;
+  const ArtboardComp = isEdit ? EditArtboard : StaticArtboard;
 
   return (
     <section className="relative pt-16 md:pt-24 pb-16 md:pb-24 overflow-hidden">

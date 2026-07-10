@@ -119,7 +119,7 @@ const LandingV2 = () => {
           <HowItWorksBlock />
         </Block>
         <Block>
-          <ReportCollageBlock />
+          <ReportCollageBlock editMode={editOn} />
         </Block>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
