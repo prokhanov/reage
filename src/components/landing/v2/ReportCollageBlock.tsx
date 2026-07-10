@@ -62,20 +62,14 @@ const STORAGE_KEY = "reportCollageLayoutV2";
 /* ===================== RENDERERS ===================== */
 
 function StatElement({ width }: { width: number }) {
-  // scale big number by width so it stays compact and fits with "страниц" on one line
-  const numSize = Math.max(48, Math.min(96, width * 0.22));
+  const titleSize = Math.max(42, Math.min(68, width * 0.16));
   return (
     <div className="text-left">
-      <div className="flex items-baseline gap-2 whitespace-nowrap">
-        <span
-          className="font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter leading-[0.85]"
-          style={{ fontSize: numSize }}
-        >
-          50+
-        </span>
-        <span className="text-base md:text-lg font-semibold text-muted-foreground">
-          страниц
-        </span>
+      <div
+        className="whitespace-nowrap font-black bg-gradient-hero bg-clip-text text-transparent leading-none"
+        style={{ fontSize: titleSize }}
+      >
+        50+ страниц
       </div>
       <p className="mt-3 text-sm md:text-base text-muted-foreground">
         Выжимки из ключевых разделов — от резюме здоровья до
@@ -255,7 +249,7 @@ function EditPanel({
     const text = JSON.stringify(all, null, 2);
     const ok = await copyToClipboard(text);
     if (ok) {
-      alert("Скопировано в буфер!\n\n" + text);
+      window.prompt("Координаты скопированы. Если буфер недоступен — скопируйте отсюда:", text);
     } else {
       window.prompt("Скопируйте координаты вручную:", text);
     }
