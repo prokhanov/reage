@@ -34,10 +34,11 @@ export function WhyCheckupsFail() {
       <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
-            <span className="text-foreground">Почему обычные чекапы</span>
+            <span className="text-foreground">Почему Reage эффективнее</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">не работают</span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">обычных чекапов</span>
           </h2>
+
         </div>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
