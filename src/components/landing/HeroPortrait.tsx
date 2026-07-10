@@ -414,7 +414,7 @@ export function HeroPortrait() {
 
       {mounted && (
         <>
-          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-between gap-2 pointer-events-none">
+          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-end sm:items-center justify-between gap-2 pointer-events-none">
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
               className="pointer-events-auto h-10 w-10 flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
@@ -446,7 +446,7 @@ export function HeroPortrait() {
             </div>
           </div>
 
-          <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-center pointer-events-none">
+          <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-start sm:justify-center pointer-events-none">
             <div className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
               <MapPin className="w-3.5 h-3.5 text-primary" />
               <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
