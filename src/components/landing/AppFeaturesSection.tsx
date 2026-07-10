@@ -467,7 +467,7 @@ export function AppFeaturesSection() {
   const Widgets = widgetMap[active];
 
   return (
-    <section className="relative py-14 md:py-20 overflow-hidden bg-muted/30">
+    <section className="relative py-8 md:py-12 overflow-hidden bg-muted/30">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
 
