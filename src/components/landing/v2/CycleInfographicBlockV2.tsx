@@ -25,7 +25,7 @@ const STEPS: Step[] = [
 // ───────────────────────── GEOMETRY ─────────────────────────
 const CANVAS = 820;         // размер квадратного канваса
 const RADIUS_PCT = 34;      // радиус кольца, % от стороны канваса
-const CARD_W = 216;
+const CARD_W = 236;
 const CARD_H = 148;
 
 // первая карточка сверху; шаг 72° (5 равных секторов)
@@ -188,8 +188,8 @@ function StepCard({ step }: { step: Step }) {
           </span>
         </div>
         <h3
-          className={`font-semibold text-foreground mb-1 leading-snug min-h-[42px] ${
-            step.num === "05" ? "text-[13px] whitespace-nowrap tracking-tight" : "text-[15px]"
+          className={`text-[15px] font-semibold text-foreground mb-1 leading-snug min-h-[42px] ${
+            step.num === "05" ? "whitespace-nowrap" : ""
           }`}
         >
           {step.title}
