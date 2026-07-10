@@ -5,13 +5,14 @@ import { z } from 'npm:zod@3.23.8'
 const FEEDBACK_SCHEMA = z.object({
   name: z.string().trim().min(1, 'Укажите имя').max(100, 'Имя слишком длинное'),
   email: z.string().trim().email('Укажите корректный email').max(255, 'Email слишком длинный').toLowerCase(),
+  phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
 })
 
 async function sendTelegramFeedbackNotification(
   supabase: ReturnType<typeof createClient>,
   supabaseUrl: string,
-  payload: { name: string; email: string; message: string },
+  payload: { name: string; email: string; phone?: string; message: string },
 ): Promise<boolean> {
   try {
     const { data: settings, error: settingsError } = await supabase
@@ -107,6 +108,7 @@ Deno.serve(async (req) => {
   }
 
   const { name, email, message } = parsed.data
+  const phone = parsed.data.phone?.trim() || undefined
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -118,6 +120,7 @@ Deno.serve(async (req) => {
     const telegramPromise = sendTelegramFeedbackNotification(supabase, supabaseUrl, {
       name,
       email,
+      phone,
       message,
     })
 
@@ -126,7 +129,7 @@ Deno.serve(async (req) => {
         templateName: 'feedback-notification',
         recipientEmail: 'team@reage.life',
         idempotencyKey,
-        templateData: { name, email, message, siteName: 'ReAge' },
+        templateData: { name, email, phone: phone ?? '—', message, siteName: 'ReAge' },
       },
     })
 

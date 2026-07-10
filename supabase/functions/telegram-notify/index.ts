@@ -137,7 +137,8 @@ export function buildMessage(
         prefix +
         "✉️ <b>Новое сообщение с сайта</b>\n" +
         `👤 ${e(payload.name || "—")}\n` +
-        `📧 ${e(payload.email || "—")}\n\n` +
+        `📧 ${e(payload.email || "—")}\n` +
+        `📱 ${e(payload.phone || "—")}\n\n` +
         `💬 ${e(payload.message || "—")}`
       );
     }

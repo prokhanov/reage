@@ -22,11 +22,12 @@ interface FeedbackDialogProps {
 interface FormErrors {
   name?: string;
   email?: string;
+  phone?: string;
   message?: string;
 }
 
 export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -40,6 +41,12 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     if (!trimmedEmail) next.email = "Укажите email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) next.email = "Некорректный email";
     else if (trimmedEmail.length > 255) next.email = "Email слишком длинный";
+
+    const trimmedPhone = form.phone.trim();
+    if (trimmedPhone) {
+      if (trimmedPhone.length > 32) next.phone = "Телефон слишком длинный";
+      else if (!/^[+\d][\d\s\-().]{5,}$/.test(trimmedPhone)) next.phone = "Некорректный телефон";
+    }
 
     const trimmedMessage = form.message.trim();
     if (!trimmedMessage) next.message = "Введите сообщение";
@@ -59,6 +66,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
         body: {
           name: form.name.trim(),
           email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
           message: form.message.trim(),
         },
       });
@@ -72,7 +80,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       setStatus("success");
       setTimeout(() => {
         onOpenChange(false);
-        setForm({ name: "", email: "", message: "" });
+        setForm({ name: "", email: "", phone: "", message: "" });
         setStatus("idle");
       }, 2000);
     } catch (err) {
@@ -85,7 +93,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     if (status === "loading") return;
     onOpenChange(false);
     setTimeout(() => {
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", phone: "", message: "" });
       setErrors({});
       setStatus("idle");
     }, 300);
@@ -157,6 +165,25 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               />
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="feedback-phone">
+                Телефон <span className="text-muted-foreground font-normal">(необязательно)</span>
+              </Label>
+              <Input
+                id="feedback-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                placeholder="+7 (999) 123-45-67"
+                className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
+                disabled={status === "loading"}
+              />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+            </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="feedback-message">Сообщение</Label>
