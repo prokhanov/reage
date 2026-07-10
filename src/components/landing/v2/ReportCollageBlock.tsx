@@ -1,16 +1,419 @@
+import { useEffect, useState, useRef, useCallback } from "react";
 import card1 from "@/assets/report-card-1.png.asset.json";
 import card2 from "@/assets/report-card-2.png.asset.json";
 import card3 from "@/assets/report-card-3.png.asset.json";
 import card4 from "@/assets/report-card-4.png.asset.json";
 
-const cards = [
-  { num: "01", title: "Общее резюме", img: card1.url, rotate: -2 },
-  { num: "02", title: "Разбор по системам организма", img: card2.url, rotate: 1.5 },
-  { num: "03", title: "Биомаркеры с расшифровкой", img: card3.url, rotate: -1.5 },
-  { num: "04", title: "Персональные назначения", img: card4.url, rotate: 2 },
-];
+/* ===================== DATA ===================== */
+
+type ElementId = "stat" | "card1" | "card2" | "card3" | "card4";
+type Pos = { top: number; left: number; width: number; rotate: number };
+type Layout = Record<ElementId, Pos>;
+type Breakpoint = "mobile" | "tablet" | "desktop";
+
+const CARDS = {
+  card1: { num: "01", title: "Общее резюме", img: card1.url },
+  card2: { num: "02", title: "Разбор по системам организма", img: card2.url },
+  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3.url },
+  card4: { num: "04", title: "Персональные назначения", img: card4.url },
+} as const;
+
+const LABELS: Record<ElementId, string> = {
+  stat: "50+ страниц",
+  card1: "Карточка 01",
+  card2: "Карточка 02",
+  card3: "Карточка 03",
+  card4: "Карточка 04",
+};
+
+const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: number }> = {
+  mobile: { width: 340, height: 780, scale: 0.95 },
+  tablet: { width: 720, height: 660, scale: 1 },
+  desktop: { width: 1100, height: 720, scale: 1 },
+};
+
+const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
+  mobile: {
+    stat:  { top: 10,  left: 20,  width: 300, rotate: 0 },
+    card1: { top: 230, left: 5,   width: 160, rotate: -3 },
+    card2: { top: 250, left: 175, width: 160, rotate: 2 },
+    card3: { top: 490, left: 5,   width: 160, rotate: -2 },
+    card4: { top: 510, left: 175, width: 160, rotate: 3 },
+  },
+  tablet: {
+    stat:  { top: 60,  left: 20,  width: 320, rotate: 0 },
+    card1: { top: 20,  left: 370, width: 180, rotate: -3 },
+    card2: { top: 30,  left: 545, width: 165, rotate: 2 },
+    card3: { top: 340, left: 370, width: 180, rotate: -2 },
+    card4: { top: 350, left: 545, width: 165, rotate: 3 },
+  },
+  desktop: {
+    stat:  { top: 120, left: 30,  width: 400, rotate: 0 },
+    card1: { top: 20,  left: 470, width: 270, rotate: -3 },
+    card2: { top: 40,  left: 780, width: 280, rotate: 2 },
+    card3: { top: 350, left: 470, width: 270, rotate: -2 },
+    card4: { top: 370, left: 780, width: 280, rotate: 3 },
+  },
+};
+
+const STORAGE_KEY = "reportCollageLayoutV2";
+
+/* ===================== RENDERERS ===================== */
+
+function StatElement({ width }: { width: number }) {
+  // scale big number by width so it fits the box
+  const numSize = Math.max(80, Math.min(200, width * 0.55));
+  return (
+    <div className="text-left">
+      <div className="inline-flex items-baseline gap-3">
+        <span
+          className="font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter leading-[0.85]"
+          style={{ fontSize: numSize }}
+        >
+          50+
+        </span>
+        <span className="text-base md:text-lg font-semibold text-muted-foreground">
+          страниц
+        </span>
+      </div>
+      <p className="mt-4 text-base md:text-lg text-muted-foreground">
+        Выжимки из ключевых разделов — от резюме здоровья до
+        персональных назначений.
+      </p>
+    </div>
+  );
+}
+
+function CardElement({ id }: { id: "card1" | "card2" | "card3" | "card4" }) {
+  const c = CARDS[id];
+  return (
+    <div>
+      <div className="mb-2.5 flex items-baseline gap-2">
+        <span className="text-xs font-bold tracking-widest text-primary">{c.num}</span>
+        <h3 className="text-sm md:text-base font-semibold text-foreground">{c.title}</h3>
+      </div>
+      <div className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden">
+        <img src={c.img} alt={c.title} loading="lazy" className="w-full h-auto block" />
+      </div>
+    </div>
+  );
+}
+
+function renderElement(id: ElementId, width: number) {
+  if (id === "stat") return <StatElement width={width} />;
+  return <CardElement id={id} />;
+}
+
+/* ===================== HOOKS ===================== */
+
+function useBreakpoint(): Breakpoint {
+  const [bp, setBp] = useState<Breakpoint>(() => {
+    if (typeof window === "undefined") return "desktop";
+    const w = window.innerWidth;
+    if (w < 640) return "mobile";
+    if (w < 1024) return "tablet";
+    return "desktop";
+  });
+  useEffect(() => {
+    const u = () => {
+      const w = window.innerWidth;
+      setBp(w < 640 ? "mobile" : w < 1024 ? "tablet" : "desktop");
+    };
+    window.addEventListener("resize", u);
+    return () => window.removeEventListener("resize", u);
+  }, []);
+  return bp;
+}
+
+function useEditMode(): boolean {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () =>
+      setOn(new URLSearchParams(window.location.search).get("layoutEdit") === "1");
+    update();
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
+  }, []);
+  return on;
+}
+
+function loadStored(): Partial<Record<Breakpoint, Layout>> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+/* ===================== EDIT MODE ===================== */
+
+function DraggableElement({
+  id,
+  pos,
+  onChange,
+  selected,
+  onSelect,
+}: {
+  id: ElementId;
+  pos: Pos;
+  onChange: (p: Pos) => void;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const dragRef = useRef<{ sx: number; sy: number; sl: number; st: number } | null>(null);
+  const resizeRef = useRef<{ sx: number; sw: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    onSelect();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { sx: e.clientX, sy: e.clientY, sl: pos.left, st: pos.top };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.sx;
+    const dy = e.clientY - dragRef.current.sy;
+    onChange({ ...pos, left: Math.round(dragRef.current.sl + dx), top: Math.round(dragRef.current.st + dy) });
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    dragRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  const onResizeDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    resizeRef.current = { sx: e.clientX, sw: pos.width };
+  };
+  const onResizeMove = (e: React.PointerEvent) => {
+    if (!resizeRef.current) return;
+    const dx = e.clientX - resizeRef.current.sx;
+    onChange({ ...pos, width: Math.max(80, Math.round(resizeRef.current.sw + dx)) });
+  };
+  const onResizeUp = (e: React.PointerEvent) => {
+    resizeRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  return (
+    <div
+      className="absolute touch-none cursor-move"
+      style={{
+        top: pos.top,
+        left: pos.left,
+        width: pos.width,
+        transform: `rotate(${pos.rotate}deg)`,
+        zIndex: selected ? 50 : 30,
+        outline: selected ? "2px dashed hsl(var(--primary))" : "1px dashed hsl(var(--primary) / 0.5)",
+        outlineOffset: 2,
+        borderRadius: 18,
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onClick={onSelect}
+    >
+      <div className="pointer-events-none select-none">{renderElement(id, pos.width)}</div>
+      <div className="absolute -top-5 left-0 text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+        {LABELS[id]}
+      </div>
+      {/* resize handle */}
+      <div
+        onPointerDown={onResizeDown}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeUp}
+        className="absolute -bottom-2 -right-2 w-4 h-4 rounded-full bg-primary border-2 border-background cursor-se-resize touch-none"
+        title="Изменить ширину"
+      />
+    </div>
+  );
+}
+
+function EditPanel({
+  bp,
+  layout,
+  setLayout,
+  resetLayout,
+  selected,
+  setSelected,
+}: {
+  bp: Breakpoint;
+  layout: Layout;
+  setLayout: (l: Layout) => void;
+  resetLayout: () => void;
+  selected: ElementId | null;
+  setSelected: (id: ElementId | null) => void;
+}) {
+  const copyAll = async () => {
+    const all = loadStored();
+    all[bp] = layout;
+    const text = JSON.stringify(all, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Скопировано в буфер!\n\n" + text);
+    } catch {
+      window.prompt("Скопируйте координаты:", text);
+    }
+  };
+
+  const update = (id: ElementId, f: keyof Pos, v: number) => {
+    setLayout({ ...layout, [id]: { ...layout[id], [f]: v } });
+  };
+
+  return (
+    <div className="fixed top-2 left-2 z-[100] w-[320px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-bold">Collage · {bp}</div>
+        <div className="flex gap-1">
+          <button onClick={copyAll} className="px-2 py-1 bg-primary text-primary-foreground rounded text-[11px] font-semibold">
+            Copy
+          </button>
+          <button onClick={resetLayout} className="px-2 py-1 bg-muted rounded text-[11px]">
+            Reset
+          </button>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {(Object.keys(layout) as ElementId[]).map((id) => {
+          const p = layout[id];
+          const isSel = selected === id;
+          return (
+            <div
+              key={id}
+              className={`rounded border p-2 ${isSel ? "border-primary bg-primary/5" : "border-border"}`}
+              onClick={() => setSelected(id)}
+            >
+              <div className="font-semibold mb-1">{LABELS[id]}</div>
+              <div className="grid grid-cols-4 gap-1">
+                {(["top", "left", "width", "rotate"] as (keyof Pos)[]).map((f) => (
+                  <label key={f} className="flex flex-col">
+                    <span className="text-[9px] text-muted-foreground uppercase">{f}</span>
+                    <input
+                      type="number"
+                      value={p[f]}
+                      onChange={(e) => update(id, f, Number(e.target.value))}
+                      className="w-full bg-muted rounded px-1 py-0.5 text-[11px] tabular-nums"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 text-[10px] text-muted-foreground leading-snug">
+        Тяните карточки мышью. Правый нижний угол — изменение ширины. «Copy» копирует JSON.
+      </div>
+    </div>
+  );
+}
+
+function EditArtboard({ bp }: { bp: Breakpoint }) {
+  const ab = ARTBOARDS[bp];
+  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+  const [selected, setSelected] = useState<ElementId | null>(null);
+
+  useEffect(() => {
+    setLayout(loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+  }, [bp]);
+
+  const persist = useCallback((l: Layout) => {
+    setLayout(l);
+    const all = loadStored();
+    all[bp] = l;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  }, [bp]);
+
+  const resetLayout = () => {
+    const all = loadStored();
+    delete all[bp];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    setLayout(DEFAULT_LAYOUTS[bp]);
+  };
+
+  return (
+    <>
+      <div className="mx-auto" style={{ width: ab.width * ab.scale, height: ab.height * ab.scale }}>
+        <div
+          className="relative origin-top-left"
+          style={{
+            width: ab.width,
+            height: ab.height,
+            transform: `scale(${ab.scale})`,
+            outline: "1px dashed hsl(var(--primary) / 0.4)",
+          }}
+        >
+          {(Object.keys(layout) as ElementId[]).map((id) => (
+            <DraggableElement
+              key={id}
+              id={id}
+              pos={layout[id]}
+              onChange={(p) => persist({ ...layout, [id]: p })}
+              selected={selected === id}
+              onSelect={() => setSelected(id)}
+            />
+          ))}
+        </div>
+      </div>
+      <EditPanel
+        bp={bp}
+        layout={layout}
+        setLayout={persist}
+        resetLayout={resetLayout}
+        selected={selected}
+        setSelected={setSelected}
+      />
+    </>
+  );
+}
+
+/* ===================== STATIC VIEW ===================== */
+
+function StaticArtboard({ bp }: { bp: Breakpoint }) {
+  const ab = ARTBOARDS[bp];
+  const layout = loadStored()[bp] ?? DEFAULT_LAYOUTS[bp];
+
+  return (
+    <div className="mx-auto" style={{ width: ab.width * ab.scale, height: ab.height * ab.scale }}>
+      <div
+        className="relative origin-top-left"
+        style={{ width: ab.width, height: ab.height, transform: `scale(${ab.scale})` }}
+      >
+        {(Object.keys(layout) as ElementId[]).map((id, i) => {
+          const p = layout[id];
+          return (
+            <div
+              key={id}
+              className="absolute animate-fade-in"
+              style={{
+                top: p.top,
+                left: p.left,
+                width: p.width,
+                transform: `rotate(${p.rotate}deg)`,
+                animationDelay: `${0.1 + i * 0.08}s`,
+                zIndex: id === "stat" ? 20 : 30,
+              }}
+            >
+              {renderElement(id, p.width)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ===================== MAIN ===================== */
 
 export function ReportCollageBlock() {
+  const bp = useBreakpoint();
+  const editMode = useEditMode();
+  const ArtboardComp = editMode ? EditArtboard : StaticArtboard;
+
   return (
     <section className="relative pt-16 md:pt-24 pb-16 md:pb-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
@@ -18,7 +421,6 @@ export function ReportCollageBlock() {
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 container mx-auto px-4">
-        {/* Section header — same style as other blocks */}
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Ваш персональный отчёт </span>
@@ -28,55 +430,7 @@ export function ReportCollageBlock() {
           </h2>
         </div>
 
-        {/* Two-column: left stat, right cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center max-w-6xl mx-auto">
-          {/* Left — 50+ страниц */}
-          <div className="lg:col-span-4 text-center lg:text-left">
-            <div className="inline-flex items-baseline gap-3">
-              <span className="text-[9rem] md:text-[11rem] leading-[0.85] font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter">
-                50+
-              </span>
-              <span className="text-base md:text-lg font-semibold text-muted-foreground">
-                страниц
-              </span>
-            </div>
-            <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xs mx-auto lg:mx-0">
-              Выжимки из ключевых разделов — от резюме здоровья до
-              персональных назначений.
-            </p>
-          </div>
-
-          {/* Right — 2×2 collage */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-            {cards.map((c, i) => (
-              <div
-                key={c.num}
-                className="group animate-fade-in"
-                style={{ animationDelay: `${0.1 + i * 0.08}s` }}
-              >
-                <div className="mb-2.5 flex items-baseline gap-2">
-                  <span className="text-xs font-bold tracking-widest text-primary">
-                    {c.num}
-                  </span>
-                  <h3 className="text-sm md:text-base font-semibold text-foreground">
-                    {c.title}
-                  </h3>
-                </div>
-                <div
-                  className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:!rotate-0"
-                  style={{ transform: `rotate(${c.rotate}deg)` }}
-                >
-                  <img
-                    src={c.img}
-                    alt={c.title}
-                    loading="lazy"
-                    className="w-full h-auto block"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ArtboardComp bp={bp} />
       </div>
     </section>
   );
