@@ -132,6 +132,15 @@ export function buildMessage(
         `Порог: ${e(vars.threshold)} ₽`
       );
     }
+    case "feedback_received": {
+      return (
+        prefix +
+        "✉️ <b>Новое сообщение с сайта</b>\n" +
+        `👤 ${e(payload.name || "—")}\n` +
+        `📧 ${e(payload.email || "—")}\n\n` +
+        `💬 ${e(payload.message || "—")}`
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
