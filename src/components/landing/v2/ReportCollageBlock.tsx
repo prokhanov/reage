@@ -37,21 +37,21 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
 
 export const REPORT_COLLAGE_DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    stat:  { top: 10,  left: 20,  width: 300, rotate: 0 },
-    card1: { top: 230, left: 5,   width: 160, rotate: -3 },
-    card2: { top: 250, left: 175, width: 160, rotate: 2 },
-    card3: { top: 490, left: 5,   width: 160, rotate: -2 },
-    card4: { top: 510, left: 175, width: 160, rotate: 3 },
+    stat:  { top: 663, left: -5,  width: 300, rotate: 0 },
+    card1: { top: -67, left: -11, width: 319, rotate: -3 },
+    card2: { top: 60,  left: 27,  width: 280, rotate: 2 },
+    card3: { top: 261, left: -19, width: 328, rotate: -2 },
+    card4: { top: 459, left: -12, width: 362, rotate: 3 },
   },
   tablet: {
-    stat:  { top: 60,  left: 20,  width: 320, rotate: 0 },
-    card1: { top: 20,  left: 370, width: 180, rotate: -3 },
-    card2: { top: 30,  left: 545, width: 165, rotate: 2 },
-    card3: { top: 340, left: 370, width: 180, rotate: -2 },
-    card4: { top: 350, left: 545, width: 165, rotate: 3 },
+    stat:  { top: 354, left: 398, width: 328, rotate: 0 },
+    card1: { top: -45, left: 353, width: 428, rotate: -3 },
+    card2: { top: -12, left: -11, width: 354, rotate: 2 },
+    card3: { top: 122, left: 362, width: 379, rotate: -2 },
+    card4: { top: 244, left: -6,  width: 376, rotate: 3 },
   },
   desktop: {
-    stat:  { top: 510, left: 56,  width: 381, rotate: 0 },
+    stat:  { top: 495, left: 122, width: 381, rotate: 0 },
     card1: { top: 3,   left: 89,  width: 500, rotate: -3 },
     card2: { top: 5,   left: 591, width: 500, rotate: 2 },
     card3: { top: 202, left: 98,  width: 500, rotate: -2 },
