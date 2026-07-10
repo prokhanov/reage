@@ -295,6 +295,8 @@ function EditPanel({
   selected: ElementId | null;
   setSelected: (id: ElementId | null) => void;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   const copyAll = async () => {
     const all = loadStored();
     all[bp] = layout;
@@ -316,9 +318,16 @@ function EditPanel({
   };
 
   return (
-    <div className="fixed top-14 left-2 z-[100] w-[320px] max-h-[calc(100vh-4rem)] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
-      <div className="flex items-center justify-between mb-2">
-        <div className="font-bold">Collage · {bp}</div>
+    <div className="fixed top-2 left-2 right-2 md:right-auto md:w-[340px] z-[9999] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl text-xs">
+      <div className="flex items-center justify-between p-2 gap-2">
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex items-center gap-1.5 font-bold hover:opacity-70"
+          title={collapsed ? "Развернуть" : "Свернуть"}
+        >
+          <span className="inline-block w-3 text-center">{collapsed ? "▸" : "▾"}</span>
+          Collage · {bp}
+        </button>
         <div className="flex gap-1">
           <button onClick={copyAll} className="px-2 py-1 bg-primary text-primary-foreground rounded text-[11px] font-semibold">
             Copy
@@ -328,40 +337,45 @@ function EditPanel({
           </button>
         </div>
       </div>
-      <div className="space-y-2">
-        {(Object.keys(layout) as ElementId[]).map((id) => {
-          const p = layout[id];
-          const isSel = selected === id;
-          return (
-            <div
-              key={id}
-              className={`rounded border p-2 ${isSel ? "border-primary bg-primary/5" : "border-border"}`}
-              onClick={() => setSelected(id)}
-            >
-              <div className="font-semibold mb-1">{LABELS[id]}</div>
-              <div className="grid grid-cols-4 gap-1">
-                {(["top", "left", "width", "rotate"] as (keyof Pos)[]).map((f) => (
-                  <label key={f} className="flex flex-col">
-                    <span className="text-[9px] text-muted-foreground uppercase">{f}</span>
-                    <input
-                      type="number"
-                      value={p[f]}
-                      onChange={(e) => update(id, f, Number(e.target.value))}
-                      className="w-full bg-muted rounded px-1 py-0.5 text-[11px] tabular-nums"
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 text-[10px] text-muted-foreground leading-snug">
-        Тяните карточки мышью. Правый нижний угол — ширина. Верхняя точка — поворот. «Copy» копирует JSON.
-      </div>
+      {!collapsed && (
+        <div className="px-3 pb-3 max-h-[70vh] overflow-auto">
+          <div className="space-y-2">
+            {(Object.keys(layout) as ElementId[]).map((id) => {
+              const p = layout[id];
+              const isSel = selected === id;
+              return (
+                <div
+                  key={id}
+                  className={`rounded border p-2 ${isSel ? "border-primary bg-primary/5" : "border-border"}`}
+                  onClick={() => setSelected(id)}
+                >
+                  <div className="font-semibold mb-1">{LABELS[id]}</div>
+                  <div className="grid grid-cols-4 gap-1">
+                    {(["top", "left", "width", "rotate"] as (keyof Pos)[]).map((f) => (
+                      <label key={f} className="flex flex-col">
+                        <span className="text-[9px] text-muted-foreground uppercase">{f}</span>
+                        <input
+                          type="number"
+                          value={p[f]}
+                          onChange={(e) => update(id, f, Number(e.target.value))}
+                          className="w-full bg-muted rounded px-1 py-0.5 text-[11px] tabular-nums"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 text-[10px] text-muted-foreground leading-snug">
+            Тяните карточки мышью. Правый нижний угол — ширина. Верхняя точка — поворот. «Copy» копирует JSON.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 function EditArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
