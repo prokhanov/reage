@@ -47,7 +47,7 @@ export function CycleInfographicBlock() {
   const R_PX = (RADIUS_PCT / 100) * CANVAS;
 
   return (
-    <section className="relative py-16 md:py-20 overflow-hidden">
+    <section className="relative py-10 md:py-12 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
       <div
         aria-hidden
