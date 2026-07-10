@@ -149,7 +149,7 @@ function CycleCenter() {
       <div className="flex flex-col items-center text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
-          <div className="relative flex flex-col items-center justify-center w-[220px] h-[220px] rounded-full bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/25 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] backdrop-blur-sm px-6">
+          <div className="relative flex flex-col items-center justify-center w-[238px] h-[238px] rounded-full bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/25 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] backdrop-blur-sm px-6">
             <div className="flex items-center justify-center w-11 h-11 rounded-full bg-card border border-primary/30 mb-3">
               <Heart className="w-5 h-5 text-primary" strokeWidth={2} fill="hsl(var(--primary) / 0.15)" />
             </div>
