@@ -436,7 +436,7 @@ export function HeroPortraitClassic() {
               )}
             </button>
 
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => navigate("/auth")}
