@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { copyToClipboard } from "@/lib/copyToClipboard";
-import card1 from "@/assets/report-card-1.png.asset.json";
-import card2 from "@/assets/report-card-2.png.asset.json";
-import card3 from "@/assets/report-card-3.png.asset.json";
-import card4 from "@/assets/report-card-4.png.asset.json";
+import card1 from "@/assets/report-card-1.png";
+import card2 from "@/assets/report-card-2.png";
+import card3 from "@/assets/report-card-3.png";
+import card4 from "@/assets/report-card-4.png";
 
 /* ===================== DATA ===================== */
 
@@ -15,10 +15,10 @@ type StoredLayout = Partial<Record<ElementId, Partial<Pos>>>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
 const CARDS = {
-  card1: { num: "01", title: "Общее резюме", img: card1.url },
-  card2: { num: "02", title: "Разбор по системам организма", img: card2.url },
-  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3.url },
-  card4: { num: "04", title: "Персональные назначения", img: card4.url },
+  card1: { num: "01", title: "Общее резюме", img: card1 },
+  card2: { num: "02", title: "Разбор по системам организма", img: card2 },
+  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3 },
+  card4: { num: "04", title: "Персональные назначения", img: card4 },
 } as const;
 
 const LABELS: Record<ElementId, string> = {
