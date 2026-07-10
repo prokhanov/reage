@@ -67,8 +67,10 @@ function renderLevel(level: Level) {
     return <Minus className="h-4 w-4 text-muted-foreground/50 mx-auto" />;
   }
   return (
-    <span className="text-primary font-semibold tracking-wider">
-      {"●".repeat(level)}
+    <span className="inline-flex items-center justify-center gap-1">
+      {Array.from({ length: level }).map((_, i) => (
+        <span key={i} className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+      ))}
     </span>
   );
 }
