@@ -36,8 +36,9 @@ const steps = [
 // Квадратный канвас — единая система координат для кольца и карточек
 const CANVAS = 820;
 const RADIUS_PCT = 34; // радиус кольца в % от стороны
-const CARD_WIDTH = 204;
-const CARD_HEIGHT = 138;
+const CARD_WIDTH = 216;
+const CARD_HEIGHT = 148;
+
 
 
 // 5 карточек равномерно по кругу, первая строго сверху
@@ -48,7 +49,7 @@ export function CycleInfographicBlock() {
   const R_PX = (RADIUS_PCT / 100) * CANVAS;
 
   return (
-    <section className="relative pt-12 pb-4 md:pt-14 md:pb-6 overflow-hidden">
+    <section className="relative pt-8 pb-2 md:pt-10 md:pb-3 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
       <div
         aria-hidden
