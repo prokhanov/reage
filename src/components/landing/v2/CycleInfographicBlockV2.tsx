@@ -178,20 +178,17 @@ function StepCard({ step }: { step: Step }) {
       {/* hover-свечение */}
       <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
 
-      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col justify-center gap-2">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
+      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col gap-2">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20 shrink-0">
             <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
           </div>
-          <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/70 -mt-2 -mr-2">
+          <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/70">
             {step.num}
           </span>
         </div>
-        <h3
-          className={`text-[15px] font-semibold text-foreground leading-snug ${
-            step.num === "шаг 5" ? "whitespace-nowrap" : ""
-          }`}
-        >
+        <h3 className="text-[15px] font-semibold text-foreground leading-snug">
+
           {step.title}
         </h3>
         <p className="text-[12px] text-muted-foreground leading-snug">
