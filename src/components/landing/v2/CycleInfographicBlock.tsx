@@ -33,8 +33,10 @@ const steps = [
   },
 ];
 
-const RING_SIZE = 700;
-const RADIUS = 260;
+const RING_RADIUS = 260; // пунктирное кольцо
+const CARD_RADIUS = 260; // центры карточек на том же радиусе — ring проходит через середину
+const PAD = 140; // запас чтобы карточки помещались в контейнер (card_w/2 + margin)
+const RING_SIZE = (CARD_RADIUS + PAD) * 2; // 800
 const CENTER = RING_SIZE / 2;
 
 export function CycleInfographicBlock() {
@@ -79,7 +81,7 @@ export function CycleInfographicBlock() {
             <circle
               cx={CENTER}
               cy={CENTER}
-              r={RADIUS}
+              r={RING_RADIUS}
               fill="none"
               stroke="url(#cycleStroke)"
               strokeWidth="1.5"
@@ -89,8 +91,8 @@ export function CycleInfographicBlock() {
             {/* 5 arrowhead markers between cards, showing clockwise direction */}
             {[36, 108, 180, 252, 324].map((deg, i) => {
               const rad = (deg - 90) * (Math.PI / 180);
-              const x = CENTER + Math.cos(rad) * RADIUS;
-              const y = CENTER + Math.sin(rad) * RADIUS;
+              const x = CENTER + Math.cos(rad) * RING_RADIUS;
+              const y = CENTER + Math.sin(rad) * RING_RADIUS;
               return (
                 <polygon
                   key={i}
@@ -122,8 +124,8 @@ export function CycleInfographicBlock() {
           {/* Cards positioned on the circle */}
           {steps.map((step, i) => {
             const angle = (i * 72 - 90) * (Math.PI / 180);
-            const cx = CENTER + Math.cos(angle) * RADIUS;
-            const cy = CENTER + Math.sin(angle) * RADIUS;
+            const cx = CENTER + Math.cos(angle) * CARD_RADIUS;
+            const cy = CENTER + Math.sin(angle) * CARD_RADIUS;
             const Icon = step.icon;
             return (
               <div
@@ -136,10 +138,10 @@ export function CycleInfographicBlock() {
                   animationDelay: `${0.15 + i * 0.1}s`,
                 }}
               >
-                <div className="group relative w-[210px]">
+                <div className="group relative w-[220px] h-[168px]">
                   <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-70" />
                   <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                  <div className="relative rounded-2xl bg-card/95 backdrop-blur-md p-5 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)]">
+                  <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-5 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
                         <Icon className="w-5 h-5 text-primary" strokeWidth={1.75} />
@@ -151,7 +153,7 @@ export function CycleInfographicBlock() {
                     <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug">
                       {step.title}
                     </h3>
-                    <p className="text-[12.5px] text-muted-foreground leading-snug">
+                    <p className="text-[12px] text-muted-foreground leading-snug">
                       {step.subtitle}
                     </p>
                   </div>
