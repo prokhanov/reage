@@ -693,10 +693,10 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               </span>
             </h1>
             <p
-              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-snug animate-fade-in"
+              className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
-              Берём на себя контроль вашего здоровья: регулярно проверяем весь организм, отслеживаем динамику показателей и даём понятный план действий.
+              Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с динамикой показателей и понятными следующими шагами
             </p>
 
             <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
