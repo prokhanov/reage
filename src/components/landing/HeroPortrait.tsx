@@ -340,6 +340,16 @@ function Artboard({ bp }: { bp: Breakpoint }) {
         />
         {(Object.keys(layout) as WidgetId[]).map((id) => {
           const p = layout[id];
+          const backdropImageHeight = ab.man.height;
+          const backdropImageWidth = backdropImageHeight * (848 / 1264);
+          const backdropLeft = ab.man.left + (ab.man.width - backdropImageWidth) / 2;
+          const backdropTop = ab.man.top ?? ab.height - ab.man.bottom! - ab.man.height;
+          const glassBackdropStyle = {
+            "--hero-glass-backdrop-image": `url(${heroMan})`,
+            "--hero-glass-backdrop-size": `${backdropImageWidth}px ${backdropImageHeight}px`,
+            "--hero-glass-backdrop-position": `${backdropLeft - p.left}px ${backdropTop - p.top - 24}px`,
+            "--hero-glass-backdrop-opacity": isDark ? 0.52 : 0.46,
+          } as CSSProperties;
           return (
             <div
               key={id}
@@ -352,7 +362,7 @@ function Artboard({ bp }: { bp: Breakpoint }) {
               }}
             >
               <div style={{ transform: `rotate(${p.rotate}deg)` }}>
-                <div className="animate-fade-in" style={{ animationDelay: delayMap[id] }}>
+                <div className="animate-fade-in" style={{ animationDelay: delayMap[id], ...glassBackdropStyle }}>
                   {renderWidget(id)}
                 </div>
               </div>
