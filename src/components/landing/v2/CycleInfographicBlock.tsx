@@ -50,12 +50,13 @@ export function CycleInfographicBlock() {
 
   return (
     <section className="relative pt-8 pb-2 md:pt-10 md:pb-3 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
+      {/* Soft circular glow behind the cycle — no hard edges to avoid gradient square artifacts */}
       <div
         aria-hidden
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-[140px]"
-        style={{ width: 520, height: 520 }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.14)_0%,hsl(var(--primary)/0.06)_38%,transparent_70%)] blur-[60px] dark:bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.10)_0%,hsl(var(--primary)/0.04)_38%,transparent_70%)]"
       />
+
+
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
@@ -129,8 +130,9 @@ export function CycleInfographicBlock() {
               style={{ animationDelay: "0.6s" }}
             >
               <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
+                <div className="absolute -inset-5 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.45)_0%,hsl(var(--accent)/0.25)_55%,transparent_100%)] blur-2xl" />
                 <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
+
                   <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
                 </div>
               </div>
