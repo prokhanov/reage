@@ -58,6 +58,13 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
+  useEffect(() => {
+    const handler = () => setIsFeedbackOpen(true);
+    window.addEventListener("open-feedback-dialog", handler);
+    return () => window.removeEventListener("open-feedback-dialog", handler);
+  }, []);
+
+
   
   const faqs = [
     {
