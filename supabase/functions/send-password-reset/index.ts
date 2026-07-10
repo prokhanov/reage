@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SITE_NAME = 'reage'
+const SITE_NAME = 'ReAge'
 const ROOT_DOMAIN = 'reage.life'
 const SENDER_DOMAIN = 'notify.reage.life'
 const FROM_DOMAIN = 'notify.reage.life'
