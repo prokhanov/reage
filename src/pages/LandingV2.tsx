@@ -1,7 +1,11 @@
 import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
-import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
+import {
+  ReportCollageBlock,
+  REPORT_COLLAGE_DEFAULT_LAYOUTS,
+  REPORT_COLLAGE_STORAGE_KEY,
+} from "@/components/landing/v2/ReportCollageBlock";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
@@ -74,7 +78,10 @@ const LandingV2 = () => {
               const text = JSON.stringify(
                 {
                   heroLayoutV2: JSON.parse(localStorage.getItem("heroLayoutV2") || "{}"),
-                  reportCollageLayoutV2: JSON.parse(localStorage.getItem("reportCollageLayoutV2") || "{}"),
+                  reportCollageLayoutV2: {
+                    ...REPORT_COLLAGE_DEFAULT_LAYOUTS,
+                    ...JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}"),
+                  },
                 },
                 null,
                 2,
