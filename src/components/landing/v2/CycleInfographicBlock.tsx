@@ -33,11 +33,15 @@ const steps = [
   },
 ];
 
-const RING_RADIUS = 260; // пунктирное кольцо
-const CARD_RADIUS = 260; // центры карточек на том же радиусе — ring проходит через середину
-const PAD = 140; // запас чтобы карточки помещались в контейнер (card_w/2 + margin)
-const RING_SIZE = (CARD_RADIUS + PAD) * 2; // 800
-const CENTER = RING_SIZE / 2;
+const CANVAS_WIDTH = 940;
+const CANVAS_HEIGHT = 720;
+const CENTER_X = CANVAS_WIDTH / 2;
+const CENTER_Y = CANVAS_HEIGHT / 2;
+const RING_RADIUS = 250;
+const CARD_WIDTH = 220;
+const CARD_HEIGHT = 152;
+
+const cardAngles = [-90, -18, 54, 126, 198];
 
 export function CycleInfographicBlock() {
   return (
@@ -65,11 +69,11 @@ export function CycleInfographicBlock() {
         </div>
 
         {/* Desktop: circular layout */}
-        <div className="hidden lg:block relative mx-auto" style={{ width: RING_SIZE, height: RING_SIZE }}>
+        <div className="hidden lg:block relative mx-auto mt-2" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
           {/* Dashed circle + directional arrow markers */}
           <svg
             className="absolute inset-0 w-full h-full -rotate-90"
-            viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+            viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
             aria-hidden
           >
             <defs>
@@ -79,8 +83,8 @@ export function CycleInfographicBlock() {
               </linearGradient>
             </defs>
             <circle
-              cx={CENTER}
-              cy={CENTER}
+              cx={CENTER_X}
+              cy={CENTER_Y}
               r={RING_RADIUS}
               fill="none"
               stroke="url(#cycleStroke)"
@@ -91,8 +95,8 @@ export function CycleInfographicBlock() {
             {/* 5 arrowhead markers between cards, showing clockwise direction */}
             {[36, 108, 180, 252, 324].map((deg, i) => {
               const rad = (deg - 90) * (Math.PI / 180);
-              const x = CENTER + Math.cos(rad) * RING_RADIUS;
-              const y = CENTER + Math.sin(rad) * RING_RADIUS;
+              const x = CENTER_X + Math.cos(rad) * RING_RADIUS;
+              const y = CENTER_Y + Math.sin(rad) * RING_RADIUS;
               return (
                 <polygon
                   key={i}
@@ -123,28 +127,28 @@ export function CycleInfographicBlock() {
 
           {/* Cards positioned on the circle */}
           {steps.map((step, i) => {
-            const angle = (i * 72 - 90) * (Math.PI / 180);
-            const cx = CENTER + Math.cos(angle) * CARD_RADIUS;
-            const cy = CENTER + Math.sin(angle) * CARD_RADIUS;
+            const angle = cardAngles[i] * (Math.PI / 180);
+            const x = CENTER_X + Math.cos(angle) * RING_RADIUS;
+            const y = CENTER_Y + Math.sin(angle) * RING_RADIUS;
             const Icon = step.icon;
             return (
               <div
                 key={i}
                 className="absolute animate-fade-in"
                 style={{
-                  left: cx,
-                  top: cy,
+                  left: x,
+                  top: y,
                   transform: "translate(-50%, -50%)",
                   animationDelay: `${0.15 + i * 0.1}s`,
                 }}
               >
-                <div className="group relative w-[220px] h-[168px]">
+                <div className="group relative" style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
                   <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-70" />
                   <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                  <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-5 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
+                  <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
-                        <Icon className="w-5 h-5 text-primary" strokeWidth={1.75} />
+                      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
+                        <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
                       </div>
                       <span className="text-[11px] font-mono font-semibold tracking-widest text-muted-foreground/70">
                         {step.num}
