@@ -129,6 +129,9 @@ const LandingV2 = () => {
           <HowItWorksBlock />
         </Block>
         <Block>
+          <CycleInfographicBlock />
+        </Block>
+        <Block>
           <ReportCollageBlock editMode={editOn} />
         </Block>
         <Block>
