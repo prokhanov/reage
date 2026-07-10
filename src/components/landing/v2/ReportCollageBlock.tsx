@@ -4,137 +4,73 @@ import card3 from "@/assets/report-card-3.png.asset.json";
 import card4 from "@/assets/report-card-4.png.asset.json";
 
 const cards = [
-  {
-    num: "01",
-    title: "Общее резюме",
-    img: card1.url,
-    style: { left: "0%", top: "2%", rotate: -5, z: 10, w: 340 },
-  },
-  {
-    num: "02",
-    title: "Разбор по системам организма",
-    img: card2.url,
-    style: { left: "40%", top: "0%", rotate: 3, z: 20, w: 360 },
-  },
-  {
-    num: "03",
-    title: "Биомаркеры с расшифровкой",
-    img: card3.url,
-    style: { left: "6%", top: "50%", rotate: -2, z: 30, w: 360 },
-  },
-  {
-    num: "04",
-    title: "Персональные назначения",
-    img: card4.url,
-    style: { left: "46%", top: "54%", rotate: 4, z: 40, w: 370 },
-  },
+  { num: "01", title: "Общее резюме", img: card1.url, rotate: -2 },
+  { num: "02", title: "Разбор по системам организма", img: card2.url, rotate: 1.5 },
+  { num: "03", title: "Биомаркеры с расшифровкой", img: card3.url, rotate: -1.5 },
+  { num: "04", title: "Персональные назначения", img: card4.url, rotate: 2 },
 ];
 
 export function ReportCollageBlock() {
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative pt-16 md:pt-24 pb-16 md:pb-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
+      <div className="absolute top-1/3 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 container mx-auto px-4">
-        {/* Desktop */}
-        <div className="hidden md:grid grid-cols-12 gap-6 lg:gap-8 items-start max-w-7xl mx-auto">
-          <div className="col-span-5 sticky top-24 self-start">
-            <div className="inline-block text-xs font-semibold tracking-[0.2em] text-primary uppercase mb-6">
-              Ваш отчёт
-            </div>
-            <div className="flex items-baseline gap-4">
-              <span className="text-[8rem] lg:text-[10rem] leading-[0.85] font-black text-foreground tracking-tighter">
-                50+
-              </span>
-              <span className="text-lg lg:text-xl font-semibold text-foreground pb-3">
-                страниц
-              </span>
-            </div>
-            <h2 className="mt-8 text-3xl lg:text-4xl font-bold leading-tight text-foreground">
-              Персональный отчёт<br />
-              <span className="text-primary">на понятном языке</span>
-            </h2>
-            <p className="mt-5 text-base text-muted-foreground max-w-sm">
-              Выжимки из ключевых разделов — от биомаркеров до персональных
-              назначений и плана образа жизни.
-            </p>
-          </div>
-
-          <div className="col-span-7 relative min-h-[860px]">
-            {cards.map((c) => (
-              <div
-                key={c.num}
-                className="absolute transition-transform duration-500 hover:!rotate-0 hover:-translate-y-2 hover:z-50"
-                style={{
-                  left: c.style.left,
-                  top: c.style.top,
-                  width: `${c.style.w}px`,
-                  transform: `rotate(${c.style.rotate}deg)`,
-                  zIndex: c.style.z,
-                }}
-              >
-                <div className="mb-3">
-                  <span className="text-xs font-bold tracking-widest text-primary uppercase">
-                    {c.num}
-                  </span>
-                  <h3 className="text-sm font-semibold text-foreground mt-1">
-                    {c.title}
-                  </h3>
-                </div>
-                <div className="rounded-xl bg-card border border-border shadow-2xl shadow-primary/10 overflow-hidden">
-                  <img
-                    src={c.img}
-                    alt={c.title}
-                    className="w-full h-auto block"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Section header — same style as other blocks */}
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
+            <span className="text-foreground">Ваш персональный отчёт </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">
+              на понятном языке
+            </span>
+          </h2>
         </div>
 
-        {/* Mobile */}
-        <div className="md:hidden max-w-md mx-auto">
-          <div className="mb-10">
-            <div className="text-xs font-semibold tracking-[0.2em] text-primary uppercase mb-4">
-              Ваш отчёт
-            </div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-7xl leading-[0.85] font-black text-foreground tracking-tighter">
+        {/* Two-column: left stat, right cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center max-w-6xl mx-auto">
+          {/* Left — 50+ страниц */}
+          <div className="lg:col-span-4 text-center lg:text-left">
+            <div className="inline-flex items-baseline gap-3">
+              <span className="text-[9rem] md:text-[11rem] leading-[0.85] font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter">
                 50+
               </span>
-              <span className="text-base font-semibold text-foreground pb-2">
+              <span className="text-base md:text-lg font-semibold text-muted-foreground">
                 страниц
               </span>
             </div>
-            <h2 className="mt-6 text-2xl font-bold leading-tight text-foreground">
-              Персональный отчёт<br />
-              <span className="text-primary">на понятном языке</span>
-            </h2>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Выжимки из ключевых разделов — от биомаркеров до персональных
-              назначений.
+            <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xs mx-auto lg:mx-0">
+              Выжимки из ключевых разделов — от резюме здоровья до
+              персональных назначений.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {cards.map((c) => (
-              <div key={c.num}>
-                <div className="mb-3">
-                  <span className="text-xs font-bold tracking-widest text-primary uppercase">
+          {/* Right — 2×2 collage */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+            {cards.map((c, i) => (
+              <div
+                key={c.num}
+                className="group animate-fade-in"
+                style={{ animationDelay: `${0.1 + i * 0.08}s` }}
+              >
+                <div className="mb-2.5 flex items-baseline gap-2">
+                  <span className="text-xs font-bold tracking-widest text-primary">
                     {c.num}
                   </span>
-                  <h3 className="text-sm font-semibold text-foreground mt-1">
+                  <h3 className="text-sm md:text-base font-semibold text-foreground">
                     {c.title}
                   </h3>
                 </div>
-                <div className="rounded-xl bg-card border border-border shadow-xl overflow-hidden">
+                <div
+                  className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:!rotate-0"
+                  style={{ transform: `rotate(${c.rotate}deg)` }}
+                >
                   <img
                     src={c.img}
                     alt={c.title}
-                    className="w-full h-auto block"
                     loading="lazy"
+                    className="w-full h-auto block"
                   />
                 </div>
               </div>
