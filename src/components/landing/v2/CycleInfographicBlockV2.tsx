@@ -188,8 +188,8 @@ function StepCard({ step }: { step: Step }) {
           </span>
         </div>
         <h3
-          className={`font-semibold text-foreground mb-1 leading-snug min-h-[42px] ${
-            step.num === "05" ? "text-[13px] whitespace-nowrap tracking-tight" : "text-[15px]"
+          className={`text-[15px] font-semibold text-foreground mb-1 leading-snug min-h-[42px] ${
+            step.num === "05" ? "whitespace-nowrap" : ""
           }`}
         >
           {step.title}
