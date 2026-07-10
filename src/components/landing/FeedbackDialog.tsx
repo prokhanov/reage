@@ -73,7 +73,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       setStatus("success");
       setTimeout(() => {
         onOpenChange(false);
-        setForm({ name: "", email: "", message: "" });
+        setForm({ name: "", email: "", phone: "", message: "" });
         setStatus("idle");
       }, 2000);
     } catch (err) {
@@ -86,7 +86,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     if (status === "loading") return;
     onOpenChange(false);
     setTimeout(() => {
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", phone: "", message: "" });
       setErrors({});
       setStatus("idle");
     }, 300);
