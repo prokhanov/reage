@@ -164,8 +164,8 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
 
   const recommendedPlanId = orderedPlans[1]?.id;
 
-  const planSlugs = useMemo(
-    () => orderedPlans.map((p) => getPlanSlug(p.display_name || "")),
+  const planSlugs = useMemo<PlanSlug[]>(
+    () => orderedPlans.map((_, idx) => (idx === 0 ? "basic" : idx === 1 ? "plus" : "expert")),
     [orderedPlans],
   );
 
