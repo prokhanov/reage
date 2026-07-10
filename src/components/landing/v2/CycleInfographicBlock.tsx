@@ -33,10 +33,10 @@ const steps = [
   },
 ];
 
-const RING_RADIUS = 220; // радиус пунктирного кольца
-const CARD_RADIUS = 320; // радиус, на котором стоят ЦЕНТРЫ карточек (снаружи кольца)
-const PAD = 130; // запас по краям контейнера, чтобы карточки помещались
-const RING_SIZE = (CARD_RADIUS + PAD) * 2; // 900
+const RING_RADIUS = 260; // радиус пунктирного кольца
+const CARD_RADIUS = 340; // ЦЕНТРЫ карточек — снаружи кольца, зазор ~80px
+const PAD = 120;
+const RING_SIZE = (CARD_RADIUS + PAD) * 2; // 920
 const CENTER = RING_SIZE / 2;
 
 export function CycleInfographicBlock() {
