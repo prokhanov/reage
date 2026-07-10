@@ -48,7 +48,7 @@ export function CycleInfographicBlock() {
   const R_PX = (RADIUS_PCT / 100) * CANVAS;
 
   return (
-    <section className="relative py-10 md:py-12 overflow-hidden">
+    <section className="relative pt-12 pb-4 md:pt-14 md:pb-6 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
       <div
         aria-hidden
@@ -58,10 +58,8 @@ export function CycleInfographicBlock() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4 animate-fade-in">
-            <span className="w-1 h-1 rounded-full bg-primary" /> Метод ReAge
-          </div>
+        <div className="text-center max-w-3xl mx-auto mb-2 md:mb-3">
+
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Как это </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">работает</span>
