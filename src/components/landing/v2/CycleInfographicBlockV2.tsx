@@ -149,19 +149,19 @@ function CycleCenter() {
       <div className="flex flex-col items-center text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
-          <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
-            <RefreshCw
-              className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]"
-              strokeWidth={1.5}
-            />
-          </div>
-        </div>
-        <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
-            Непрерывный цикл
-          </div>
-          <div className="text-[15px] font-medium text-foreground leading-snug">
-            Повторяется 2–4 раза в год
+          <div className="relative flex flex-col items-center justify-center w-[220px] h-[220px] rounded-full bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/25 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] backdrop-blur-sm px-6">
+            <div className="flex items-center justify-center w-11 h-11 rounded-full bg-card border border-primary/30 mb-3">
+              <Heart className="w-5 h-5 text-primary" strokeWidth={2} fill="hsl(var(--primary) / 0.15)" />
+            </div>
+            <div className="text-[15px] font-semibold text-foreground leading-snug">
+              Ваше здоровье<br />под контролем
+            </div>
+            <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              цикл повторяется
+            </div>
+            <div className="text-[13px] font-medium text-foreground/80">
+              2–4 раза в год
+            </div>
           </div>
         </div>
       </div>
