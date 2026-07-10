@@ -190,7 +190,7 @@ function StepCard({ step }: { step: Step }) {
         <h3 className="text-[14px] font-semibold text-foreground leading-snug whitespace-nowrap">
           {step.title}
         </h3>
-        <p className="text-[12px] text-muted-foreground leading-snug">
+        <p className="text-[13px] text-muted-foreground leading-snug">
           {step.subtitle}
         </p>
       </div>
