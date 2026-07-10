@@ -1,7 +1,7 @@
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
-import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
+import { CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlock";
 import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
@@ -31,7 +31,7 @@ const Index = () => {
           }}
         />
         <HowItWorksBlock />
-        <HowItWorksSection />
+        <CycleInfographicBlock />
         <WhyCheckupsFail />
         <ComparisonSection />
       </div>
