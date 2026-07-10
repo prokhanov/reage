@@ -81,7 +81,7 @@ export function CycleInfographicBlock() {
             <circle
               cx={CENTER}
               cy={CENTER}
-              r={RADIUS}
+              r={RING_RADIUS}
               fill="none"
               stroke="url(#cycleStroke)"
               strokeWidth="1.5"
@@ -91,8 +91,8 @@ export function CycleInfographicBlock() {
             {/* 5 arrowhead markers between cards, showing clockwise direction */}
             {[36, 108, 180, 252, 324].map((deg, i) => {
               const rad = (deg - 90) * (Math.PI / 180);
-              const x = CENTER + Math.cos(rad) * RADIUS;
-              const y = CENTER + Math.sin(rad) * RADIUS;
+              const x = CENTER + Math.cos(rad) * RING_RADIUS;
+              const y = CENTER + Math.sin(rad) * RING_RADIUS;
               return (
                 <polygon
                   key={i}
