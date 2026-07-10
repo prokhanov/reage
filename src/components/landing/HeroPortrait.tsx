@@ -8,7 +8,7 @@ import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp";
 
 const glass =
-  "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
+  "rounded-2xl border border-border/60 bg-card/85 backdrop-blur-2xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
 function useIsMobile() {
   const [m, setM] = useState(
