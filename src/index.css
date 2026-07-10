@@ -220,20 +220,32 @@ All colors MUST be HSL.
   .hero-glass-card::before {
     content: "";
     position: absolute;
-    inset: -18px;
-    z-index: -1;
-    backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(190%);
-    -webkit-backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(190%);
-    background: hsl(var(--hero-glass-bg) / calc(var(--hero-glass-bg-alpha, 0.4) * 0.55));
+    inset: -28px;
+    z-index: 0;
+    background-image: var(--hero-glass-backdrop-image, none);
+    background-repeat: no-repeat;
+    background-size: var(--hero-glass-backdrop-size, auto);
+    background-position: var(--hero-glass-backdrop-position, center);
+    filter: blur(18px) saturate(135%) contrast(108%);
+    transform: scale(1.1);
+    opacity: var(--hero-glass-backdrop-opacity, 0.72);
   }
 
   .hero-glass-card::after {
     content: "";
     position: absolute;
     inset: 0;
+    z-index: 1;
     pointer-events: none;
     border-radius: inherit;
-    background: linear-gradient(180deg, hsl(var(--hero-glass-highlight) / 0.08), transparent 38%);
+    background:
+      linear-gradient(180deg, hsl(var(--hero-glass-highlight) / 0.18), transparent 42%),
+      hsl(var(--hero-glass-bg) / calc(var(--hero-glass-bg-alpha, 0.4) * 0.42));
+  }
+
+  .hero-glass-card > * {
+    position: relative;
+    z-index: 2;
   }
 
   /* Отключаем дорогую filter-анимацию на тач-устройствах и при reduced-motion —
