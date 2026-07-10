@@ -235,17 +235,18 @@ export function CycleInfographicBlock() {
               })}
               <div className="relative pl-16 animate-fade-in" style={{ animationDelay: "0.6s" }}>
                 <div className="absolute left-0 top-0 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
-                  <RefreshCw className="w-5 h-5 text-primary" strokeWidth={1.75} />
+                  <Heart className="w-5 h-5 text-primary" strokeWidth={1.75} />
                 </div>
                 <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 p-4">
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-0.5">
-                    Непрерывный цикл
+                  <div className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-0.5">
+                    Ваше здоровье под контролем
                   </div>
-                  <div className="text-base font-semibold text-foreground">
-                    Повторяется 2–4 раза в год
+                  <div className="font-heading text-base font-semibold text-foreground">
+                    Цикл повторяется 2–4 раза в год
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
