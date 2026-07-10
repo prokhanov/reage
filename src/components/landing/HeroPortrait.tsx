@@ -295,7 +295,7 @@ function useBreakpoint(): Breakpoint {
 
 /* ===================== ARTBOARD ===================== */
 
-function Artboard({ bp }: { bp: Breakpoint }) {
+function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
   const ab = ARTBOARDS[bp];
   const layout = LAYOUTS[bp];
 
@@ -515,7 +515,7 @@ export function HeroPortrait() {
           </div>
 
           <div className="order-2 relative w-full flex justify-center lg:justify-end">
-            <Artboard bp={bp} />
+          <Artboard bp={bp} isDark={isDark} />
           </div>
 
           <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
