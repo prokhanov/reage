@@ -295,32 +295,28 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
 
 /* ===================== READ-ONLY ARTBOARD ===================== */
 
-function ReadArtboard({ bp }: { bp: Breakpoint }) {
-  const ab = ARTBOARDS[bp];
-  const layout = loadStored()[bp] ?? DEFAULT_LAYOUTS[bp];
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const recalc = () => {
-      if (!wrapRef.current) return;
-      setScale(Math.min(1, wrapRef.current.clientWidth / ab.width));
-    };
-    recalc();
-    window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
-  }, [ab.width]);
-
+function ReadArtboard() {
+  const cards: Exclude<ItemId, "stat">[] = ["card1", "card2", "card3", "card4"];
   return (
-    <div ref={wrapRef} className="w-full" style={{ height: ab.height * scale }}>
-      <div className="relative origin-top-left"
-        style={{ width: ab.width, height: ab.height, transform: `scale(${scale})` }}>
-        {(Object.keys(layout) as ItemId[]).map((id) => {
-          const p = layout[id];
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
+      <div className="lg:col-span-4">
+        <StatView />
+      </div>
+      <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+        {cards.map((id, i) => {
+          const rotate = [-2, 1.5, -1.5, 2][i];
           return (
-            <div key={id} className="absolute"
-              style={{ top: p.top, left: p.left, width: p.width, transform: `rotate(${p.rotate}deg)` }}>
-              {renderItem(id)}
+            <div key={id} className="group animate-fade-in" style={{ animationDelay: `${0.1 + i * 0.08}s` }}>
+              <div className="mb-2.5 flex items-baseline gap-2">
+                <span className="text-xs font-bold tracking-widest text-primary">{CARDS[id].num}</span>
+                <h3 className="text-sm md:text-base font-semibold text-foreground">{CARDS[id].title}</h3>
+              </div>
+              <div
+                className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:!rotate-0"
+                style={{ transform: `rotate(${rotate}deg)` }}
+              >
+                <img src={CARDS[id].img} alt={CARDS[id].title} loading="lazy" className="w-full h-auto block" />
+              </div>
             </div>
           );
         })}
@@ -328,6 +324,7 @@ function ReadArtboard({ bp }: { bp: Breakpoint }) {
     </div>
   );
 }
+
 
 /* ===================== MAIN ===================== */
 
@@ -352,7 +349,7 @@ export function ReportCollageBlock() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {edit ? <EditArtboard bp={bp} /> : <ReadArtboard bp={bp} />}
+          {edit ? <EditArtboard bp={bp} /> : <ReadArtboard />}
         </div>
       </div>
     </section>
