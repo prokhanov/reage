@@ -482,7 +482,7 @@ export function HeroPortrait() {
               <StatRow />
             </div>
             <div
-              className="hidden lg:flex flex-col sm:flex-row gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
+              className="hidden lg:flex flex-col gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
               style={{ animationDelay: "0.4s" }}
             >
               <Button
