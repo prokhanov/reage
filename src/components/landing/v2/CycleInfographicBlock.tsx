@@ -33,21 +33,15 @@ const steps = [
   },
 ];
 
-const CANVAS_WIDTH = 960;
-const CANVAS_HEIGHT = 700;
+const CANVAS_WIDTH = 900;
+const CANVAS_HEIGHT = 680;
 const CENTER_X = CANVAS_WIDTH / 2;
 const CENTER_Y = CANVAS_HEIGHT / 2;
-const RING_RADIUS = 245;
+const RING_RADIUS = 250;
 const CARD_WIDTH = 224;
 const CARD_HEIGHT = 156;
 
-const cardPositions = [
-  { x: CENTER_X, y: CENTER_Y - 272 },
-  { x: CENTER_X + 330, y: CENTER_Y - 18 },
-  { x: CENTER_X + 220, y: CENTER_Y + 272 },
-  { x: CENTER_X - 220, y: CENTER_Y + 272 },
-  { x: CENTER_X - 330, y: CENTER_Y - 18 },
-];
+const cardAngles = [-90, -18, 54, 126, 198];
 
 export function CycleInfographicBlock() {
   return (
@@ -133,7 +127,9 @@ export function CycleInfographicBlock() {
 
           {/* Cards positioned on the circle */}
           {steps.map((step, i) => {
-            const { x, y } = cardPositions[i];
+            const angle = cardAngles[i] * (Math.PI / 180);
+            const x = CENTER_X + Math.cos(angle) * RING_RADIUS;
+            const y = CENTER_Y + Math.sin(angle) * RING_RADIUS;
             const Icon = step.icon;
             return (
               <div
