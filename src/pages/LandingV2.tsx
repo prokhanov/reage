@@ -126,9 +126,11 @@ const LandingV2 = () => {
           <HeroPortraitClassic />
         </Block>
         <Block>
+          <HowItWorksBlock />
+        </Block>
+        <Block>
           <CycleInfographicBlock />
         </Block>
-
         <Block>
           <ReportCollageBlock editMode={editOn} />
         </Block>
