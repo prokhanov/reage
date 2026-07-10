@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/copyToClipboard";
-import { ExampleReportEmailForm } from "./ExampleReportEmailForm";
+import { ExampleReportDialog } from "./ExampleReportDialog";
 import card1 from "@/assets/report-card-1.png";
 import card2 from "@/assets/report-card-2.png";
 import card3 from "@/assets/report-card-3.png";
