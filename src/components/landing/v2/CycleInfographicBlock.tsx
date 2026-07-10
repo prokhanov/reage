@@ -130,8 +130,9 @@ export function CycleInfographicBlock() {
               style={{ animationDelay: "0.6s" }}
             >
               <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 blur-2xl scale-125" />
+                <div className="absolute -inset-5 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.45)_0%,hsl(var(--accent)/0.25)_55%,transparent_100%)] blur-2xl" />
                 <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
+
                   <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
                 </div>
               </div>
