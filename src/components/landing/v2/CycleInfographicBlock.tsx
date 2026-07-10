@@ -50,12 +50,12 @@ export function CycleInfographicBlock() {
 
   return (
     <section className="relative pt-8 pb-2 md:pt-10 md:pb-3 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
+      {/* Soft radial glow behind the cycle — no hard edges to avoid gradient square artifacts */}
       <div
         aria-hidden
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-[140px]"
-        style={{ width: 520, height: 520 }}
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.13)_0%,hsl(var(--primary)/0.05)_28%,hsl(var(--primary)/0.02)_48%,transparent_72%)] dark:bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.09)_0%,hsl(var(--primary)/0.04)_28%,hsl(var(--primary)/0.02)_48%,transparent_72%)]"
       />
+
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
