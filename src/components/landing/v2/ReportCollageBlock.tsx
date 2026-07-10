@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { copyToClipboard } from "@/lib/copyToClipboard";
 import card1 from "@/assets/report-card-1.png.asset.json";
 import card2 from "@/assets/report-card-2.png.asset.json";
 import card3 from "@/assets/report-card-3.png.asset.json";
