@@ -12,7 +12,7 @@ const FEEDBACK_SCHEMA = z.object({
 async function sendTelegramFeedbackNotification(
   supabase: ReturnType<typeof createClient>,
   supabaseUrl: string,
-  payload: { name: string; email: string; message: string },
+  payload: { name: string; email: string; phone?: string; message: string },
 ): Promise<boolean> {
   try {
     const { data: settings, error: settingsError } = await supabase
