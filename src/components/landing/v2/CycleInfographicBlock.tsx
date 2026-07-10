@@ -131,19 +131,22 @@ export function CycleInfographicBlock() {
             >
               <div className="relative">
                 <div className="absolute -inset-5 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.45)_0%,hsl(var(--accent)/0.25)_55%,transparent_100%)] blur-2xl" />
-                <div className="relative flex items-center justify-center w-[84px] h-[84px] rounded-full bg-card border border-border/60 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)]">
+                <div className="relative flex flex-col items-center justify-center w-[150px] h-[150px] rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border border-primary/20 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.35)] text-center p-3">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-card border border-primary/20 mb-2">
+                    <Heart className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div className="font-heading text-[15px] font-semibold text-foreground leading-tight">
+                    Ваше здоровье<br />под контролем
+                  </div>
+                  <div className="font-display text-[9px] uppercase tracking-[0.18em] text-muted-foreground/80 mt-1">
+                    ЦИКЛ ПОВТОРЯЕТСЯ
+                  </div>
+                  <div className="font-display text-[12px] text-foreground leading-snug">
+                    2–4 раза в год
+                  </div>
+                </div>
+              </div>
 
-                  <RefreshCw className="w-8 h-8 text-primary [animation:spin_18s_linear_infinite]" strokeWidth={1.5} />
-                </div>
-              </div>
-              <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[220px]">
-                <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground mb-1">
-                  Непрерывный цикл
-                </div>
-                <div className="text-[15px] font-medium text-foreground leading-snug">
-                  Повторяется 2–4 раза в год
-                </div>
-              </div>
             </div>
           </div>
 
