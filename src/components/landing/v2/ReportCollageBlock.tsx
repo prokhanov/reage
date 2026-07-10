@@ -253,11 +253,11 @@ function EditPanel({
     const all = loadStored();
     all[bp] = layout;
     const text = JSON.stringify(all, null, 2);
-    try {
-      await navigator.clipboard.writeText(text);
+    const ok = await copyToClipboard(text);
+    if (ok) {
       alert("Скопировано в буфер!\n\n" + text);
-    } catch {
-      window.prompt("Скопируйте координаты:", text);
+    } else {
+      window.prompt("Скопируйте координаты вручную:", text);
     }
   };
 
