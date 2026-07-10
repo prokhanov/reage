@@ -177,7 +177,7 @@ export function CycleInfographicBlock() {
                           {step.num}
                         </span>
                       </div>
-                      <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug">
+                      <h3 className="text-[15px] font-semibold text-foreground mb-1 leading-snug min-h-[42px]">
                         {step.title}
                       </h3>
                       <p className="text-[12px] text-muted-foreground leading-snug">
