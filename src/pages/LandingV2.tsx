@@ -75,13 +75,21 @@ const LandingV2 = () => {
         {editOn && (
           <button
             onClick={async () => {
+              const storedReportLayouts = JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}");
               const text = JSON.stringify(
                 {
                   heroLayoutV2: JSON.parse(localStorage.getItem("heroLayoutV2") || "{}"),
-                  reportCollageLayoutV2: {
-                    ...REPORT_COLLAGE_DEFAULT_LAYOUTS,
-                    ...JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}"),
-                  },
+                  reportCollageLayoutV2: Object.fromEntries(
+                    Object.entries(REPORT_COLLAGE_DEFAULT_LAYOUTS).map(([bp, defaults]) => [
+                      bp,
+                      Object.fromEntries(
+                        Object.entries(defaults).map(([id, pos]) => [
+                          id,
+                          { ...pos, ...(storedReportLayouts[bp]?.[id] ?? {}) },
+                        ]),
+                      ),
+                    ]),
+                  ),
                 },
                 null,
                 2,

@@ -10,6 +10,7 @@ import card4 from "@/assets/report-card-4.png.asset.json";
 type ElementId = "stat" | "card1" | "card2" | "card3" | "card4";
 type Pos = { top: number; left: number; width: number; rotate: number };
 type Layout = Record<ElementId, Pos>;
+type StoredLayout = Partial<Record<ElementId, Partial<Pos>>>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
 const CARDS = {
@@ -144,7 +145,15 @@ function useEditMode(): boolean {
   return on;
 }
 
-function loadStored(): Partial<Record<Breakpoint, Layout>> {
+function normalizeLayout(bp: Breakpoint, stored?: StoredLayout): Layout {
+  const base = REPORT_COLLAGE_DEFAULT_LAYOUTS[bp];
+  return (Object.keys(base) as ElementId[]).reduce((acc, id) => {
+    acc[id] = { ...base[id], ...(stored?.[id] ?? {}) };
+    return acc;
+  }, {} as Layout);
+}
+
+function loadStored(): Partial<Record<Breakpoint, StoredLayout>> {
   if (typeof window === "undefined") return {};
   try {
     return JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}");
@@ -170,6 +179,7 @@ function DraggableElement({
 }) {
   const dragRef = useRef<{ sx: number; sy: number; sl: number; st: number } | null>(null);
   const resizeRef = useRef<{ sx: number; sw: number } | null>(null);
+  const rotateRef = useRef<{ cx: number; cy: number; startAngle: number; startRotate: number } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -205,6 +215,28 @@ function DraggableElement({
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
   };
 
+  const onRotateDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect();
+    const rect = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    rotateRef.current = { cx, cy, startAngle, startRotate: pos.rotate };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onRotateMove = (e: React.PointerEvent) => {
+    if (!rotateRef.current) return;
+    const angle = Math.atan2(e.clientY - rotateRef.current.cy, e.clientX - rotateRef.current.cx) * (180 / Math.PI);
+    const next = rotateRef.current.startRotate + angle - rotateRef.current.startAngle;
+    onChange({ ...pos, rotate: Math.round(next) });
+  };
+  const onRotateUp = (e: React.PointerEvent) => {
+    rotateRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
   return (
     <div
       className="absolute touch-none cursor-move"
@@ -225,8 +257,15 @@ function DraggableElement({
     >
       <div className="pointer-events-none select-none">{renderElement(id, pos.width)}</div>
       <div className="absolute -top-5 left-0 text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
-        {LABELS[id]}
+        {LABELS[id]} · {pos.rotate}°
       </div>
+      <div
+        onPointerDown={onRotateDown}
+        onPointerMove={onRotateMove}
+        onPointerUp={onRotateUp}
+        className="absolute -top-9 left-1/2 h-5 w-5 -translate-x-1/2 rounded-full bg-accent border-2 border-background cursor-grab touch-none"
+        title="Повернуть"
+      />
       {/* resize handle */}
       <div
         onPointerDown={onResizeDown}
@@ -257,7 +296,11 @@ function EditPanel({
   const copyAll = async () => {
     const all = loadStored();
     all[bp] = layout;
-    const text = JSON.stringify(all, null, 2);
+    const full = (Object.keys(REPORT_COLLAGE_DEFAULT_LAYOUTS) as Breakpoint[]).reduce((acc, key) => {
+      acc[key] = key === bp ? layout : normalizeLayout(key, all[key]);
+      return acc;
+    }, {} as Record<Breakpoint, Layout>);
+    const text = JSON.stringify(full, null, 2);
     const ok = await copyToClipboard(text);
     if (ok) {
       window.prompt("Координаты скопированы. Если буфер недоступен — скопируйте отсюда:", text);
@@ -271,7 +314,7 @@ function EditPanel({
   };
 
   return (
-    <div className="fixed top-2 left-2 z-[100] w-[320px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
+    <div className="fixed top-14 left-2 z-[100] w-[320px] max-h-[calc(100vh-4rem)] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
       <div className="flex items-center justify-between mb-2">
         <div className="font-bold">Collage · {bp}</div>
         <div className="flex gap-1">
@@ -312,7 +355,7 @@ function EditPanel({
         })}
       </div>
       <div className="mt-2 text-[10px] text-muted-foreground leading-snug">
-        Тяните карточки мышью. Правый нижний угол — изменение ширины. «Copy» копирует JSON.
+        Тяните карточки мышью. Правый нижний угол — ширина. Верхняя точка — поворот. «Copy» копирует JSON.
       </div>
     </div>
   );
@@ -320,11 +363,11 @@ function EditPanel({
 
 function EditArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
+  const [layout, setLayout] = useState<Layout>(() => normalizeLayout(bp, loadStored()[bp]));
   const [selected, setSelected] = useState<ElementId | null>(null);
 
   useEffect(() => {
-    setLayout(loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
+    setLayout(normalizeLayout(bp, loadStored()[bp]));
   }, [bp]);
 
   const persist = useCallback((l: Layout) => {
@@ -381,7 +424,7 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
 
 function StaticArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const layout = loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp];
+  const layout = normalizeLayout(bp, loadStored()[bp]);
 
   return (
     <div className="mx-auto" style={{ width: ab.width * ab.scale, height: ab.height * ab.scale }}>
