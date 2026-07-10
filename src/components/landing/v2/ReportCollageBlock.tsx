@@ -29,43 +29,70 @@ export function ReportCollageBlock() {
           </p>
         </div>
 
-        {/* Sections list */}
-        <div className="mx-auto max-w-[1000px] mt-12 md:mt-16 flex flex-col gap-16 md:gap-20">
-          {cards.map((c, i) => (
-            <div
-              key={c.num}
-              className="animate-fade-in"
-              style={{ animationDelay: `${i * 0.08}s` }}
-            >
-              {/* Section heading — separate row above card */}
-              <div className="mb-5 flex items-baseline gap-3 md:gap-4">
-                <span className="text-sm md:text-base font-bold tracking-widest bg-gradient-hero bg-clip-text text-transparent">
-                  {c.num}
-                </span>
-                <h3 className="text-xl md:text-2xl font-semibold text-foreground">
-                  {c.title}
-                </h3>
-              </div>
-
-              {/* Card — compact preview, top portion of the page */}
+        {/* Sections list — cascade with small horizontal shift and slight vertical overlap */}
+        <div className="mx-auto max-w-[1100px] mt-12 md:mt-16 relative">
+          {cards.map((c, i) => {
+            const isLast = i === cards.length - 1;
+            // Desktop cascade shift (px) — each next block moves right
+            const shiftX = i * 36;
+            // Vertical overlap: next card covers ~70px of previous card's bottom.
+            // We achieve this with negative top margin on all but the first block.
+            const overlap = 70;
+            // Reserved space above the heading so it always sits on clean bg,
+            // never on top of previous card.
+            const headingClearance = 90; // > overlap
+            return (
               <div
-                className="rounded-2xl bg-white overflow-hidden border border-border/40"
+                key={c.num}
+                className="animate-fade-in relative"
                 style={{
-                  boxShadow:
-                    "0 20px 50px -10px rgba(0,0,0,0.35), 0 8px 20px -8px rgba(0,0,0,0.25)",
-                  maxHeight: 400,
+                  marginLeft: `${shiftX}px`,
+                  marginTop: i === 0 ? 0 : `${-overlap + headingClearance}px`,
+                  // Lower cards render above upper ones
+                  zIndex: 10 + i,
+                  animationDelay: `${i * 0.08}s`,
                 }}
               >
-                <img
-                  src={c.img}
-                  alt={c.title}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
+                {/* Section heading — always on clean dark bg */}
+                <div className="mb-5 flex items-baseline gap-3 md:gap-4">
+                  <span className="text-sm md:text-base font-bold tracking-widest bg-gradient-hero bg-clip-text text-transparent">
+                    {c.num}
+                  </span>
+                  <h3 className="text-xl md:text-2xl font-semibold text-foreground">
+                    {c.title}
+                  </h3>
+                </div>
+
+                {/* Card wrapper — relative so we can overlay a fade */}
+                <div
+                  className="relative rounded-2xl bg-white overflow-hidden border border-border/40"
+                  style={{
+                    boxShadow: isLast
+                      ? "0 30px 70px -10px rgba(0,0,0,0.55), 0 10px 25px -8px rgba(0,0,0,0.35)"
+                      : "0 20px 50px -10px rgba(0,0,0,0.35), 0 8px 20px -8px rgba(0,0,0,0.25)",
+                    maxHeight: 400,
+                  }}
+                >
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    loading="lazy"
+                    className="w-full h-auto block"
+                  />
+                  {/* Soft fade-to-white at the bottom — indicates "continues below" */}
+                  <div
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
+                    style={{
+                      background:
+                        "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 60%, #ffffff 100%)",
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </div>
     </section>
   );
