@@ -33,7 +33,7 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
   desktop: { width: 1100, height: 720, scale: 1 },
 };
 
-const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
+export const REPORT_COLLAGE_DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
     stat:  { top: 10,  left: 20,  width: 300, rotate: 0 },
     card1: { top: 230, left: 5,   width: 160, rotate: -3 },
@@ -57,25 +57,19 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   },
 };
 
-const STORAGE_KEY = "reportCollageLayoutV2";
+export const REPORT_COLLAGE_STORAGE_KEY = "reportCollageLayoutV2";
 
 /* ===================== RENDERERS ===================== */
 
 function StatElement({ width }: { width: number }) {
-  // scale big number by width so it stays compact and fits with "страниц" on one line
-  const numSize = Math.max(48, Math.min(96, width * 0.22));
+  const titleSize = Math.max(36, Math.min(54, width * 0.13));
   return (
     <div className="text-left">
-      <div className="flex items-baseline gap-2 whitespace-nowrap">
-        <span
-          className="font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter leading-[0.85]"
-          style={{ fontSize: numSize }}
-        >
-          50+
-        </span>
-        <span className="text-base md:text-lg font-semibold text-muted-foreground">
-          страниц
-        </span>
+      <div
+        className="whitespace-nowrap font-black bg-gradient-hero bg-clip-text text-transparent leading-none"
+        style={{ fontSize: titleSize }}
+      >
+        50+ страниц
       </div>
       <p className="mt-3 text-sm md:text-base text-muted-foreground">
         Выжимки из ключевых разделов — от резюме здоровья до
@@ -142,7 +136,7 @@ function useEditMode(): boolean {
 function loadStored(): Partial<Record<Breakpoint, Layout>> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}");
   } catch {
     return {};
   }
@@ -255,7 +249,7 @@ function EditPanel({
     const text = JSON.stringify(all, null, 2);
     const ok = await copyToClipboard(text);
     if (ok) {
-      alert("Скопировано в буфер!\n\n" + text);
+      window.prompt("Координаты скопированы. Если буфер недоступен — скопируйте отсюда:", text);
     } else {
       window.prompt("Скопируйте координаты вручную:", text);
     }
@@ -315,25 +309,25 @@ function EditPanel({
 
 function EditArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   const [selected, setSelected] = useState<ElementId | null>(null);
 
   useEffect(() => {
-    setLayout(loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+    setLayout(loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   }, [bp]);
 
   const persist = useCallback((l: Layout) => {
     setLayout(l);
     const all = loadStored();
     all[bp] = l;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    localStorage.setItem(REPORT_COLLAGE_STORAGE_KEY, JSON.stringify(all));
   }, [bp]);
 
   const resetLayout = () => {
     const all = loadStored();
     delete all[bp];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-    setLayout(DEFAULT_LAYOUTS[bp]);
+    localStorage.setItem(REPORT_COLLAGE_STORAGE_KEY, JSON.stringify(all));
+    setLayout(REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   };
 
   return (
@@ -376,7 +370,7 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
 
 function StaticArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const layout = loadStored()[bp] ?? DEFAULT_LAYOUTS[bp];
+  const layout = loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp];
 
   return (
     <div className="mx-auto" style={{ width: ab.width * ab.scale, height: ab.height * ab.scale }}>

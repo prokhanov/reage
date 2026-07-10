@@ -1,8 +1,13 @@
 import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
-import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
+import {
+  ReportCollageBlock,
+  REPORT_COLLAGE_DEFAULT_LAYOUTS,
+  REPORT_COLLAGE_STORAGE_KEY,
+} from "@/components/landing/v2/ReportCollageBlock";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
+import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 
 const Block = ({ n, children }: { n?: number; children: ReactNode }) => (
@@ -70,13 +75,22 @@ const LandingV2 = () => {
         {editOn && (
           <button
             onClick={async () => {
-              const text = localStorage.getItem("heroLayoutV2") || "{}";
-              try {
-                await navigator.clipboard.writeText(text);
-                alert("Скопировано в буфер!\n\n" + text);
-              } catch {
-                window.prompt("Скопируйте координаты:", text);
-              }
+              const text = JSON.stringify(
+                {
+                  heroLayoutV2: JSON.parse(localStorage.getItem("heroLayoutV2") || "{}"),
+                  reportCollageLayoutV2: {
+                    ...REPORT_COLLAGE_DEFAULT_LAYOUTS,
+                    ...JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}"),
+                  },
+                },
+                null,
+                2,
+              );
+              const ok = await copyToClipboard(text);
+              window.prompt(
+                ok ? "Все координаты скопированы. Если буфер недоступен — скопируйте отсюда:" : "Скопируйте координаты вручную:",
+                text,
+              );
             }}
             className="px-3 py-1.5 rounded-md text-xs font-semibold bg-secondary text-secondary-foreground"
           >
