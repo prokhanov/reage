@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import card1 from "@/assets/report-card-1.png";
 import card2 from "@/assets/report-card-2.png";
@@ -505,6 +508,19 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
         </div>
 
         <ArtboardComp bp={bp} />
+
+        <div className="mt-10 md:mt-14 flex justify-center animate-fade-in">
+          <Button
+            asChild
+            size="lg"
+            className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+          >
+            <Link to="/example-report">
+              Посмотреть пример отчёта
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
