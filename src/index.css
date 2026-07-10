@@ -92,7 +92,8 @@ All colors MUST be HSL.
     --hero-glass-border: 270 40% 70%;
     --hero-glass-highlight: 0 0% 100%;
     --hero-glass-shadow: 270 40% 30%;
-    --hero-glass-bg-alpha: 0.35;
+    --hero-glass-bg-alpha: 0.62;
+    --hero-glass-blur: 36px;
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -158,6 +159,7 @@ All colors MUST be HSL.
     --hero-glass-highlight: 280 20% 96%;
     --hero-glass-shadow: 230 60% 2%;
     --hero-glass-bg-alpha: 0.45;
+    --hero-glass-blur: 30px;
   }
 }
 
@@ -202,16 +204,27 @@ All colors MUST be HSL.
   .hero-glass-card {
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     border: 1px solid hsl(var(--hero-glass-border) / 0.4);
     background:
-      linear-gradient(135deg, hsl(var(--hero-glass-highlight) / 0.14), transparent 45%),
+      linear-gradient(135deg, hsl(var(--hero-glass-highlight) / 0.26), transparent 48%),
       hsl(var(--hero-glass-bg) / var(--hero-glass-bg-alpha, 0.4));
     box-shadow:
-      inset 0 1px 0 hsl(var(--hero-glass-highlight) / 0.18),
-      0 24px 70px -24px hsl(var(--hero-glass-shadow) / 0.6),
-      0 0 38px -20px hsl(var(--primary) / 0.5);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
+      inset 0 1px 0 hsl(var(--hero-glass-highlight) / 0.34),
+      0 24px 70px -24px hsl(var(--hero-glass-shadow) / 0.36),
+      0 0 42px -22px hsl(var(--primary) / 0.36);
+    backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(180%);
+  }
+
+  .hero-glass-card::before {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    z-index: -1;
+    backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(190%);
+    -webkit-backdrop-filter: blur(var(--hero-glass-blur, 32px)) saturate(190%);
+    background: hsl(var(--hero-glass-bg) / calc(var(--hero-glass-bg-alpha, 0.4) * 0.55));
   }
 
   .hero-glass-card::after {
