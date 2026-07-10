@@ -439,17 +439,18 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
           return (
             <div
               key={id}
-              className="absolute animate-fade-in"
+              className="absolute"
               style={{
                 top: p.top,
                 left: p.left,
                 width: p.width,
                 transform: `rotate(${p.rotate}deg)`,
-                animationDelay: `${0.1 + i * 0.08}s`,
                 zIndex: id === "stat" ? 20 : 30,
               }}
             >
-              {renderElement(id, p.width)}
+              <div className="animate-fade-in" style={{ animationDelay: `${0.1 + i * 0.08}s` }}>
+                {renderElement(id, p.width)}
+              </div>
             </div>
           );
         })}
