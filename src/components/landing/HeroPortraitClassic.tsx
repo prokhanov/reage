@@ -487,7 +487,7 @@ export function HeroPortraitClassic() {
             >
               <Button
                 size="lg"
-                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
@@ -518,7 +518,7 @@ export function HeroPortraitClassic() {
             >
               <Button
                 size="lg"
-                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
