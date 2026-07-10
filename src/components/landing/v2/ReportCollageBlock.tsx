@@ -157,7 +157,7 @@ function Draggable({
     if (!drag.current) return;
     const dx = (e.clientX - drag.current.x) / scale;
     const dy = (e.clientY - drag.current.y) / scale;
-    onChange({ ...pos, left: Math.round(drag.current.left + dx), top: Math.round(drag.current.y ? drag.current.top + dy : drag.current.top + dy) });
+    onChange({ ...pos, left: Math.round(drag.current.left + dx), top: Math.round(drag.current.top + dy) });
   };
   const onUp = (e: React.PointerEvent) => {
     drag.current = null;
