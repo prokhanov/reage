@@ -98,8 +98,7 @@ function CardElement({ id }: { id: "card1" | "card2" | "card3" | "card4" }) {
   const c = CARDS[id];
   return (
     <div>
-      <div className="mb-2.5 flex items-baseline gap-2">
-        <span className="text-xs font-bold tracking-widest text-primary">{c.num}</span>
+      <div className="mb-2.5">
         <h3 className="text-sm md:text-base font-semibold text-foreground">{c.title}</h3>
       </div>
       <div className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden">
