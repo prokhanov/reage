@@ -62,11 +62,11 @@ const STORAGE_KEY = "reportCollageLayoutV2";
 /* ===================== RENDERERS ===================== */
 
 function StatElement({ width }: { width: number }) {
-  // scale big number by width so it fits the box
-  const numSize = Math.max(80, Math.min(200, width * 0.55));
+  // scale big number by width so it stays compact and fits with "страниц" on one line
+  const numSize = Math.max(48, Math.min(96, width * 0.22));
   return (
     <div className="text-left">
-      <div className="inline-flex items-baseline gap-3">
+      <div className="flex items-baseline gap-2 whitespace-nowrap">
         <span
           className="font-black bg-gradient-hero bg-clip-text text-transparent tracking-tighter leading-[0.85]"
           style={{ fontSize: numSize }}
@@ -77,7 +77,7 @@ function StatElement({ width }: { width: number }) {
           страниц
         </span>
       </div>
-      <p className="mt-4 text-base md:text-lg text-muted-foreground">
+      <p className="mt-3 text-sm md:text-base text-muted-foreground">
         Выжимки из ключевых разделов — от резюме здоровья до
         персональных назначений.
       </p>
