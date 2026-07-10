@@ -33,7 +33,7 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
   desktop: { width: 1100, height: 720, scale: 1 },
 };
 
-const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
+export const REPORT_COLLAGE_DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
     stat:  { top: 10,  left: 20,  width: 300, rotate: 0 },
     card1: { top: 230, left: 5,   width: 160, rotate: -3 },
@@ -57,12 +57,12 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   },
 };
 
-const STORAGE_KEY = "reportCollageLayoutV2";
+export const REPORT_COLLAGE_STORAGE_KEY = "reportCollageLayoutV2";
 
 /* ===================== RENDERERS ===================== */
 
 function StatElement({ width }: { width: number }) {
-  const titleSize = Math.max(42, Math.min(68, width * 0.16));
+  const titleSize = Math.max(36, Math.min(54, width * 0.13));
   return (
     <div className="text-left">
       <div
@@ -136,7 +136,7 @@ function useEditMode(): boolean {
 function loadStored(): Partial<Record<Breakpoint, Layout>> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(REPORT_COLLAGE_STORAGE_KEY) || "{}");
   } catch {
     return {};
   }
@@ -309,25 +309,25 @@ function EditPanel({
 
 function EditArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+  const [layout, setLayout] = useState<Layout>(() => loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   const [selected, setSelected] = useState<ElementId | null>(null);
 
   useEffect(() => {
-    setLayout(loadStored()[bp] ?? DEFAULT_LAYOUTS[bp]);
+    setLayout(loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   }, [bp]);
 
   const persist = useCallback((l: Layout) => {
     setLayout(l);
     const all = loadStored();
     all[bp] = l;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    localStorage.setItem(REPORT_COLLAGE_STORAGE_KEY, JSON.stringify(all));
   }, [bp]);
 
   const resetLayout = () => {
     const all = loadStored();
     delete all[bp];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-    setLayout(DEFAULT_LAYOUTS[bp]);
+    localStorage.setItem(REPORT_COLLAGE_STORAGE_KEY, JSON.stringify(all));
+    setLayout(REPORT_COLLAGE_DEFAULT_LAYOUTS[bp]);
   };
 
   return (
@@ -370,7 +370,7 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
 
 function StaticArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const layout = loadStored()[bp] ?? DEFAULT_LAYOUTS[bp];
+  const layout = loadStored()[bp] ?? REPORT_COLLAGE_DEFAULT_LAYOUTS[bp];
 
   return (
     <div className="mx-auto" style={{ width: ab.width * ab.scale, height: ab.height * ab.scale }}>
