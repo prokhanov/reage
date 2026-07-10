@@ -489,7 +489,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
   const ArtboardComp = isEdit ? EditArtboard : StaticArtboard;
 
   return (
-    <section className="relative pt-16 md:pt-24 pb-16 md:pb-24 overflow-hidden">
+    <section className="relative pt-8 md:pt-12 pb-8 md:pb-12 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
       <div className="absolute top-1/3 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
