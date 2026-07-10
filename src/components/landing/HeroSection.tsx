@@ -110,7 +110,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/auth")}
+              onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
               className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300">
               
               Оставить заявку

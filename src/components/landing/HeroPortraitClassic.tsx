@@ -436,13 +436,14 @@ export function HeroPortraitClassic() {
               )}
             </button>
 
-            <a
-              href="/auth"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
               className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
             >
               Оставить заявку
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </a>
+            </button>
           </div>
 
           <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-center pointer-events-none">
