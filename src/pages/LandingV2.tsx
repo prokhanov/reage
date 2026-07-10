@@ -130,6 +130,9 @@ const LandingV2 = () => {
         <Block>
           <ReportCollageBlock editMode={editOn} />
         </Block>
+        <Block>
+          <ReportShowcaseSection />
+        </Block>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
           <BenefitsBlock />
