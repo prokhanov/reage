@@ -157,6 +157,7 @@ All colors MUST be HSL.
     --hero-glass-border: 260 22% 42%;
     --hero-glass-highlight: 280 20% 96%;
     --hero-glass-shadow: 230 60% 2%;
+    --hero-glass-bg-alpha: 0.45;
   }
 }
 
