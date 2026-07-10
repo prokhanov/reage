@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ const heroGlassBackdropStyle = {
   "--hero-glass-backdrop-image": `url(${heroMan})`,
   "--hero-glass-backdrop-size": "560px 746px",
   "--hero-glass-backdrop-position": "center 38%",
-} as React.CSSProperties;
+} as CSSProperties;
 
 function useIsMobile() {
   const [m, setM] = useState(
