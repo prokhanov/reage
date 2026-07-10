@@ -42,6 +42,12 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) next.email = "Некорректный email";
     else if (trimmedEmail.length > 255) next.email = "Email слишком длинный";
 
+    const trimmedPhone = form.phone.trim();
+    if (trimmedPhone) {
+      if (trimmedPhone.length > 32) next.phone = "Телефон слишком длинный";
+      else if (!/^[+\d][\d\s\-().]{5,}$/.test(trimmedPhone)) next.phone = "Некорректный телефон";
+    }
+
     const trimmedMessage = form.message.trim();
     if (!trimmedMessage) next.message = "Введите сообщение";
     else if (trimmedMessage.length > 2000) next.message = "Сообщение слишком длинное (макс. 2000 символов)";
