@@ -26,7 +26,7 @@ const STEPS: Step[] = [
 const CANVAS = 820;         // размер квадратного канваса
 const RADIUS_PCT = 34;      // радиус кольца, % от стороны канваса
 const CARD_W = 236;
-const CARD_H = 126;
+const CARD_H = 140;
 
 // первая карточка сверху; шаг 72° (5 равных секторов)
 const stepAngle = 360 / STEPS.length;
@@ -178,7 +178,7 @@ function StepCard({ step }: { step: Step }) {
       {/* hover-свечение */}
       <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
 
-      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col">
+      <div className="relative h-full rounded-2xl bg-card/95 backdrop-blur-md p-4 shadow-[0_8px_28px_-12px_hsl(var(--foreground)/0.28)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-14px_hsl(var(--primary)/0.35)] flex flex-col justify-center gap-2">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/12 to-accent/12 border border-primary/20">
             <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.75} />
