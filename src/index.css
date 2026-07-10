@@ -88,10 +88,10 @@ All colors MUST be HSL.
     --shadow-neon-secondary: 0 0 20px hsl(var(--secondary-glow) / 0.3);
     --shadow-neon-accent: 0 0 30px hsl(var(--accent) / 0.4);
 
-    --hero-glass-bg: 235 20% 8%;
-    --hero-glass-border: 270 25% 88%;
+    --hero-glass-bg: 0 0% 100%;
+    --hero-glass-border: 270 30% 75%;
     --hero-glass-highlight: 0 0% 100%;
-    --hero-glass-shadow: 270 30% 20%;
+    --hero-glass-shadow: 270 40% 40%;
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
