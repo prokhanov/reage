@@ -74,7 +74,7 @@ function StatElement({ width }: { width: number }) {
       >
         50+ страниц
       </div>
-      <ul className="mt-3 space-y-1 text-sm md:text-[15px] text-muted-foreground">
+      <ul className="mt-3 space-y-0 md:space-y-1 text-sm md:text-[15px] leading-tight md:leading-normal text-muted-foreground">
 
         {[
           "Подробная расшифровка анализов",
