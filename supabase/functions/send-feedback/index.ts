@@ -5,6 +5,7 @@ import { z } from 'npm:zod@3.23.8'
 const FEEDBACK_SCHEMA = z.object({
   name: z.string().trim().min(1, 'Укажите имя').max(100, 'Имя слишком длинное'),
   email: z.string().trim().email('Укажите корректный email').max(255, 'Email слишком длинный').toLowerCase(),
+  phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
 })
 
