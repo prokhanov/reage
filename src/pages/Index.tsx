@@ -1,7 +1,7 @@
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
-import { CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlock";
+import { CycleInfographicBlockV2 as CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlockV2";
 import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
