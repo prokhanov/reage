@@ -84,14 +84,16 @@ function scrollToSection(root: HTMLElement, id: string) {
 function useActiveSection(
   sections: ReportNavSection[],
   containerRef: React.RefObject<HTMLElement>,
-): string | null {
+): [string | null, (id: string) => void] {
   const [active, setActive] = useState<string | null>(sections[0]?.id ?? null);
   const rafRef = useRef<number | null>(null);
+  const manualUntilRef = useRef<number>(0);
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
     let scrollEl: HTMLElement | null = null;
     const compute = () => {
+      if (Date.now() < manualUntilRef.current) return;
       if (!scrollEl) scrollEl = findScrollContainer(root);
       if (!scrollEl) return;
       const cTop = scrollEl.getBoundingClientRect().top;
@@ -101,7 +103,6 @@ function useActiveSection(
         if (!t) continue;
         const page = (t.closest(".pagedjs_page") as HTMLElement | null) ?? t;
         const dy = page.getBoundingClientRect().top - cTop;
-        // Секция считается активной, если её верх выше линии 40% контейнера.
         if (dy - 0.4 * scrollEl.clientHeight <= 0) {
           if (!best || dy > best.dy) best = { id: s.id, dy };
         }
@@ -116,7 +117,6 @@ function useActiveSection(
         compute();
       });
     };
-    // ждём paged.js
     const t1 = window.setTimeout(compute, 400);
     const t2 = window.setTimeout(compute, 1500);
     const attach = () => {
@@ -131,18 +131,24 @@ function useActiveSection(
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, [sections, containerRef]);
-  return active;
+  const setManual = (id: string) => {
+    manualUntilRef.current = Date.now() + 1200;
+    setActive(id);
+  };
+  return [active, setManual];
 }
 
 export function ReportSectionNav({ sections, containerRef, variant }: Props) {
-  const activeId = useActiveSection(sections, containerRef);
+  const [activeId, setActiveManual] = useActiveSection(sections, containerRef);
   const list = useMemo(() => sections, [sections]);
 
   const handleGo = (id: string) => {
     const root = containerRef.current;
     if (!root) return;
+    setActiveManual(id);
     scrollToSection(root, id);
   };
+
 
   if (variant === "dropdown") {
     return (
