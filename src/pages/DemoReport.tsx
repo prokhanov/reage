@@ -12,32 +12,32 @@
  * deploy/nginx/default.conf, иначе прямое открытие URL вернёт 404.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowRight, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportV2Editor } from "@/components/reportV2/ReportV2Editor";
+import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
 
 export default function DemoReport() {
   const report = useMemo(() => buildLabReportFromExample(), []);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const patientName =
     [report.patient.first_name, report.patient.last_name].filter(Boolean).join(" ") ||
     "Елена Иванова";
 
   const sidebarFooter = (
-    <Button asChild size="sm" className="w-full">
-      <Link to="/#booking">
-        <Send className="mr-2 h-4 w-4" />
-        Оставить заявку
-      </Link>
+    <Button size="sm" className="w-full" onClick={() => setFeedbackOpen(true)}>
+      <Send className="mr-2 h-4 w-4" />
+      Оставить заявку
     </Button>
   );
 
   const bottomAction = (
     <Button asChild size="lg" className="shadow-lg">
-      <Link to="/dashboard">
+      <Link to="/register">
         Посмотреть демо-кабинет
         <ArrowRight className="ml-2 h-4 w-4" />
       </Link>
@@ -69,6 +69,8 @@ export default function DemoReport() {
           bottomAction={bottomAction}
         />
       </div>
+
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
   );
 }
