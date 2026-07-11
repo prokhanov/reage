@@ -34,6 +34,7 @@ const Index = () => {
         <CycleInfographicBlock />
         <HowItWorksBlock />
         <WhyCheckupsFail />
+        <BenefitsBlock />
         <ComparisonSection />
       </div>
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
