@@ -14,6 +14,7 @@ interface Props {
   previousBioAge?: number | null;
   previousDate?: string | null;
   trajectoryPoints?: Array<{ month: number; bio_age: number }> | null;
+  rationale?: string | null;
 }
 
 // Brand palette — primary (violet 270) → accent (magenta 320), matches index.css tokens.
@@ -29,6 +30,7 @@ export function RejuvenationTrajectory({
   previousBioAge,
   previousDate,
   trajectoryPoints,
+  rationale,
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -85,7 +87,7 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr_320px] gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden">
         <CardContent className="p-4 md:p-5 flex flex-col h-full">
