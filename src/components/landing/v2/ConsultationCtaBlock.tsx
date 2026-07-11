@@ -76,8 +76,8 @@ export function ConsultationCtaBlock() {
       <div className="absolute top-1/2 -left-32 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[140px]" />
       <div className="absolute bottom-0 -right-32 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[140px]" />
 
-      <div className="relative z-10 container mx-auto px-4">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+      <div className="relative z-10 container mx-auto px-5 md:px-8 lg:px-12">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-center">
           {/* Left: pitch */}
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-5">
