@@ -456,10 +456,12 @@ function EditablePreview({
   report,
   paginated,
   editable,
+  height = "85vh",
 }: {
   report: LabReport;
   paginated: boolean;
   editable: boolean;
+  height?: string | number;
 }) {
   const ctx = useReportEditor();
   if (!paginated) return <ReportDocument report={report} />;
