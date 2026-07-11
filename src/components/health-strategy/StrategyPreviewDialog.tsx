@@ -12,7 +12,7 @@ import { Loader2, Sparkles, Info, Trash2, Pencil } from "lucide-react";
 import { RejuvenationTrajectory } from "./RejuvenationTrajectory";
 import { RoadmapTimeline } from "./RoadmapTimeline";
 import { ExpectationsTimeline } from "./ExpectationsTimeline";
-import { ActionMap } from "./ActionMap";
+
 
 interface Explanation {
   formula: {
@@ -618,7 +618,7 @@ export function StrategyPreviewDialog({
                       startDate={startDate}
                       expectations={expectations}
                     />
-                    <ActionMap actions={Array.isArray(actionMapPreview) ? actionMapPreview : []} systems={categories} />
+                    
                   </div>
                 </div>
               </div>
