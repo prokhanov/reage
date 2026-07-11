@@ -324,21 +324,9 @@ export default function HealthStrategy() {
               previousBioAge={previousSnapshot?.current_bio_age ?? null}
               previousDate={previousAnalysis?.date ?? null}
               trajectoryPoints={snapshot.trajectory ?? null}
+              rationale={displayRationale}
             />
 
-            {displayRationale && (
-              <Card className="border-primary/20 bg-primary/[0.04]">
-                <CardContent className="p-4 md:p-5 flex gap-3">
-                  <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <div className="text-sm font-semibold text-foreground">Прогноз по вашей траектории</div>
-                    <p className="text-sm text-foreground/85 leading-relaxed">
-                      {displayRationale}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* 2. Контрольные точки — карта пути на год */}
             <RoadmapTimeline
