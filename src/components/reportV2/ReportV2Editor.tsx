@@ -375,7 +375,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 
   const withNav = (children: React.ReactNode) => (
-    <div className="flex gap-3 min-h-0">
+    <div className={cn("flex gap-3 min-h-0", fullHeight && "flex-1")}>
       {navSections.length > 0 && (
         <ReportSectionNav
           sections={navSections}
@@ -383,7 +383,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           variant="sidebar"
         />
       )}
-      <div ref={previewContainerRef} className="flex-1 min-w-0">
+      <div ref={previewContainerRef} className={cn("flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
       </div>
     </div>
