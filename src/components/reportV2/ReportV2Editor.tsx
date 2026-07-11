@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -43,6 +44,13 @@ interface Props {
   initialReport?: LabReport;
   /** Скрыть кнопку «Скачать PDF» (используется в демо, где нет auth-сессии). */
   hideDownload?: boolean;
+  /** Скрыть верхнюю панель инструментов (для демо-страницы). */
+  hideToolbar?: boolean;
+  /**
+   * Заставить превью заполнить доступную высоту родителя (100%).
+   * Требует, чтобы родитель был flex-контейнером с заданной высотой.
+   */
+  fullHeight?: boolean;
 }
 
 
@@ -74,7 +82,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
@@ -367,7 +375,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 
   const withNav = (children: React.ReactNode) => (
-    <div className="flex gap-3 min-h-0">
+    <div className={cn("flex gap-3 min-h-0", fullHeight && "flex-1")}>
       {navSections.length > 0 && (
         <ReportSectionNav
           sections={navSections}
@@ -375,7 +383,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           variant="sidebar"
         />
       )}
-      <div ref={previewContainerRef} className="flex-1 min-w-0">
+      <div ref={previewContainerRef} className={cn("flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
       </div>
     </div>
@@ -383,8 +391,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   if (mode === "view") {
     return (
-      <div className="report-v2-scope">
-        {toolbarWrap(null)}
+      <div className={cn("report-v2-scope", fullHeight && "flex flex-col h-full")}>
+        {!hideToolbar && toolbarWrap(null)}
         {!compact && (
           <Alert className="mb-3">
             <Info className="h-4 w-4" />
@@ -400,6 +408,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
               editable={false}
               drafts={EMPTY_DRAFTS}
               onEditChange={() => {}}
+              height={fullHeight ? "100%" : "85vh"}
             />
           ) : (
             <ReportDocument report={report} />
@@ -410,7 +419,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   }
 
   return (
-    <div className="report-v2-scope">
+    <div className={cn("report-v2-scope", fullHeight && "flex flex-col h-full")}>
       <ReportEditorShell
         report={report}
         onReportUpdate={handleReportUpdate}
@@ -420,7 +429,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       >
         {({ mode: shellMode }) => (
           <>
-            {toolbarWrap(
+            {!hideToolbar && toolbarWrap(
               <ReportEditorToolbar
                 report={report}
                 onReportUpdate={handleReportUpdate}
@@ -432,6 +441,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
                 report={report}
                 paginated={paginated}
                 editable={shellMode === "edit"}
+                height={fullHeight ? "100%" : "85vh"}
               />,
             )}
           </>
@@ -446,10 +456,12 @@ function EditablePreview({
   report,
   paginated,
   editable,
+  height = "85vh",
 }: {
   report: LabReport;
   paginated: boolean;
   editable: boolean;
+  height?: string | number;
 }) {
   const ctx = useReportEditor();
   if (!paginated) return <ReportDocument report={report} />;
@@ -468,6 +480,7 @@ function EditablePreview({
       }}
       coverOverrides={ctx?.coverOverrides ?? report.coverOverrides ?? null}
       onCoverOverridesChange={(next) => ctx?.setCoverOverrides(next)}
+      height={height}
     />
   );
 }

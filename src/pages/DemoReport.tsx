@@ -34,13 +34,15 @@ export default function DemoReport() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-background p-0 md:p-6">
+      <div className="min-h-screen bg-background p-0 md:p-6 flex flex-col">
         <ReportV2Editor
           analysisId={report.analysis.id}
           userId="demo"
           mode="view"
           compact
           hideDownload
+          hideToolbar
+          fullHeight
           initialReport={report}
         />
       </div>
