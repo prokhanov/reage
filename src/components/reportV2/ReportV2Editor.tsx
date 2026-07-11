@@ -441,6 +441,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
                 report={report}
                 paginated={paginated}
                 editable={shellMode === "edit"}
+                height={fullHeight ? "100%" : "85vh"}
               />,
             )}
           </>
