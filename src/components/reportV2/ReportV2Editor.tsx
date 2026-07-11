@@ -51,7 +51,12 @@ interface Props {
    * Требует, чтобы родитель был flex-контейнером с заданной высотой.
    */
   fullHeight?: boolean;
+  /** Опциональный контент в футере сайдбара с содержанием (desktop). */
+  sidebarFooter?: React.ReactNode;
+  /** Опциональный sticky-элемент внизу превью (по центру). */
+  bottomAction?: React.ReactNode;
 }
+
 
 
 const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
