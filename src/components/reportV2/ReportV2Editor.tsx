@@ -74,10 +74,10 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose }: Props) {
-  const [loading, setLoading] = useState(true);
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false }: Props) {
+  const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<LabReport | null>(null);
+  const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
   const [paginated, setPaginated] = useState(true);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
@@ -85,6 +85,11 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 
   useEffect(() => {
+    if (initialReport) {
+      setReport(initialReport);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -104,7 +109,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     return () => {
       cancelled = true;
     };
-  }, [analysisId, userId]);
+  }, [analysisId, userId, initialReport]);
 
   useEffect(() => {
     return () => {
