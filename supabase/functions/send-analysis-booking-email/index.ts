@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     // Fallback to default template if status-specific one isn't provisioned
-    if ((!tpl || tplErr) && templateType !== DEFAULT_TEMPLATE_TYPE) {
+    if ((!tpl || tplErr) && templateType !== DEFAULT_TEMPLATE_TYPE && templateType.startsWith('booking_')) {
       const fb = await supabase
         .from('email_templates')
         .select('*')
