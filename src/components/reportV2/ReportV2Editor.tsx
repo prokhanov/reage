@@ -289,20 +289,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {compact && (
+        {compact && !hideDownload && (
           <DropdownMenuItem onSelect={openInNewWindow}>
             <ExternalLink className="mr-2 h-4 w-4" />
             В новом окне
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={downloadPdf} disabled={rendering}>
-          {rendering ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 h-4 w-4" />
-          )}
-          Скачать PDF
-        </DropdownMenuItem>
+        {!hideDownload && (
+          <DropdownMenuItem onSelect={downloadPdf} disabled={rendering}>
+            {rendering ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Скачать PDF
+          </DropdownMenuItem>
+        )}
         {!compact && (
           <>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
