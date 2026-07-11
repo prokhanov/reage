@@ -36,6 +36,13 @@ interface Props {
   compact?: boolean;
   /** Если задан — в панели показывается кнопка ✕ (для диалогового окна). */
   onClose?: () => void;
+  /**
+   * Если задан — рендерер использует этот отчёт вместо загрузки из БД.
+   * Нужно для демо-страниц / SSR-превью без auth-сессии.
+   */
+  initialReport?: LabReport;
+  /** Скрыть кнопку «Скачать PDF» (используется в демо, где нет auth-сессии). */
+  hideDownload?: boolean;
 }
 
 
@@ -67,10 +74,10 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose }: Props) {
-  const [loading, setLoading] = useState(true);
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false }: Props) {
+  const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<LabReport | null>(null);
+  const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
   const [paginated, setPaginated] = useState(true);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
@@ -78,6 +85,11 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 
   useEffect(() => {
+    if (initialReport) {
+      setReport(initialReport);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -97,7 +109,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     return () => {
       cancelled = true;
     };
-  }, [analysisId, userId]);
+  }, [analysisId, userId, initialReport]);
 
   useEffect(() => {
     return () => {
@@ -249,20 +261,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Button>
         </>
       )}
-      {compact && (
+      {compact && !hideDownload && (
         <Button size="sm" variant="outline" onClick={openInNewWindow}>
           <ExternalLink className="mr-2 h-4 w-4" />
           В новом окне
         </Button>
       )}
-      <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
-        {rendering ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="mr-2 h-4 w-4" />
-        )}
-        Скачать PDF
-      </Button>
+      {!hideDownload && (
+        <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
+          {rendering ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Скачать PDF
+        </Button>
+      )}
     </>
   );
 
@@ -275,20 +289,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {compact && (
+        {compact && !hideDownload && (
           <DropdownMenuItem onSelect={openInNewWindow}>
             <ExternalLink className="mr-2 h-4 w-4" />
             В новом окне
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={downloadPdf} disabled={rendering}>
-          {rendering ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 h-4 w-4" />
-          )}
-          Скачать PDF
-        </DropdownMenuItem>
+        {!hideDownload && (
+          <DropdownMenuItem onSelect={downloadPdf} disabled={rendering}>
+            {rendering ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Скачать PDF
+          </DropdownMenuItem>
+        )}
         {!compact && (
           <>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
