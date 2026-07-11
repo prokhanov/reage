@@ -97,8 +97,10 @@ serve(async (req) => {
       .single();
 
     let userContext = "";
+    let resolvedPatientGender: 'male' | 'female' | null = null;
 
     if (profile?.demo_mode_enabled) {
+      resolvedPatientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
       // Demo user — skip all data queries, provide demo notice
       console.log("User is in demo mode, skipping data queries");
       userContext = `
@@ -120,6 +122,7 @@ serve(async (req) => {
       // Calculate age for age-dependent context
       const patientAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
       const patientGender = profile?.gender as 'male' | 'female' | null;
+      resolvedPatientGender = patientGender === 'male' || patientGender === 'female' ? patientGender : null;
 
       // Get latest weight from weight_history
       const { data: latestWeightRecord } = await supabase
@@ -217,8 +220,9 @@ serve(async (req) => {
               status = '🟠 РИСК';
             }
 
-            let rangeInfo = `норма: ${normalMin}-${normalMax}`;
-            if (optimalMin != null && optimalMax != null) rangeInfo = `оптимум: ${optimalMin}-${optimalMax} | ${rangeInfo}`;
+            const genderLabel = patientGender === 'female' ? 'женский/персональный референс' : patientGender === 'male' ? 'мужской/персональный референс' : 'персональный референс';
+            let rangeInfo = `${genderLabel}; норма: ${normalMin}-${normalMax}`;
+            if (optimalMin != null && optimalMax != null) rangeInfo = `${genderLabel}; оптимум: ${optimalMin}-${optimalMax} | норма: ${normalMin}-${normalMax}`;
             if (criticalMin != null || criticalMax != null) rangeInfo += ` | крит: ${criticalMin != null ? '<' + criticalMin : ''}${criticalMin != null && criticalMax != null ? ' / ' : ''}${criticalMax != null ? '>' + criticalMax : ''}`;
 
             return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " " + status + " (" + rangeInfo + ")";
@@ -233,7 +237,13 @@ serve(async (req) => {
         ? prescriptions.map((p: any) => "- " + p.prescription + (p.effect ? " (" + p.effect + ")" : "")).join("\n")
         : "";
 
-      userContext = "ИНФОРМАЦИЯ О ПАЦИЕНТЕ:\n\n" +
+      const genderHardRule = patientGender === 'female'
+        ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — женщина. Никогда не упоминай мужские референсы, мужские нормы или формулировки вроде «для мужчин». Все объяснения и сравнения должны быть применимы к женщине.\n\n"
+        : patientGender === 'male'
+          ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — мужчина. Никогда не упоминай женские референсы, женские нормы или формулировки вроде «для женщин». Все объяснения и сравнения должны быть применимы к мужчине.\n\n"
+          : "";
+
+      userContext = genderHardRule + "ИНФОРМАЦИЯ О ПАЦИЕНТЕ:\n\n" +
         "Личные данные:\n" +
         "- Имя: " + (profile?.name || "Не указано") + "\n" +
         "- Пол: " + (profile?.gender === 'male' ? 'мужской' : 'женский') + "\n" +
@@ -258,7 +268,39 @@ serve(async (req) => {
       return age;
     }
 
-    const systemPrompt = `${basePrompt}
+    const genderOverride = resolvedPatientGender === 'female'
+      ? `
+
+# ЖЁСТКОЕ ПРАВИЛО ДЛЯ ЭТОГО ДИАЛОГА
+
+Пациент — женщина. Запрещено упоминать мужские нормы, мужские референсы и любые формулировки вида «для мужчин». Если вопрос пользователя содержит такую фразу из прошлого ответа, признай это как ошибку формулировки и сразу дай корректный ответ для женщины, не повторяя мужскую норму и не сравнивая с мужчинами.`
+      : resolvedPatientGender === 'male'
+        ? `
+
+# ЖЁСТКОЕ ПРАВИЛО ДЛЯ ЭТОГО ДИАЛОГА
+
+Пациент — мужчина. Запрещено упоминать женские нормы, женские референсы и любые формулировки вида «для женщин». Если вопрос пользователя содержит такую фразу из прошлого ответа, признай это как ошибку формулировки и сразу дай корректный ответ для мужчины, не повторяя женскую норму и не сравнивая с женщинами.`
+        : "";
+
+    const sanitizeConversationHistory = (chatMessages: any[], patientGender: 'male' | 'female' | null) => {
+      if (!Array.isArray(chatMessages) || !patientGender) return Array.isArray(chatMessages) ? chatMessages : [];
+
+      const oppositeGenderPattern = patientGender === 'female'
+        ? /(для\s+мужчин|у\s+мужчин|мужск\w*\s+(?:норм|референс)|референс\w*\s+(?:для\s+)?мужчин)/giu
+        : /(для\s+женщин|у\s+женщин|женск\w*\s+(?:норм|референс)|референс\w*\s+(?:для\s+)?женщин)/giu;
+
+      return chatMessages.map((message) => {
+        if (message?.role !== 'assistant' || typeof message?.content !== 'string') return message;
+        return {
+          ...message,
+          content: message.content.replace(oppositeGenderPattern, 'персональный референс пациента'),
+        };
+      });
+    };
+
+    const sanitizedMessages = sanitizeConversationHistory(messages, resolvedPatientGender);
+
+    const systemPrompt = `${basePrompt}${genderOverride}
 
 ${userContext}`;
 
@@ -274,7 +316,7 @@ ${userContext}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitizedMessages,
         ],
         stream: true,
         temperature: 0.7,
