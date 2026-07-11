@@ -391,8 +391,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   if (mode === "view") {
     return (
-      <div className="report-v2-scope">
-        {toolbarWrap(null)}
+      <div className={cn("report-v2-scope", fullHeight && "flex flex-col h-full")}>
+        {!hideToolbar && toolbarWrap(null)}
         {!compact && (
           <Alert className="mb-3">
             <Info className="h-4 w-4" />
@@ -408,6 +408,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
               editable={false}
               drafts={EMPTY_DRAFTS}
               onEditChange={() => {}}
+              height={fullHeight ? "100%" : "85vh"}
             />
           ) : (
             <ReportDocument report={report} />
