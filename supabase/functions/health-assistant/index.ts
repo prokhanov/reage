@@ -12,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const body = await req.json();
+    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    const requestedPatientId = typeof body?.targetUserId === 'string' ? body.targetUserId : null;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -65,8 +67,33 @@ serve(async (req) => {
       });
     }
 
-    // Gather user context
-    console.log("Gathering user context for:", user.id);
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const targetUserId = requestedPatientId && uuidPattern.test(requestedPatientId) ? requestedPatientId : user.id;
+
+    if (requestedPatientId && !uuidPattern.test(requestedPatientId)) {
+      return new Response(JSON.stringify({ error: "Invalid patient id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (targetUserId !== user.id) {
+      const { data: canViewPatient, error: permissionError } = await supabase.rpc("has_admin_permission", {
+        _user_id: user.id,
+        _module: "patients",
+      });
+
+      if (permissionError || !canViewPatient) {
+        console.error("Forbidden patient context request", { requester: user.id, target: targetUserId, permissionError });
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Gather patient context
+    console.log("Gathering patient context for:", targetUserId, "requested by:", user.id);
     
     // Get AI prompt from settings
     const { data: promptSettings } = await supabase
@@ -93,8 +120,15 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", user.id)
+      .eq("id", targetUserId)
       .single();
+
+    if (!profile) {
+      return new Response(JSON.stringify({ error: "Patient not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let userContext = "";
     let resolvedPatientGender: 'male' | 'female' | null = null;
@@ -128,7 +162,7 @@ serve(async (req) => {
       const { data: latestWeightRecord } = await supabase
         .from("weight_history")
         .select("weight")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUserId)
         .order("measured_at", { ascending: false })
         .limit(1)
         .single();
@@ -139,7 +173,7 @@ serve(async (req) => {
       const { data: analyses } = await supabase
         .from("analyses")
         .select("*, analysis_values(*, biomarkers(*))")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUserId)
         .order("date", { ascending: false })
         .limit(3);
 
@@ -147,7 +181,7 @@ serve(async (req) => {
       const { data: latestAnalysis } = await supabase
         .from("analyses")
         .select("id, analysis_values(*, biomarkers(*))")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUserId)
         .order("date", { ascending: false })
         .limit(1)
         .single();
@@ -158,7 +192,7 @@ serve(async (req) => {
       const { data: symptoms } = await supabase
         .from("user_symptoms")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUserId)
         .order("tracked_at", { ascending: false })
         .limit(50);
 
@@ -166,7 +200,7 @@ serve(async (req) => {
       const { data: prescriptions } = await supabase
         .from("prescriptions")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUserId)
         .eq("status", "confirmed")
         .eq("is_archived", false);
 
