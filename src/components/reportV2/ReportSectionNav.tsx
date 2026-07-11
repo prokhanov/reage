@@ -141,7 +141,7 @@ function useActiveSection(
   return [active, setManual];
 }
 
-export function ReportSectionNav({ sections, containerRef, variant }: Props) {
+export function ReportSectionNav({ sections, containerRef, variant, footer }: Props) {
   const [activeId, setActiveManual] = useActiveSection(sections, containerRef);
   const list = useMemo(() => sections, [sections]);
 
@@ -202,6 +202,8 @@ export function ReportSectionNav({ sections, containerRef, variant }: Props) {
           );
         })}
       </nav>
+      {footer && <div className="border-t p-3">{footer}</div>}
     </aside>
   );
 }
+
