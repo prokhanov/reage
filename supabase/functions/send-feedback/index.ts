@@ -135,8 +135,10 @@ Deno.serve(async (req) => {
     })
 
     // For "Прислать пример отчёта" — also email the client with a demo-report link.
-    const clientEmailPromise = type === 'example_report'
-      ? supabase.functions.invoke('send-analysis-booking-email', {
+    // Fire-and-forget through waitUntil to avoid blocking the response on a cold start.
+    if (type === 'example_report') {
+      const clientEmailTask = supabase.functions
+        .invoke('send-analysis-booking-email', {
           body: {
             recipient_email: email,
             template_type: 'example_report_landing',
@@ -145,27 +147,30 @@ Deno.serve(async (req) => {
             idempotency_key: `example-report-${email}-${new Date().toISOString().slice(0, 10)}`,
           },
         })
-      : Promise.resolve({ data: null, error: null })
+        .then((res) => {
+          if (res.error || (res.data as any)?.error) {
+            console.error('Failed to send example-report email to client', { error: res.error, data: res.data })
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to invoke example-report email', err)
+        })
+      // @ts-ignore — EdgeRuntime is available in Supabase Edge Runtime
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+        // @ts-ignore
+        EdgeRuntime.waitUntil(clientEmailTask)
+      }
+    }
 
-    const [teamRes, clientRes, telegramSent] = await Promise.all([
-      teamEmailPromise,
-      clientEmailPromise,
-      telegramPromise,
-    ])
+    const [teamRes, telegramSent] = await Promise.all([teamEmailPromise, telegramPromise])
 
     const teamEmailQueued = !teamRes.error && (teamRes.data as any)?.success === true
-    const clientEmailQueued = type !== 'example_report'
-      ? true
-      : (!clientRes.error && !((clientRes.data as any)?.error))
 
     if (!teamEmailQueued) {
       console.error('Failed to send feedback email to team', { error: teamRes.error, data: teamRes.data, telegramSent })
     }
-    if (type === 'example_report' && !clientEmailQueued) {
-      console.error('Failed to send example-report email to client', { error: clientRes.error, data: clientRes.data })
-    }
 
-    if (!teamEmailQueued && !telegramSent && !clientEmailQueued) {
+    if (!teamEmailQueued && !telegramSent) {
       return new Response(JSON.stringify({ error: 'Не удалось отправить сообщение. Попробуйте позже.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -175,6 +180,7 @@ Deno.serve(async (req) => {
     if (!telegramSent) {
       console.error('Feedback accepted but Telegram notification was not delivered')
     }
+
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
