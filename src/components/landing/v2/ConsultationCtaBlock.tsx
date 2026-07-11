@@ -189,7 +189,7 @@ export function ConsultationCtaBlock() {
                     ) : (
                       <>
                         <Send className="mr-2 w-4 h-4" />
-                        Записаться на консультацию
+                        Отправить
                       </>
                     )}
                   </Button>
