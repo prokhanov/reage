@@ -149,28 +149,19 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
           </div>
 
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
-            <div className="rounded-xl border border-primary/15 bg-primary/[0.04] p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
-                Что вы увидите в отчёте
-              </p>
-              <ul className="space-y-2.5">
+          <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-5">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">В примере отчёта:</p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
                 {[
-                  { icon: Dna, title: "Биологический возраст", desc: "и на сколько лет ваше тело моложе или старше паспорта" },
-                  { icon: HeartPulse, title: "5 систем здоровья", desc: "сердце, обмен веществ, гормоны, иммунитет, детокс" },
-                  { icon: Activity, title: "Разбор биомаркеров", desc: "каждый показатель — с расшифровкой и зоной риска" },
-                  { icon: Target, title: "Персональные назначения", desc: "что делать конкретно вам: питание, добавки, обследования" },
-                  { icon: LineChart, title: "Прогноз и траектория", desc: "как изменится ваш биовозраст при следовании плану" },
-                  { icon: Sparkles, title: "Приоритеты действий", desc: "с чего начать, чтобы получить максимум эффекта" },
-                ].map(({ icon: Icon, title, desc }) => (
-                  <li key={title} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-3.5 w-3.5 text-primary" />
-                    </div>
-                    <div className="text-sm leading-tight">
-                      <span className="font-medium text-foreground">{title}</span>
-                      <span className="text-muted-foreground"> — {desc}</span>
-                    </div>
+                  "Биологический возраст",
+                  "5 систем здоровья",
+                  "Разбор биомаркеров",
+                  "Персональные рекомендации",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-foreground">
+                    <Check className="h-3.5 w-3.5 shrink-0 text-primary/80" />
+                    {item}
                   </li>
                 ))}
               </ul>
