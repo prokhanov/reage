@@ -8,12 +8,12 @@ import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { PricingSection } from "@/components/landing/PricingSection";
-
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection, Footer } from "@/components/landing/CTASection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
+import { ConsultationCtaBlock } from "@/components/landing/v2/ConsultationCtaBlock";
 
 const Index = () => {
   return (
@@ -33,6 +33,7 @@ const Index = () => {
         <CycleInfographicBlock />
         <HowItWorksBlock />
         <WhyCheckupsFail />
+        <ConsultationCtaBlock />
         <ComparisonSection />
       </div>
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
