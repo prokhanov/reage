@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,7 +22,6 @@ interface ExampleReportDialogProps {
 interface FormErrors {
   name?: string;
   email?: string;
-  phone?: string;
 }
 
 export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogProps) {
@@ -39,12 +39,6 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
     if (!trimmedEmail) next.email = "Укажите email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) next.email = "Некорректный email";
     else if (trimmedEmail.length > 255) next.email = "Email слишком длинный";
-
-    const trimmedPhone = form.phone.trim();
-    if (trimmedPhone) {
-      if (trimmedPhone.length > 32) next.phone = "Телефон слишком длинный";
-      else if (!/^[+\d][\d\s\-().]{5,}$/.test(trimmedPhone)) next.phone = "Некорректный телефон";
-    }
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -198,18 +192,12 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
 
             <div className="space-y-2">
               <Label htmlFor="example-report-phone">Телефон</Label>
-              <Input
+              <PhoneInput
                 id="example-report-phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
                 value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
                 placeholder="+7 (999) 123-45-67"
-                className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
-                disabled={status === "loading"}
               />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             {status === "error" && (
