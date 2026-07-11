@@ -81,6 +81,9 @@ export function RejuvenationTrajectory({
   const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
   const axisColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(30,41,59,0.65)";
 
+  const targetDate = format(addMonths(start, 12), "LLLL yyyy", { locale: ru });
+  const goalDelta = currentBioAge - targetBioAge;
+
   return (
     <Card className="border-border bg-card overflow-hidden">
       <CardContent className="p-5 md:p-6 space-y-4">
@@ -101,15 +104,57 @@ export function RejuvenationTrajectory({
               </span>
             </div>
           </div>
-          {trendDelta != null && (
-            <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-lg bg-muted ${trendColor}`}>
-              <TrendIcon className="h-3.5 w-3.5" />
-              {trendDelta > 0 ? "+" : ""}{trendDelta.toFixed(1)}
+          <div className="flex items-center gap-2">
+            <div
+              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border border-primary/30"
+              style={{ background: "linear-gradient(90deg, hsl(270 90% 60% / 0.12), hsl(320 100% 60% / 0.12))", color: ACCENT }}
+            >
+              Цель: {targetBioAge.toFixed(1)} лет к {targetDate}
             </div>
-          )}
+            {trendDelta != null && (
+              <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-lg bg-muted ${trendColor}`}>
+                <TrendIcon className="h-3.5 w-3.5" />
+                {trendDelta > 0 ? "+" : ""}{trendDelta.toFixed(1)}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="h-[210px] md:h-[240px] -mx-2">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-5 items-stretch">
+          <div className="flex md:flex-col md:w-[160px] shrink-0 items-center md:items-stretch gap-3 md:gap-2 md:py-2 md:pr-4 md:border-r md:border-border">
+            <div className="relative w-[88px] h-[88px] md:w-[104px] md:h-[104px] flex items-center justify-center shrink-0 md:self-center">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
+                <circle
+                  cx="50" cy="50" r="38"
+                  stroke="url(#ringGrad)" strokeWidth="10" fill="none"
+                  strokeDasharray={`${ringDash} 999`} strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={PRIMARY} />
+                    <stop offset="100%" stopColor={ACCENT} />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                <Heart className="text-primary" style={{ width: 20, height: 20 }} strokeWidth={2.2} />
+                <div className="text-lg font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
+                <div className="text-[9px] uppercase tracking-wide text-muted-foreground mt-0.5">Индекс</div>
+              </div>
+            </div>
+            <div className="flex-1 grid grid-cols-1 gap-2 md:gap-2.5">
+              <SideStat label="Сейчас" value={`${currentBioAge.toFixed(1)}`} unit="лет" />
+              <SideStat label="Цель 12 мес" value={`${targetBioAge.toFixed(1)}`} unit="лет" accent />
+              {goalDelta > 0.05 && (
+                <SideStat label="До цели" value={`↓ −${goalDelta.toFixed(1)}`} unit="лет" good />
+              )}
+              <SideStat label="Хроно" value={`${chronologicalAge}`} unit="лет" muted />
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0 h-[210px] md:h-[260px] -mx-2">
+
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
               <defs>
