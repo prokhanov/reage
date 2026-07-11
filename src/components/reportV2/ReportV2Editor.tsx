@@ -392,10 +392,11 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       <div ref={previewContainerRef} className={cn("relative flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
         {bottomAction && (
-          <div className="pointer-events-none sticky bottom-4 z-20 flex justify-center">
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
             <div className="pointer-events-auto">{bottomAction}</div>
           </div>
         )}
+
       </div>
     </div>
   );
