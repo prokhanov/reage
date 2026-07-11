@@ -261,20 +261,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Button>
         </>
       )}
-      {compact && (
+      {compact && !hideDownload && (
         <Button size="sm" variant="outline" onClick={openInNewWindow}>
           <ExternalLink className="mr-2 h-4 w-4" />
           В новом окне
         </Button>
       )}
-      <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
-        {rendering ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="mr-2 h-4 w-4" />
-        )}
-        Скачать PDF
-      </Button>
+      {!hideDownload && (
+        <Button size="sm" variant="outline" onClick={downloadPdf} disabled={rendering}>
+          {rendering ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Скачать PDF
+        </Button>
+      )}
     </>
   );
 
