@@ -14,7 +14,7 @@ interface FormErrors {
 
 const bullets = [
   { icon: Sparkles, text: "Расскажем о продукте и подходе ReAge" },
-  { icon: Stethoscope, text: "Проведём демо возможностей на реальном отчёте" },
+  { icon: Stethoscope, text: "Проведём демо возможностей личного кабинета" },
   { icon: Target, text: "Подберём подходящую программу под ваши цели" },
   { icon: HelpCircle, text: "Разберём, что волнует, и ответим на вопросы" },
 ];
@@ -90,7 +90,7 @@ export function ConsultationCtaBlock() {
               </span>
             </h2>
             <p className="text-base md:text-lg text-muted-foreground mb-7 leading-relaxed">
-              Живой разговор с командой ReAge. Поможем понять, подходит ли сервис именно вам,
+              Живой разговор с командой ReAge. Поможем понять, подходит ли вам наш сервис,
               и с чего лучше начать.
             </p>
 
