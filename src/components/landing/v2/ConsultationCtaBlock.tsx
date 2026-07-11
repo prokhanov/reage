@@ -126,7 +126,7 @@ export function ConsultationCtaBlock() {
                   <div>
                     <h3 className="text-xl font-semibold mb-1">Оставьте контакты</h3>
                     <p className="text-sm text-muted-foreground">
-                      Мы свяжемся, чтобы согласовать время
+                      Мы свяжемся в ближайшее время
                     </p>
                   </div>
 
