@@ -21,7 +21,10 @@ interface Props {
    */
   containerRef: React.RefObject<HTMLElement>;
   variant: "sidebar" | "dropdown";
+  /** Опциональный контент под списком секций (только для variant="sidebar"). */
+  footer?: React.ReactNode;
 }
+
 
 /**
  * Находит DOM-контейнер, который реально скроллится (rl-paged-shell-framed —
