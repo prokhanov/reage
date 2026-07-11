@@ -20,7 +20,7 @@ interface Message {
 }
 
 export default function HealthAssistant() {
-  const { getUserId } = useViewAsUser();
+  const { getUserId, viewAsUserId } = useViewAsUser();
   const [userId, setUserId] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const { conversations, createConversation, deleteConversation } = useChatConversations(userId);
@@ -157,6 +157,7 @@ export default function HealthAssistant() {
           },
           body: JSON.stringify({
             messages: newMessages,
+            targetUserId: viewAsUserId || undefined,
           }),
         }
       );
