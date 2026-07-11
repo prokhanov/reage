@@ -98,7 +98,6 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
           <div className="flex items-start justify-between gap-4">
             <div>
               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
                 Получить пример отчёта
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1.5">
