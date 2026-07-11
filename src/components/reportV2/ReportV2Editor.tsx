@@ -419,7 +419,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   }
 
   return (
-    <div className="report-v2-scope">
+    <div className={cn("report-v2-scope", fullHeight && "flex flex-col h-full")}>
       <ReportEditorShell
         report={report}
         onReportUpdate={handleReportUpdate}
@@ -429,7 +429,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       >
         {({ mode: shellMode }) => (
           <>
-            {toolbarWrap(
+            {!hideToolbar && toolbarWrap(
               <ReportEditorToolbar
                 report={report}
                 onReportUpdate={handleReportUpdate}
