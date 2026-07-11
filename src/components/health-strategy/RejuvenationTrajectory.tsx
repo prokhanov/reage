@@ -261,6 +261,21 @@ export function RejuvenationTrajectory({
           </div>
         </CardContent>
       </Card>
+
+      {/* Right: Trajectory forecast */}
+      {rationale && (
+        <Card className="border-primary/20 bg-primary/[0.04] overflow-hidden">
+          <CardContent className="p-4 md:p-5 flex flex-col gap-3 h-full">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary shrink-0" />
+              <div className="text-sm font-semibold text-foreground">Прогноз по вашей траектории</div>
+            </div>
+            <p className="text-sm text-foreground/85 leading-relaxed">
+              {rationale}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
