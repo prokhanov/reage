@@ -108,7 +108,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
                 Получить пример отчёта
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1.5">
-                Оставьте контакты — вышлем пример персонального отчёта на e-mail
+                
               </DialogDescription>
             </div>
             {status !== "success" && (
@@ -134,18 +134,16 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
             </div>
             <h3 className="text-lg font-semibold mb-2">Заявка принята</h3>
             <p className="text-sm text-muted-foreground">
-              Спасибо! Мы вышлем пример отчёта на указанный e-mail в ближайшее время.
+              Спасибо! Мы вышлем пример отчёта на указанный e-mail в ближайшее время. Если письма нет во «Входящих» — <span className="font-semibold text-foreground">проверьте папку «Спам»</span>.
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Если письма нет во «Входящих» — проверьте папку «Спам».
-            </p>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handleClose}
-              className="mt-5 text-sm text-primary hover:underline focus:outline-none focus-visible:underline"
+              className="mt-5"
             >
               Закрыть
-            </button>
+            </Button>
           </div>
 
         ) : (
