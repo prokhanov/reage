@@ -63,6 +63,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
           phone: form.phone.trim(),
           message:
             "Запрос примера персонального отчёта ReAge с лендинга. Пожалуйста, вышлите пример отчёта на указанный e-mail.",
+          type: "example_report",
         },
       });
 

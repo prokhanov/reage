@@ -29,6 +29,7 @@ const ALLOWED_TEMPLATES = new Set([
   'booking_collected',
   'booking_report_pending',
   'booking_report_ready',
+  'example_report_landing',
 ])
 
 
@@ -148,17 +149,24 @@ Deno.serve(async (req) => {
       })
     }
 
+    const requestedTypeForTest: string | undefined =
+      typeof body.template_type === 'string' ? body.template_type : undefined
+    const isExampleReport = requestedTypeForTest === 'example_report_landing'
+
     const vars: Vars = isTest
-      ? {
-          patient_name: 'Иван Иванов',
-          appointment_date: '15 июня 2026',
-          appointment_time: '09:30',
-          clinic_address: 'г. Москва, ул. Примерная, д. 1',
-          ...(body.vars || {}),
-        }
+      ? (isExampleReport
+          ? { name: 'Елена', ...(body.vars || {}) }
+          : {
+              patient_name: 'Иван Иванов',
+              appointment_date: '15 июня 2026',
+              appointment_time: '09:30',
+              clinic_address: 'г. Москва, ул. Примерная, д. 1',
+              ...(body.vars || {}),
+            })
       : (body.vars || {})
 
-    const ctaUrl: string = body.cta_url || `${APP_URL}/profile`
+    const defaultCta = isExampleReport ? `${APP_URL}/demo-report` : `${APP_URL}/profile`
+    const ctaUrl: string = body.cta_url || defaultCta
 
     // Resolve template type: explicit > by booking status > default
     const requestedType: string | undefined =
@@ -177,7 +185,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     // Fallback to default template if status-specific one isn't provisioned
-    if ((!tpl || tplErr) && templateType !== DEFAULT_TEMPLATE_TYPE) {
+    if ((!tpl || tplErr) && templateType !== DEFAULT_TEMPLATE_TYPE && templateType.startsWith('booking_')) {
       const fb = await supabase
         .from('email_templates')
         .select('*')
