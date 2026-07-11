@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, X, CheckCircle, Loader2, FileText, Activity, HeartPulse, Dna, Sparkles, Target, LineChart } from "lucide-react";
+import { Send, X, CheckCircle, Loader2, FileText, Activity, HeartPulse, Dna, Sparkles, Target } from "lucide-react";
 import {
   Dialog,
   DialogContent,
