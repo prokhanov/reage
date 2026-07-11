@@ -22,7 +22,6 @@ interface ExampleReportDialogProps {
 interface FormErrors {
   name?: string;
   email?: string;
-  phone?: string;
 }
 
 export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogProps) {
@@ -40,12 +39,6 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
     if (!trimmedEmail) next.email = "Укажите email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) next.email = "Некорректный email";
     else if (trimmedEmail.length > 255) next.email = "Email слишком длинный";
-
-    const trimmedPhone = form.phone.trim();
-    if (trimmedPhone) {
-      if (trimmedPhone.length > 32) next.phone = "Телефон слишком длинный";
-      else if (!/^[+\d][\d\s\-().]{5,}$/.test(trimmedPhone)) next.phone = "Некорректный телефон";
-    }
 
     setErrors(next);
     return Object.keys(next).length === 0;
