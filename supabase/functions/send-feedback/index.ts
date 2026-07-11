@@ -7,6 +7,7 @@ const FEEDBACK_SCHEMA = z.object({
   email: z.string().trim().email('Укажите корректный email').max(255, 'Email слишком длинный').toLowerCase(),
   phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
+  type: z.enum(['feedback', 'example_report']).optional().default('feedback'),
 })
 
 async function sendTelegramFeedbackNotification(
@@ -107,7 +108,7 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { name, email, message } = parsed.data
+  const { name, email, message, type } = parsed.data
   const phone = parsed.data.phone?.trim() || undefined
 
   try {
@@ -124,7 +125,7 @@ Deno.serve(async (req) => {
       message,
     })
 
-    const { data, error } = await supabase.functions.invoke('send-transactional-email', {
+    const teamEmailPromise = supabase.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'feedback-notification',
         recipientEmail: 'team@reage.life',
@@ -133,14 +134,38 @@ Deno.serve(async (req) => {
       },
     })
 
-    const telegramSent = await telegramPromise
-    const emailQueued = !error && data?.success === true
+    // For "Прислать пример отчёта" — also email the client with a demo-report link.
+    const clientEmailPromise = type === 'example_report'
+      ? supabase.functions.invoke('send-analysis-booking-email', {
+          body: {
+            recipient_email: email,
+            template_type: 'example_report_landing',
+            cta_url: 'https://reage.life/demo-report',
+            vars: { name },
+            idempotency_key: `example-report-${email}-${new Date().toISOString().slice(0, 10)}`,
+          },
+        })
+      : Promise.resolve({ data: null, error: null })
 
-    if (!emailQueued) {
-      console.error('Failed to send feedback email notification', { error, data, telegramSent })
+    const [teamRes, clientRes, telegramSent] = await Promise.all([
+      teamEmailPromise,
+      clientEmailPromise,
+      telegramPromise,
+    ])
+
+    const teamEmailQueued = !teamRes.error && (teamRes.data as any)?.success === true
+    const clientEmailQueued = type !== 'example_report'
+      ? true
+      : (!clientRes.error && !((clientRes.data as any)?.error))
+
+    if (!teamEmailQueued) {
+      console.error('Failed to send feedback email to team', { error: teamRes.error, data: teamRes.data, telegramSent })
+    }
+    if (type === 'example_report' && !clientEmailQueued) {
+      console.error('Failed to send example-report email to client', { error: clientRes.error, data: clientRes.data })
     }
 
-    if (!emailQueued && !telegramSent) {
+    if (!teamEmailQueued && !telegramSent && !clientEmailQueued) {
       return new Response(JSON.stringify({ error: 'Не удалось отправить сообщение. Попробуйте позже.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

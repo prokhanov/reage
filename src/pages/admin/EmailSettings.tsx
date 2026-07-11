@@ -34,6 +34,7 @@ const TEMPLATE_TABS = [
   { type: "booking_collected", label: "Анализ в работе" },
   { type: "booking_report_pending", label: "Отчёт в работе" },
   { type: "booking_report_ready", label: "Отчёт загружен" },
+  { type: "example_report_landing", label: "Пример отчёта (лендинг)" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -44,6 +45,7 @@ const TEST_NOTES: Record<string, string> = {
   booking_collected: "Письмо «анализ в работе»",
   booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
   booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
+  example_report_landing: "Письмо клиенту, оставившему заявку «Прислать пример отчёта» на лендинге — со ссылкой на демо-отчёт",
 };
 
 
@@ -179,8 +181,8 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const isBooking = activeTab.startsWith("booking_");
-      const { data, error } = isBooking
+      const isDbTemplate = activeTab.startsWith("booking_") || activeTab === "example_report_landing";
+      const { data, error } = isDbTemplate
         ? await supabase.functions.invoke("send-analysis-booking-email", {
             body: { test: true, recipient_email: testEmail, template_type: activeTab },
           })
