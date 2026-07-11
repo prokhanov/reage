@@ -94,17 +94,17 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
         onEscapeKeyDown={(e) => { if (status === "success") e.preventDefault(); }}
         onInteractOutside={(e) => { if (status === "success") e.preventDefault(); }}
       >
-        <DialogHeader className="p-6 pb-4 text-left">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                Получить пример отчёта
-              </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground mt-1.5">
-                
-              </DialogDescription>
-            </div>
-            {status !== "success" && (
+        {status !== "success" && (
+          <DialogHeader className="p-6 pb-4 text-left">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                  Получить пример отчёта
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground mt-1.5">
+                  
+                </DialogDescription>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -115,9 +115,9 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
               >
                 <X className="w-4 h-4" />
               </Button>
-            )}
-          </div>
-        </DialogHeader>
+            </div>
+          </DialogHeader>
+        )}
 
 
         {status === "success" ? (
