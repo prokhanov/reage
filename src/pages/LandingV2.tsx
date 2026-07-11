@@ -142,6 +142,10 @@ const LandingV2 = () => {
         <Block>
           <ReportShowcaseSection />
         </Block>
+        <Block>
+          <ConsultationCtaBlock />
+        </Block>
+
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
           <BenefitsBlock />
