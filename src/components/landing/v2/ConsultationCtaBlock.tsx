@@ -81,7 +81,7 @@ export function ConsultationCtaBlock() {
           {/* Left: pitch */}
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-5">
-              Бесплатно · 30 минут
+              БЕСПЛАТНО
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-5 text-foreground">
               Записаться на{" "}
