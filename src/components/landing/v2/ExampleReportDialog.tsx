@@ -219,7 +219,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
               ) : (
                 <>
                   <Send className="mr-2 w-4 h-4" />
-                  Прислать пример отчёта
+                  Получить пример отчёта
                 </>
               )}
             </Button>
