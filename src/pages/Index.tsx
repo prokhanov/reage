@@ -3,7 +3,6 @@ import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 import { CycleInfographicBlockV2 as CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlockV2";
 import { ReportCollageBlock } from "@/components/landing/v2/ReportCollageBlock";
-import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
@@ -34,7 +33,6 @@ const Index = () => {
         <CycleInfographicBlock />
         <HowItWorksBlock />
         <WhyCheckupsFail />
-        <BenefitsBlock />
         <ComparisonSection />
       </div>
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
