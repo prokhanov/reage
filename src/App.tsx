@@ -33,6 +33,7 @@ import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionFail from "./pages/SubscriptionFail";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
+import DemoReport from "./pages/DemoReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
 import Faq from "./pages/Faq";
 
@@ -114,6 +115,8 @@ const App = () => (
                 </>
               }
             />
+            {/* Полностраничная демо-версия отчёта Елены Ивановой (noindex). */}
+            <Route path="/demo-report" element={<DemoReport />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/prep" element={<AnalysisPrep />} />
             <Route path="/faq" element={<Faq />} />
