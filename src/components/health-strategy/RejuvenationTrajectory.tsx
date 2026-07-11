@@ -85,7 +85,7 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden">
         <CardContent className="p-4 md:p-5 flex flex-col h-full">
@@ -93,14 +93,14 @@ export function RejuvenationTrajectory({
             Ваш текущий статус
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative w-[104px] h-[104px] flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-5">
+            <div className="relative w-[150px] h-[150px] flex items-center justify-center shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="38" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
+                <circle cx="50" cy="50" r="42" stroke="hsl(var(--muted))" strokeWidth="8" fill="none" />
                 <circle
-                  cx="50" cy="50" r="38"
-                  stroke="url(#ringGrad)" strokeWidth="10" fill="none"
-                  strokeDasharray={`${ringDash} 999`} strokeLinecap="round"
+                  cx="50" cy="50" r="42"
+                  stroke="url(#ringGrad)" strokeWidth="8" fill="none"
+                  strokeDasharray={`${(ringPct / 100) * 2 * Math.PI * 42} 999`} strokeLinecap="round"
                 />
                 <defs>
                   <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
@@ -109,21 +109,22 @@ export function RejuvenationTrajectory({
                   </linearGradient>
                 </defs>
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-                <Heart className="text-primary" style={{ width: 18, height: 18 }} strokeWidth={2.2} />
-                <div className="text-xl font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
-                <div className="text-[9px] uppercase tracking-wide text-muted-foreground mt-0.5">Индекс</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <Heart className="text-primary mb-1" style={{ width: 22, height: 22 }} strokeWidth={2.2} />
+                <div className="text-3xl font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1.5">Индекс здоровья</div>
               </div>
             </div>
 
-            <div className="flex-1 min-w-0 space-y-2">
-              <StatRow label="Биологический возраст" value={`${currentBioAge.toFixed(1)}`} unit="лет" />
-              <StatRow label="Цель на 12 мес." value={`${targetBioAge.toFixed(1)}`} unit="лет" accent />
+            <div className="flex-1 min-w-0 space-y-3">
+              <StatRow label="Биологический возраст" value={`${currentBioAge.toFixed(1)}`} unit="года" />
+              <StatRow label="Цель на 12 мес." value={`${targetBioAge.toFixed(1)}`} unit="года" accent />
               {goalDelta > 0.05 && (
-                <StatRow label="До цели" value={`↓ −${goalDelta.toFixed(1)}`} unit="лет" good />
+                <StatRow label="До цели" value={`↓ −${goalDelta.toFixed(1)}`} unit="года" good />
               )}
             </div>
           </div>
+
 
           {previousBioAge != null && previousDate && (
             <p className="mt-auto pt-3 text-[11px] text-muted-foreground flex items-center gap-1">
