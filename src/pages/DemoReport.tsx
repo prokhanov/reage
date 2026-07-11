@@ -34,7 +34,7 @@ export default function DemoReport() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-background p-0 md:p-6 flex flex-col">
+      <div className="h-screen overflow-hidden bg-background p-0 md:p-6 flex flex-col">
         <ReportV2Editor
           analysisId={report.analysis.id}
           userId="demo"
