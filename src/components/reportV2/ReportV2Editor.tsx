@@ -386,13 +386,20 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           sections={navSections}
           containerRef={previewContainerRef}
           variant="sidebar"
+          footer={sidebarFooter}
         />
       )}
-      <div ref={previewContainerRef} className={cn("flex-1 min-w-0", fullHeight && "h-full")}>
+      <div ref={previewContainerRef} className={cn("relative flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
+        {bottomAction && (
+          <div className="pointer-events-none sticky bottom-4 z-20 flex justify-center">
+            <div className="pointer-events-auto">{bottomAction}</div>
+          </div>
+        )}
       </div>
     </div>
   );
+
 
   if (mode === "view") {
     return (
