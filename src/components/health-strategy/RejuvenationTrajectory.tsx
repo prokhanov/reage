@@ -85,7 +85,7 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden">
         <CardContent className="p-4 md:p-5 flex flex-col h-full">
