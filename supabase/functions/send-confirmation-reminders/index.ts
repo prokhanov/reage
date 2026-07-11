@@ -215,6 +215,27 @@ Deno.serve(async (req) => {
     if (page > 50) break // hard safety cap (10k users)
   }
 
+  // 2b. Load verification status from public.profiles (source of truth in this project:
+  // phone verification lives in profiles.phone_verified_at, email in profiles.email_verified).
+  const profileVerification = new Map<string, { email: boolean; phone: boolean }>()
+  {
+    const ids = allUsers.map((u) => u.id)
+    const chunk = 500
+    for (let i = 0; i < ids.length; i += chunk) {
+      const slice = ids.slice(i, i + chunk)
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, email_verified, phone_verified_at')
+        .in('id', slice)
+      for (const p of (profs ?? []) as any[]) {
+        profileVerification.set(p.id, {
+          email: p.email_verified === true,
+          phone: !!p.phone_verified_at,
+        })
+      }
+    }
+  }
+
   const now = Date.now()
   let candidates = 0
   let enqueued = 0
@@ -224,9 +245,12 @@ Deno.serve(async (req) => {
     if (!u.email) { skipped++; continue }
     if (stopSet.has(u.id)) { skipped++; continue }
 
-    const emailConfirmed = !!u.email_confirmed_at
-    const phoneConfirmed = !!u.phone_confirmed_at
+    const prof = profileVerification.get(u.id)
+    const emailConfirmed = !!u.email_confirmed_at || !!prof?.email
+    const phoneConfirmed = !!u.phone_confirmed_at || !!prof?.phone
     if (emailConfirmed && phoneConfirmed) { skipped++; continue }
+
+
 
     let type: ReminderType
     if (!emailConfirmed && !phoneConfirmed) type = 'confirm_reminder_both'
