@@ -7,7 +7,7 @@ const FEEDBACK_SCHEMA = z.object({
   email: z.string().trim().email('Укажите корректный email').max(255, 'Email слишком длинный').toLowerCase(),
   phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
-  type: z.enum(['feedback', 'example_report']).optional().default('feedback'),
+  type: z.enum(['feedback', 'example_report', 'consultation']).optional().default('feedback'),
 })
 
 async function sendTelegramFeedbackNotification(
