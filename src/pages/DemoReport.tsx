@@ -14,6 +14,9 @@
 
 import { useMemo } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import { ArrowRight, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ReportV2Editor } from "@/components/reportV2/ReportV2Editor";
 import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
 
@@ -22,6 +25,24 @@ export default function DemoReport() {
   const patientName =
     [report.patient.first_name, report.patient.last_name].filter(Boolean).join(" ") ||
     "Елена Иванова";
+
+  const sidebarFooter = (
+    <Button asChild size="sm" className="w-full">
+      <Link to="/#booking">
+        <Send className="mr-2 h-4 w-4" />
+        Оставить заявку
+      </Link>
+    </Button>
+  );
+
+  const bottomAction = (
+    <Button asChild size="lg" className="shadow-lg">
+      <Link to="/dashboard">
+        Посмотреть демо-кабинет
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Link>
+    </Button>
+  );
 
   return (
     <>
@@ -44,6 +65,8 @@ export default function DemoReport() {
           hideToolbar
           fullHeight
           initialReport={report}
+          sidebarFooter={sidebarFooter}
+          bottomAction={bottomAction}
         />
       </div>
     </>

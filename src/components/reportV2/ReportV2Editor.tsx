@@ -51,7 +51,12 @@ interface Props {
    * Требует, чтобы родитель был flex-контейнером с заданной высотой.
    */
   fullHeight?: boolean;
+  /** Опциональный контент в футере сайдбара с содержанием (desktop). */
+  sidebarFooter?: React.ReactNode;
+  /** Опциональный sticky-элемент внизу превью (по центру). */
+  bottomAction?: React.ReactNode;
 }
+
 
 
 const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
@@ -82,7 +87,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
@@ -381,13 +386,21 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           sections={navSections}
           containerRef={previewContainerRef}
           variant="sidebar"
+          footer={sidebarFooter}
         />
       )}
-      <div ref={previewContainerRef} className={cn("flex-1 min-w-0", fullHeight && "h-full")}>
+      <div ref={previewContainerRef} className={cn("relative flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
+        {bottomAction && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
+            <div className="pointer-events-auto">{bottomAction}</div>
+          </div>
+        )}
+
       </div>
     </div>
   );
+
 
   if (mode === "view") {
     return (
