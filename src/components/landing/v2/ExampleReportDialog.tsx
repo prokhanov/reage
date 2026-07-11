@@ -74,16 +74,12 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
       }
 
       setStatus("success");
-      setTimeout(() => {
-        onOpenChange(false);
-        setForm({ name: "", email: "", phone: "" });
-        setStatus("idle");
-      }, 2000);
     } catch (err) {
       console.error("Example report submit exception", err);
       setStatus("error");
     }
   };
+
 
   const handleClose = () => {
     if (status === "loading") return;
@@ -96,8 +92,14 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border" hideCloseButton>
+    <Dialog open={open} onOpenChange={(o) => { if (!o && status === "success") return; handleClose(); }}>
+      <DialogContent
+        className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border"
+        hideCloseButton
+        onPointerDownOutside={(e) => { if (status === "success") e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (status === "success") e.preventDefault(); }}
+        onInteractOutside={(e) => { if (status === "success") e.preventDefault(); }}
+      >
         <DialogHeader className="p-6 pb-4 text-left">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -109,18 +111,21 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
                 Оставьте контакты — вышлем пример персонального отчёта на e-mail
               </DialogDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0 h-8 w-8 -mr-2 -mt-2"
-              onClick={handleClose}
-              disabled={status === "loading"}
-              aria-label="Закрыть"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            {status !== "success" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-8 w-8 -mr-2 -mt-2"
+                onClick={handleClose}
+                disabled={status === "loading"}
+                aria-label="Закрыть"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </DialogHeader>
+
 
         {status === "success" ? (
           <div className="p-6 pt-0 flex flex-col items-center text-center">
@@ -131,7 +136,18 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
             <p className="text-sm text-muted-foreground">
               Спасибо! Мы вышлем пример отчёта на указанный e-mail в ближайшее время.
             </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Если письма нет во «Входящих» — проверьте папку «Спам».
+            </p>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="mt-5 text-sm text-primary hover:underline focus:outline-none focus-visible:underline"
+            >
+              Закрыть
+            </button>
           </div>
+
         ) : (
           <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
             <div className="space-y-2">
