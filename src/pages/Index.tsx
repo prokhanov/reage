@@ -33,6 +33,7 @@ const Index = () => {
         <CycleInfographicBlock />
         <HowItWorksBlock />
         <WhyCheckupsFail />
+        <ConsultationCtaBlock />
         <ComparisonSection />
       </div>
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
