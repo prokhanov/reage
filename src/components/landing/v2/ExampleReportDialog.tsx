@@ -192,18 +192,12 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
 
             <div className="space-y-2">
               <Label htmlFor="example-report-phone">Телефон</Label>
-              <Input
+              <PhoneInput
                 id="example-report-phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
                 value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
                 placeholder="+7 (999) 123-45-67"
-                className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
-                disabled={status === "loading"}
               />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             {status === "error" && (
