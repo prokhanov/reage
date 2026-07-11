@@ -231,41 +231,15 @@ export function RejuvenationTrajectory({
                 label={{ value: `${currentBioAge.toFixed(1)}`, position: "top", fill: "hsl(var(--foreground))", fontSize: 20, fontWeight: 700, dy: -8 }}
               />
               <ReferenceDot
-                x={data[12].label} y={data[12].bio} r={6}
+                x={data[12].label} y={data[12].bio} r={7}
                 fill={ACCENT} stroke={isDark ? "hsl(var(--card))" : "#fff"} strokeWidth={2}
-                label={{ value: `${targetBioAge.toFixed(1)}`, position: "top", fill: ACCENT, fontSize: 14, fontWeight: 800, dy: -8 }}
+                label={{ value: `🎯 Цель ${targetBioAge.toFixed(1)}`, position: "top", fill: ACCENT, fontSize: 13, fontWeight: 800, dy: -10 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 pt-3 border-t border-border">
-          <div className="relative w-[96px] h-[96px] flex items-center justify-center shrink-0">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="38" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
-              <circle
-                cx="50" cy="50" r="38"
-                stroke="url(#ringGrad)" strokeWidth="10" fill="none"
-                strokeDasharray={`${ringDash} 999`} strokeLinecap="round"
-              />
-              <defs>
-                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor={PRIMARY} />
-                  <stop offset="100%" stopColor={ACCENT} />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-              <Heart className="text-primary" style={{ width: 20, height: 20 }} strokeWidth={2.2} />
-              <div className="text-base font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
-            </div>
-          </div>
-          <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-            <Stat label="Сейчас" value={`${currentBioAge.toFixed(1)}`} unit="лет" />
-            <Stat label="Цель 12 мес" value={`${targetBioAge.toFixed(1)}`} unit="лет" accent />
-            <Stat label="Хроно" value={`${chronologicalAge}`} unit="лет" muted />
-          </div>
-        </div>
 
         {previousBioAge != null && previousDate && (
           <p className="text-[11px] text-muted-foreground flex items-center gap-1">
