@@ -252,18 +252,21 @@ export function RejuvenationTrajectory({
   );
 }
 
-function Stat({ label, value, unit, accent, muted }: { label: string; value: string; unit: string; accent?: boolean; muted?: boolean }) {
+function SideStat({ label, value, unit, accent, muted, good }: { label: string; value: string; unit: string; accent?: boolean; muted?: boolean; good?: boolean }) {
   const numColor = accent
     ? "bg-gradient-primary bg-clip-text text-transparent"
+    : good
+    ? "text-status-good"
     : muted
     ? "text-muted-foreground"
     : "text-foreground";
   return (
-    <div className="space-y-0.5">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={`text-lg font-bold tabular-nums ${numColor}`}>
+    <div className="flex md:flex-col items-baseline md:items-start gap-1.5 md:gap-0.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground order-1 md:order-none">{label}</div>
+      <div className={`text-base md:text-lg font-bold tabular-nums leading-tight ${numColor}`}>
         {value}<span className="text-[10px] font-normal text-muted-foreground ml-0.5">{unit}</span>
       </div>
     </div>
   );
 }
+
