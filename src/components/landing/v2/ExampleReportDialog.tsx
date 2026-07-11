@@ -121,7 +121,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
 
 
         {status === "success" ? (
-          <div className="p-6 pt-0 flex flex-col items-center text-center">
+          <div className="p-6 flex flex-col items-center text-center">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <CheckCircle className="w-7 h-7 text-primary" />
             </div>
