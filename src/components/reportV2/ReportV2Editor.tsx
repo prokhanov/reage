@@ -480,6 +480,7 @@ function EditablePreview({
       }}
       coverOverrides={ctx?.coverOverrides ?? report.coverOverrides ?? null}
       onCoverOverridesChange={(next) => ctx?.setCoverOverrides(next)}
+      height={height}
     />
   );
 }
