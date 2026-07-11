@@ -125,9 +125,10 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <CheckCircle className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Заявка принята</h3>
-            <p className="text-sm text-muted-foreground">
-              Спасибо! Мы вышлем пример отчёта на указанный e-mail в ближайшее время. Если письма нет во «Входящих» — <span className="font-semibold text-foreground">проверьте папку «Спам»</span>.
+            <h3 className="text-lg font-semibold mb-2">Проверьте почту</h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">
+              Мы вышлем пример отчёта на указанный e-mail.&nbsp;{"\n\n"}
+              Если письма нет во «Входящих» — <span className="font-semibold text-foreground">проверьте папку «Спам»</span>.
             </p>
             <Button
               type="button"
