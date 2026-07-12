@@ -240,7 +240,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   className="absolute top-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
-                  <div className="font-mono-tech text-[11px] text-muted-foreground/80 whitespace-nowrap">
+                  <div className="font-heading text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
                   <div className="font-heading text-xs font-semibold leading-tight mt-1 line-clamp-2 text-center text-foreground">
