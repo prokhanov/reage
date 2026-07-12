@@ -125,7 +125,7 @@ export function RejuvenationTrajectory({
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <Heart className="text-primary mb-1.5" style={{ width: 22, height: 22 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
-                <div className="text-[56px] font-bold leading-none tabular-nums text-foreground tracking-tight">{healthIndex ?? "—"}</div>
+                <div className="font-mono-tech text-[56px] font-bold leading-none text-foreground tracking-tight">{healthIndex ?? "—"}</div>
                 <div className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground mt-2">Индекс здоровья</div>
               </div>
             </div>
