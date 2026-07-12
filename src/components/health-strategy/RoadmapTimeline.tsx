@@ -229,7 +229,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               />
             </svg>
 
-            {/* Top labels — anchored to the top edge, all aligned */}
+            {/* Top labels — centered horizontally above each dot */}
             {milestones.map((m, i) => {
               const p = points[i];
               if (i % 2 !== 0) return null;
@@ -238,20 +238,20 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               return (
                 <div
                   key={`top-${i}`}
-                  className="absolute top-3 left-0 -translate-x-1/2 flex flex-col items-center w-[150px]"
+                  className="absolute top-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
                   <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
-                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 text-center ${future ? "text-muted-foreground" : "text-foreground"}`}>
                     {m.title}
                   </div>
                 </div>
               );
             })}
 
-            {/* Bottom labels — anchored to the bottom edge, all aligned */}
+            {/* Bottom labels — centered horizontally below each dot */}
             {milestones.map((m, i) => {
               const p = points[i];
               if (i % 2 === 0) return null;
@@ -260,14 +260,14 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               return (
                 <div
                   key={`bottom-${i}`}
-                  className="absolute bottom-3 left-0 -translate-x-1/2 flex flex-col items-center w-[150px]"
+                  className="absolute bottom-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
+                  <div className={`text-xs font-medium leading-tight mb-1 line-clamp-2 text-center ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                    {m.title}
+                  </div>
                   <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
-                  </div>
-                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 ${future ? "text-muted-foreground" : "text-foreground"}`}>
-                    {m.title}
                   </div>
                 </div>
               );
