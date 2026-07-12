@@ -169,7 +169,7 @@ export function RejuvenationTrajectory({
 
       {/* Right: Trajectory chart card */}
       <Card className="border-border bg-card overflow-hidden">
-        <CardContent className="p-4 md:p-5 space-y-3">
+        <CardContent className="pt-5 pb-4 md:pb-5 px-4 md:px-5 space-y-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
