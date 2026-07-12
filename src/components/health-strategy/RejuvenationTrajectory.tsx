@@ -158,7 +158,7 @@ export function RejuvenationTrajectory({
               </div>
             ) : <span />}
             {previousBioAge != null && previousDate && (
-              <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="inline-flex items-center gap-1.5 font-heading text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <Sparkles className="h-3 w-3" />
                 {format(new Date(previousDate), "d MMM yyyy", { locale: ru })}
               </div>
