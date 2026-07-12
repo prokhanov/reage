@@ -192,7 +192,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         {/* Winding-route timeline */}
         <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
           <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
-            {/* Ambient landscape background: evolution of health from sparse (left) → harmonious (right) */}
+            {/* Ambient landscape: continuous evolution — sparse → dense, low → tall, dry → alive */}
             <svg
               viewBox="0 0 1000 260"
               preserveAspectRatio="xMidYMax slice"
@@ -202,75 +202,72 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               <defs>
                 <linearGradient id="rmSkyFade" x1="0" x2="1" y1="0" y2="0">
                   <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                  <stop offset="55%" stopColor="hsl(var(--primary))" stopOpacity="0.05" />
                   <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.10" />
                 </linearGradient>
-                <linearGradient id="rmFar" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.05" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.09" />
-                </linearGradient>
-                <linearGradient id="rmMid" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.07" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.13" />
-                </linearGradient>
-                <linearGradient id="rmNear" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.10" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.18" />
+                <linearGradient id="rmGround" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.06" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.16" />
                 </linearGradient>
               </defs>
 
-              {/* subtle sky wash */}
               <rect x="0" y="0" width="1000" height="260" fill="url(#rmSkyFade)" />
 
-              {/* Far layer — jagged on left, smoothing to gentle on right */}
+              {/* Soft rolling ground */}
               <path
-                d="M0,175 L40,168 L70,158 L95,168 L130,150 L160,164 L200,148 L240,158 L285,144 L335,150 L390,140 L450,144 L520,138 L600,134 L690,132 L780,130 L870,128 L1000,126 L1000,260 L0,260 Z"
-                fill="url(#rmFar)"
+                d="M0,224 C 140,220 220,228 340,222 C 460,216 560,224 680,216 C 800,208 900,212 1000,206 L1000,260 L0,260 Z"
+                fill="url(#rmGround)"
               />
 
-              {/* Mid layer */}
-              <path
-                d="M0,205 L30,198 L55,208 L85,192 L120,204 L155,188 L195,200 L240,186 C300,178 360,182 420,178 C500,172 580,168 660,166 C740,164 820,162 900,160 L1000,159 L1000,260 L0,260 Z"
-                fill="url(#rmMid)"
-              />
+              {/* Continuous vegetation — density, height and vitality grow smoothly across x */}
+              {(() => {
+                const items: JSX.Element[] = [];
+                const COUNT = 110;
+                let seed = 7;
+                const rand = () => {
+                  seed = (seed * 9301 + 49297) % 233280;
+                  return seed / 233280;
+                };
+                for (let i = 0; i < COUNT; i++) {
+                  const t = i / (COUNT - 1);
+                  const x = t * 1000 + (rand() - 0.5) * 14;
+                  if (x < 0 || x > 1000) continue;
 
-              {/* Near layer — most contrast, most evolution */}
-              <path
-                d="M0,238 L20,232 L40,242 L65,228 L95,240 L125,224 L165,236 L205,220 C270,210 340,214 410,208 C490,201 570,196 650,192 C740,188 830,186 920,184 L1000,183 L1000,260 L0,260 Z"
-                fill="url(#rmNear)"
-              />
+                  const density = 0.15 + t * 0.85;
+                  if (rand() > density) continue;
 
-              {/* Sparse elements — LEFT (dry, uneven) */}
-              {/* tiny dry bushes */}
-              <circle cx="55" cy="236" r="2.2" fill="hsl(var(--muted-foreground))" fillOpacity="0.18" />
-              <circle cx="110" cy="238" r="1.8" fill="hsl(var(--muted-foreground))" fillOpacity="0.16" />
-              <circle cx="175" cy="232" r="2" fill="hsl(var(--muted-foreground))" fillOpacity="0.17" />
-              {/* thin dead-looking twigs (triangles) */}
-              <polygon points="80,236 82,224 84,236" fill="hsl(var(--muted-foreground))" fillOpacity="0.18" />
-              <polygon points="145,240 147,228 149,240" fill="hsl(var(--muted-foreground))" fillOpacity="0.16" />
+                  const groundY = 224 - Math.sin((x / 1000) * Math.PI) * 6 - t * 8;
+                  const baseH = 4 + t * t * 28 + rand() * 6;
+                  const opacity = 0.08 + t * 0.22 + rand() * 0.05;
+                  const color = t < 0.35 ? "hsl(var(--muted-foreground))" : "hsl(var(--primary))";
+                  const isTree = rand() < 0.5 + t * 0.4;
+                  if (isTree) {
+                    const w = 2 + t * 6 + rand() * 2;
+                    items.push(
+                      <polygon
+                        key={i}
+                        points={`${x - w / 2},${groundY} ${x},${groundY - baseH} ${x + w / 2},${groundY}`}
+                        fill={color}
+                        fillOpacity={opacity}
+                      />
+                    );
+                  } else {
+                    const r = 1.2 + t * 2.6 + rand() * 1.2;
+                    items.push(
+                      <circle
+                        key={i}
+                        cx={x}
+                        cy={groundY - r * 0.4}
+                        r={r}
+                        fill={color}
+                        fillOpacity={opacity}
+                      />
+                    );
+                  }
+                }
+                return items;
+              })()}
 
-              {/* MIDDLE — recovery: modest groups appearing */}
-              <polygon points="310,232 314,216 318,232" fill="hsl(var(--primary))" fillOpacity="0.16" />
-              <polygon points="322,232 325,222 328,232" fill="hsl(var(--primary))" fillOpacity="0.14" />
-              <circle cx="380" cy="234" r="2.6" fill="hsl(var(--primary))" fillOpacity="0.15" />
-              <polygon points="470,228 475,210 480,228" fill="hsl(var(--primary))" fillOpacity="0.17" />
-              <polygon points="485,228 488,218 491,228" fill="hsl(var(--primary))" fillOpacity="0.14" />
-              <circle cx="540" cy="232" r="3" fill="hsl(var(--primary))" fillOpacity="0.16" />
-
-              {/* RIGHT — mature, harmonious groves */}
-              <polygon points="640,226 646,204 652,226" fill="hsl(var(--primary))" fillOpacity="0.20" />
-              <polygon points="655,226 660,210 665,226" fill="hsl(var(--primary))" fillOpacity="0.18" />
-              <polygon points="668,226 672,214 676,226" fill="hsl(var(--primary))" fillOpacity="0.16" />
-              <circle cx="720" cy="228" r="3.4" fill="hsl(var(--primary))" fillOpacity="0.19" />
-              <circle cx="735" cy="230" r="2.6" fill="hsl(var(--primary))" fillOpacity="0.16" />
-              <polygon points="800,222 807,198 814,222" fill="hsl(var(--primary))" fillOpacity="0.22" />
-              <polygon points="818,222 823,208 828,222" fill="hsl(var(--primary))" fillOpacity="0.19" />
-              <polygon points="832,222 836,212 840,222" fill="hsl(var(--primary))" fillOpacity="0.17" />
-              <polygon points="895,220 902,196 909,220" fill="hsl(var(--primary))" fillOpacity="0.22" />
-              <polygon points="912,220 917,206 922,220" fill="hsl(var(--primary))" fillOpacity="0.19" />
-              <circle cx="955" cy="224" r="3" fill="hsl(var(--primary))" fillOpacity="0.18" />
-
-              {/* Barely-visible winding trail across the whole panorama */}
+              {/* Faint winding trail */}
               <path
                 d="M0,220 C 120,214 180,232 260,224 C 340,216 400,236 500,226 C 600,216 680,232 780,222 C 860,214 930,220 1000,216"
                 fill="none"
@@ -278,39 +275,6 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                 strokeOpacity="0.18"
                 strokeWidth="1"
                 strokeDasharray="2 5"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-
-            <svg
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="none"
-              className="absolute inset-0 w-full h-full"
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
-                </linearGradient>
-              </defs>
-              {/* Base path (dashed, muted) */}
-              <path
-                d={fullPath}
-                fill="none"
-                stroke="hsl(var(--muted-foreground) / 0.35)"
-                strokeWidth={2}
-                strokeDasharray="6 8"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-              {/* Passed progress path */}
-              <path
-                d={passedPath}
-                fill="none"
-                stroke="url(#roadmapGrad)"
-                strokeWidth={3}
-                strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
