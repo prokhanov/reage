@@ -17,16 +17,16 @@ export function EvolutionBackdrop() {
       className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
     >
       <svg
-        viewBox="0 0 1600 260"
+        viewBox="0 0 1600 360"
         preserveAspectRatio="none"
         className="absolute inset-0 h-full w-full"
       >
         <defs>
           {/* Sky wash — cool on the left, warmer/settled on the right */}
           <linearGradient id="ev-sky" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="hsl(var(--muted))" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="hsl(var(--primary) / 0.06)" />
-            <stop offset="100%" stopColor="hsl(var(--primary) / 0.12)" />
+            <stop offset="0%" stopColor="hsl(var(--muted))" stopOpacity="0.28" />
+            <stop offset="50%" stopColor="hsl(var(--primary) / 0.05)" />
+            <stop offset="100%" stopColor="hsl(var(--primary) / 0.10)" />
           </linearGradient>
 
           {/* Fade the panorama into the card edges so it feels embedded */}
@@ -37,24 +37,24 @@ export function EvolutionBackdrop() {
             <stop offset="100%" stopColor="hsl(var(--card))" stopOpacity="1" />
           </linearGradient>
           <linearGradient id="ev-fade-y" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="hsl(var(--card))" stopOpacity="0.85" />
-            <stop offset="40%" stopColor="hsl(var(--card))" stopOpacity="0" />
-            <stop offset="100%" stopColor="hsl(var(--card))" stopOpacity="0.6" />
+            <stop offset="0%" stopColor="hsl(var(--card))" stopOpacity="0.92" />
+            <stop offset="35%" stopColor="hsl(var(--card))" stopOpacity="0" />
+            <stop offset="100%" stopColor="hsl(var(--card))" stopOpacity="0.55" />
           </linearGradient>
         </defs>
 
         {/* Sky */}
-        <rect width="1600" height="260" fill="url(#ev-sky)" />
+        <rect width="1600" height="360" fill="url(#ev-sky)" />
 
         {/*
           Far layer — most distant hills. Very low contrast, softly blurred.
           Left side sits a touch lower and rougher; right side rises into
           calm, ordered ridges.
         */}
-        <g style={{ filter: "blur(2px)" }} opacity="0.28">
+        <g style={{ filter: "blur(2px)" }} opacity="0.24">
           <path
             fill="hsl(var(--primary))"
-            d="M0,190 L60,178 L130,188 L190,170 L250,182 L320,168 L400,175 L470,158 L560,166 L640,150 L730,156 L820,142 L910,148 L1000,132 L1090,138 L1180,122 L1270,126 L1360,110 L1450,114 L1540,100 L1600,104 L1600,260 L0,260 Z"
+            d="M0,268 L60,254 L130,266 L190,244 L250,260 L320,242 L400,252 L470,230 L560,240 L640,220 L730,228 L820,210 L910,218 L1000,198 L1090,206 L1180,186 L1270,192 L1360,174 L1450,180 L1540,162 L1600,168 L1600,360 L0,360 Z"
           />
         </g>
 
@@ -62,46 +62,46 @@ export function EvolutionBackdrop() {
           Mid layer — rolling hills. Slight roughness on the left with
           gaps; gradually becomes an even, flowing ridge on the right.
         */}
-        <g style={{ filter: "blur(0.6px)" }} opacity="0.42">
+        <g style={{ filter: "blur(0.6px)" }} opacity="0.38">
           <path
             fill="hsl(var(--primary))"
-            d="M0,220 L40,208 L90,222 L140,196 L200,214 L260,192 L330,206 L400,184 L470,198 L550,176 L630,188 L720,168 L810,178 L900,158 L1000,166 L1100,150 L1200,156 L1310,142 L1420,146 L1540,134 L1600,138 L1600,260 L0,260 Z"
+            d="M0,300 L40,284 L90,302 L140,274 L200,296 L260,270 L330,288 L400,262 L470,280 L550,252 L630,270 L720,246 L810,264 L900,238 L1000,254 L1100,232 L1200,240 L1310,220 L1420,228 L1540,210 L1600,216 L1600,360 L0,360 Z"
           />
         </g>
 
         {/* Front layer — closest hills, most saturated but still gentle */}
-        <g opacity="0.55">
+        <g opacity="0.50">
           <path
             fill="hsl(var(--primary))"
-            d="M0,246 L50,238 L110,248 L170,230 L240,244 L310,224 L390,238 L470,218 L560,232 L650,212 L750,224 L850,206 L960,216 L1070,198 L1180,206 L1300,190 L1420,196 L1540,182 L1600,186 L1600,260 L0,260 Z"
+            d="M0,330 L50,318 L110,332 L170,310 L240,328 L310,304 L390,322 L470,298 L560,318 L650,292 L750,312 L850,288 L960,306 L1070,282 L1180,298 L1300,276 L1420,288 L1540,268 L1600,274 L1600,360 L0,360 Z"
           />
         </g>
 
         {/* --- Vegetation cues (very light silhouettes) --- */}
         {/* Left: sparse, uneven — a couple of small dry shapes */}
-        <g fill="hsl(var(--muted-foreground))" opacity="0.22">
-          <circle cx="120" cy="240" r="3.5" />
-          <circle cx="180" cy="236" r="2.8" />
-          <circle cx="255" cy="242" r="3" />
-          <circle cx="360" cy="234" r="4" />
+        <g fill="hsl(var(--muted-foreground))" opacity="0.20">
+          <circle cx="120" cy="320" r="3.5" />
+          <circle cx="180" cy="314" r="2.8" />
+          <circle cx="255" cy="324" r="3" />
+          <circle cx="360" cy="312" r="4" />
         </g>
 
         {/* Middle: small groves appearing */}
-        <g fill="hsl(var(--primary))" opacity="0.32">
-          <ellipse cx="640" cy="232" rx="7" ry="5" />
-          <ellipse cx="654" cy="230" rx="5" ry="4" />
-          <ellipse cx="780" cy="226" rx="8" ry="6" />
-          <ellipse cx="795" cy="228" rx="5" ry="4" />
-          <ellipse cx="900" cy="222" rx="9" ry="6" />
+        <g fill="hsl(var(--primary))" opacity="0.30">
+          <ellipse cx="640" cy="310" rx="7" ry="5" />
+          <ellipse cx="654" cy="306" rx="5" ry="4" />
+          <ellipse cx="780" cy="300" rx="8" ry="6" />
+          <ellipse cx="795" cy="304" rx="5" ry="4" />
+          <ellipse cx="900" cy="296" rx="9" ry="6" />
         </g>
 
         {/* Right: mature trees, ordered spacing */}
-        <g fill="hsl(var(--primary))" opacity="0.42">
-          <ellipse cx="1100" cy="214" rx="11" ry="8" />
-          <ellipse cx="1220" cy="210" rx="12" ry="9" />
-          <ellipse cx="1330" cy="206" rx="10" ry="8" />
-          <ellipse cx="1440" cy="202" rx="13" ry="10" />
-          <ellipse cx="1540" cy="200" rx="11" ry="8" />
+        <g fill="hsl(var(--primary))" opacity="0.40">
+          <ellipse cx="1100" cy="288" rx="11" ry="8" />
+          <ellipse cx="1220" cy="282" rx="12" ry="9" />
+          <ellipse cx="1330" cy="276" rx="10" ry="8" />
+          <ellipse cx="1440" cy="270" rx="13" ry="10" />
+          <ellipse cx="1540" cy="266" rx="11" ry="8" />
         </g>
 
         {/*
@@ -110,17 +110,17 @@ export function EvolutionBackdrop() {
           the interactive timeline on top.
         */}
         <path
-          d="M0,236 C120,232 180,220 260,224 S420,244 520,230 S700,206 820,218 S1000,242 1120,222 S1320,198 1440,208 S1560,220 1600,212"
+          d="M0,320 C120,314 180,298 260,304 S420,330 520,312 S700,280 820,294 S1000,324 1120,300 S1320,270 1440,286 S1560,302 1600,292"
           fill="none"
           stroke="hsl(var(--muted-foreground))"
-          strokeOpacity="0.28"
+          strokeOpacity="0.26"
           strokeWidth="1"
           strokeLinecap="round"
         />
 
         {/* Edge fades to blend into the card */}
-        <rect width="1600" height="260" fill="url(#ev-fade-x)" />
-        <rect width="1600" height="260" fill="url(#ev-fade-y)" />
+        <rect width="1600" height="360" fill="url(#ev-fade-x)" />
+        <rect width="1600" height="360" fill="url(#ev-fade-y)" />
       </svg>
     </div>
   );

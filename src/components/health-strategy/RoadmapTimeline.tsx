@@ -52,10 +52,10 @@ const SYSTEM_ICON: Record<string, any> = {
 // stretches across the container; vector-effect="non-scaling-stroke" keeps
 // the line crisp at any width.
 const VB_W = 1000;
-const VB_H = 220;
+const VB_H = 360;
 const PAD_X = 40; // leave room so the first/last marker don't touch edges
 const MID_Y = VB_H / 2;
-const AMP = 60; // vertical wave amplitude
+const AMP = 80; // vertical wave amplitude
 
 /** Build a smooth cubic-bezier "S" curve through points. */
 function buildSmoothPath(points: { x: number; y: number }[]): string {
@@ -192,100 +192,117 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
             )}
           </div>
 
-          {/* Winding-route timeline */}
-          <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
-            <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
-              <EvolutionBackdrop />
-              <svg
-                viewBox={`0 0 ${VB_W} ${VB_H}`}
-                preserveAspectRatio="none"
-                className="absolute inset-0 w-full h-full"
-                aria-hidden
-              >
-                <defs>
-                  <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
-                  </linearGradient>
-                </defs>
-                {/* Base path (dashed, muted) */}
-                <path
-                  d={fullPath}
-                  fill="none"
-                  stroke="hsl(var(--muted-foreground) / 0.35)"
-                  strokeWidth={2}
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                {/* Passed progress path */}
-                <path
-                  d={passedPath}
-                  fill="none"
-                  stroke="url(#roadmapGrad)"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
+        {/* Winding-route timeline */}
+        <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
+          <div className="relative min-w-[720px] md:min-w-0" style={{ height: 360 }}>
+            <EvolutionBackdrop />
+            <svg
+              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full"
+              aria-hidden
+            >
+              <defs>
+                <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
+                </linearGradient>
+              </defs>
+              {/* Base path (dashed, muted) */}
+              <path
+                d={fullPath}
+                fill="none"
+                stroke="hsl(var(--muted-foreground) / 0.35)"
+                strokeWidth={2}
+                strokeDasharray="6 8"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* Passed progress path */}
+              <path
+                d={passedPath}
+                fill="none"
+                stroke="url(#roadmapGrad)"
+                strokeWidth={3}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
 
-              {/* Marker overlay */}
-              {milestones.map((m, i) => {
-                const Icon = KIND_ICON[m.kind] || Sparkles;
-                const passed = i < activeIdx;
-                const current = i === activeIdx;
-                const p = points[i];
-                const date = new Date(m.date_iso);
-                const above = i % 2 === 0; // matches y selection above
-                return (
-                  <div
-                    key={i}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                    style={{ left: `${toLeftPct(p.x)}%`, top: `${toTopPct(p.y)}%` }}
-                  >
-                    {/* Date + title positioned opposite the curve direction */}
-                    {above ? (
-                      <div className="absolute bottom-full mb-2 w-[140px] text-center">
-                        <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
-                          {format(date, "d MMM yyyy", { locale: ru })}
-                        </div>
-                        <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
-                          {m.title}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div className="relative">
-                      {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/30" />}
-                      <div
-                        className={[
-                          "relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
-                          passed
-                            ? "bg-gradient-primary border-primary text-primary-foreground"
-                            : current
-                            ? "bg-card border-primary text-primary ring-4 ring-primary/15"
-                            : "bg-card border-border text-muted-foreground",
-                        ].join(" ")}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </div>
-                    </div>
-
-                    {!above ? (
-                      <div className="absolute top-full mt-2 w-[140px] text-center">
-                        <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
-                          {format(date, "d MMM yyyy", { locale: ru })}
-                        </div>
-                        <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
-                          {m.title}
-                        </div>
-                      </div>
-                    ) : null}
+            {/* Top labels — anchored to the top edge, all aligned */}
+            {milestones.map((m, i) => {
+              const p = points[i];
+              if (i % 2 !== 0) return null;
+              const date = new Date(m.date_iso);
+              const future = i > activeIdx;
+              return (
+                <div
+                  key={`top-${i}`}
+                  className="absolute top-3 left-0 -translate-x-1/2 flex flex-col items-center w-[150px]"
+                  style={{ left: `${toLeftPct(p.x)}%` }}
+                >
+                  <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
+                    {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
-                );
-              })}
-            </div>
+                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                    {m.title}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Bottom labels — anchored to the bottom edge, all aligned */}
+            {milestones.map((m, i) => {
+              const p = points[i];
+              if (i % 2 === 0) return null;
+              const date = new Date(m.date_iso);
+              const future = i > activeIdx;
+              return (
+                <div
+                  key={`bottom-${i}`}
+                  className="absolute bottom-3 left-0 -translate-x-1/2 flex flex-col items-center w-[150px]"
+                  style={{ left: `${toLeftPct(p.x)}%` }}
+                >
+                  <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
+                    {format(date, "d MMM yyyy", { locale: ru })}
+                  </div>
+                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                    {m.title}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Markers */}
+            {milestones.map((m, i) => {
+              const Icon = KIND_ICON[m.kind] || Sparkles;
+              const passed = i < activeIdx;
+              const current = i === activeIdx;
+              const p = points[i];
+              return (
+                <div
+                  key={`marker-${i}`}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+                  style={{ left: `${toLeftPct(p.x)}%`, top: `${toTopPct(p.y)}%` }}
+                >
+                  {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/25" />}
+                  <div
+                    className={[
+                      "relative w-11 h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
+                      passed
+                        ? "bg-gradient-primary border-primary text-primary-foreground"
+                        : current
+                        ? "bg-card border-primary text-primary ring-4 ring-primary/15"
+                        : "bg-card border-border text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
         </CardContent>
       </Card>
 
