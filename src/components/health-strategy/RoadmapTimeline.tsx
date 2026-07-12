@@ -180,7 +180,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
           {/* Header */}
           <div className="flex items-end justify-between gap-3 flex-wrap mb-4 md:mb-5">
             <div>
-              <h3 className="text-lg md:text-xl font-bold text-foreground">План здоровья на год</h3>
+              <h3 className="font-heading text-lg md:text-xl font-semibold tracking-tight text-foreground">План здоровья на год</h3>
               <p className="text-xs text-muted-foreground mt-1">
                 Плановые сдачи полной панели и ожидаемые улучшения{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
               </p>
@@ -240,10 +240,10 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   className="absolute top-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
-                  <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
+                  <div className="font-mono-tech text-[11px] text-muted-foreground/80 whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
-                  <div className="text-xs font-medium leading-tight mt-1 line-clamp-2 text-center text-foreground">
+                  <div className="font-heading text-xs font-semibold leading-tight mt-1 line-clamp-2 text-center text-foreground">
                     {m.title}
                   </div>
                 </div>
@@ -261,10 +261,10 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   className="absolute bottom-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
-                  <div className="text-xs font-medium leading-tight mb-1 line-clamp-2 text-center text-foreground">
+                  <div className="font-heading text-xs font-semibold leading-tight mb-1 line-clamp-2 text-center text-foreground">
                     {m.title}
                   </div>
-                  <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
+                  <div className="font-mono-tech text-[11px] text-muted-foreground/80 whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
                 </div>
@@ -324,13 +324,13 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               ].join(" ")}
             >
               <div className="flex items-center justify-between gap-2">
-                <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                <h4 className={`font-heading text-sm font-semibold leading-tight tracking-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
                   {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
                 </h4>
                 {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
                 {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
               </div>
-              <div className="text-[11px] text-muted-foreground tabular-nums">
+              <div className="font-mono-tech text-[11px] text-muted-foreground">
                 {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
               </div>
               <ul className="space-y-1 mt-1">
@@ -365,7 +365,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
       {/* Key biomarkers */}
       {keyBiomarkers && keyBiomarkers.length > 0 && (
         <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">Ваши ключевые биомаркеры под контролем</h4>
+          <h4 className="font-heading text-sm font-semibold tracking-tight text-foreground">Ваши ключевые биомаркеры под контролем</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {keyBiomarkers.slice(0, 6).map((kb, i) => {
               const Icon = SYSTEM_ICON[kb.system_key] || Activity;

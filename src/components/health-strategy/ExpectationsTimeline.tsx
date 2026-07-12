@@ -114,7 +114,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
       <CardHeader className="pb-4 md:pb-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1.5 min-w-0">
-            <CardTitle className="text-lg md:text-xl font-semibold tracking-tight flex items-center gap-2">
+            <CardTitle className="font-heading text-lg md:text-xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary shrink-0" />
               Что будет происходить с вашим организмом
             </CardTitle>
@@ -217,7 +217,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                           <div className="min-w-0 flex-1 space-y-2">
                             {/* Title row */}
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm md:text-[15px] font-semibold leading-snug text-foreground">
+                              <h4 className="font-heading text-sm md:text-[15px] font-semibold leading-snug text-foreground tracking-tight">
                                 {e.title}
                               </h4>
                               <div className="shrink-0 flex items-center gap-1.5">
@@ -243,11 +243,11 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
 
                             {/* Meta row */}
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground tabular-nums">
+                              <span className="font-mono-tech font-semibold text-foreground">
                                 {formatDayLabel(e.day_from_start)}
                               </span>
                               <span className="text-border">·</span>
-                              <span className="tabular-nums">{format(d, "d MMM yyyy", { locale: ru })}</span>
+                              <span className="font-mono-tech">{format(d, "d MMM yyyy", { locale: ru })}</span>
                               {!passed && days > 0 && (
                                 <>
                                   <span className="text-border">·</span>
@@ -283,11 +283,11 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs">
-                                  <span className="tabular-nums text-muted-foreground">
+                                  <span className="font-mono-tech text-muted-foreground">
                                     {e.biomarker_target.from} {e.biomarker_target.unit}
                                   </span>
                                   <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                                  <span className="tabular-nums font-semibold text-primary">
+                                  <span className="font-mono-tech font-semibold text-primary">
                                     {e.biomarker_target.to} {e.biomarker_target.unit}
                                   </span>
                                   <TrendingDown
