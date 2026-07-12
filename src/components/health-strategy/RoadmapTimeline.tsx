@@ -324,13 +324,13 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               ].join(" ")}
             >
               <div className="flex items-center justify-between gap-2">
-                <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                <h4 className={`font-heading text-sm font-semibold leading-tight tracking-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
                   {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
                 </h4>
                 {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
                 {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
               </div>
-              <div className="text-[11px] text-muted-foreground tabular-nums">
+              <div className="font-mono-tech text-[11px] text-muted-foreground">
                 {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
               </div>
               <ul className="space-y-1 mt-1">
