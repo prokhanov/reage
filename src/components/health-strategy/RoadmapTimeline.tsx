@@ -173,202 +173,204 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   const toTopPct = (y: number) => (y / VB_H) * 100;
 
   return (
-    <Card className="border-border bg-card overflow-hidden">
-      <CardContent className="p-4 md:p-6 space-y-5 md:space-y-6">
-        {/* Header */}
-        <div className="flex items-end justify-between gap-3 flex-wrap">
-          <div>
-            <h3 className="text-lg md:text-xl font-bold text-foreground">План здоровья на год</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Плановые сдачи полной панели и ожидаемые улучшения{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
-            </p>
+    <div className="space-y-4 md:space-y-5">
+      {/* Route card: visual timeline only */}
+      <Card className="border border-primary/20 bg-card/80 overflow-hidden shadow-sm">
+        <CardContent className="p-4 md:p-6">
+          {/* Header */}
+          <div className="flex items-end justify-between gap-3 flex-wrap mb-4 md:mb-5">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">План здоровья на год</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Плановые сдачи полной панели и ожидаемые улучшения{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
+              </p>
+            </div>
+            {adherencePct != null && (
+              <Badge variant="secondary" className="text-xs">
+                Соблюдение: {adherencePct}%
+              </Badge>
+            )}
           </div>
-          {adherencePct != null && (
-            <Badge variant="secondary" className="text-xs">
-              Соблюдение: {adherencePct}%
-            </Badge>
-          )}
-        </div>
 
-        {/* Winding-route timeline */}
-        <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
-          <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
-            <EvolutionBackdrop />
-            <svg
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="none"
-              className="absolute inset-0 w-full h-full"
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
-                </linearGradient>
-              </defs>
-              {/* Base path (dashed, muted) */}
-              <path
-                d={fullPath}
-                fill="none"
-                stroke="hsl(var(--muted-foreground) / 0.35)"
-                strokeWidth={2}
-                strokeDasharray="6 8"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-              {/* Passed progress path */}
-              <path
-                d={passedPath}
-                fill="none"
-                stroke="url(#roadmapGrad)"
-                strokeWidth={3}
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-
-            {/* Marker overlay */}
-            {milestones.map((m, i) => {
-              const Icon = KIND_ICON[m.kind] || Sparkles;
-              const passed = i < activeIdx;
-              const current = i === activeIdx;
-              const p = points[i];
-              const date = new Date(m.date_iso);
-              const above = i % 2 === 0; // matches y selection above
-              return (
-                <div
-                  key={i}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                  style={{ left: `${toLeftPct(p.x)}%`, top: `${toTopPct(p.y)}%` }}
-                >
-                  {/* Date + title positioned opposite the curve direction */}
-                  {above ? (
-                    <div className="absolute bottom-full mb-2 w-[140px] text-center">
-                      <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
-                        {format(date, "d MMM yyyy", { locale: ru })}
-                      </div>
-                      <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
-                        {m.title}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="relative">
-                    {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/30" />}
-                    <div
-                      className={[
-                        "relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
-                        passed
-                          ? "bg-gradient-primary border-primary text-primary-foreground"
-                          : current
-                          ? "bg-card border-primary text-primary ring-4 ring-primary/15"
-                          : "bg-card border-border text-muted-foreground",
-                      ].join(" ")}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                  </div>
-
-                  {!above ? (
-                    <div className="absolute top-full mt-2 w-[140px] text-center">
-                      <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
-                        {format(date, "d MMM yyyy", { locale: ru })}
-                      </div>
-                      <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
-                        {m.title}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Cards row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {milestones.map((m, i) => {
-            const passed = i < activeIdx;
-            const current = i === activeIdx;
-            const future = i > activeIdx;
-            const num = (m as any)._num as number | undefined;
-            return (
-              <div
-                key={i}
-                className={[
-                  "rounded-lg border p-3 flex flex-col gap-2 transition-colors",
-                  current
-                    ? "border-primary/50 bg-primary/5 shadow-sm"
-                    : passed
-                    ? "border-border bg-muted/40 opacity-90"
-                    : "border-border bg-card/50",
-                ].join(" ")}
+          {/* Winding-route timeline */}
+          <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
+            <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
+              <EvolutionBackdrop />
+              <svg
+                viewBox={`0 0 ${VB_W} ${VB_H}`}
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full"
+                aria-hidden
               >
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
-                    {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
-                  </h4>
-                  {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
-                  {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
-                </div>
-                <div className="text-[11px] text-muted-foreground tabular-nums">
-                  {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
-                </div>
-                <ul className="space-y-1 mt-1">
-                  {(m.bullets || []).slice(0, 4).map((b, j) => (
-                    <li key={j} className="text-xs text-foreground/80 leading-snug flex gap-1.5">
-                      <span className="text-primary mt-1">•</span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                {current && adherencePct != null && (
-                  <div className="pt-1">
-                    <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                      <span>Прогресс этапа</span>
-                      <span className="tabular-nums">{adherencePct}%</span>
-                    </div>
-                    <Progress value={adherencePct} className="h-1.5" />
-                  </div>
-                )}
-                {m.focus && (
-                  <div className="mt-auto pt-2">
-                    <div className="inline-block text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary">
-                      Фокус: {m.focus}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                <defs>
+                  <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
+                  </linearGradient>
+                </defs>
+                {/* Base path (dashed, muted) */}
+                <path
+                  d={fullPath}
+                  fill="none"
+                  stroke="hsl(var(--muted-foreground) / 0.35)"
+                  strokeWidth={2}
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* Passed progress path */}
+                <path
+                  d={passedPath}
+                  fill="none"
+                  stroke="url(#roadmapGrad)"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
 
-        {/* Key biomarkers */}
-        {keyBiomarkers && keyBiomarkers.length > 0 && (
-          <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
-            <h4 className="text-sm font-semibold text-foreground">Ваши ключевые биомаркеры под контролем</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {keyBiomarkers.slice(0, 6).map((kb, i) => {
-                const Icon = SYSTEM_ICON[kb.system_key] || Activity;
+              {/* Marker overlay */}
+              {milestones.map((m, i) => {
+                const Icon = KIND_ICON[m.kind] || Sparkles;
+                const passed = i < activeIdx;
+                const current = i === activeIdx;
+                const p = points[i];
+                const date = new Date(m.date_iso);
+                const above = i % 2 === 0; // matches y selection above
                 return (
-                  <div key={i} className="flex items-start gap-2">
-                    <div className="w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center shrink-0">
-                      <Icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-foreground leading-tight">{kb.system_label}</div>
-                      <div className="text-[11px] text-muted-foreground leading-tight mt-0.5 break-words">
-                        {kb.markers.map((c) => formatMarker(c)).join(", ")}
+                  <div
+                    key={i}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                    style={{ left: `${toLeftPct(p.x)}%`, top: `${toTopPct(p.y)}%` }}
+                  >
+                    {/* Date + title positioned opposite the curve direction */}
+                    {above ? (
+                      <div className="absolute bottom-full mb-2 w-[140px] text-center">
+                        <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                          {format(date, "d MMM yyyy", { locale: ru })}
+                        </div>
+                        <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
+                          {m.title}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="relative">
+                      {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/30" />}
+                      <div
+                        className={[
+                          "relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
+                          passed
+                            ? "bg-gradient-primary border-primary text-primary-foreground"
+                            : current
+                            ? "bg-card border-primary text-primary ring-4 ring-primary/15"
+                            : "bg-card border-border text-muted-foreground",
+                        ].join(" ")}
+                      >
+                        <Icon className="h-4 w-4" />
                       </div>
                     </div>
+
+                    {!above ? (
+                      <div className="absolute top-full mt-2 w-[140px] text-center">
+                        <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                          {format(date, "d MMM yyyy", { locale: ru })}
+                        </div>
+                        <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
+                          {m.title}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
             </div>
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-      </CardContent>
-    </Card>
+      {/* Description cards row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {milestones.map((m, i) => {
+          const passed = i < activeIdx;
+          const current = i === activeIdx;
+          const future = i > activeIdx;
+          const num = (m as any)._num as number | undefined;
+          return (
+            <div
+              key={i}
+              className={[
+                "rounded-lg border p-3 flex flex-col gap-2 transition-colors",
+                current
+                  ? "border-primary/50 bg-primary/5 shadow-sm"
+                  : passed
+                  ? "border-border bg-muted/40 opacity-90"
+                  : "border-border bg-card/50",
+              ].join(" ")}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                  {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
+                </h4>
+                {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
+                {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
+              </div>
+              <div className="text-[11px] text-muted-foreground tabular-nums">
+                {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
+              </div>
+              <ul className="space-y-1 mt-1">
+                {(m.bullets || []).slice(0, 4).map((b, j) => (
+                  <li key={j} className="text-xs text-foreground/80 leading-snug flex gap-1.5">
+                    <span className="text-primary mt-1">•</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              {current && adherencePct != null && (
+                <div className="pt-1">
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>Прогресс этапа</span>
+                    <span className="tabular-nums">{adherencePct}%</span>
+                  </div>
+                  <Progress value={adherencePct} className="h-1.5" />
+                </div>
+              )}
+              {m.focus && (
+                <div className="mt-auto pt-2">
+                  <div className="inline-block text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    Фокус: {m.focus}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Key biomarkers */}
+      {keyBiomarkers && keyBiomarkers.length > 0 && (
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
+          <h4 className="text-sm font-semibold text-foreground">Ваши ключевые биомаркеры под контролем</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {keyBiomarkers.slice(0, 6).map((kb, i) => {
+              const Icon = SYSTEM_ICON[kb.system_key] || Activity;
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-foreground leading-tight">{kb.system_label}</div>
+                    <div className="text-[11px] text-muted-foreground leading-tight mt-0.5 break-words">
+                      {kb.markers.map((c) => formatMarker(c)).join(", ")}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
