@@ -217,7 +217,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                           <div className="min-w-0 flex-1 space-y-2">
                             {/* Title row */}
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm md:text-[15px] font-semibold leading-snug text-foreground">
+                              <h4 className="font-heading text-sm md:text-[15px] font-semibold leading-snug text-foreground tracking-tight">
                                 {e.title}
                               </h4>
                               <div className="shrink-0 flex items-center gap-1.5">
