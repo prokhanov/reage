@@ -114,7 +114,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
       <CardHeader className="pb-4 md:pb-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1.5 min-w-0">
-            <CardTitle className="text-lg md:text-xl font-semibold tracking-tight flex items-center gap-2">
+            <CardTitle className="font-heading text-lg md:text-xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary shrink-0" />
               Что будет происходить с вашим организмом
             </CardTitle>
