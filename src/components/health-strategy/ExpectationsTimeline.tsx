@@ -242,12 +242,12 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                             </div>
 
                             {/* Meta row */}
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
-                              <span className="font-mono-tech font-semibold text-foreground">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-heading text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              <span className="text-foreground">
                                 {formatDayLabel(e.day_from_start)}
                               </span>
                               <span className="text-border">·</span>
-                              <span className="font-mono-tech">{format(d, "d MMM yyyy", { locale: ru })}</span>
+                              <span>{format(d, "d MMM yyyy", { locale: ru })}</span>
                               {!passed && days > 0 && (
                                 <>
                                   <span className="text-border">·</span>
@@ -255,13 +255,13 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                                 </>
                               )}
                               <span className="text-border">·</span>
-                              <span className="inline-flex items-center rounded-md bg-muted/70 px-1.5 py-0.5">
+                              <span className="inline-flex items-center rounded-md bg-muted/70 px-1.5 py-0.5 normal-case tracking-normal">
                                 {CATEGORY_LABEL[e.category] || ""}
                               </span>
                               {e.confidence && e.confidence !== "high" && (
                                 <>
                                   <span className="text-border">·</span>
-                                  <span className="italic">{CONFIDENCE_LABEL[e.confidence]}</span>
+                                  <span className="italic normal-case tracking-normal">{CONFIDENCE_LABEL[e.confidence]}</span>
                                 </>
                               )}
                             </div>
