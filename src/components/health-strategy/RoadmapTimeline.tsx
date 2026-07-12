@@ -180,7 +180,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
           {/* Header */}
           <div className="flex items-end justify-between gap-3 flex-wrap mb-4 md:mb-5">
             <div>
-              <h3 className="text-lg md:text-xl font-bold text-foreground">План здоровья на год</h3>
+              <h3 className="font-heading text-lg md:text-xl font-semibold tracking-tight text-foreground">План здоровья на год</h3>
               <p className="text-xs text-muted-foreground mt-1">
                 Плановые сдачи полной панели и ожидаемые улучшения{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
               </p>
