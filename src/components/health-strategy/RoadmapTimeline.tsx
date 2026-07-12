@@ -234,7 +234,6 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               const p = points[i];
               if (i % 2 !== 0) return null;
               const date = new Date(m.date_iso);
-              const future = i > activeIdx;
               return (
                 <div
                   key={`top-${i}`}
@@ -244,7 +243,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
-                  <div className={`text-xs font-medium leading-tight mt-1 line-clamp-2 text-center ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                  <div className="text-xs font-medium leading-tight mt-1 line-clamp-2 text-center text-foreground">
                     {m.title}
                   </div>
                 </div>
@@ -256,14 +255,13 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               const p = points[i];
               if (i % 2 === 0) return null;
               const date = new Date(m.date_iso);
-              const future = i > activeIdx;
               return (
                 <div
                   key={`bottom-${i}`}
                   className="absolute bottom-3 -translate-x-1/2 flex flex-col items-center w-[160px] text-center"
                   style={{ left: `${toLeftPct(p.x)}%` }}
                 >
-                  <div className={`text-xs font-medium leading-tight mb-1 line-clamp-2 text-center ${future ? "text-muted-foreground" : "text-foreground"}`}>
+                  <div className="text-xs font-medium leading-tight mb-1 line-clamp-2 text-center text-foreground">
                     {m.title}
                   </div>
                   <div className="text-[11px] text-muted-foreground/80 tabular-nums whitespace-nowrap">
