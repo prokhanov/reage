@@ -365,7 +365,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
       {/* Key biomarkers */}
       {keyBiomarkers && keyBiomarkers.length > 0 && (
         <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">Ваши ключевые биомаркеры под контролем</h4>
+          <h4 className="font-heading text-sm font-semibold tracking-tight text-foreground">Ваши ключевые биомаркеры под контролем</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {keyBiomarkers.slice(0, 6).map((kb, i) => {
               const Icon = SYSTEM_ICON[kb.system_key] || Activity;
