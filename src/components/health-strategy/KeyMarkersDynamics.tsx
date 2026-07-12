@@ -143,15 +143,15 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
                       <div className="font-medium dark:text-white text-indigo-900">{r.name}</div>
                       <div className="text-[11px] dark:text-white/40 text-slate-500">{r.category}</div>
                     </td>
-                    <td className="text-right py-2.5 font-mono dark:text-white/60 text-slate-500">
+                    <td className="text-right py-2.5 font-heading dark:text-white/60 text-slate-500">
                       {r.prev != null ? `${r.prev}` : "—"}
                     </td>
-                    <td className="text-right py-2.5 font-mono dark:text-white text-indigo-900">
+                    <td className="text-right py-2.5 font-heading dark:text-white text-indigo-900">
                       {r.cur} <span className="text-[10px] dark:text-white/40 text-slate-400">{r.unit}</span>
                     </td>
                     <td className="text-right py-2.5">
                       {r.deltaPct != null ? (
-                        <span className="inline-flex items-center gap-0.5 font-mono text-xs">
+                        <span className="inline-flex items-center gap-0.5 font-heading text-xs">
                           <TrendIcon className="h-3 w-3" />
                           {Math.abs(r.deltaPct) < 1 ? "0" : `${r.deltaPct > 0 ? "+" : ""}${r.deltaPct.toFixed(1)}`}%
                         </span>

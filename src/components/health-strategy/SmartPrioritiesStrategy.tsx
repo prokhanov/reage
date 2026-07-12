@@ -133,7 +133,7 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] dark:text-white/50 text-slate-500">
                   <span>Прогресс курса</span>
-                  <span className="font-mono">{p.done}/{p.total}</span>
+                  <span className="font-heading">{p.done}/{p.total}</span>
                 </div>
                 <Progress value={pct} className="h-1.5" />
               </div>

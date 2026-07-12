@@ -125,7 +125,7 @@ export function RejuvenationTrajectory({
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <Heart className="text-primary mb-1.5" style={{ width: 22, height: 22 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
-                <div className="font-mono-tech text-[56px] font-bold leading-none text-foreground tracking-tight">{healthIndex ?? "—"}</div>
+                <div className="font-heading text-[56px] font-bold leading-none text-foreground tracking-tight">{healthIndex ?? "—"}</div>
                 <div className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground mt-2">Индекс здоровья</div>
               </div>
             </div>
@@ -135,16 +135,16 @@ export function RejuvenationTrajectory({
           <div className="grid grid-cols-2 gap-6 mb-5">
             <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Биовозраст</div>
-              <div className="font-mono-tech text-2xl font-bold text-foreground leading-none">
+              <div className="font-heading text-2xl font-bold text-foreground leading-none">
                 {currentBioAge.toFixed(1)}
-                <span className="text-[11px] font-normal text-muted-foreground ml-1 font-sans">лет</span>
+                <span className="text-[11px] font-normal text-muted-foreground ml-1 font-heading">лет</span>
               </div>
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Цель · 12 мес</div>
-              <div className="font-mono-tech text-2xl font-bold leading-none bg-gradient-primary bg-clip-text text-transparent">
+              <div className="font-heading text-2xl font-bold leading-none bg-gradient-primary bg-clip-text text-transparent">
                 {targetBioAge.toFixed(1)}
-                <span className="text-[11px] font-normal text-muted-foreground ml-1 font-sans">лет</span>
+                <span className="text-[11px] font-normal text-muted-foreground ml-1 font-heading">лет</span>
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ export function RejuvenationTrajectory({
                 Цель: {targetBioAge.toFixed(1)} лет к {targetDate}
               </div>
               {trendDelta != null && (
-                <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-lg bg-muted ${trendColor}`}>
+                <div className={`flex items-center gap-1 text-xs font-heading px-2 py-1 rounded-lg bg-muted ${trendColor}`}>
                   <TrendIcon className="h-3.5 w-3.5" />
                   {trendDelta > 0 ? "+" : ""}{trendDelta.toFixed(1)}
                 </div>

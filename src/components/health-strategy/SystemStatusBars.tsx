@@ -91,7 +91,7 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                   <div className="flex items-end justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Icon className="h-4 w-4 dark:text-white/70 text-slate-500 shrink-0" />
-                      <span className="text-sm font-medium dark:text-white text-slate-800 truncate font-display" style={{ fontWeight: 500 }}>
+                      <span className="text-sm font-medium dark:text-white text-slate-800 truncate font-heading" style={{ fontWeight: 500 }}>
                         {it.system}
                       </span>
                       <div className="flex items-center gap-1 ml-1 shrink-0">
@@ -107,7 +107,7 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                         ))}
                       </div>
                     </div>
-                    <span className={`text-sm font-mono-tech font-bold tabular-nums ${c.text}`}>{it.score}%</span>
+                    <span className={`text-sm font-heading font-bold tabular-nums ${c.text}`}>{it.score}%</span>
                   </div>
 
                   <div className="relative h-3 rounded-full overflow-hidden dark:bg-white/5 bg-slate-200/70">
