@@ -156,7 +156,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                   />
                   <h3
                     className={[
-                      "font-heading text-xs font-semibold uppercase tracking-wider",
+                      "font-heading text-[11px] font-semibold uppercase tracking-[0.14em]",
                       phasePassed ? "text-primary" : phaseCurrent ? "text-foreground" : "text-muted-foreground",
                     ].join(" ")}
                   >
@@ -242,7 +242,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                             </div>
 
                             {/* Meta row */}
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-heading text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-heading text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                               <span className="text-foreground">
                                 {formatDayLabel(e.day_from_start)}
                               </span>
@@ -255,13 +255,13 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                                 </>
                               )}
                               <span className="text-border">·</span>
-                              <span className="inline-flex items-center rounded-md bg-muted/70 px-1.5 py-0.5 normal-case tracking-normal">
+                              <span className="inline-flex items-center rounded-md bg-muted/70 px-1.5 py-0.5 normal-case tracking-normal font-heading font-semibold">
                                 {CATEGORY_LABEL[e.category] || ""}
                               </span>
                               {e.confidence && e.confidence !== "high" && (
                                 <>
                                   <span className="text-border">·</span>
-                                  <span className="italic normal-case tracking-normal">{CONFIDENCE_LABEL[e.confidence]}</span>
+                                  <span className="italic normal-case tracking-normal font-heading">{CONFIDENCE_LABEL[e.confidence]}</span>
                                 </>
                               )}
                             </div>
