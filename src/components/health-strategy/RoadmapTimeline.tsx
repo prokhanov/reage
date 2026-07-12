@@ -330,7 +330,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                 {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
                 {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
               </div>
-              <div className="font-mono-tech text-[11px] text-muted-foreground">
+              <div className="font-heading text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
               </div>
               <ul className="space-y-1 mt-1">
