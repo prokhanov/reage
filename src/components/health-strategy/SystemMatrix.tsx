@@ -105,12 +105,12 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {s.delta != null && (
-                      <span className={`flex items-center gap-0.5 text-[10px] font-mono ${trendColor}`}>
+                      <span className={`flex items-center gap-0.5 text-[10px] font-heading ${trendColor}`}>
                         <TrendI className="h-3 w-3" />
                         {s.delta > 0 ? "+" : ""}{s.delta}
                       </span>
                     )}
-                    <span className="font-mono font-bold text-sm tabular-nums dark:text-white text-slate-900">
+                    <span className="font-heading font-bold text-sm tabular-nums dark:text-white text-slate-900">
                       {hasData ? `${score}%` : "—"}
                     </span>
                   </div>

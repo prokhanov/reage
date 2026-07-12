@@ -283,11 +283,11 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs">
-                                  <span className="font-mono-tech text-muted-foreground">
+                                  <span className="font-heading text-muted-foreground">
                                     {e.biomarker_target.from} {e.biomarker_target.unit}
                                   </span>
                                   <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                                  <span className="font-mono-tech font-semibold text-primary">
+                                  <span className="font-heading font-semibold text-primary">
                                     {e.biomarker_target.to} {e.biomarker_target.unit}
                                   </span>
                                   <TrendingDown

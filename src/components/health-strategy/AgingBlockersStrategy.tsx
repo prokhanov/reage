@@ -71,7 +71,7 @@ export function AgingBlockersStrategy({ blockers }: Props) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span
-                    className="text-xs font-mono font-medium px-2 py-0.5 rounded-full"
+                    className="text-xs font-heading font-medium px-2 py-0.5 rounded-full"
                     style={{ color: colorVar, background: `${colorVar.replace("hsl", "hsla").replace(")", ",0.15)")}` }}
                   >
                     {b.impact_score}/10
