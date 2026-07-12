@@ -87,21 +87,33 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr_320px] gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr_320px] gap-4">
       {/* Left: Status card */}
-      <Card className="border-border bg-card overflow-hidden">
-        <CardContent className="p-5">
-          <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-4">
+      <Card className="border-border bg-card overflow-hidden relative">
+        {/* ambient glow */}
+        <div
+          className="pointer-events-none absolute -top-16 -left-16 w-56 h-56 rounded-full opacity-30 blur-3xl"
+          style={{ background: `radial-gradient(circle, ${PRIMARY} 0%, transparent 70%)` }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-20 -right-16 w-56 h-56 rounded-full opacity-20 blur-3xl"
+          style={{ background: `radial-gradient(circle, ${ACCENT} 0%, transparent 70%)` }}
+        />
+
+        <CardContent className="relative p-7 flex flex-col h-full">
+          {/* Header — 10% */}
+          <div className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">
             Ваш текущий статус
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative w-[160px] h-[160px] shrink-0">
+          {/* Ring — 60% dominant */}
+          <div className="flex justify-center my-6">
+            <div className="relative w-[210px] h-[210px]">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" stroke="hsl(var(--muted))" strokeWidth="7" fill="none" opacity="0.5" />
+                <circle cx="50" cy="50" r="44" stroke="hsl(var(--muted))" strokeWidth="5" fill="none" opacity="0.4" />
                 <circle
                   cx="50" cy="50" r="44"
-                  stroke="url(#ringGrad)" strokeWidth="7" fill="none"
+                  stroke="url(#ringGrad)" strokeWidth="5" fill="none"
                   strokeDasharray={`${(ringPct / 100) * 2 * Math.PI * 44} 999`} strokeLinecap="round"
                 />
                 <defs>
@@ -112,43 +124,46 @@ export function RejuvenationTrajectory({
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Heart className="text-primary mb-1" style={{ width: 20, height: 20 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
-                <div className="text-[40px] font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
-                <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1.5">Индекс здоровья</div>
+                <Heart className="text-primary mb-1.5" style={{ width: 22, height: 22 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
+                <div className="text-[56px] font-bold leading-none tabular-nums text-foreground tracking-tight">{healthIndex ?? "—"}</div>
+                <div className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground mt-2">Индекс здоровья</div>
               </div>
-            </div>
-
-            <div className="flex-1 min-w-0 space-y-2.5">
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Биологический возраст</div>
-                <div className="text-lg font-bold tabular-nums text-foreground leading-tight">
-                  {currentBioAge.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Цель на 12 мес.</div>
-                <div className="text-lg font-bold tabular-nums leading-tight bg-gradient-primary bg-clip-text text-transparent">
-                  {targetBioAge.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
-                </div>
-              </div>
-              {goalDelta > 0.05 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">До цели</div>
-                  <div className="text-lg font-bold tabular-nums text-status-good leading-tight flex items-center gap-1">
-                    <TrendingDown className="h-4 w-4" />
-                    −{goalDelta.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          {previousBioAge != null && previousDate && (
-            <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-              <Sparkles className="h-3 w-3" />
-              Обновлено: {format(new Date(previousDate), "d MMMM yyyy", { locale: ru })}
+          {/* Stats — 30% */}
+          <div className="grid grid-cols-2 gap-6 mb-5">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Биовозраст</div>
+              <div className="text-2xl font-bold tabular-nums text-foreground leading-none">
+                {currentBioAge.toFixed(1)}
+                <span className="text-[11px] font-normal text-muted-foreground ml-1">лет</span>
+              </div>
             </div>
-          )}
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Цель · 12 мес</div>
+              <div className="text-2xl font-bold tabular-nums leading-none bg-gradient-primary bg-clip-text text-transparent">
+                {targetBioAge.toFixed(1)}
+                <span className="text-[11px] font-normal text-muted-foreground ml-1">лет</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer — 10% */}
+          <div className="mt-auto flex items-center justify-between gap-2 flex-wrap">
+            {goalDelta > 0.05 ? (
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-status-good bg-status-good/10 px-2.5 py-1 rounded-full">
+                <TrendingDown className="h-3 w-3" />
+                −{goalDelta.toFixed(1)} года до цели
+              </div>
+            ) : <span />}
+            {previousBioAge != null && previousDate && (
+              <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Sparkles className="h-3 w-3" />
+                {format(new Date(previousDate), "d MMM yyyy", { locale: ru })}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
