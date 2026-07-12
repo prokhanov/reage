@@ -264,7 +264,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   <div className="font-heading text-xs font-semibold leading-tight mb-1 line-clamp-2 text-center text-foreground">
                     {m.title}
                   </div>
-                  <div className="font-mono-tech text-[11px] text-muted-foreground/80 whitespace-nowrap">
+                  <div className="font-heading text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                     {format(date, "d MMM yyyy", { locale: ru })}
                   </div>
                 </div>
