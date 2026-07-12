@@ -52,10 +52,10 @@ const SYSTEM_ICON: Record<string, any> = {
 // stretches across the container; vector-effect="non-scaling-stroke" keeps
 // the line crisp at any width.
 const VB_W = 1000;
-const VB_H = 220;
+const VB_H = 360;
 const PAD_X = 40; // leave room so the first/last marker don't touch edges
 const MID_Y = VB_H / 2;
-const AMP = 60; // vertical wave amplitude
+const AMP = 80; // vertical wave amplitude
 
 /** Build a smooth cubic-bezier "S" curve through points. */
 function buildSmoothPath(points: { x: number; y: number }[]): string {
