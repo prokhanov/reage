@@ -95,13 +95,13 @@ export function RejuvenationTrajectory({
             Ваш текущий статус
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="relative w-[128px] h-[128px] shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="relative w-[160px] h-[160px] shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" stroke="hsl(var(--muted))" strokeWidth="6" fill="none" opacity="0.6" />
+                <circle cx="50" cy="50" r="44" stroke="hsl(var(--muted))" strokeWidth="7" fill="none" opacity="0.5" />
                 <circle
                   cx="50" cy="50" r="44"
-                  stroke="url(#ringGrad)" strokeWidth="6" fill="none"
+                  stroke="url(#ringGrad)" strokeWidth="7" fill="none"
                   strokeDasharray={`${(ringPct / 100) * 2 * Math.PI * 44} 999`} strokeLinecap="round"
                 />
                 <defs>
@@ -112,30 +112,42 @@ export function RejuvenationTrajectory({
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Heart className="text-primary mb-0.5" style={{ width: 18, height: 18 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
-                <div className="text-[32px] font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
-                <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1.5">Индекс</div>
+                <Heart className="text-primary mb-1" style={{ width: 20, height: 20 }} strokeWidth={2.2} fill="currentColor" fillOpacity={0.15} />
+                <div className="text-[40px] font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1.5">Индекс здоровья</div>
               </div>
             </div>
 
-            <div className="flex-1 min-w-0 space-y-3">
-              <StatRow label="Биовозраст" value={currentBioAge.toFixed(1)} unit="лет" />
-              <div className="h-px bg-border/60" />
-              <StatRow label="Цель · 12 мес" value={targetBioAge.toFixed(1)} unit="лет" accent />
+            <div className="flex-1 min-w-0 space-y-2.5">
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Биологический возраст</div>
+                <div className="text-lg font-bold tabular-nums text-foreground leading-tight">
+                  {currentBioAge.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Цель на 12 мес.</div>
+                <div className="text-lg font-bold tabular-nums leading-tight bg-gradient-primary bg-clip-text text-transparent">
+                  {targetBioAge.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
+                </div>
+              </div>
               {goalDelta > 0.05 && (
-                <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-good bg-status-good/10 px-2 py-0.5 rounded-full">
-                  <TrendingDown className="h-3 w-3" />
-                  −{goalDelta.toFixed(1)} года
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">До цели</div>
+                  <div className="text-lg font-bold tabular-nums text-status-good leading-tight flex items-center gap-1">
+                    <TrendingDown className="h-4 w-4" />
+                    −{goalDelta.toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground ml-1">года</span>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
           {previousBioAge != null && previousDate && (
-            <p className="mt-4 pt-3 border-t border-border/50 text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
               <Sparkles className="h-3 w-3" />
-              Обновлено {format(new Date(previousDate), "d MMMM yyyy", { locale: ru })}
-            </p>
+              Обновлено: {format(new Date(previousDate), "d MMMM yyyy", { locale: ru })}
+            </div>
           )}
         </CardContent>
       </Card>
