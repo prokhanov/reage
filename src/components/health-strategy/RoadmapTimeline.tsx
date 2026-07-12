@@ -192,7 +192,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         {/* Winding-route timeline */}
         <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
           <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
-            {/* Ambient landscape: continuous evolution — sparse → dense, low → tall, dry → alive */}
+            {/* Misty mountains: sparse silhouette on the left, layered lush ridges on the right */}
             <svg
               viewBox="0 0 1000 260"
               preserveAspectRatio="xMidYMax slice"
@@ -200,76 +200,66 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               aria-hidden
             >
               <defs>
-                <linearGradient id="rmSkyFade" x1="0" x2="1" y1="0" y2="0">
+                <linearGradient id="mtSky" x1="0" x2="1" y1="0" y2="0">
                   <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.10" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
                 </linearGradient>
-                <linearGradient id="rmGround" x1="0" x2="1" y1="0" y2="0">
+                <linearGradient id="mtValley" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.03" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.12" />
+                </linearGradient>
+                <linearGradient id="mtFar" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.04" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.12" />
+                </linearGradient>
+                <linearGradient id="mtMid" x1="0" x2="1" y1="0" y2="0">
                   <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.06" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.16" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.18" />
                 </linearGradient>
+                <linearGradient id="mtNear" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.08" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.22" />
+                </linearGradient>
+                <filter id="mtBlur" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" />
+                </filter>
+                <filter id="mtBlurHeavy" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" />
+                </filter>
               </defs>
 
-              <rect x="0" y="0" width="1000" height="260" fill="url(#rmSkyFade)" />
+              <rect width="1000" height="260" fill="url(#mtSky)" />
 
-              {/* Soft rolling ground */}
+              {/* Far ridge — one sparse silhouette on the left, multiplying peaks on the right */}
               <path
-                d="M0,224 C 140,220 220,228 340,222 C 460,216 560,224 680,216 C 800,208 900,212 1000,206 L1000,260 L0,260 Z"
-                fill="url(#rmGround)"
+                d="M0,260 L0,175 Q90,170 160,178 Q230,150 320,168 Q410,185 500,155 Q590,125 690,145 Q790,120 890,138 Q970,150 1000,130 L1000,260 Z"
+                fill="url(#mtFar)"
+                filter="url(#mtBlurHeavy)"
               />
 
-              {/* Continuous vegetation — density, height and vitality grow smoothly across x */}
-              {(() => {
-                const items: JSX.Element[] = [];
-                const COUNT = 110;
-                let seed = 7;
-                const rand = () => {
-                  seed = (seed * 9301 + 49297) % 233280;
-                  return seed / 233280;
-                };
-                for (let i = 0; i < COUNT; i++) {
-                  const t = i / (COUNT - 1);
-                  const x = t * 1000 + (rand() - 0.5) * 14;
-                  if (x < 0 || x > 1000) continue;
+              {/* Mid ridge layer */}
+              <path
+                d="M0,260 L0,195 Q70,190 130,200 Q210,175 290,192 Q370,205 450,185 Q530,160 630,180 Q730,155 830,175 Q910,190 1000,170 L1000,260 Z"
+                fill="url(#mtMid)"
+                filter="url(#mtBlur)"
+              />
 
-                  const density = 0.15 + t * 0.85;
-                  if (rand() > density) continue;
+              {/* Near ridge layer */}
+              <path
+                d="M0,260 L0,218 Q60,212 120,222 Q200,198 280,215 Q360,228 440,208 Q520,188 620,203 Q720,182 820,200 Q900,212 1000,198 L1000,260 Z"
+                fill="url(#mtNear)"
+                filter="url(#mtBlur)"
+              />
 
-                  const groundY = 224 - Math.sin((x / 1000) * Math.PI) * 6 - t * 8;
-                  const baseH = 4 + t * t * 28 + rand() * 6;
-                  const opacity = 0.08 + t * 0.22 + rand() * 0.05;
-                  const color = t < 0.35 ? "hsl(var(--muted-foreground))" : "hsl(var(--primary))";
-                  const isTree = rand() < 0.5 + t * 0.4;
-                  if (isTree) {
-                    const w = 2 + t * 6 + rand() * 2;
-                    items.push(
-                      <polygon
-                        key={i}
-                        points={`${x - w / 2},${groundY} ${x},${groundY - baseH} ${x + w / 2},${groundY}`}
-                        fill={color}
-                        fillOpacity={opacity}
-                      />
-                    );
-                  } else {
-                    const r = 1.2 + t * 2.6 + rand() * 1.2;
-                    items.push(
-                      <circle
-                        key={i}
-                        cx={x}
-                        cy={groundY - r * 0.4}
-                        r={r}
-                        fill={color}
-                        fillOpacity={opacity}
-                      />
-                    );
-                  }
-                }
-                return items;
-              })()}
+              {/* Soft valley floor */}
+              <path
+                d="M0,260 L0,238 Q120,234 260,236 Q500,232 740,236 Q880,234 1000,238 L1000,260 Z"
+                fill="url(#mtValley)"
+              />
 
               {/* Faint winding trail */}
               <path
-                d="M0,220 C 120,214 180,232 260,224 C 340,216 400,236 500,226 C 600,216 680,232 780,222 C 860,214 930,220 1000,216"
+                d="M0,230 C 120,226 180,238 260,230 C 340,222 400,240 500,232 C 600,224 680,238 780,230 C 860,222 930,228 1000,224"
                 fill="none"
                 stroke="hsl(var(--muted-foreground))"
                 strokeOpacity="0.18"
