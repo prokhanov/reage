@@ -100,7 +100,7 @@ export function RejuvenationTrajectory({
           style={{ background: `radial-gradient(circle, ${ACCENT} 0%, transparent 70%)` }}
         />
 
-        <CardContent className="relative p-7 flex flex-col h-full">
+        <CardContent className="relative pt-5 pb-7 px-7 flex flex-col h-full">
           {/* Header — 10% */}
           <div className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">
             Ваш текущий статус
