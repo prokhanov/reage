@@ -311,50 +311,79 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
           const current = i === activeIdx;
           const future = i > activeIdx;
           const num = (m as any)._num as number | undefined;
+          const stageLabel = `Этап ${String(i + 1).padStart(2, "0")}`;
+          const statusLabel = current ? "Сейчас" : passed ? "Пройдено" : "Впереди";
           return (
             <div
               key={i}
               className={[
-                "rounded-lg border p-3 flex flex-col gap-2 transition-colors",
+                "group relative rounded-xl border bg-card p-5 flex flex-col gap-4 transition-all",
                 current
-                  ? "border-primary/50 bg-primary/5 shadow-sm"
-                  : passed
-                  ? "border-border bg-muted/40 opacity-90"
-                  : "border-border bg-card/50",
+                  ? "border-primary/40 shadow-[0_0_0_1px_hsl(var(--primary)/0.15)]"
+                  : "border-border/60 hover:border-border",
+                future ? "opacity-70 hover:opacity-100" : "",
               ].join(" ")}
             >
-              <div className="flex items-center justify-between gap-2">
-                <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
+              {/* Header: stage label + status pill */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
+                  {stageLabel}
+                </span>
+                <span
+                  className={[
+                    "inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full",
+                    current
+                      ? "bg-primary/10 text-primary"
+                      : passed
+                      ? "bg-status-good/10 text-status-good"
+                      : "bg-muted text-muted-foreground",
+                  ].join(" ")}
+                >
+                  {current && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
+                  {passed && <Check className="w-3 h-3" strokeWidth={3} />}
+                  {statusLabel}
+                </span>
+              </div>
+
+              {/* Title + date */}
+              <div className="space-y-1">
+                <h4 className="text-base font-semibold leading-snug text-foreground tracking-tight">
                   {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
                 </h4>
-                {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
-                {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  {format(new Date(m.date_iso), "d MMMM yyyy", { locale: ru })}
+                </div>
               </div>
-              <div className="text-[11px] text-muted-foreground tabular-nums">
-                {format(new Date(m.date_iso), "d MMM yyyy", { locale: ru })}
-              </div>
-              <ul className="space-y-1 mt-1">
+
+              {/* Divider */}
+              <div className="h-px bg-border/50" />
+
+              {/* Bullets */}
+              <ul className="space-y-2.5">
                 {(m.bullets || []).slice(0, 4).map((b, j) => (
-                  <li key={j} className="text-xs text-foreground/80 leading-snug flex gap-1.5">
-                    <span className="text-primary mt-1">•</span>
+                  <li key={j} className="flex items-start gap-2.5 text-[13px] leading-snug text-foreground/85">
+                    <Check className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary/70" strokeWidth={2.5} />
                     <span>{b}</span>
                   </li>
                 ))}
               </ul>
+
+              {/* Progress for current stage */}
               {current && adherencePct != null && (
                 <div className="pt-1">
-                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5 font-medium">
                     <span>Прогресс этапа</span>
-                    <span className="tabular-nums">{adherencePct}%</span>
+                    <span className="tabular-nums text-foreground">{adherencePct}%</span>
                   </div>
-                  <Progress value={adherencePct} className="h-1.5" />
+                  <Progress value={adherencePct} className="h-1" />
                 </div>
               )}
+
+              {/* Focus footer */}
               {m.focus && (
-                <div className="mt-auto pt-2">
-                  <div className="inline-block text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary">
-                    Фокус: {m.focus}
-                  </div>
+                <div className="mt-auto pt-1 flex items-center gap-2 text-[11px]">
+                  <span className="text-muted-foreground font-medium uppercase tracking-wider">Фокус</span>
+                  <span className="text-foreground/80">{m.focus}</span>
                 </div>
               )}
             </div>
