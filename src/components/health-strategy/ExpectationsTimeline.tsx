@@ -156,7 +156,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                   />
                   <h3
                     className={[
-                      "font-heading text-xs font-semibold uppercase tracking-wider",
+                      "font-heading text-[11px] font-semibold uppercase tracking-[0.14em]",
                       phasePassed ? "text-primary" : phaseCurrent ? "text-foreground" : "text-muted-foreground",
                     ].join(" ")}
                   >
