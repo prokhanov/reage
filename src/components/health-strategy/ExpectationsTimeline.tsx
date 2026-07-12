@@ -243,11 +243,11 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
 
                             {/* Meta row */}
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground tabular-nums">
+                              <span className="font-mono-tech font-semibold text-foreground">
                                 {formatDayLabel(e.day_from_start)}
                               </span>
                               <span className="text-border">·</span>
-                              <span className="tabular-nums">{format(d, "d MMM yyyy", { locale: ru })}</span>
+                              <span className="font-mono-tech">{format(d, "d MMM yyyy", { locale: ru })}</span>
                               {!passed && days > 0 && (
                                 <>
                                   <span className="text-border">·</span>
