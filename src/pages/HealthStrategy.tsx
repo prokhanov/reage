@@ -271,7 +271,7 @@ export default function HealthStrategy() {
       <div className="p-4 md:p-8 space-y-5 md:space-y-6">
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div className="space-y-1.5 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+            <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-tight leading-tight">
               <span className="bg-gradient-primary bg-clip-text text-transparent">Стратегия здоровья</span>
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
