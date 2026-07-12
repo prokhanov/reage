@@ -193,6 +193,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         {/* Winding-route timeline */}
         <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
           <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
+            <EvolutionBackdrop />
             <svg
               viewBox={`0 0 ${VB_W} ${VB_H}`}
               preserveAspectRatio="none"
