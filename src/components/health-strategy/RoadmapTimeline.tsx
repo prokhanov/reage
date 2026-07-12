@@ -192,83 +192,38 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         {/* Winding-route timeline */}
         <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
           <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
-            {/* Misty mountains: sparse silhouette on the left, layered lush ridges on the right */}
             <svg
-              viewBox="0 0 1000 260"
-              preserveAspectRatio="xMidYMax slice"
-              className="absolute inset-0 w-full h-full pointer-events-none select-none"
+              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full"
               aria-hidden
             >
               <defs>
-                <linearGradient id="mtSky" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
+                <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
                 </linearGradient>
-                <linearGradient id="mtValley" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.03" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.12" />
-                </linearGradient>
-                <linearGradient id="mtFar" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.04" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.12" />
-                </linearGradient>
-                <linearGradient id="mtMid" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.06" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.18" />
-                </linearGradient>
-                <linearGradient id="mtNear" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.08" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.22" />
-                </linearGradient>
-                <filter id="mtBlur" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" />
-                </filter>
-                <filter id="mtBlurHeavy" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="6" />
-                </filter>
               </defs>
-
-              <rect width="1000" height="260" fill="url(#mtSky)" />
-
-              {/* Far ridge — one sparse silhouette on the left, multiplying peaks on the right */}
+              {/* Base path (dashed, muted) */}
               <path
-                d="M0,260 L0,175 Q90,170 160,178 Q230,150 320,168 Q410,185 500,155 Q590,125 690,145 Q790,120 890,138 Q970,150 1000,130 L1000,260 Z"
-                fill="url(#mtFar)"
-                filter="url(#mtBlurHeavy)"
-              />
-
-              {/* Mid ridge layer */}
-              <path
-                d="M0,260 L0,195 Q70,190 130,200 Q210,175 290,192 Q370,205 450,185 Q530,160 630,180 Q730,155 830,175 Q910,190 1000,170 L1000,260 Z"
-                fill="url(#mtMid)"
-                filter="url(#mtBlur)"
-              />
-
-              {/* Near ridge layer */}
-              <path
-                d="M0,260 L0,218 Q60,212 120,222 Q200,198 280,215 Q360,228 440,208 Q520,188 620,203 Q720,182 820,200 Q900,212 1000,198 L1000,260 Z"
-                fill="url(#mtNear)"
-                filter="url(#mtBlur)"
-              />
-
-              {/* Soft valley floor */}
-              <path
-                d="M0,260 L0,238 Q120,234 260,236 Q500,232 740,236 Q880,234 1000,238 L1000,260 Z"
-                fill="url(#mtValley)"
-              />
-
-              {/* Faint winding trail */}
-              <path
-                d="M0,230 C 120,226 180,238 260,230 C 340,222 400,240 500,232 C 600,224 680,238 780,230 C 860,222 930,228 1000,224"
+                d={fullPath}
                 fill="none"
-                stroke="hsl(var(--muted-foreground))"
-                strokeOpacity="0.18"
-                strokeWidth="1"
-                strokeDasharray="2 5"
+                stroke="hsl(var(--muted-foreground) / 0.35)"
+                strokeWidth={2}
+                strokeDasharray="6 8"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* Passed progress path */}
+              <path
+                d={passedPath}
+                fill="none"
+                stroke="url(#roadmapGrad)"
+                strokeWidth={3}
+                strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
-
 
             {/* Marker overlay */}
             {milestones.map((m, i) => {
