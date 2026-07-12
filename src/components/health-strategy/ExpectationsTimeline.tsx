@@ -15,6 +15,9 @@ import {
   Wheat,
   Zap,
   FlaskRound,
+  CheckCircle2,
+  Clock,
+  Circle,
 } from "lucide-react";
 import { format, differenceInDays, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -38,14 +41,14 @@ interface Props {
   expectations: Expectation[] | null | undefined;
 }
 
-const SYSTEM_META: Record<string, { icon: any; label: string; color: string; bg: string }> = {
-  energy: { icon: Zap, label: "Энергия", color: "text-amber-500", bg: "bg-amber-500/10" },
-  sleep: { icon: Moon, label: "Сон", color: "text-indigo-400", bg: "bg-indigo-500/10" },
-  gut: { icon: Wheat, label: "ЖКТ", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  hormones: { icon: FlaskRound, label: "Гормоны", color: "text-pink-400", bg: "bg-pink-500/10" },
-  metabolism: { icon: Activity, label: "Метаболизм", color: "text-cyan-400", bg: "bg-cyan-500/10" },
-  inflammation: { icon: ShieldCheck, label: "Воспаление", color: "text-rose-400", bg: "bg-rose-500/10" },
-  general: { icon: HeartPulse, label: "Организм", color: "text-primary", bg: "bg-primary/10" },
+const SYSTEM_META: Record<string, { icon: any; label: string; color: string; bg: string; ring: string }> = {
+  energy: { icon: Zap, label: "Энергия", color: "text-amber-500", bg: "bg-amber-500/10", ring: "ring-amber-500/20" },
+  sleep: { icon: Moon, label: "Сон", color: "text-indigo-400", bg: "bg-indigo-500/10", ring: "ring-indigo-500/20" },
+  gut: { icon: Wheat, label: "ЖКТ", color: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/20" },
+  hormones: { icon: FlaskRound, label: "Гормоны", color: "text-pink-400", bg: "bg-pink-500/10", ring: "ring-pink-500/20" },
+  metabolism: { icon: Activity, label: "Метаболизм", color: "text-cyan-400", bg: "bg-cyan-500/10", ring: "ring-cyan-500/20" },
+  inflammation: { icon: ShieldCheck, label: "Воспаление", color: "text-rose-400", bg: "bg-rose-500/10", ring: "ring-rose-500/20" },
+  general: { icon: HeartPulse, label: "Организм", color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -68,6 +71,22 @@ function formatDayLabel(day: number) {
   return "~1 год";
 }
 
+function groupItemsByPhase(items: Expectation[]) {
+  const phases = [
+    { key: "start", label: "Первые 2 недели", maxDay: 14 },
+    { key: "month1", label: "1–2 месяца", maxDay: 60 },
+    { key: "quarter", label: "3–6 месяцев", maxDay: 180 },
+    { key: "later", label: "Далее по мере восстановления", maxDay: Infinity },
+  ];
+
+  const grouped: { phase: typeof phases[0]; items: Expectation[] }[] = phases.map((p) => ({ phase: p, items: [] }));
+  for (const item of items) {
+    const phase = phases.find((p) => item.day_from_start <= p.maxDay) || phases[phases.length - 1];
+    grouped.find((g) => g.phase.key === phase.key)!.items.push(item);
+  }
+  return grouped.filter((g) => g.items.length > 0);
+}
+
 export function ExpectationsTimeline({ startDate, expectations }: Props) {
   const { format: formatMarker } = useBiomarkerNames();
   const items = useMemo(() => (Array.isArray(expectations) ? expectations : []), [expectations]);
@@ -86,29 +105,30 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
 
   if (!items.length) return null;
 
-  // Find the next upcoming event for the "next milestone" highlight
+  const grouped = groupItemsByPhase(items);
+  let globalIndex = 0;
   const nextIdx = items.findIndex((e) => isBefore(today, new Date(e.date_iso)));
 
   return (
-    <Card className="border-border/60 bg-card/60 backdrop-blur-xl">
-      <CardHeader className="pb-3 md:pb-4 space-y-3">
+    <Card className="border border-border/60 bg-card/80 backdrop-blur-xl overflow-hidden">
+      <CardHeader className="pb-4 md:pb-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="space-y-1 min-w-0">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+          <div className="space-y-1.5 min-w-0">
+            <CardTitle className="text-lg md:text-xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary shrink-0" />
               Что будет происходить с вашим организмом
             </CardTitle>
-            <p className="text-xs md:text-sm text-muted-foreground leading-snug">
+            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
               Ожидаемые изменения в самочувствии и биомаркерах при соблюдении назначений
             </p>
           </div>
-          <Badge variant="secondary" className="text-[11px] shrink-0">
+          <Badge variant="secondary" className="text-[11px] shrink-0 h-6">
             {passedCount}/{items.length} пройдено
           </Badge>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-[11px] text-muted-foreground">
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Старт: {format(start, "d MMM", { locale: ru })}</span>
             <span className="tabular-nums">{daysSinceStart}-й день пути</span>
           </div>
@@ -117,109 +137,195 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
       </CardHeader>
 
       <CardContent className="pt-0">
-        <ol className="relative pl-5 md:pl-6 space-y-3 md:space-y-4 before:content-[''] before:absolute before:left-[7px] md:before:left-[9px] before:top-1 before:bottom-1 before:w-px before:bg-border">
-          {items.map((e, i) => {
-            const d = new Date(e.date_iso);
-            const passed = isBefore(d, today) || isSameDay(d, today);
-            const isNext = i === nextIdx;
-            const sys = SYSTEM_META[e.system_key || "general"] || SYSTEM_META.general;
-            const Icon = sys.icon;
-            const days = differenceInDays(d, today);
+        <div className="space-y-6 md:space-y-8">
+          {grouped.map((group, groupIndex) => {
+            const phasePassed = group.items[group.items.length - 1].day_from_start <= daysSinceStart;
+            const phaseCurrent = group.items.some((_, i) => {
+              const idx = globalIndex + i;
+              return idx === nextIdx;
+            });
 
             return (
-              <li key={i} className="relative">
-                {/* Dot on the rail */}
-                <span
-                  className={[
-                    "absolute -left-5 md:-left-6 top-1.5 h-3.5 w-3.5 rounded-full ring-4 ring-background",
-                    passed ? "bg-primary" : isNext ? "bg-primary/60 animate-pulse" : "bg-muted-foreground/30",
-                  ].join(" ")}
-                />
-
-                <div
-                  className={[
-                    "rounded-lg border p-3 md:p-4 transition-colors",
-                    isNext
-                      ? "border-primary/40 bg-primary/[0.05] shadow-sm"
-                      : passed
-                      ? "border-border bg-muted/30"
-                      : "border-border/70 bg-card/40",
-                  ].join(" ")}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`shrink-0 h-9 w-9 rounded-md flex items-center justify-center ${sys.bg}`}>
-                      <Icon className={`h-4.5 w-4.5 ${sys.color}`} />
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className={`text-sm md:text-[15px] font-semibold leading-tight ${passed ? "text-foreground/80" : "text-foreground"}`}>
-                          {e.title}
-                        </h4>
-                        {isNext && <Badge className="text-[10px] px-1.5 py-0">скоро</Badge>}
-                        {passed && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            пройдено
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums flex-wrap">
-                        <span className="font-medium text-foreground/80">{formatDayLabel(e.day_from_start)}</span>
-                        <span>·</span>
-                        <span>{format(d, "d MMM yyyy", { locale: ru })}</span>
-                        {!passed && days > 0 && <span>· через {days} дн.</span>}
-                        <span>·</span>
-                        <span>{CATEGORY_LABEL[e.category] || ""}</span>
-                      </div>
-
-                      {e.description && (
-                        <p className="text-xs md:text-sm text-foreground/85 leading-relaxed">{e.description}</p>
-                      )}
-
-                      {e.biomarker_target && (
-                        <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/[0.05] px-2.5 py-1.5 text-xs">
-                          <Target className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="font-semibold text-foreground">{formatMarker(e.biomarker_target.code)}</span>
-                          <span className="tabular-nums text-muted-foreground">
-                            {e.biomarker_target.from} {e.biomarker_target.unit}
-                          </span>
-                          <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                          <span className="tabular-nums font-semibold text-primary">
-                            {e.biomarker_target.to} {e.biomarker_target.unit}
-                          </span>
-                          <TrendingDown
-                            className={`h-3.5 w-3.5 ml-auto shrink-0 ${
-                              e.biomarker_target.to < e.biomarker_target.from ? "text-emerald-500" : "text-amber-500 rotate-180"
-                            }`}
-                          />
-                        </div>
-                      )}
-
-                      {e.driver && (
-                        <div className="text-[11px] md:text-xs text-muted-foreground flex items-start gap-1.5">
-                          <CalendarCheck2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary/70" />
-                          <span>
-                            <span className="text-foreground/70 font-medium">За счёт: </span>
-                            {e.driver}
-                          </span>
-                        </div>
-                      )}
-
-                      {e.confidence && e.confidence !== "high" && (
-                        <div className="text-[10px] text-muted-foreground italic">
-                          {CONFIDENCE_LABEL[e.confidence]}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              <section key={group.phase.key} className="relative">
+                <div className="flex items-center gap-3 mb-3 md:mb-4">
+                  <div
+                    className={[
+                      "h-px flex-1",
+                      phasePassed ? "bg-primary/30" : phaseCurrent ? "bg-primary/50" : "bg-border",
+                    ].join(" ")}
+                  />
+                  <h3
+                    className={[
+                      "text-xs font-semibold uppercase tracking-wider",
+                      phasePassed ? "text-primary" : phaseCurrent ? "text-foreground" : "text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    {group.phase.label}
+                  </h3>
+                  <div
+                    className={[
+                      "h-px flex-1",
+                      phasePassed ? "bg-primary/30" : phaseCurrent ? "bg-primary/50" : "bg-border",
+                    ].join(" ")}
+                  />
                 </div>
-              </li>
+
+                <div className="space-y-3">
+                  {group.items.map((e) => {
+                    const d = new Date(e.date_iso);
+                    const passed = isBefore(d, today) || isSameDay(d, today);
+                    const isNext = globalIndex === nextIdx;
+                    const sys = SYSTEM_META[e.system_key || "general"] || SYSTEM_META.general;
+                    const Icon = sys.icon;
+                    const days = differenceInDays(d, today);
+                    globalIndex++;
+
+                    return (
+                      <article
+                        key={globalIndex}
+                        className={[
+                          "relative rounded-xl border p-3 md:p-4 transition-all duration-200",
+                          passed
+                            ? "bg-muted/40 border-border/80"
+                            : isNext
+                            ? "bg-primary/[0.04] border-primary/30 shadow-sm shadow-primary/5"
+                            : "bg-card/60 border-border/60",
+                        ].join(" ")}
+                      >
+                        {/* Status accent strip */}
+                        <div
+                          className={[
+                            "absolute left-0 top-3 bottom-3 w-1 rounded-r-full",
+                            passed ? "bg-primary/50" : isNext ? "bg-primary" : "bg-muted-foreground/25",
+                          ].join(" ")}
+                        />
+
+                        <div className="flex gap-3 md:gap-4">
+                          {/* Icon */}
+                          <div
+                            className={[
+                              "shrink-0 h-10 w-10 md:h-11 md:w-11 rounded-xl flex items-center justify-center ring-1",
+                              sys.bg,
+                              sys.color,
+                              sys.ring,
+                            ].join(" ")}
+                          >
+                            <Icon className="h-5 w-5 md:h-5.5 md:w-5.5" />
+                          </div>
+
+                          {/* Content */}
+                          <div className="min-w-0 flex-1 space-y-2">
+                            {/* Title row */}
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="text-sm md:text-[15px] font-semibold leading-snug text-foreground">
+                                {e.title}
+                              </h4>
+                              <div className="shrink-0 flex items-center gap-1.5">
+                                {passed && (
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    пройдено
+                                  </Badge>
+                                )}
+                                {isNext && !passed && (
+                                  <Badge className="text-[10px] px-1.5 py-0 h-5 gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    скоро
+                                  </Badge>
+                                )}
+                                {!passed && !isNext && (
+                                  <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted/80">
+                                    <Circle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Meta row */}
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground tabular-nums">
+                                {formatDayLabel(e.day_from_start)}
+                              </span>
+                              <span className="text-border">·</span>
+                              <span className="tabular-nums">{format(d, "d MMM yyyy", { locale: ru })}</span>
+                              {!passed && days > 0 && (
+                                <>
+                                  <span className="text-border">·</span>
+                                  <span>через {days} дн.</span>
+                                </>
+                              )}
+                              <span className="text-border">·</span>
+                              <span className="inline-flex items-center rounded-md bg-muted/70 px-1.5 py-0.5">
+                                {CATEGORY_LABEL[e.category] || ""}
+                              </span>
+                              {e.confidence && e.confidence !== "high" && (
+                                <>
+                                  <span className="text-border">·</span>
+                                  <span className="italic">{CONFIDENCE_LABEL[e.confidence]}</span>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Description */}
+                            {e.description && (
+                              <p className="text-xs md:text-sm text-foreground/80 leading-relaxed">
+                                {e.description}
+                              </p>
+                            )}
+
+                            {/* Biomarker target */}
+                            {e.biomarker_target && (
+                              <div className="rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <Target className="h-3.5 w-3.5 text-primary shrink-0" />
+                                  <span className="text-xs font-medium text-foreground">
+                                    Цель: {formatMarker(e.biomarker_target.code)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="tabular-nums text-muted-foreground">
+                                    {e.biomarker_target.from} {e.biomarker_target.unit}
+                                  </span>
+                                  <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                                  <span className="tabular-nums font-semibold text-primary">
+                                    {e.biomarker_target.to} {e.biomarker_target.unit}
+                                  </span>
+                                  <TrendingDown
+                                    className={[
+                                      "h-3.5 w-3.5 ml-auto shrink-0",
+                                      e.biomarker_target.to < e.biomarker_target.from
+                                        ? "text-emerald-500"
+                                        : "text-amber-500 rotate-180",
+                                    ].join(" ")}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Driver */}
+                            {e.driver && (
+                              <div className="flex items-start gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-[11px] md:text-xs text-muted-foreground">
+                                <CalendarCheck2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary/80" />
+                                <span>
+                                  <span className="text-foreground/80 font-medium">За счёт: </span>
+                                  {e.driver}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
             );
           })}
-        </ol>
+        </div>
 
-        <p className="mt-4 text-[11px] text-muted-foreground leading-relaxed">
-          Прогноз ориентировочный, основан на ваших биомаркерах и активных назначениях. Реальные сроки могут отличаться в зависимости от приверженности приёму и образа жизни.
+        <p className="mt-5 md:mt-6 text-[11px] md:text-xs text-muted-foreground leading-relaxed border-t border-border/60 pt-4">
+          Прогноз ориентировочный, основан на ваших биомаркерах и активных назначениях. Реальные сроки могут отличаться
+          в зависимости от приверженности приёму и образа жизни.
         </p>
       </CardContent>
     </Card>
