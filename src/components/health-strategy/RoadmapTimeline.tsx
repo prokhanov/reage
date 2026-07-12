@@ -5,6 +5,7 @@ import { format, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
 import { useBiomarkerNames } from "@/hooks/useBiomarkerNames";
+import { EvolutionBackdrop } from "./EvolutionBackdrop";
 
 interface Milestone {
   title: string;
