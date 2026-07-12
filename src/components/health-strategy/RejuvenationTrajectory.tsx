@@ -100,7 +100,7 @@ export function RejuvenationTrajectory({
           style={{ background: `radial-gradient(circle, ${ACCENT} 0%, transparent 70%)` }}
         />
 
-        <CardContent className="relative p-7 flex flex-col h-full">
+        <CardContent className="relative pt-5 pb-7 px-7 flex flex-col h-full">
           {/* Header — 10% */}
           <div className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">
             Ваш текущий статус
@@ -169,7 +169,7 @@ export function RejuvenationTrajectory({
 
       {/* Right: Trajectory chart card */}
       <Card className="border-border bg-card overflow-hidden">
-        <CardContent className="p-4 md:p-5 space-y-3">
+        <CardContent className="pt-5 pb-4 md:pb-5 px-4 md:px-5 space-y-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
