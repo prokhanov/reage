@@ -137,6 +137,18 @@ export function EditMedicalHistoryDialog({
           profileUpdate[reproDateMeta.key] = reproDate;
         }
       }
+
+      // Если пользователь заполнил анкету через профиль — снимаем блокировку
+      // на запись/отчёт (medical_anketa_filled). Считаем «заполненной» так же,
+      // как при онбординге: есть хронические / лекарства / операции / заметка.
+      const hasMedicalData =
+        value.chronic.length > 0 ||
+        value.medications.length > 0 ||
+        (value.operations && Object.keys(value.operations).length > 0) ||
+        Boolean(value.healthNote.trim());
+      if (hasMedicalData) {
+        profileUpdate.medical_anketa_filled = true;
+      }
       const { error: profErr } = await supabase
         .from("profiles")
         .update(profileUpdate as never)
