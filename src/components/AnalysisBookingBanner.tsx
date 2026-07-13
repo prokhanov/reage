@@ -187,12 +187,22 @@ export function AnalysisBookingBanner() {
       setSubscriptionDialogOpen(true);
       return;
     }
+    if (!medicalAnketaFilled && !isViewMode) {
+      toast({
+        title: "Сначала заполните медицинскую анкету",
+        description:
+          "Хронические заболевания, приём лекарств и операции нужны для корректного отчёта. Занимает пару минут.",
+      });
+      navigate("/onboarding/health");
+      return;
+    }
     if (mode === "phone") {
       setCallbackDialogOpen(true);
     } else {
       setDialogOpen(true);
     }
   };
+
 
   const handleSubscriptionSuccess = () => {
     checkSubscriptionStatus();
