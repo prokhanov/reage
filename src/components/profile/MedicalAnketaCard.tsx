@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Edit2, Pill, Stethoscope, FileText } from "lucide-react";
+import { Heart, Edit2, Pill, Stethoscope, FileText, Flower2 } from "lucide-react";
 import { OPERATIONS } from "@/lib/medicalAnketa";
 
 interface MedicalCondition {
@@ -9,25 +9,43 @@ interface MedicalCondition {
   condition: string;
 }
 
+const REPRO_STATUS_LABELS: Record<string, string> = {
+  regular: "Регулярный цикл",
+  contraceptives: "Принимаю КОК",
+  pregnant: "Беременность",
+  lactating: "Кормление грудью",
+  perimenopause: "Пременопауза",
+  menopause: "Менопауза",
+  hormonal_therapy: "ЗГТ (гормональная терапия)",
+};
+
 interface Props {
   medicalHistory: MedicalCondition[];
   operations: Record<string, unknown> | null;
   medications: string[] | null;
   healthNote: string | null;
+  gender?: string | null;
+  reproductiveStatus?: string | null;
   onEdit: () => void;
 }
+
 
 export function MedicalAnketaCard({
   medicalHistory,
   operations,
   medications,
   healthNote,
+  gender,
+  reproductiveStatus,
   onEdit,
 }: Props) {
   const chronic = medicalHistory.map((m) => m.condition);
   const meds = medications ?? [];
   const ops = (operations ?? {}) as Record<string, unknown>;
   const note = (healthNote ?? "").trim();
+  const isFemale = gender === "female";
+  const reproStatus = (reproductiveStatus ?? "").trim();
+  const reproLabel = reproStatus ? REPRO_STATUS_LABELS[reproStatus] ?? reproStatus : "";
 
   const positiveOps = OPERATIONS.filter((o) => ops[o.key] === true);
   const negativeOps = OPERATIONS.filter((o) => ops[o.key] === false);
@@ -37,7 +55,9 @@ export function MedicalAnketaCard({
     meds.length === 0 &&
     positiveOps.length === 0 &&
     negativeOps.length === 0 &&
-    !note;
+    !note &&
+    !(isFemale && reproStatus);
+
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
@@ -66,7 +86,24 @@ export function MedicalAnketaCard({
         </div>
       ) : (
         <div className="space-y-5">
+          {/* Репродуктивный статус (только для женщин) */}
+          {isFemale && (
+            <Section
+              icon={<Flower2 className="h-4 w-4 text-pink-500" />}
+              title="Репродуктивный статус"
+            >
+              {reproLabel ? (
+                <Badge variant="secondary" className="text-xs">
+                  {reproLabel}
+                </Badge>
+              ) : (
+                <EmptyLine text="Не указан — заполните, это влияет на интерпретацию гормонов" />
+              )}
+            </Section>
+          )}
+
           {/* Хронические */}
+
           <Section
             icon={<Heart className="h-4 w-4 text-red-500" />}
             title="Хронические заболевания"
