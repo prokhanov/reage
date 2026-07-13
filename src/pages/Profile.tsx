@@ -523,8 +523,11 @@ export default function Profile() {
             operations={profile?.operations ?? null}
             medications={profile?.medications ?? null}
             healthNote={profile?.health_note ?? null}
+            gender={profile?.gender ?? null}
+            reproductiveStatus={(profile as any)?.reproductive_status ?? null}
             onEdit={() => setEditMedicalOpen(true)}
           />
+
 
 
           {/* Demo Mode Card */}
