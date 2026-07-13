@@ -35,12 +35,17 @@ export function MedicalAnketaCard({
   operations,
   medications,
   healthNote,
+  gender,
+  reproductiveStatus,
   onEdit,
 }: Props) {
   const chronic = medicalHistory.map((m) => m.condition);
   const meds = medications ?? [];
   const ops = (operations ?? {}) as Record<string, unknown>;
   const note = (healthNote ?? "").trim();
+  const isFemale = gender === "female";
+  const reproStatus = (reproductiveStatus ?? "").trim();
+  const reproLabel = reproStatus ? REPRO_STATUS_LABELS[reproStatus] ?? reproStatus : "";
 
   const positiveOps = OPERATIONS.filter((o) => ops[o.key] === true);
   const negativeOps = OPERATIONS.filter((o) => ops[o.key] === false);
@@ -50,7 +55,9 @@ export function MedicalAnketaCard({
     meds.length === 0 &&
     positiveOps.length === 0 &&
     negativeOps.length === 0 &&
-    !note;
+    !note &&
+    !(isFemale && reproStatus);
+
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
