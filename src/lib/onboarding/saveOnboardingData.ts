@@ -72,6 +72,19 @@ export async function saveOnboardingData(
     profileUpdate.passport_number = opts.passportNumber.replace(/\D/g, "");
   }
 
+  // Считаем медицинскую анкету «заполненной», если пришли значимые мед. данные:
+  // хронические, лекарства, операции, комментарий о здоровье. Без этого флаг
+  // остаётся `false` и блокирует запись на анализы / генерацию отчёта.
+  const hasMedicalData =
+    (Array.isArray(data.medicalHistory) && data.medicalHistory.length > 0) ||
+    (Array.isArray(data.medications) && data.medications.length > 0) ||
+    (data.operations && Object.keys(data.operations).length > 0) ||
+    Boolean(data.healthNote?.trim());
+  if (hasMedicalData) {
+    profileUpdate.medical_anketa_filled = true;
+  }
+
+
   console.info("[onboarding] profile update keys:", Object.keys(profileUpdate));
 
   if (Object.keys(profileUpdate).length > 0) {
