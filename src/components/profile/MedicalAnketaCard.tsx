@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Edit2, Pill, Stethoscope, FileText } from "lucide-react";
+import { Heart, Edit2, Pill, Stethoscope, FileText, Flower2 } from "lucide-react";
 import { OPERATIONS } from "@/lib/medicalAnketa";
 
 interface MedicalCondition {
@@ -9,13 +9,26 @@ interface MedicalCondition {
   condition: string;
 }
 
+const REPRO_STATUS_LABELS: Record<string, string> = {
+  regular: "Регулярный цикл",
+  contraceptives: "Принимаю КОК",
+  pregnant: "Беременность",
+  lactating: "Кормление грудью",
+  perimenopause: "Пременопауза",
+  menopause: "Менопауза",
+  hormonal_therapy: "ЗГТ (гормональная терапия)",
+};
+
 interface Props {
   medicalHistory: MedicalCondition[];
   operations: Record<string, unknown> | null;
   medications: string[] | null;
   healthNote: string | null;
+  gender?: string | null;
+  reproductiveStatus?: string | null;
   onEdit: () => void;
 }
+
 
 export function MedicalAnketaCard({
   medicalHistory,
