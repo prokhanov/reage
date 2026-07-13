@@ -162,9 +162,56 @@ export function EditMedicalHistoryDialog({
           <DialogTitle>Редактировать историю болезней</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-1 py-1">
+        <div className="flex-1 overflow-y-auto px-1 py-1 space-y-6">
           <MedicalAnketaForm value={value} onChange={handleChange} />
+
+          {showReproField && (
+            <div className="rounded-lg border border-pink-500/25 bg-pink-500/5 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Flower2 className="h-4 w-4 text-pink-500" />
+                <Label className="text-sm font-medium">
+                  Репродуктивный статус
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Влияет на интерпретацию гормонов и других показателей. Заполняется один раз — потом изменить можно в разделе «Основные данные».
+              </p>
+              <Select
+                value={reproStatus || "none"}
+                onValueChange={(v) => {
+                  setReproStatus(v === "none" ? "" : v);
+                  setReproDate("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Не указан" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Не указан</SelectItem>
+                  <SelectItem value="regular">Регулярный цикл</SelectItem>
+                  <SelectItem value="contraceptives">Принимаю КОК</SelectItem>
+                  <SelectItem value="pregnant">Беременность</SelectItem>
+                  <SelectItem value="lactating">Кормление грудью</SelectItem>
+                  <SelectItem value="perimenopause">Пременопауза</SelectItem>
+                  <SelectItem value="menopause">Менопауза</SelectItem>
+                  <SelectItem value="hormonal_therapy">ЗГТ (гормональная терапия)</SelectItem>
+                </SelectContent>
+              </Select>
+              {reproDateMeta && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{reproDateMeta.label}</Label>
+                  <Input
+                    type="date"
+                    value={reproDate}
+                    onChange={(e) => setReproDate(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
 
         <div className="flex gap-3 pt-4 border-t">
           <Button
