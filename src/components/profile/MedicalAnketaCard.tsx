@@ -86,7 +86,24 @@ export function MedicalAnketaCard({
         </div>
       ) : (
         <div className="space-y-5">
+          {/* Репродуктивный статус (только для женщин) */}
+          {isFemale && (
+            <Section
+              icon={<Flower2 className="h-4 w-4 text-pink-500" />}
+              title="Репродуктивный статус"
+            >
+              {reproLabel ? (
+                <Badge variant="secondary" className="text-xs">
+                  {reproLabel}
+                </Badge>
+              ) : (
+                <EmptyLine text="Не указан — заполните, это влияет на интерпретацию гормонов" />
+              )}
+            </Section>
+          )}
+
           {/* Хронические */}
+
           <Section
             icon={<Heart className="h-4 w-4 text-red-500" />}
             title="Хронические заболевания"
