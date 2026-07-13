@@ -78,7 +78,28 @@ export function EditMedicalHistoryDialog({
       operations: (operations as Record<string, unknown>) ?? {},
       healthNote: healthNote ?? "",
     });
+    setReproStatus("");
+    setReproDate("");
   }, [open, medicalHistory, medications, operations, healthNote]);
+
+  // Какое поле-дата нужно рядом со статусом.
+  const reproDateMeta: { key: string; label: string } | null = (() => {
+    switch (reproStatus) {
+      case "regular":
+        return { key: "last_menstrual_date", label: "Дата начала последней менструации" };
+      case "pregnant":
+        return { key: "pregnancy_start_date", label: "Дата начала беременности" };
+      case "lactating":
+        return { key: "postpartum_date", label: "Дата родов" };
+      case "menopause":
+        return { key: "menopause_date", label: "Год/дата последней менструации" };
+      case "perimenopause":
+        return { key: "menopause_date", label: "Дата последней менструации (если ещё бывают)" };
+      default:
+        return null;
+    }
+  })();
+
 
   const handleChange = (patch: Partial<MedicalAnketaValue>) => {
     setValue((prev) => ({ ...prev, ...patch }));
