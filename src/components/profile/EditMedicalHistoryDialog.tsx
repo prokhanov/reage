@@ -126,15 +126,23 @@ export function EditMedicalHistoryDialog({
         if (insErr) throw insErr;
       }
 
+      const profileUpdate: Record<string, unknown> = {
+        medications: value.medications,
+        operations: value.operations as never,
+        health_note: value.healthNote.trim() || null,
+      };
+      if (showReproField && reproStatus) {
+        profileUpdate.reproductive_status = reproStatus;
+        if (reproDateMeta && reproDate) {
+          profileUpdate[reproDateMeta.key] = reproDate;
+        }
+      }
       const { error: profErr } = await supabase
         .from("profiles")
-        .update({
-          medications: value.medications,
-          operations: value.operations as never,
-          health_note: value.healthNote.trim() || null,
-        })
+        .update(profileUpdate as never)
         .eq("id", userId);
       if (profErr) throw profErr;
+
 
       toast({ title: "Сохранено", description: "История болезней обновлена" });
       onSuccess();
