@@ -1086,7 +1086,7 @@ export default function Recommendations() {
                   <TableRow 
                     key={report.date} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => handleView(report)}
+                    onClick={() => (!isViewMode && report.analysisId ? openReportV2(report, "view") : handleView(report))}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
@@ -1103,18 +1103,15 @@ export default function Recommendations() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                        {ENABLE_REPORT_V2 && report.analysisId && (
+                        {ENABLE_REPORT_V2 && isViewMode && report.analysisId && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Просмотр отчёта (Beta)"
-                            aria-label="Просмотр отчёта — новый рендерер (Beta)"
+                            title="Просмотр отчёта"
+                            aria-label="Просмотр отчёта — новый рендерер"
                             onClick={() => openReportV2(report, "view")}
                           >
-                            <span className="relative">
-                              <Eye className="h-4 w-4" />
-                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
-                            </span>
+                            <Eye className="h-4 w-4" />
                           </Button>
                         )}
                         {hasPatientAccess && isViewMode && report.analysisId && (
@@ -1130,16 +1127,14 @@ export default function Recommendations() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Редактор отчёта (Beta)"
-                            aria-label="Редактор отчёта — новый рендерер (Beta)"
+                            title="Редактор отчёта"
+                            aria-label="Редактор отчёта — новый рендерер"
                             onClick={() => openReportV2(report, "edit")}
                           >
-                            <span className="relative">
-                              <Edit className="h-4 w-4" />
-                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
-                            </span>
+                            <Edit className="h-4 w-4" />
                           </Button>
                         )}
+
                         <Button
                           variant="ghost"
                           size="icon"
