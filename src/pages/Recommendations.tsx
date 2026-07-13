@@ -1033,6 +1033,17 @@ export default function Recommendations() {
                         Открыть отчёт
                       </Button>
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {ENABLE_REPORT_V2 && !isViewMode && report.analysisId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Просмотр отчёта"
+                            aria-label="Просмотр отчёта"
+                            onClick={() => openReportV2(report, "view")}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
                         {ENABLE_REPORT_V2 && isViewMode && report.analysisId && (
                           <Button
                             variant="ghost"
@@ -1066,9 +1077,11 @@ export default function Recommendations() {
                             </span>
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(report)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {isViewMode && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(report)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
