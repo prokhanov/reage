@@ -1037,11 +1037,14 @@ export default function Recommendations() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Просмотр отчёта"
-                            aria-label="Просмотр отчёта — новый рендерер"
+                            title="Просмотр отчёта (Beta)"
+                            aria-label="Просмотр отчёта — новый рендерер (Beta)"
                             onClick={() => openReportV2(report, "view")}
                           >
-                            <Eye className="h-4 w-4" />
+                            <span className="relative">
+                              <Eye className="h-4 w-4" />
+                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
+                            </span>
                           </Button>
                         )}
                         {hasPatientAccess && isViewMode && report.analysisId && (
@@ -1053,11 +1056,14 @@ export default function Recommendations() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Редактор отчёта"
-                            aria-label="Редактор отчёта — новый рендерер"
+                            title="Редактор отчёта (Beta)"
+                            aria-label="Редактор отчёта — новый рендерер (Beta)"
                             onClick={() => openReportV2(report, "edit")}
                           >
-                            <Edit className="h-4 w-4" />
+                            <span className="relative">
+                              <Edit className="h-4 w-4" />
+                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
+                            </span>
                           </Button>
                         )}
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(report)}>
@@ -1107,11 +1113,14 @@ export default function Recommendations() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Просмотр отчёта"
-                            aria-label="Просмотр отчёта — новый рендерер"
+                            title="Просмотр отчёта (Beta)"
+                            aria-label="Просмотр отчёта — новый рендерер (Beta)"
                             onClick={() => openReportV2(report, "view")}
                           >
-                            <Eye className="h-4 w-4" />
+                            <span className="relative">
+                              <Eye className="h-4 w-4" />
+                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
+                            </span>
                           </Button>
                         )}
                         {hasPatientAccess && isViewMode && report.analysisId && (
@@ -1127,11 +1136,14 @@ export default function Recommendations() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Редактор отчёта"
-                            aria-label="Редактор отчёта — новый рендерер"
+                            title="Редактор отчёта (Beta)"
+                            aria-label="Редактор отчёта — новый рендерер (Beta)"
                             onClick={() => openReportV2(report, "edit")}
                           >
-                            <Edit className="h-4 w-4" />
+                            <span className="relative">
+                              <Edit className="h-4 w-4" />
+                              <span className="absolute -top-1 -right-2 rounded bg-primary/20 px-1 text-[8px] font-bold leading-3 text-primary">β</span>
+                            </span>
                           </Button>
                         )}
 
