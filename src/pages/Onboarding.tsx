@@ -71,18 +71,9 @@ export default function Onboarding() {
       const uid = authData.user.id;
       setUserId(uid);
 
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("user_id", uid)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!sub) {
-        navigate("/subscription", { replace: true });
-        return;
-      }
+      // Подписка на этом этапе не проверяется: анкета обязательна для всех
+      // пациентов — платных, подаренных админом и по 100% промокоду.
+
 
       const { data: profile } = await supabase
         .from("profiles")

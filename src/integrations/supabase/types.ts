@@ -1874,6 +1874,7 @@ export type Database = {
           id: string
           last_menstrual_date: string | null
           last_name: string | null
+          medical_anketa_filled: boolean
           medications: string[] | null
           menopause_date: string | null
           name: string
@@ -1910,6 +1911,7 @@ export type Database = {
           id: string
           last_menstrual_date?: string | null
           last_name?: string | null
+          medical_anketa_filled?: boolean
           medications?: string[] | null
           menopause_date?: string | null
           name: string
@@ -1946,6 +1948,7 @@ export type Database = {
           id?: string
           last_menstrual_date?: string | null
           last_name?: string | null
+          medical_anketa_filled?: boolean
           medications?: string[] | null
           menopause_date?: string | null
           name?: string

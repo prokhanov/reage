@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { Calendar, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -28,18 +31,38 @@ export function AnalysisBookingBanner() {
   const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [medicalAnketaFilled, setMedicalAnketaFilled] = useState(true);
   const { data: userRoleData, isLoading } = useUserRole();
   const { getUserId, isViewMode } = useViewAsUser();
   const { data: modeSettings } = useBookingModeSettings();
   const mode = modeSettings?.mode ?? "phone";
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     checkBookingStatus();
     checkSubscriptionStatus();
+    checkAnketaStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const checkAnketaStatus = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("medical_anketa_filled")
+        .eq("id", userId)
+        .maybeSingle();
+      setMedicalAnketaFilled(!!(profile as any)?.medical_anketa_filled);
+    } catch (error) {
+      console.error("Error checking anketa status:", error);
+    }
+  };
+
   const checkSubscriptionStatus = async () => {
+
     try {
       const userId = await getUserId();
       if (!userId) return;
@@ -164,12 +187,22 @@ export function AnalysisBookingBanner() {
       setSubscriptionDialogOpen(true);
       return;
     }
+    if (!medicalAnketaFilled && !isViewMode) {
+      toast({
+        title: "Сначала заполните медицинскую анкету",
+        description:
+          "Хронические заболевания, приём лекарств и операции нужны для корректного отчёта. Занимает пару минут.",
+      });
+      navigate("/onboarding/health");
+      return;
+    }
     if (mode === "phone") {
       setCallbackDialogOpen(true);
     } else {
       setDialogOpen(true);
     }
   };
+
 
   const handleSubscriptionSuccess = () => {
     checkSubscriptionStatus();

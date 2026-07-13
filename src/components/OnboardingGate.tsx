@@ -8,18 +8,18 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 /**
  * Жёсткий гейт онбординга.
  *
- * Пациент с активной подпиской и `profiles.onboarding_completed = false` не может
- * попасть в защищённые разделы, пока не заполнит анкету или явно не нажмёт «Пропустить»
- * (для последнего шага — «Заполнить позже»). Работает независимо от того, каким путём
- * пользователь вернулся: сразу после Робокассы, после закрытия вкладки или на другом
- * устройстве. Сигнал полностью на нашей стороне (subscriptions + profiles).
+ * Пациент с `profiles.onboarding_completed = false` не может попасть в защищённые
+ * разделы, пока не пройдёт анкету или явно не нажмёт «Заполнить позже»
+ * (на последнем шаге). Работает независимо от способа получения подписки —
+ * платная, подаренная админом или по промокоду со 100% скидкой: анкета
+ * обязательна для построения корректного отчёта.
  *
  * Не срабатывает:
  *  - для не-пациентов (админы/врачи),
  *  - в режиме «просмотр как пациент» админом,
- *  - на разрешённых путях: /onboarding/*, /subscription*, /admin/*, /profile,
- *  - если нет активной подписки (пока не оплатил — гейт не нужен).
+ *  - на разрешённых путях: /onboarding/*, /subscription*, /admin/*, /profile.
  */
+
 
 const ALLOWED_PREFIXES = [
   "/onboarding",
@@ -67,15 +67,7 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
           return;
         }
 
-        const [{ data: sub }, { data: profile }] = await Promise.all([
-          supabase
-            .from("subscriptions")
-            .select("id")
-            .eq("user_id", uid)
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+        const [{ data: profile }] = await Promise.all([
           supabase
             .from("profiles")
             .select("onboarding_completed")
@@ -85,10 +77,10 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
 
         if (cancelled) return;
 
-        const hasActive = !!sub;
         const done = !!(profile as any)?.onboarding_completed;
-        setMustOnboard(hasActive && !done);
+        setMustOnboard(!done);
         setChecked(true);
+
       } catch (e) {
         console.error("OnboardingGate check failed", e);
         if (!cancelled) {
