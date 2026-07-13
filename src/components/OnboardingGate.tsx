@@ -67,15 +67,7 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
           return;
         }
 
-        const [{ data: sub }, { data: profile }] = await Promise.all([
-          supabase
-            .from("subscriptions")
-            .select("id")
-            .eq("user_id", uid)
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+        const [{ data: profile }] = await Promise.all([
           supabase
             .from("profiles")
             .select("onboarding_completed")
@@ -85,10 +77,10 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
 
         if (cancelled) return;
 
-        const hasActive = !!sub;
         const done = !!(profile as any)?.onboarding_completed;
-        setMustOnboard(hasActive && !done);
+        setMustOnboard(!done);
         setChecked(true);
+
       } catch (e) {
         console.error("OnboardingGate check failed", e);
         if (!cancelled) {
