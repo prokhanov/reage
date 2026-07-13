@@ -101,6 +101,23 @@ async function handleStart(supabase: any, body: any) {
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
   if (!analysisId || !userId) return json({ success: false, error: "analysisId и userId обязательны" }, 400);
 
+  // Гейт: без заполненной медицинской анкеты не запускаем отчёт —
+  // хронические, лекарства и операции критичны для интерпретации.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("medical_anketa_filled")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!profile?.medical_anketa_filled) {
+    return json({
+      success: false,
+      error: "Медицинская анкета не заполнена. Заполните раздел «Здоровье» в анкете, чтобы отчёт был корректным.",
+      code: "MEDICAL_ANKETA_REQUIRED",
+    }, 400);
+  }
+
+
+
   // Идемпотентность: если уже есть свежий running-job для этого анализа —
   // подцепляемся к нему вместо создания нового. Каскад «superseded» при
   // повторных кликах ломал генерацию (см. инциденты 30.05.2026).
