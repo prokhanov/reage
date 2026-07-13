@@ -36,8 +36,17 @@ export default function HealthAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isAutoScrollEnabled = useRef(true);
   const { toast } = useToast();
+
+  // Focus textarea on mount and after loading finishes (i.e. after each send)
+  useEffect(() => {
+    if (!isLoading && !initialLoading) {
+      textareaRef.current?.focus();
+    }
+  }, [isLoading, initialLoading, currentConversationId]);
+
 
   // Hide Jivo widget while user is in our own AI chat (overlaps Send button).
   useEffect(() => {
@@ -413,6 +422,8 @@ export default function HealthAssistant() {
           <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30 flex-shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background max-sm:border-border/50">
             <div className="flex gap-2">
               <Textarea
+                ref={textareaRef}
+
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
