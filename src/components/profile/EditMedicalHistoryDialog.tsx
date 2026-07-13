@@ -8,6 +8,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Flower2 } from "lucide-react";
 import { MedicalAnketaForm, MedicalAnketaValue } from "@/components/medical/MedicalAnketaForm";
 import { CHRONIC_CATEGORY } from "@/lib/medicalAnketa";
 
@@ -24,6 +34,8 @@ interface EditMedicalHistoryDialogProps {
   operations: Record<string, unknown> | null | undefined;
   medications: string[] | null | undefined;
   healthNote: string | null | undefined;
+  gender?: string | null;
+  reproductiveStatus?: string | null;
   userId: string | null;
   onSuccess: () => void;
 }
@@ -35,6 +47,8 @@ export function EditMedicalHistoryDialog({
   operations,
   medications,
   healthNote,
+  gender,
+  reproductiveStatus,
   userId,
   onSuccess,
 }: EditMedicalHistoryDialogProps) {
@@ -44,8 +58,15 @@ export function EditMedicalHistoryDialog({
     operations: {},
     healthNote: "",
   });
+  const [reproStatus, setReproStatus] = useState<string>("");
+  const [reproDate, setReproDate] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+
+  // Поле показываем только для женщин и только если ранее статус не заполнялся.
+  const showReproField =
+    gender === "female" && !(reproductiveStatus ?? "").trim();
+
 
   useEffect(() => {
     if (!open) return;
