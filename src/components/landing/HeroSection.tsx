@@ -64,7 +64,7 @@ export function HeroSection() {
       <div className="relative z-10 container mx-auto px-4 pt-6 pb-12 md:pt-8 md:pb-16">
         <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-4 md:gap-5">
           {/* Logo - centered top */}
-          <ThemedLogo className="h-20 md:h-28 lg:h-36 w-auto animate-hue-shift mx-auto" />
+          <ThemedLogo className="h-20 md:h-28 lg:h-36 w-auto animate-hue-shift mx-auto mb-6 md:mb-10 lg:mb-14" />
 
           {/* City badge */}
           <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
