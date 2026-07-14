@@ -405,7 +405,7 @@ export function HeroPortrait() {
   }[bp];
 
   return (
-    <section className="relative overflow-hidden bg-background min-h-[70vh] flex flex-col">
+    <section className="relative overflow-hidden bg-background min-h-[70vh] lg:min-h-[90vh] flex flex-col">
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
@@ -467,9 +467,9 @@ export function HeroPortrait() {
         </>
       )}
 
-      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
+      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-28 lg:pb-20">
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
-          <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
+          <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-8 max-w-xl w-full text-center lg:text-left">
             <ThemedLogo className="h-12 sm:h-16 lg:h-32 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
