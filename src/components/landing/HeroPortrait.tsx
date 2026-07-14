@@ -467,7 +467,7 @@ export function HeroPortrait() {
         </>
       )}
 
-      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
+      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-28 lg:pb-20">
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
             <ThemedLogo className="h-12 sm:h-16 lg:h-32 w-auto animate-hue-shift mx-auto lg:mx-0" />
