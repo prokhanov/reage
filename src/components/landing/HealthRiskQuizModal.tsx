@@ -584,45 +584,41 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60 sm:rounded-2xl">
-        {/* Progress header */}
-        <div className="px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b border-border/40">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                {String(Math.min(step, TOTAL_SCREENS)).padStart(2, "0")}
-                <span className="text-muted-foreground/60">
-                  {" "}/ {String(TOTAL_SCREENS).padStart(2, "0")}
-                </span>
-              </span>
-              <span className="text-sm font-medium text-foreground">
-                {STEP_LABELS[step] ?? ""}
-              </span>
+      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden border-border/50 sm:rounded-3xl bg-card">
+        {/* Ambient glow */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+        </div>
+
+        {/* Header */}
+        <div className="relative px-6 md:px-10 pt-6 md:pt-7 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
+                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div className="leading-tight">
+                <div className="text-[13px] font-semibold text-foreground">Оценка рисков</div>
+                <div className="text-[11px] text-muted-foreground">
+                  Шаг {Math.min(step, TOTAL_SCREENS)} из {TOTAL_SCREENS} · {STEP_LABELS[step] ?? ""}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-muted/40 border border-border/40">
+              <ShieldCheck className="w-3 h-3" />
               Не диагноз
             </div>
           </div>
-          <div className="flex gap-1">
-            {Array.from({ length: TOTAL_SCREENS }).map((_, i) => {
-              const idx = i + 1;
-              const done = idx < step;
-              const current = idx === step;
-              return (
-                <div
-                  key={idx}
-                  className={cn(
-                    "h-1 flex-1 rounded-full transition-all duration-500",
-                    done && "bg-primary",
-                    current && "bg-primary",
-                    !done && !current && "bg-muted",
-                  )}
-                />
-              );
-            })}
+          {/* Continuous progress bar */}
+          <div className="relative h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
+              style={{ width: `${(Math.min(step, TOTAL_SCREENS) / TOTAL_SCREENS) * 100}%` }}
+            />
           </div>
         </div>
+
 
         <div className="px-5 md:px-8 pb-6 md:pb-8 pt-6 max-h-[78vh] overflow-y-auto">
           <div key={step} className="animate-fade-in">
