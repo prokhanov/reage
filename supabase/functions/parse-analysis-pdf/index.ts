@@ -91,7 +91,29 @@ const NAME_ALIASES: Record<string, string> = {
   "интерлейкин 6": "IL-6",
   "интерлейкин-6": "IL-6",
   "интерлейкин 6 il 6": "IL-6",
+  // SHBG / ГСПГ
+  "shbg": "SHBG",
+  "гспг": "SHBG",
+  "глобулин связывающий половой гормон": "SHBG",
+  "глобулин связывающий половые гормоны": "SHBG",
+  "глобулин связывающий половой гормон sex hormone binding globulin": "SHBG",
+  "глобулин связывающий половые гормоны sex hormone binding globulin": "SHBG",
+  "sex hormone binding globulin": "SHBG",
+  "sex hormone-binding globulin": "SHBG",
+  // FAI / Индекс свободных андрогенов
+  "fai": "FAI",
+  "индекс свободных андрогенов": "FAI",
+  "индекс свободных андрогенов fai": "FAI",
+  "free androgen index": "FAI",
 };
+
+// Fuzzy fallback: keyword-based mapping used if exact alias lookup fails.
+const NAME_KEYWORD_ALIASES: Array<{ keywords: string[]; code: string }> = [
+  { keywords: ["глобулин", "половы"], code: "SHBG" },
+  { keywords: ["sex", "hormone", "binding"], code: "SHBG" },
+  { keywords: ["свободн", "андроген"], code: "FAI" },
+  { keywords: ["free", "androgen", "index"], code: "FAI" },
+];
 
 const UNIT_ALIASES: Record<string, string> = {
   "сек": "с",
