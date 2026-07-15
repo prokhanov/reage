@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Activity, Droplets, Timer, Stethoscope, ShieldCheck } from "lucide-react";
+import { HealthRiskQuizModal } from "./HealthRiskQuizModal";
 
 const statusColors = {
   heart: {
