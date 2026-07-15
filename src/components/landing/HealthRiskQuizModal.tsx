@@ -1984,6 +1984,7 @@ function NumberField({
 
 function OptionalMeasureField({
   label,
+  unit,
   value,
   min,
   max,
@@ -1993,6 +1994,7 @@ function OptionalMeasureField({
   onChange,
 }: {
   label: string;
+  unit?: string;
   value: number | null;
   min: number;
   max: number;
@@ -2005,9 +2007,9 @@ function OptionalMeasureField({
   const isUnknown = unknownPicked && value === null;
 
   return (
-    <FieldBlock label={label}>
+    <FieldBlock label={unit ? `${label}, ${unit}` : label}>
       <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-        <div className="flex-1 max-w-[240px]">
+        <div className="relative flex-1 max-w-[240px]">
           <NumberField
             value={isUnknown ? undefined : value ?? undefined}
             min={min}
@@ -2019,7 +2021,13 @@ function OptionalMeasureField({
               setUnknownPicked(false);
               onChange(v === undefined ? null : v);
             }}
+            className={cn("text-[17px] font-semibold", unit && "pr-14")}
           />
+          {unit && (
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              {unit}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -2039,9 +2047,7 @@ function OptionalMeasureField({
         </button>
       </div>
       {hint && <HintText>{hint}</HintText>}
-      <HintText>
-        От {min} до {max}
-      </HintText>
     </FieldBlock>
   );
+}
 }
