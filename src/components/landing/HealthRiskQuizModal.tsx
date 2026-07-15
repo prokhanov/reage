@@ -34,8 +34,7 @@ type Answers = {
   sbpKnown?: "known" | "wasHigh" | "neverHigh" | "unknown";
   sbpValue?: number;
   bpMeds?: Tri;
-  cholKnown?: boolean;
-  cholValue?: number; // mmol/L
+  cholLevel?: "high" | "normal" | "low" | "unknown";
   // findrisc extras
   activity?: Tri; // 30+ min/day
   veggiesDaily?: Tri;
@@ -109,7 +108,15 @@ function ascvdCategory(a: Answers): {
       : a.sbpKnown === "neverHigh"
       ? 115
       : 125;
-  const chol = a.cholKnown ? a.cholValue ?? medianCholesterol(a) : medianCholesterol(a);
+  // Map user-reported category to a representative mmol/L value (or median if unknown)
+  const chol =
+    a.cholLevel === "high"
+      ? 6.5
+      : a.cholLevel === "low"
+      ? 4.2
+      : a.cholLevel === "normal"
+      ? 5.0
+      : medianCholesterol(a);
   const smoker = isTrue(a.smoker);
   const meds = isTrue(a.bpMeds);
 
@@ -366,8 +373,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
     !!a.sbpKnown &&
     (a.sbpKnown !== "known" || (!!a.sbpValue && a.sbpValue >= 80 && a.sbpValue <= 240)) &&
     a.bpMeds !== undefined &&
-    typeof a.cholKnown === "boolean" &&
-    (a.cholKnown === false || (!!a.cholValue && a.cholValue >= 2 && a.cholValue <= 15));
+    !!a.cholLevel;
 
   const metabValid =
     a.activity !== undefined &&
@@ -476,22 +482,13 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                 )}
               </Field>
               <YesNo label="Принимаешь препараты от давления?" value={a.bpMeds} onChange={(v) => update({ bpMeds: v })} />
-              <Field label="Известен уровень холестерина?">
-                <div className="flex gap-2">
-                  <Chip active={a.cholKnown === true} onClick={() => update({ cholKnown: true })}>Знаю</Chip>
-                  <Chip active={a.cholKnown === false} onClick={() => update({ cholKnown: false, cholValue: undefined })}>Не знаю</Chip>
+              <Field label="Уровень холестерина?">
+                <div className="flex flex-wrap gap-2">
+                  <Chip active={a.cholLevel === "high"} onClick={() => update({ cholLevel: "high" })}>Повышенный</Chip>
+                  <Chip active={a.cholLevel === "normal"} onClick={() => update({ cholLevel: "normal" })}>Норма</Chip>
+                  <Chip active={a.cholLevel === "low"} onClick={() => update({ cholLevel: "low" })}>Пониженный</Chip>
+                  <Chip active={a.cholLevel === "unknown"} onClick={() => update({ cholLevel: "unknown" })}>Не знаю</Chip>
                 </div>
-                {a.cholKnown && (
-                  <div className="mt-3 max-w-[220px]">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      placeholder="Общий холестерин, ммоль/л"
-                      value={a.cholValue ?? ""}
-                      onChange={(e) => update({ cholValue: Number(e.target.value) || undefined })}
-                    />
-                  </div>
-                )}
               </Field>
             </StepShell>
           )}
