@@ -1766,7 +1766,7 @@ function QuizFooter({
         disabled={nextDisabled}
         size="lg"
         className={cn(
-          "min-w-[200px] h-13 rounded-2xl font-semibold text-[15px]",
+          "min-w-[200px] h-12 rounded-2xl font-semibold text-[15px]",
           "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35",
           "transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
           "disabled:shadow-none disabled:hover:translate-y-0",
