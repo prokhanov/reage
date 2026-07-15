@@ -373,8 +373,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
     !!a.sbpKnown &&
     (a.sbpKnown !== "known" || (!!a.sbpValue && a.sbpValue >= 80 && a.sbpValue <= 240)) &&
     a.bpMeds !== undefined &&
-    typeof a.cholKnown === "boolean" &&
-    (a.cholKnown === false || (!!a.cholValue && a.cholValue >= 2 && a.cholValue <= 15));
+    !!a.cholLevel;
 
   const metabValid =
     a.activity !== undefined &&
