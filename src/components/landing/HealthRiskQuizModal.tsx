@@ -682,6 +682,44 @@ function YesNo({
   );
 }
 
+function MeasureField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: NumOrUnknown | undefined;
+  onChange: (v: NumOrUnknown | undefined) => void;
+}) {
+  const isUnknown = value === "unknown";
+  return (
+    <Field label={label} hint={hint}>
+      <Input
+        type="number"
+        disabled={isUnknown}
+        placeholder={isUnknown ? "не знаю" : undefined}
+        value={typeof value === "number" ? value : ""}
+        onChange={(e) => onChange(Number(e.target.value) || undefined)}
+      />
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => onChange(isUnknown ? undefined : "unknown")}
+          className={cn(
+            "text-xs px-2.5 py-1 rounded-md border transition-colors",
+            isUnknown
+              ? "bg-primary/15 border-primary/30 text-primary"
+              : "border-border/60 text-muted-foreground hover:text-foreground hover:border-border"
+          )}
+        >
+          {isUnknown ? "✓ не знаю" : "не знаю"}
+        </button>
+      </div>
+    </Field>
+  );
+
 function HookScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="text-center py-4">
