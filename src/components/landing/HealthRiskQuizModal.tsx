@@ -729,11 +729,11 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Основные данные
+      <div className="mb-7">
+        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+          Расскажите немного о себе
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground leading-relaxed">
           Эти данные будут использоваться сразу в нескольких расчётах.
         </p>
       </div>
@@ -741,29 +741,30 @@ function ScreenBasics({
       <div className="space-y-6">
         {/* Age */}
         <FieldBlock label="Возраст" required>
-          <Input
-            type="number"
-            inputMode="numeric"
+          <NumberField
+            value={a.age}
             min={18}
             max={90}
             placeholder="Например, 42"
-            value={a.age ?? ""}
-            onChange={(e) => update({ age: clampInt(e.target.value, 18, 90) })}
-            className="max-w-[180px]"
+            ariaLabel="Возраст"
+            onChange={(v) => update({ age: v })}
+            className="max-w-[200px]"
           />
           <HintText>От 18 до 90 лет</HintText>
         </FieldBlock>
 
         {/* Sex */}
         <FieldBlock label="Пол" required>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <RadioChip
+              full
               active={a.sex === "male"}
               onClick={() => update({ sex: "male" })}
             >
               Мужской
             </RadioChip>
             <RadioChip
+              full
               active={a.sex === "female"}
               onClick={() => update({ sex: "female" })}
             >
@@ -772,33 +773,39 @@ function ScreenBasics({
           </div>
         </FieldBlock>
 
-        {/* Height */}
-        <OptionalMeasureField
-          label="Рост, см"
-          value={a.height}
-          min={140}
-          max={220}
-          placeholder="Например, 175"
-          onChange={(v) => update({ height: v })}
-        />
-
-        {/* Weight */}
-        <OptionalMeasureField
-          label="Вес, кг"
-          value={a.weight}
-          min={40}
-          max={200}
-          placeholder="Например, 74"
-          onChange={(v) => update({ weight: v })}
-        />
+        {/* Height + Weight side-by-side on wider screens */}
+        <div className="grid sm:grid-cols-2 gap-5">
+          <OptionalMeasureField
+            label="Рост, см"
+            value={a.height}
+            min={140}
+            max={220}
+            placeholder="Например, 175"
+            onChange={(v) => update({ height: v })}
+          />
+          <OptionalMeasureField
+            label="Вес, кг"
+            value={a.weight}
+            min={40}
+            max={200}
+            placeholder="Например, 74"
+            allowDecimal
+            onChange={(v) => update({ weight: v })}
+          />
+        </div>
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-            <Info className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-foreground">
-              Ваш ИМТ: <span className="font-semibold">{a.bmi}</span>
-            </span>
+          <div className="flex items-center gap-3 rounded-xl border-2 border-primary/25 bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-sm animate-scale-in">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+              <Info className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Ваш ИМТ</div>
+              <div className="text-lg font-bold text-foreground leading-tight">
+                {a.bmi}
+              </div>
+            </div>
           </div>
         )}
 
@@ -814,16 +821,7 @@ function ScreenBasics({
         />
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
