@@ -110,8 +110,8 @@ function ascvdCategory(a: Answers): {
       ? 115
       : 125;
   const chol = a.cholKnown ? a.cholValue ?? medianCholesterol(a) : medianCholesterol(a);
-  const smoker = !!a.smoker;
-  const meds = !!a.bpMeds;
+  const smoker = isTrue(a.smoker);
+  const meds = isTrue(a.bpMeds);
 
   let s = 0;
   const top: string[] = [];
