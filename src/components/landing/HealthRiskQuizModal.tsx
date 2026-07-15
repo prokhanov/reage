@@ -560,72 +560,99 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60">
-        {/* Progress bar */}
-        <div className="px-6 pt-6 pb-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              Шаг {Math.min(step, TOTAL_SCREENS)} из {TOTAL_SCREENS}
-            </span>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60 sm:rounded-2xl">
+        {/* Progress header */}
+        <div className="px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b border-border/40">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                {String(Math.min(step, TOTAL_SCREENS)).padStart(2, "0")}
+                <span className="text-muted-foreground/60">
+                  {" "}/ {String(TOTAL_SCREENS).padStart(2, "0")}
+                </span>
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                {STEP_LABELS[step] ?? ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <ShieldCheck className="w-3.5 h-3.5" />
               Не диагноз
             </div>
           </div>
-          <Progress value={(Math.min(step, TOTAL_SCREENS) / TOTAL_SCREENS) * 100} className="h-1" />
+          <div className="flex gap-1">
+            {Array.from({ length: TOTAL_SCREENS }).map((_, i) => {
+              const idx = i + 1;
+              const done = idx < step;
+              const current = idx === step;
+              return (
+                <div
+                  key={idx}
+                  className={cn(
+                    "h-1 flex-1 rounded-full transition-all duration-500",
+                    done && "bg-primary",
+                    current && "bg-primary",
+                    !done && !current && "bg-muted",
+                  )}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        <div className="px-6 md:px-8 pb-6 md:pb-8 pt-4 max-h-[80vh] overflow-y-auto">
-          {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
-          {step === 2 && (
-            <ScreenBasics
-              a={a}
-              update={update}
-              onBack={() => setStep(1)}
-              onNext={() => setStep(3)}
-            />
-          )}
-          {step === 3 && (
-            <ScreenHeart
-              a={a}
-              update={update}
-              onBack={() => setStep(2)}
-              onNext={() => setStep(4)}
-            />
-          )}
-          {step === 4 && (
-            <ScreenMetabolism
-              a={a}
-              update={update}
-              onBack={() => setStep(3)}
-              onNext={() => setStep(5)}
-            />
-          )}
-          {step === 5 && (
-            <ScreenLiver
-              a={a}
-              update={update}
-              onBack={() => setStep(4)}
-              onNext={() => setStep(6)}
-            />
-          )}
-          {step === 6 && (
-            <ScreenSleep
-              a={a}
-              update={update}
-              onBack={() => setStep(5)}
-              onNext={() => setStep(7)}
-            />
-          )}
-          {step === 7 && (
-            <ScreenEmail
-              a={a}
-              update={update}
-              onBack={() => setStep(6)}
-              onNext={() => setStep(8)}
-            />
-          )}
-          {step === 8 && <ScreenResult a={a} />}
+        <div className="px-5 md:px-8 pb-6 md:pb-8 pt-6 max-h-[78vh] overflow-y-auto">
+          <div key={step} className="animate-fade-in">
+            {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
+            {step === 2 && (
+              <ScreenBasics
+                a={a}
+                update={update}
+                onBack={() => setStep(1)}
+                onNext={() => setStep(3)}
+              />
+            )}
+            {step === 3 && (
+              <ScreenHeart
+                a={a}
+                update={update}
+                onBack={() => setStep(2)}
+                onNext={() => setStep(4)}
+              />
+            )}
+            {step === 4 && (
+              <ScreenMetabolism
+                a={a}
+                update={update}
+                onBack={() => setStep(3)}
+                onNext={() => setStep(5)}
+              />
+            )}
+            {step === 5 && (
+              <ScreenLiver
+                a={a}
+                update={update}
+                onBack={() => setStep(4)}
+                onNext={() => setStep(6)}
+              />
+            )}
+            {step === 6 && (
+              <ScreenSleep
+                a={a}
+                update={update}
+                onBack={() => setStep(5)}
+                onNext={() => setStep(7)}
+              />
+            )}
+            {step === 7 && (
+              <ScreenEmail
+                a={a}
+                update={update}
+                onBack={() => setStep(6)}
+                onNext={() => setStep(8)}
+              />
+            )}
+            {step === 8 && <ScreenResult a={a} />}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
