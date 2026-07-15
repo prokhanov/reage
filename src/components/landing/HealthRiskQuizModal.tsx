@@ -714,7 +714,196 @@ function ScreenHeart({
 }
 
 // -----------------------------------------------------------------------------
-// Screen 4+ — placeholder (will be built out per spec)
+// Screen 4 — Metabolism (FINDRISC)
+// -----------------------------------------------------------------------------
+
+function ScreenMetabolism({
+  a,
+  update,
+  onBack,
+  onNext,
+}: {
+  a: QuizAnswers;
+  update: (patch: Partial<QuizAnswers>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const valid =
+    !!a.activity &&
+    !!a.diet &&
+    !!a.bpMeds &&
+    !!a.highGlucoseHistory &&
+    !!a.familyDiabetes;
+
+  return (
+    <div>
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+          <Activity className="h-3 w-3" />
+          Блок 2 из 4
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Обмен веществ
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Расчёт по шкале{" "}
+          <span className="text-foreground font-medium">FINDRISC</span> —
+          10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ и
+          окружность талии уже известны.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <FieldBlock
+          label="Бывает ли у Вас не менее 30 минут физической активности в обычный день?"
+          required
+        >
+          <HintText>
+            Учитывать работу, ходьбу, тренировки, велосипед и любую другую
+            активность.
+          </HintText>
+          <div className="flex gap-2 mt-2">
+            <RadioChip
+              active={a.activity === "yes"}
+              onClick={() => update({ activity: "yes" })}
+            >
+              Да
+            </RadioChip>
+            <RadioChip
+              active={a.activity === "no"}
+              onClick={() => update({ activity: "no" })}
+            >
+              Нет
+            </RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock
+          label="Едите ли Вы овощи, фрукты или ягоды ежедневно?"
+          required
+        >
+          <div className="flex gap-2">
+            <RadioChip
+              active={a.diet === "daily"}
+              onClick={() => update({ diet: "daily" })}
+            >
+              Каждый день
+            </RadioChip>
+            <RadioChip
+              active={a.diet === "notDaily"}
+              onClick={() => update({ diet: "notDaily" })}
+            >
+              Не каждый день
+            </RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock
+          label="Принимаете ли Вы регулярно препараты для снижения артериального давления?"
+          required
+        >
+          <div className="flex gap-2">
+            <RadioChip
+              active={a.bpMeds === "yes"}
+              onClick={() => update({ bpMeds: "yes" })}
+            >
+              Да
+            </RadioChip>
+            <RadioChip
+              active={a.bpMeds === "no"}
+              onClick={() => update({ bpMeds: "no" })}
+            >
+              Нет
+            </RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock
+          label="Обнаруживали ли у Вас когда-либо повышенный уровень сахара в крови?"
+          required
+        >
+          <HintText>
+            Например: при диспансеризации, во время беременности, при
+            обследовании или при болезни.
+          </HintText>
+          <div className="flex flex-col gap-2 mt-2">
+            <RadioChip
+              full
+              active={a.highGlucoseHistory === "yes"}
+              onClick={() => update({ highGlucoseHistory: "yes" })}
+            >
+              Да
+            </RadioChip>
+            <RadioChip
+              full
+              active={a.highGlucoseHistory === "no"}
+              onClick={() => update({ highGlucoseHistory: "no" })}
+            >
+              Нет
+            </RadioChip>
+            <RadioChip
+              full
+              active={a.highGlucoseHistory === "unknown"}
+              onClick={() => update({ highGlucoseHistory: "unknown" })}
+            >
+              Не знаю
+            </RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock
+          label="Есть ли у Ваших родственников сахарный диабет 1 или 2 типа?"
+          required
+        >
+          <div className="flex flex-col gap-2">
+            <RadioChip
+              full
+              active={a.familyDiabetes === "no"}
+              onClick={() => update({ familyDiabetes: "no" })}
+            >
+              Нет
+            </RadioChip>
+            <RadioChip
+              full
+              active={a.familyDiabetes === "second"}
+              onClick={() => update({ familyDiabetes: "second" })}
+            >
+              Да, у бабушки, дедушки, тёти, дяди или двоюродных родственников
+            </RadioChip>
+            <RadioChip
+              full
+              active={a.familyDiabetes === "first"}
+              onClick={() => update({ familyDiabetes: "first" })}
+            >
+              Да, у родителей, родных братьев, сестёр или детей
+            </RadioChip>
+            <RadioChip
+              full
+              active={a.familyDiabetes === "unknown"}
+              onClick={() => update({ familyDiabetes: "unknown" })}
+            >
+              Не знаю
+            </RadioChip>
+          </div>
+        </FieldBlock>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
+          Далее
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Screen 5+ — placeholder (will be built out per spec)
 // -----------------------------------------------------------------------------
 
 function ScreenPlaceholder({ step, onBack }: { step: number; onBack: () => void }) {
