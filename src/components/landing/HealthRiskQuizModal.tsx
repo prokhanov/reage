@@ -1296,48 +1296,51 @@ function ScreenEmail({
       const nafld = computeNafld(a);
       const sleep = computeSleep(a);
 
-      const { error } = await supabase
-        .from("health_risk_quiz_submissions")
-        .insert({
-          email: a.email!.trim(),
-          consent: !!a.consent,
-          quiz_version: QUIZ_VERSION,
-          age: a.age ?? null,
-          sex: a.sex ?? null,
+      const payload = {
+        email: a.email!.trim(),
+        consent: !!a.consent,
+        quiz_version: QUIZ_VERSION,
+        age: a.age ?? null,
+        sex: a.sex ?? null,
+        height: a.height,
+        weight: a.weight,
+        bmi: a.bmi,
+        waist: a.waist,
+        answers: {
+          age: a.age,
+          sex: a.sex,
           height: a.height,
           weight: a.weight,
           bmi: a.bmi,
           waist: a.waist,
-          answers: {
-            age: a.age,
-            sex: a.sex,
-            height: a.height,
-            weight: a.weight,
-            bmi: a.bmi,
-            waist: a.waist,
-            smoker: a.smoker,
-            sbpChoice: a.sbpChoice,
-            sbpValue: a.sbpValue,
-            activity: a.activity,
-            diet: a.diet,
-            bpMeds: a.bpMeds,
-            highGlucoseHistory: a.highGlucoseHistory,
-            familyDiabetes: a.familyDiabetes,
-            diabetes: a.diabetes,
-            dyslipidemia: a.dyslipidemia,
-            alcohol: a.alcohol,
-            menopause: a.menopause,
-            sleepDuration: a.sleepDuration,
-            sleepDifficulty: a.sleepDifficulty,
-            sleepQuality: a.sleepQuality,
-          },
-          heart_result: heart as unknown as Record<string, unknown> | null,
-          findrisc_result: findrisc as unknown as Record<string, unknown> | null,
-          nafld_result: nafld as unknown as Record<string, unknown> | null,
-          sleep_result: sleep as unknown as Record<string, unknown> | null,
-          user_agent:
-            typeof navigator !== "undefined" ? navigator.userAgent : null,
-        });
+          smoker: a.smoker,
+          sbpChoice: a.sbpChoice,
+          sbpValue: a.sbpValue,
+          activity: a.activity,
+          diet: a.diet,
+          bpMeds: a.bpMeds,
+          highGlucoseHistory: a.highGlucoseHistory,
+          familyDiabetes: a.familyDiabetes,
+          diabetes: a.diabetes,
+          dyslipidemia: a.dyslipidemia,
+          alcohol: a.alcohol,
+          menopause: a.menopause,
+          sleepDuration: a.sleepDuration,
+          sleepDifficulty: a.sleepDifficulty,
+          sleepQuality: a.sleepQuality,
+        },
+        heart_result: heart,
+        findrisc_result: findrisc,
+        nafld_result: nafld,
+        sleep_result: sleep,
+        user_agent:
+          typeof navigator !== "undefined" ? navigator.userAgent : null,
+      };
+
+      const { error } = await supabase
+        .from("health_risk_quiz_submissions")
+        // Supabase generated insert type expects an array here.
+        .insert([payload as never]);
 
       if (error) throw error;
       onNext();
