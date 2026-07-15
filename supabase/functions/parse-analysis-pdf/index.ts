@@ -52,6 +52,13 @@ const UNIT_CONVERSIONS: Record<string, Record<string, Record<string, number>>> =
     "нг/мл":  { "мкг/мл": 0.001 },
     "ng/ml":  { "нг/мл": 1 },
   },
+  // hs-CRP: mg/dL ↔ mg/L (1 mg/dL = 10 mg/L)
+  "hs-CRP": {
+    "мг/дл": { "мг/л": 10 },
+    "mg/dl": { "мг/л": 10 },
+    "мг/л":  { "мг/дл": 0.1 },
+    "mg/l":  { "мг/л": 1 },
+  },
 };
 
 function normalizeName(s: string): string {
