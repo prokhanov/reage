@@ -1082,7 +1082,172 @@ function ScreenMetabolism({
 }
 
 // -----------------------------------------------------------------------------
-// Screen 5+ — placeholder (will be built out per spec)
+// Screen 5 — Liver (NAFLD Simple Score)
+// -----------------------------------------------------------------------------
+
+function ScreenLiver({
+  a,
+  update,
+  onBack,
+  onNext,
+}: {
+  a: QuizAnswers;
+  update: (patch: Partial<QuizAnswers>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const needsMenopause = a.sex === "female";
+  const valid =
+    !!a.diabetes &&
+    !!a.dyslipidemia &&
+    !!a.alcohol &&
+    (!needsMenopause || !!a.menopause);
+
+  return (
+    <div>
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+          <Droplets className="h-3 w-3" />
+          Блок 3 из 4
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Печень
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Расчёт по шкале{" "}
+          <span className="text-foreground font-medium">NAFLD Simple Score</span>.
+          Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <FieldBlock label="Диагностировали ли Вам сахарный диабет?" required>
+          <div className="flex gap-2 flex-wrap">
+            <RadioChip active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
+            <RadioChip active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
+            <RadioChip active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock label="Диагностировали ли Вам повышенный холестерин или триглицериды?" required>
+          <div className="flex gap-2 flex-wrap">
+            <RadioChip active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
+            <RadioChip active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
+            <RadioChip active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock label="Как часто Вы употребляете алкоголь?" required>
+          <div className="flex flex-col gap-2">
+            <RadioChip full active={a.alcohol === "none"} onClick={() => update({ alcohol: "none" })}>Не употребляю</RadioChip>
+            <RadioChip full active={a.alcohol === "moderate"} onClick={() => update({ alcohol: "moderate" })}>До 1–2 стандартных порций в день</RadioChip>
+            <RadioChip full active={a.alcohol === "high"} onClick={() => update({ alcohol: "high" })}>Более 2 стандартных порций в день</RadioChip>
+          </div>
+        </FieldBlock>
+
+        {needsMenopause && (
+          <FieldBlock label="Наступила ли у Вас менопауза?" required>
+            <div className="flex gap-2 flex-wrap">
+              <RadioChip active={a.menopause === "yes"} onClick={() => update({ menopause: "yes" })}>Да</RadioChip>
+              <RadioChip active={a.menopause === "no"} onClick={() => update({ menopause: "no" })}>Нет</RadioChip>
+              <RadioChip active={a.menopause === "unknown"} onClick={() => update({ menopause: "unknown" })}>Не знаю</RadioChip>
+            </div>
+          </FieldBlock>
+        )}
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
+          Далее
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Screen 6 — Sleep (PSQI short)
+// -----------------------------------------------------------------------------
+
+function ScreenSleep({
+  a,
+  update,
+  onBack,
+  onNext,
+}: {
+  a: QuizAnswers;
+  update: (patch: Partial<QuizAnswers>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const valid = !!a.sleepDuration && !!a.sleepDifficulty && !!a.sleepQuality;
+
+  return (
+    <div>
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+          <Moon className="h-3 w-3" />
+          Блок 4 из 4
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Сон
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Оценка качества сна за последний месяц по шкале{" "}
+          <span className="text-foreground font-medium">Pittsburgh Sleep Quality Index (PSQI)</span>.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <FieldBlock label="Сколько часов Вы обычно спите за ночь?" required>
+          <div className="flex flex-col gap-2">
+            <RadioChip full active={a.sleepDuration === "lt5"} onClick={() => update({ sleepDuration: "lt5" })}>Менее 5 часов</RadioChip>
+            <RadioChip full active={a.sleepDuration === "5to6"} onClick={() => update({ sleepDuration: "5to6" })}>5–6 часов</RadioChip>
+            <RadioChip full active={a.sleepDuration === "7to8"} onClick={() => update({ sleepDuration: "7to8" })}>7–8 часов</RadioChip>
+            <RadioChip full active={a.sleepDuration === "gt8"} onClick={() => update({ sleepDuration: "gt8" })}>Более 8 часов</RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock label="Как часто за последний месяц Вам было трудно заснуть или Вы просыпались ночью?" required>
+          <div className="flex flex-col gap-2">
+            <RadioChip full active={a.sleepDifficulty === "never"} onClick={() => update({ sleepDifficulty: "never" })}>Никогда</RadioChip>
+            <RadioChip full active={a.sleepDifficulty === "lt1"} onClick={() => update({ sleepDifficulty: "lt1" })}>Реже одного раза в неделю</RadioChip>
+            <RadioChip full active={a.sleepDifficulty === "1to2"} onClick={() => update({ sleepDifficulty: "1to2" })}>1–2 раза в неделю</RadioChip>
+            <RadioChip full active={a.sleepDifficulty === "3plus"} onClick={() => update({ sleepDifficulty: "3plus" })}>3 раза в неделю или чаще</RadioChip>
+          </div>
+        </FieldBlock>
+
+        <FieldBlock label="Как бы Вы оценили качество своего сна за последний месяц?" required>
+          <div className="flex flex-col gap-2">
+            <RadioChip full active={a.sleepQuality === "veryGood"} onClick={() => update({ sleepQuality: "veryGood" })}>Очень хорошее</RadioChip>
+            <RadioChip full active={a.sleepQuality === "fairlyGood"} onClick={() => update({ sleepQuality: "fairlyGood" })}>Довольно хорошее</RadioChip>
+            <RadioChip full active={a.sleepQuality === "fairlyBad"} onClick={() => update({ sleepQuality: "fairlyBad" })}>Довольно плохое</RadioChip>
+            <RadioChip full active={a.sleepQuality === "veryBad"} onClick={() => update({ sleepQuality: "veryBad" })}>Очень плохое</RadioChip>
+          </div>
+        </FieldBlock>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
+          Далее
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Screen 7+ — placeholder (will be built out per spec)
 // -----------------------------------------------------------------------------
 
 function ScreenPlaceholder({ step, onBack }: { step: number; onBack: () => void }) {
