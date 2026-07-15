@@ -19,31 +19,33 @@ import {
 import { cn } from "@/lib/utils";
 
 type Sex = "male" | "female";
+type Tri = boolean | "unknown";
+type NumOrUnknown = number | "unknown";
 
 type Answers = {
   // base
   age?: number;
   sex?: Sex;
-  height?: number; // cm
-  weight?: number; // kg
-  waist?: number; // cm
+  height?: NumOrUnknown; // cm
+  weight?: NumOrUnknown; // kg
+  waist?: NumOrUnknown; // cm
   // heart
-  smoker?: boolean;
+  smoker?: Tri;
   sbpKnown?: "known" | "wasHigh" | "neverHigh" | "unknown";
   sbpValue?: number;
-  bpMeds?: boolean;
+  bpMeds?: Tri;
   cholKnown?: boolean;
   cholValue?: number; // mmol/L
   // findrisc extras
-  activity?: boolean; // 30+ min/day
-  veggiesDaily?: boolean;
-  everBpMeds?: boolean;
-  everHighGlucose?: boolean;
-  familyDiabetes?: "no" | "distant" | "close";
+  activity?: Tri; // 30+ min/day
+  veggiesDaily?: Tri;
+  everBpMeds?: Tri;
+  everHighGlucose?: Tri;
+  familyDiabetes?: "no" | "distant" | "close" | "unknown";
   // liver
-  diabetes?: boolean;
-  dyslipidemia?: boolean;
-  alcohol?: "none" | "moderate" | "often";
+  diabetes?: Tri;
+  dyslipidemia?: Tri;
+  alcohol?: "none" | "moderate" | "often" | "unknown";
   menopause?: "yes" | "no" | "na";
   // sleep
   sleepHours?: "<5" | "5-6" | "7-8" | "8+";
@@ -53,6 +55,13 @@ type Answers = {
   email?: string;
   consent?: boolean;
 };
+
+// Return numeric value if user provided one, otherwise null (unknown/missing).
+function num(v: NumOrUnknown | undefined): number | null {
+  return typeof v === "number" ? v : null;
+}
+const isTrue = (t: Tri | undefined) => t === true;
+const isFalse = (t: Tri | undefined) => t === false;
 
 type Props = {
   open: boolean;
