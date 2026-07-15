@@ -119,6 +119,9 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const [mergeMode, setMergeMode] = useState(true);
   const [mergedDate, setMergedDate] = useState<string>("");
   const [mergedLab, setMergedLab] = useState<string>("");
+  const [plans, setPlans] = useState<Array<{ id: string; name: string; count: number }>>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [planBiomarkers, setPlanBiomarkers] = useState<Array<{ id: string; code: string; name: string }>>([]);
 
   // Auto-fill merged date/lab from first recognized result
   useEffect(() => {
