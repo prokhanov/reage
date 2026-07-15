@@ -584,47 +584,43 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60 sm:rounded-2xl">
-        {/* Progress header */}
-        <div className="px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b border-border/40">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                {String(Math.min(step, TOTAL_SCREENS)).padStart(2, "0")}
-                <span className="text-muted-foreground/60">
-                  {" "}/ {String(TOTAL_SCREENS).padStart(2, "0")}
-                </span>
-              </span>
-              <span className="text-sm font-medium text-foreground">
-                {STEP_LABELS[step] ?? ""}
-              </span>
+      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden border-border/50 sm:rounded-3xl bg-card">
+        {/* Ambient glow */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+        </div>
+
+        {/* Header */}
+        <div className="relative px-6 md:px-10 pt-6 md:pt-7 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
+                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div className="leading-tight">
+                <div className="text-[13px] font-semibold text-foreground">Оценка рисков</div>
+                <div className="text-[11px] text-muted-foreground">
+                  Шаг {Math.min(step, TOTAL_SCREENS)} из {TOTAL_SCREENS} · {STEP_LABELS[step] ?? ""}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-muted/40 border border-border/40">
+              <ShieldCheck className="w-3 h-3" />
               Не диагноз
             </div>
           </div>
-          <div className="flex gap-1">
-            {Array.from({ length: TOTAL_SCREENS }).map((_, i) => {
-              const idx = i + 1;
-              const done = idx < step;
-              const current = idx === step;
-              return (
-                <div
-                  key={idx}
-                  className={cn(
-                    "h-1 flex-1 rounded-full transition-all duration-500",
-                    done && "bg-primary",
-                    current && "bg-primary",
-                    !done && !current && "bg-muted",
-                  )}
-                />
-              );
-            })}
+          {/* Continuous progress bar */}
+          <div className="relative h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
+              style={{ width: `${(Math.min(step, TOTAL_SCREENS) / TOTAL_SCREENS) * 100}%` }}
+            />
           </div>
         </div>
 
-        <div className="px-5 md:px-8 pb-6 md:pb-8 pt-6 max-h-[78vh] overflow-y-auto">
+
+        <div className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 max-h-[80vh] overflow-y-auto">
           <div key={step} className="animate-fade-in">
             {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
             {step === 2 && (
@@ -690,46 +686,56 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 function ScreenStart({ onNext }: { onNext: () => void }) {
   const icons = [Heart, Activity, Droplets, Moon];
   return (
-    <div className="text-center">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20">
-        <ShieldCheck className="h-8 w-8 text-primary" />
+    <div>
+      <div className="flex flex-col items-center text-center mb-8">
+        <div className="mb-6 relative">
+          <div className="absolute inset-0 rounded-3xl bg-primary/30 blur-2xl" />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30">
+            <ShieldCheck className="h-10 w-10 text-primary-foreground" />
+          </div>
+        </div>
+        <h2 className="text-[28px] md:text-[36px] font-bold tracking-tight text-foreground leading-[1.1] mb-3 max-w-xl">
+          Предварительная оценка рисков здоровья
+        </h2>
+        <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed max-w-md">
+          Несколько вопросов — и вы получите оценку по четырём клиническим шкалам. Займёт около 3 минут.
+        </p>
       </div>
 
-      <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-3">
-        Предварительная оценка рисков здоровья
-      </h2>
-      <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg mx-auto mb-8">
-        Ответьте на несколько вопросов. На основе официальных клинических шкал
-        будет рассчитана вероятность рисков по четырём направлениям.
-      </p>
-
-      <div className="grid sm:grid-cols-2 gap-2.5 max-w-lg mx-auto mb-8 text-left">
+      <div className="grid sm:grid-cols-2 gap-3 max-w-xl mx-auto mb-8">
         {SCALES.map((scale, i) => {
           const Icon = icons[i];
+          const titles = ["Сердце и сосуды", "Обмен веществ", "Печень", "Сон"];
           return (
             <div
               key={scale}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3.5 py-3"
+              className="group flex items-center gap-3 rounded-2xl border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all px-4 py-3.5"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Icon className="h-4 w-4 text-primary" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                <Icon className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-sm font-medium text-foreground leading-tight">
-                {scale}
-              </span>
+              <div className="min-w-0">
+                <div className="text-[14px] font-semibold text-foreground leading-tight">{titles[i]}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{scale}</div>
+              </div>
             </div>
           );
         })}
       </div>
 
-      <Button size="lg" onClick={onNext} className="w-full sm:w-auto px-10">
-        Начать
-        <ArrowRight className="ml-2 h-4 w-4" />
-      </Button>
-
-      <p className="mt-4 text-xs text-muted-foreground/80">
-        Результат носит информационный характер и не является диагнозом.
-      </p>
+      <div className="flex flex-col items-center gap-3">
+        <Button
+          size="lg"
+          onClick={onNext}
+          className="h-14 px-10 rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+        >
+          Начать оценку
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+        <p className="text-xs text-muted-foreground/80 text-center">
+          Результат носит информационный характер и не является диагнозом.
+        </p>
+      </div>
     </div>
   );
 }
@@ -753,66 +759,76 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-7">
-        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-4">
+          Знакомство
+        </div>
+        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-foreground leading-[1.1] mb-3">
           Расскажите немного о себе
         </h2>
-        <p className="text-[15px] text-muted-foreground leading-relaxed">
-          Эти данные будут использоваться сразу в нескольких расчётах.
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-xl">
+          Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Age */}
-        <FieldBlock label="Возраст" required>
-          <NumberField
-            value={a.age}
-            min={18}
-            max={90}
-            placeholder="Например, 42"
-            ariaLabel="Возраст"
-            onChange={(v) => update({ age: v })}
-            className="max-w-[200px]"
-          />
-          <HintText>От 18 до 90 лет</HintText>
-        </FieldBlock>
-
-        {/* Sex */}
-        <FieldBlock label="Пол" required>
-          <div className="grid grid-cols-2 gap-2">
-            <RadioChip
-              full
+      <div className="space-y-7">
+        {/* Sex — first, big pills */}
+        <FieldBlock label="Ваш пол">
+          <div className="grid grid-cols-2 gap-3">
+            <BigChoice
+              letter="М"
               active={a.sex === "male"}
               onClick={() => update({ sex: "male" })}
             >
               Мужской
-            </RadioChip>
-            <RadioChip
-              full
+            </BigChoice>
+            <BigChoice
+              letter="Ж"
               active={a.sex === "female"}
               onClick={() => update({ sex: "female" })}
             >
               Женский
-            </RadioChip>
+            </BigChoice>
           </div>
         </FieldBlock>
 
-        {/* Height + Weight side-by-side on wider screens */}
-        <div className="grid sm:grid-cols-2 gap-5">
+        {/* Age */}
+        <FieldBlock label="Возраст">
+          <div className="relative max-w-[240px]">
+            <NumberField
+              value={a.age}
+              min={18}
+              max={90}
+              placeholder="42"
+              ariaLabel="Возраст"
+              onChange={(v) => update({ age: v })}
+              className="pr-16 text-[17px] font-semibold"
+            />
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              лет
+            </span>
+          </div>
+          <HintText>От 18 до 90 лет</HintText>
+        </FieldBlock>
+
+        {/* Height + Weight */}
+        <div className="grid sm:grid-cols-2 gap-4">
           <OptionalMeasureField
-            label="Рост, см"
+            label="Рост"
+            unit="см"
             value={a.height}
             min={140}
             max={220}
-            placeholder="Например, 175"
+            placeholder="175"
             onChange={(v) => update({ height: v })}
           />
           <OptionalMeasureField
-            label="Вес, кг"
+            label="Вес"
+            unit="кг"
             value={a.weight}
             min={40}
             max={200}
-            placeholder="Например, 74"
+            placeholder="74"
             allowDecimal
             onChange={(v) => update({ weight: v })}
           />
@@ -820,13 +836,15 @@ function ScreenBasics({
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-3 rounded-xl border-2 border-primary/25 bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-sm animate-scale-in">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-              <Info className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 to-accent/5 px-4 py-3.5 animate-scale-in">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+              <Info className="h-4.5 w-4.5 text-primary" />
             </div>
             <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Ваш ИМТ</div>
-              <div className="text-lg font-bold text-foreground leading-tight">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Ваш ИМТ
+              </div>
+              <div className="text-xl font-bold text-foreground leading-tight">
                 {a.bmi}
               </div>
             </div>
@@ -835,11 +853,12 @@ function ScreenBasics({
 
         {/* Waist */}
         <OptionalMeasureField
-          label="Окружность талии, см"
+          label="Окружность талии"
+          unit="см"
           value={a.waist}
           min={50}
           max={150}
-          placeholder="Например, 82"
+          placeholder="82"
           hint="Измеряется горизонтально между нижним краем рёбер и верхним краем тазовой кости."
           onChange={(v) => update({ waist: v })}
         />
@@ -849,6 +868,7 @@ function ScreenBasics({
     </div>
   );
 }
+
 
 // -----------------------------------------------------------------------------
 // Screen 3 — Heart & vessels (WHO CVD non-laboratory)
@@ -1712,9 +1732,8 @@ function FieldBlock({
 }) {
   return (
     <div className="space-y-2.5">
-      <Label className="text-[15px] font-medium text-foreground leading-snug block">
+      <Label className="text-[15px] font-medium text-foreground/90 leading-snug block">
         {label}
-        {required && <span className="text-primary ml-0.5">*</span>}
       </Label>
       <div>{children}</div>
     </div>
@@ -1838,6 +1857,47 @@ function RadioChip({
   );
 }
 
+function BigChoice({
+  active,
+  onClick,
+  letter,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  letter?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group relative h-16 px-4 rounded-2xl border-2 text-[15px] font-semibold",
+        "transition-all duration-200 flex items-center gap-3 w-full",
+        "active:scale-[0.98]",
+        active
+          ? "border-primary bg-primary/10 text-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]"
+          : "border-border/50 bg-muted/20 text-foreground/85 hover:border-primary/40 hover:bg-primary/5",
+      )}
+    >
+      {letter && (
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold transition-colors",
+            active
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-foreground/70 border border-border/60 group-hover:border-primary/40",
+          )}
+        >
+          {letter}
+        </span>
+      )}
+      <span className="flex-1 text-left leading-tight">{children}</span>
+    </button>
+  );
+}
+
 /**
  * Number field that actually lets the user type. Keeps a local string buffer
  * so partially-typed values like "1" (before "18") aren't wiped out. Commits
@@ -1924,6 +1984,7 @@ function NumberField({
 
 function OptionalMeasureField({
   label,
+  unit,
   value,
   min,
   max,
@@ -1933,6 +1994,7 @@ function OptionalMeasureField({
   onChange,
 }: {
   label: string;
+  unit?: string;
   value: number | null;
   min: number;
   max: number;
@@ -1945,9 +2007,9 @@ function OptionalMeasureField({
   const isUnknown = unknownPicked && value === null;
 
   return (
-    <FieldBlock label={label}>
+    <FieldBlock label={unit ? `${label}, ${unit}` : label}>
       <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-        <div className="flex-1 max-w-[240px]">
+        <div className="relative flex-1 max-w-[240px]">
           <NumberField
             value={isUnknown ? undefined : value ?? undefined}
             min={min}
@@ -1959,7 +2021,13 @@ function OptionalMeasureField({
               setUnknownPicked(false);
               onChange(v === undefined ? null : v);
             }}
+            className={cn("text-[17px] font-semibold", unit && "pr-14")}
           />
+          {unit && (
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              {unit}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -1979,9 +2047,7 @@ function OptionalMeasureField({
         </button>
       </div>
       {hint && <HintText>{hint}</HintText>}
-      <HintText>
-        От {min} до {max}
-      </HintText>
     </FieldBlock>
   );
 }
+
