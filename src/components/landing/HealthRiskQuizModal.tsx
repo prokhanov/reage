@@ -162,18 +162,20 @@ function findriscScore(a: Answers): {
   s += bmiPts;
   if (bmiPts) top.push({ k: "ИМТ", v: bmiPts });
 
-  const w = a.waist ?? 0;
+  const w = num(a.waist);
   const waistPts =
-    a.sex === "male"
+    w == null
+      ? 0
+      : a.sex === "male"
       ? w > 102 ? 4 : w >= 94 ? 3 : 0
       : w > 88 ? 4 : w >= 80 ? 3 : 0;
   s += waistPts;
   if (waistPts) top.push({ k: "окружность талии", v: waistPts });
 
-  if (a.activity === false) { s += 2; top.push({ k: "низкая физическая активность", v: 2 }); }
-  if (a.veggiesDaily === false) { s += 1; top.push({ k: "мало овощей и фруктов", v: 1 }); }
-  if (a.everBpMeds) { s += 2; top.push({ k: "препараты от давления в анамнезе", v: 2 }); }
-  if (a.everHighGlucose) { s += 5; top.push({ k: "повышенный сахар в анамнезе", v: 5 }); }
+  if (isFalse(a.activity)) { s += 2; top.push({ k: "низкая физическая активность", v: 2 }); }
+  if (isFalse(a.veggiesDaily)) { s += 1; top.push({ k: "мало овощей и фруктов", v: 1 }); }
+  if (isTrue(a.everBpMeds)) { s += 2; top.push({ k: "препараты от давления в анамнезе", v: 2 }); }
+  if (isTrue(a.everHighGlucose)) { s += 5; top.push({ k: "повышенный сахар в анамнезе", v: 5 }); }
   if (a.familyDiabetes === "distant") { s += 3; top.push({ k: "диабет у дальних родственников", v: 3 }); }
   if (a.familyDiabetes === "close") { s += 5; top.push({ k: "диабет у близких родственников", v: 5 }); }
 
