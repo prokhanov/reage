@@ -1449,20 +1449,37 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         categoryReports[category] = cleanedCategoryReport;
         totalTokens += tokensUsed;
 
-        // Сохраняем категорию сразу — клиент увидит прогресс через polling.
-        // Перед вставкой удаляем предыдущую запись того же типа, чтобы ретраи
-        // не порождали дубликаты разделов (например, два «Энергия и восстановление»).
-        await supabase
+        // Сохраняем категорию: апсерт по (analysis_id, type). Если запись есть —
+        // обновляем только text, сохраняя content_json (снимок биомаркеров).
+        // Это предотвращает и дубликаты разделов, и потерю биомаркеров при ретраях.
+        const { data: existingRec } = await supabase
           .from("recommendations")
-          .delete()
+          .select("id")
           .eq("analysis_id", analysisId)
-          .eq("type", category);
-        const { error: catInsertError } = await supabase.from("recommendations").insert({
-          user_id: analysis.user_id,
-          analysis_id: analysisId,
-          type: category,
-          text: cleanedCategoryReport
-        });
+          .eq("type", category)
+          .maybeSingle();
+        let catInsertError: any = null;
+        if (existingRec?.id) {
+          const { error } = await supabase
+            .from("recommendations")
+            .update({ text: cleanedCategoryReport })
+            .eq("id", existingRec.id);
+          catInsertError = error;
+          await supabase
+            .from("recommendations")
+            .delete()
+            .eq("analysis_id", analysisId)
+            .eq("type", category)
+            .neq("id", existingRec.id);
+        } else {
+          const { error } = await supabase.from("recommendations").insert({
+            user_id: analysis.user_id,
+            analysis_id: analysisId,
+            type: category,
+            text: cleanedCategoryReport,
+          });
+          catInsertError = error;
+        }
         if (catInsertError) {
           console.error(`Failed to save category ${category}:`, catInsertError.message);
         } else {
