@@ -686,46 +686,56 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 function ScreenStart({ onNext }: { onNext: () => void }) {
   const icons = [Heart, Activity, Droplets, Moon];
   return (
-    <div className="text-center">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20">
-        <ShieldCheck className="h-8 w-8 text-primary" />
+    <div>
+      <div className="flex flex-col items-center text-center mb-8">
+        <div className="mb-6 relative">
+          <div className="absolute inset-0 rounded-3xl bg-primary/30 blur-2xl" />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30">
+            <ShieldCheck className="h-10 w-10 text-primary-foreground" />
+          </div>
+        </div>
+        <h2 className="text-[28px] md:text-[36px] font-bold tracking-tight text-foreground leading-[1.1] mb-3 max-w-xl">
+          Предварительная оценка рисков здоровья
+        </h2>
+        <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed max-w-md">
+          Несколько вопросов — и вы получите оценку по четырём клиническим шкалам. Займёт около 3 минут.
+        </p>
       </div>
 
-      <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-3">
-        Предварительная оценка рисков здоровья
-      </h2>
-      <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg mx-auto mb-8">
-        Ответьте на несколько вопросов. На основе официальных клинических шкал
-        будет рассчитана вероятность рисков по четырём направлениям.
-      </p>
-
-      <div className="grid sm:grid-cols-2 gap-2.5 max-w-lg mx-auto mb-8 text-left">
+      <div className="grid sm:grid-cols-2 gap-3 max-w-xl mx-auto mb-8">
         {SCALES.map((scale, i) => {
           const Icon = icons[i];
+          const titles = ["Сердце и сосуды", "Обмен веществ", "Печень", "Сон"];
           return (
             <div
               key={scale}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3.5 py-3"
+              className="group flex items-center gap-3 rounded-2xl border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all px-4 py-3.5"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Icon className="h-4 w-4 text-primary" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                <Icon className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-sm font-medium text-foreground leading-tight">
-                {scale}
-              </span>
+              <div className="min-w-0">
+                <div className="text-[14px] font-semibold text-foreground leading-tight">{titles[i]}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{scale}</div>
+              </div>
             </div>
           );
         })}
       </div>
 
-      <Button size="lg" onClick={onNext} className="w-full sm:w-auto px-10">
-        Начать
-        <ArrowRight className="ml-2 h-4 w-4" />
-      </Button>
-
-      <p className="mt-4 text-xs text-muted-foreground/80">
-        Результат носит информационный характер и не является диагнозом.
-      </p>
+      <div className="flex flex-col items-center gap-3">
+        <Button
+          size="lg"
+          onClick={onNext}
+          className="h-14 px-10 rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+        >
+          Начать оценку
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+        <p className="text-xs text-muted-foreground/80 text-center">
+          Результат носит информационный характер и не является диагнозом.
+        </p>
+      </div>
     </div>
   );
 }
@@ -749,66 +759,76 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-7">
-        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-4">
+          Знакомство
+        </div>
+        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-foreground leading-[1.1] mb-3">
           Расскажите немного о себе
         </h2>
-        <p className="text-[15px] text-muted-foreground leading-relaxed">
-          Эти данные будут использоваться сразу в нескольких расчётах.
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-xl">
+          Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Age */}
-        <FieldBlock label="Возраст" required>
-          <NumberField
-            value={a.age}
-            min={18}
-            max={90}
-            placeholder="Например, 42"
-            ariaLabel="Возраст"
-            onChange={(v) => update({ age: v })}
-            className="max-w-[200px]"
-          />
-          <HintText>От 18 до 90 лет</HintText>
-        </FieldBlock>
-
-        {/* Sex */}
-        <FieldBlock label="Пол" required>
-          <div className="grid grid-cols-2 gap-2">
-            <RadioChip
-              full
+      <div className="space-y-7">
+        {/* Sex — first, big pills */}
+        <FieldBlock label="Ваш пол">
+          <div className="grid grid-cols-2 gap-3">
+            <BigChoice
+              letter="М"
               active={a.sex === "male"}
               onClick={() => update({ sex: "male" })}
             >
               Мужской
-            </RadioChip>
-            <RadioChip
-              full
+            </BigChoice>
+            <BigChoice
+              letter="Ж"
               active={a.sex === "female"}
               onClick={() => update({ sex: "female" })}
             >
               Женский
-            </RadioChip>
+            </BigChoice>
           </div>
         </FieldBlock>
 
-        {/* Height + Weight side-by-side on wider screens */}
-        <div className="grid sm:grid-cols-2 gap-5">
+        {/* Age */}
+        <FieldBlock label="Возраст">
+          <div className="relative max-w-[240px]">
+            <NumberField
+              value={a.age}
+              min={18}
+              max={90}
+              placeholder="42"
+              ariaLabel="Возраст"
+              onChange={(v) => update({ age: v })}
+              className="pr-16 text-[17px] font-semibold"
+            />
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              лет
+            </span>
+          </div>
+          <HintText>От 18 до 90 лет</HintText>
+        </FieldBlock>
+
+        {/* Height + Weight */}
+        <div className="grid sm:grid-cols-2 gap-4">
           <OptionalMeasureField
-            label="Рост, см"
+            label="Рост"
+            unit="см"
             value={a.height}
             min={140}
             max={220}
-            placeholder="Например, 175"
+            placeholder="175"
             onChange={(v) => update({ height: v })}
           />
           <OptionalMeasureField
-            label="Вес, кг"
+            label="Вес"
+            unit="кг"
             value={a.weight}
             min={40}
             max={200}
-            placeholder="Например, 74"
+            placeholder="74"
             allowDecimal
             onChange={(v) => update({ weight: v })}
           />
@@ -816,13 +836,15 @@ function ScreenBasics({
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-3 rounded-xl border-2 border-primary/25 bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-sm animate-scale-in">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-              <Info className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 to-accent/5 px-4 py-3.5 animate-scale-in">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+              <Info className="h-4.5 w-4.5 text-primary" />
             </div>
             <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Ваш ИМТ</div>
-              <div className="text-lg font-bold text-foreground leading-tight">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Ваш ИМТ
+              </div>
+              <div className="text-xl font-bold text-foreground leading-tight">
                 {a.bmi}
               </div>
             </div>
@@ -831,11 +853,12 @@ function ScreenBasics({
 
         {/* Waist */}
         <OptionalMeasureField
-          label="Окружность талии, см"
+          label="Окружность талии"
+          unit="см"
           value={a.waist}
           min={50}
           max={150}
-          placeholder="Например, 82"
+          placeholder="82"
           hint="Измеряется горизонтально между нижним краем рёбер и верхним краем тазовой кости."
           onChange={(v) => update({ waist: v })}
         />
@@ -845,6 +868,7 @@ function ScreenBasics({
     </div>
   );
 }
+
 
 // -----------------------------------------------------------------------------
 // Screen 3 — Heart & vessels (WHO CVD non-laboratory)
