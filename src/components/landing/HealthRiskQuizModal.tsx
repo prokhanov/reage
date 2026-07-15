@@ -56,7 +56,16 @@ export type QuizAnswers = {
   sleepDuration?: "lt5" | "5to6" | "7to8" | "gt8";
   sleepDifficulty?: "never" | "lt1" | "1to2" | "3plus";
   sleepQuality?: "veryGood" | "fairlyGood" | "fairlyBad" | "veryBad";
+  // Screen 7 — contact
+  email?: string;
+  consent?: boolean;
 };
+
+const QUIZ_VERSION = "v1";
+
+function isValidEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
 
 export type NafldResult = {
   score: number;
