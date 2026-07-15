@@ -410,12 +410,13 @@ function computeNafld(a: QuizAnswers): NafldResult | null {
   if (
     typeof a.age !== "number" ||
     !a.sex ||
-    !a.diabetes ||
-    !a.dyslipidemia ||
+    !a.glucoseStatus ||
+    !a.cholesterolStatus ||
     !a.alcohol
   ) {
     return null;
   }
+  const facts = deriveFacts(a);
 
   let estimated = false;
 
@@ -442,11 +443,11 @@ function computeNafld(a: QuizAnswers): NafldResult | null {
     else if (a.waist >= 80) waistPts = 1;
   }
 
-  const diabetesPts = a.diabetes === "yes" ? 3 : 0;
-  if (a.diabetes === "unknown") estimated = true;
+  const diabetesPts = facts.diabetes === "yes" ? 3 : 0;
+  if (facts.diabetes === "unknown") estimated = true;
 
-  const dyslipPts = a.dyslipidemia === "yes" ? 2 : 0;
-  if (a.dyslipidemia === "unknown") estimated = true;
+  const dyslipPts = facts.dyslipidemia === "yes" ? 2 : 0;
+  if (facts.dyslipidemia === "unknown") estimated = true;
 
   let alcoholPts = 0;
   if (a.alcohol === "moderate") alcoholPts = 1;
