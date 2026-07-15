@@ -1712,9 +1712,8 @@ function FieldBlock({
 }) {
   return (
     <div className="space-y-2.5">
-      <Label className="text-[15px] font-medium text-foreground leading-snug block">
+      <Label className="text-[15px] font-medium text-foreground/90 leading-snug block">
         {label}
-        {required && <span className="text-primary ml-0.5">*</span>}
       </Label>
       <div>{children}</div>
     </div>
