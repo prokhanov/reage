@@ -596,7 +596,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
-                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+                <ShieldCheck className="h-4 w-4 text-primary" />
               </div>
               <div className="leading-tight">
                 <div className="text-[13px] font-semibold text-foreground">Оценка рисков</div>
