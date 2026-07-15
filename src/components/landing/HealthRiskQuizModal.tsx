@@ -543,6 +543,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                   <Chip active={a.alcohol === "none"} onClick={() => update({ alcohol: "none" })}>Не пью</Chip>
                   <Chip active={a.alcohol === "moderate"} onClick={() => update({ alcohol: "moderate" })}>Умеренно</Chip>
                   <Chip active={a.alcohol === "often"} onClick={() => update({ alcohol: "often" })}>Часто</Chip>
+                  <Chip active={a.alcohol === "unknown"} onClick={() => update({ alcohol: "unknown" })}>Не знаю</Chip>
                 </div>
               </Field>
               {a.sex === "female" && (
