@@ -1,0 +1,1 @@
+DELETE FROM recommendations WHERE id='6ec36ea9-d281-42b6-af95-4d9a4a2f0c35';
