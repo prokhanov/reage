@@ -1267,22 +1267,438 @@ function ScreenSleep({
 }
 
 // -----------------------------------------------------------------------------
-// Screen 7+ — placeholder (will be built out per spec)
+// Screen 7 — Email + consent
 // -----------------------------------------------------------------------------
 
-function ScreenPlaceholder({ step, onBack }: { step: number; onBack: () => void }) {
+function ScreenEmail({
+  a,
+  update,
+  onBack,
+  onNext,
+}: {
+  a: QuizAnswers;
+  update: (patch: Partial<QuizAnswers>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const emailOk = !!a.email && isValidEmail(a.email);
+  const canSubmit = emailOk && !!a.consent && !submitting;
+
+  const handleSubmit = async () => {
+    setTouched(true);
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      const heart = computeHeart(a);
+      const findrisc = computeFindrisc(a);
+      const nafld = computeNafld(a);
+      const sleep = computeSleep(a);
+
+      const { error } = await supabase
+        .from("health_risk_quiz_submissions")
+        .insert({
+          email: a.email!.trim(),
+          consent: !!a.consent,
+          quiz_version: QUIZ_VERSION,
+          age: a.age ?? null,
+          sex: a.sex ?? null,
+          height: a.height,
+          weight: a.weight,
+          bmi: a.bmi,
+          waist: a.waist,
+          answers: {
+            age: a.age,
+            sex: a.sex,
+            height: a.height,
+            weight: a.weight,
+            bmi: a.bmi,
+            waist: a.waist,
+            smoker: a.smoker,
+            sbpChoice: a.sbpChoice,
+            sbpValue: a.sbpValue,
+            activity: a.activity,
+            diet: a.diet,
+            bpMeds: a.bpMeds,
+            highGlucoseHistory: a.highGlucoseHistory,
+            familyDiabetes: a.familyDiabetes,
+            diabetes: a.diabetes,
+            dyslipidemia: a.dyslipidemia,
+            alcohol: a.alcohol,
+            menopause: a.menopause,
+            sleepDuration: a.sleepDuration,
+            sleepDifficulty: a.sleepDifficulty,
+            sleepQuality: a.sleepQuality,
+          },
+          heart_result: heart as unknown as Record<string, unknown> | null,
+          findrisc_result: findrisc as unknown as Record<string, unknown> | null,
+          nafld_result: nafld as unknown as Record<string, unknown> | null,
+          sleep_result: sleep as unknown as Record<string, unknown> | null,
+          user_agent:
+            typeof navigator !== "undefined" ? navigator.userAgent : null,
+        });
+
+      if (error) throw error;
+      onNext();
+    } catch (e) {
+      console.error("Quiz submit failed:", e);
+      toast({
+        title: "Не удалось сохранить результат",
+        description: "Попробуйте ещё раз через минуту.",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="py-8 text-center">
-      <p className="text-sm text-muted-foreground mb-4">
-        Экран {step} — в разработке.
-      </p>
-      <Button variant="ghost" onClick={onBack}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Назад
-      </Button>
+    <div>
+      <div className="mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Результат готов
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Укажите адрес электронной почты, чтобы открыть результат и получить
+          его копию.
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        <FieldBlock label="Email" required>
+          <Input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={a.email ?? ""}
+            onChange={(e) => update({ email: e.target.value })}
+            onBlur={() => setTouched(true)}
+            className="max-w-md"
+          />
+          {touched && !emailOk && (
+            <HintText>Пожалуйста, укажите корректный email.</HintText>
+          )}
+        </FieldBlock>
+
+        <label className="flex gap-3 items-start cursor-pointer select-none rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-primary cursor-pointer"
+            checked={!!a.consent}
+            onChange={(e) => update({ consent: e.target.checked })}
+          />
+          <span className="text-sm text-foreground/90 leading-relaxed">
+            Я соглашаюсь на обработку персональных данных и принимаю Политику
+            конфиденциальности.
+          </span>
+        </label>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack} disabled={submitting}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className="min-w-[200px]"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Сохраняем…
+            </>
+          ) : (
+            <>
+              Показать результат
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
+
+// -----------------------------------------------------------------------------
+// Screen 8 — Result
+// -----------------------------------------------------------------------------
+
+type ResultCardData = {
+  system: string;
+  scale: string;
+  category: string;
+  technical: string;
+  explanation: string;
+  isElevated: boolean;
+  icon: typeof Heart;
+};
+
+function buildResultCards(a: QuizAnswers): ResultCardData[] {
+  const heart = computeHeart(a);
+  const findrisc = computeFindrisc(a);
+  const nafld = computeNafld(a);
+  const sleep = computeSleep(a);
+
+  const cards: ResultCardData[] = [];
+
+  // Heart — WHO CVD non-lab
+  if (heart) {
+    const elevated = heart.riskBand !== "low";
+    cards.push({
+      system: "Сердце и сосуды",
+      scale: "WHO CVD Risk (non-laboratory)",
+      category: heart.riskLabel,
+      technical: heart.riskRangeText,
+      explanation: elevated
+        ? `По шкале WHO CVD Risk результат соответствует категории «${heart.riskLabel}».`
+        : "По шкале WHO CVD Risk вероятность сердечно-сосудистых событий находится в низкой категории.",
+      isElevated: elevated,
+      icon: Heart,
+    });
+  }
+
+  if (findrisc) {
+    const elevated = findrisc.category !== "low";
+    cards.push({
+      system: "Обмен веществ",
+      scale: "FINDRISC",
+      category: findrisc.categoryLabel,
+      technical: `${findrisc.score} ${pluralPoints(findrisc.score)}`,
+      explanation: elevated
+        ? `По шкале FINDRISC результат относится к категории «${findrisc.categoryLabel}».`
+        : "По шкале FINDRISC вероятность развития сахарного диабета 2 типа остаётся низкой.",
+      isElevated: elevated,
+      icon: Activity,
+    });
+  }
+
+  if (nafld) {
+    const elevated = nafld.category !== "low";
+    cards.push({
+      system: "Печень",
+      scale: "NAFLD Simple Score",
+      category: nafld.categoryLabel,
+      technical: `${nafld.score} ${pluralPoints(nafld.score)}`,
+      explanation: elevated
+        ? "По шкале NAFLD Simple Score получен повышенный риск."
+        : "По шкале NAFLD Simple Score вероятность повышенной метаболической нагрузки на печень остаётся низкой.",
+      isElevated: elevated,
+      icon: Droplets,
+    });
+  }
+
+  if (sleep) {
+    const elevated = sleep.category !== "good";
+    cards.push({
+      system: "Сон",
+      scale: "Pittsburgh Sleep Quality Index (PSQI)",
+      category: sleep.categoryLabel,
+      technical: `${sleep.score} ${pluralPoints(sleep.score)}`,
+      explanation: elevated
+        ? "Ответы указывают на признаки нарушения качества сна."
+        : "Ответы не указывают на выраженные нарушения качества сна.",
+      isElevated: elevated,
+      icon: Moon,
+    });
+  }
+
+  return cards;
+}
+
+function pluralPoints(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "балл";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "балла";
+  return "баллов";
+}
+
+function buildOverallSummary(a: QuizAnswers): string[] {
+  const heart = computeHeart(a);
+  const findrisc = computeFindrisc(a);
+  const nafld = computeNafld(a);
+  const sleep = computeSleep(a);
+
+  type Elevated = { scale: string; category: string; factors: string[] };
+  const elevated: Elevated[] = [];
+
+  if (heart && heart.riskBand !== "low") {
+    elevated.push({
+      scale: "WHO CVD Risk",
+      category: heart.riskLabel,
+      factors: heart.mainFactors,
+    });
+  }
+  if (findrisc && findrisc.category !== "low") {
+    elevated.push({
+      scale: "FINDRISC",
+      category: findrisc.categoryLabel,
+      factors: findrisc.mainFactors,
+    });
+  }
+  if (nafld && nafld.category !== "low") {
+    elevated.push({
+      scale: "NAFLD Simple Score",
+      category: nafld.categoryLabel,
+      factors: nafld.mainFactors,
+    });
+  }
+  if (sleep && sleep.category !== "good") {
+    elevated.push({
+      scale: "PSQI",
+      category: sleep.categoryLabel,
+      factors: sleep.mainFactors,
+    });
+  }
+
+  const closing =
+    "Все использованные шкалы оценивают вероятность риска по анкетным данным. Они не подтверждают наличие заболевания и не заменяют лабораторное обследование.";
+
+  if (elevated.length === 0) {
+    return [
+      "По результатам всех четырёх клинических шкал выраженных факторов риска не выявлено. Это хороший результат, однако все использованные методики основаны на ответах анкеты и не учитывают лабораторные показатели. Даже при низком риске изменения могут присутствовать, но не определяться без анализа крови.",
+    ];
+  }
+
+  if (elevated.length === 1) {
+    const only = elevated[0];
+    const parts = [
+      "По большинству направлений выраженных факторов риска не выявлено. Однако одна шкала показала повышенную вероятность неблагоприятных изменений.",
+      `По шкале ${only.scale} результат соответствует категории «${only.category}».`,
+    ];
+    if (only.factors.length >= 2) {
+      parts.push(
+        `Наибольший вклад внесли ${only.factors[0].toLowerCase()} и ${only.factors[1].toLowerCase()}.`,
+      );
+    } else if (only.factors.length === 1) {
+      parts.push(`Наибольший вклад внёс фактор: ${only.factors[0].toLowerCase()}.`);
+    }
+    parts.push("Остальные направления остаются в пределах низкого риска.");
+    parts.push(closing);
+    return parts;
+  }
+
+  const paragraphs = elevated.map((e) => {
+    if (e.factors.length >= 2) {
+      return `По шкале ${e.scale} результат соответствует категории «${e.category}». Наибольший вклад внесли ${e.factors[0].toLowerCase()} и ${e.factors[1].toLowerCase()}.`;
+    }
+    if (e.factors.length === 1) {
+      return `По шкале ${e.scale} результат соответствует категории «${e.category}». Наибольший вклад внёс фактор: ${e.factors[0].toLowerCase()}.`;
+    }
+    return `По шкале ${e.scale} результат соответствует категории «${e.category}».`;
+  });
+  paragraphs.push(closing);
+  return paragraphs;
+}
+
+function ScreenResult({ a }: { a: QuizAnswers }) {
+  const cards = buildResultCards(a);
+  const summary = buildOverallSummary(a);
+
+  return (
+    <div className="space-y-8">
+      {/* Block 1 — Header */}
+      <div className="text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20">
+          <CheckCircle2 className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Ваша карта рисков
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
+          Предварительная оценка по валидированным клиническим шкалам.
+        </p>
+      </div>
+
+      {/* Block 2 — Cards */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.system}
+              className={cn(
+                "rounded-2xl border p-5 flex flex-col gap-2 bg-card",
+                c.isElevated
+                  ? "border-amber-500/40 bg-amber-500/[0.04]"
+                  : "border-border/60",
+              )}
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    c.isElevated ? "text-amber-500" : "text-primary",
+                  )}
+                />
+                {c.system}
+              </div>
+              <div className="text-xs text-muted-foreground">{c.scale}</div>
+              <div
+                className={cn(
+                  "text-lg md:text-xl font-semibold leading-tight mt-1",
+                  c.isElevated ? "text-amber-600 dark:text-amber-400" : "text-foreground",
+                )}
+              >
+                {c.category}
+              </div>
+              <div className="text-xs text-muted-foreground">{c.technical}</div>
+              <p className="text-sm text-foreground/80 leading-relaxed mt-1">
+                {c.explanation}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Block 3 — Overall summary */}
+      <div className="rounded-2xl border border-border/60 bg-muted/20 p-5 md:p-6 space-y-3">
+        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Info className="h-4 w-4 text-primary" />
+          Общий вывод
+        </h3>
+        {summary.map((p, i) => (
+          <p
+            key={i}
+            className="text-sm text-foreground/85 leading-relaxed"
+          >
+            {p}
+          </p>
+        ))}
+      </div>
+
+      {/* Block 4 — CTA */}
+      <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10 p-5 md:p-6 text-center">
+        <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
+          Следующий шаг — проверить фактическое состояние организма.
+        </h3>
+        <p className="text-sm text-foreground/80 mb-4 max-w-xl mx-auto">
+          Клинические шкалы оценивают вероятность риска. Анализы позволяют
+          определить реальные изменения, которые ещё могут не проявляться
+          симптомами.
+        </p>
+        <Button size="lg" asChild>
+          <a href="#pricing">Подробнее о программе ReAge</a>
+        </Button>
+      </div>
+
+      {/* Block 5 — Disclaimer */}
+      <p className="text-[11px] text-muted-foreground/80 leading-relaxed flex gap-2">
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+        <span>
+          Результат рассчитан автоматически по данным анкеты с использованием
+          валидированных клинических шкал. Он носит исключительно информационный
+          характер, не является диагнозом, медицинским заключением и не заменяет
+          консультацию врача.
+        </span>
+      </p>
+    </div>
+  );
+}
+
 
 // -----------------------------------------------------------------------------
 // Shared UI
