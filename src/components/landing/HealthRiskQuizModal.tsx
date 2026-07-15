@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
+
 import {
   ArrowRight,
   ArrowLeft,
@@ -116,6 +116,17 @@ const SCALES = [
 
 const TOTAL_SCREENS = 8;
 
+const STEP_LABELS: Record<number, string> = {
+  1: "Введение",
+  2: "О вас",
+  3: "Сердце",
+  4: "Обмен веществ",
+  5: "Печень",
+  6: "Сон",
+  7: "Email",
+  8: "Результат",
+};
+
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
@@ -126,19 +137,6 @@ function calcBmi(height: number | null, weight: number | null): number | null {
   return Math.round((weight / (m * m)) * 10) / 10;
 }
 
-function clampInt(v: string, min: number, max: number): number | undefined {
-  const n = parseInt(v, 10);
-  if (Number.isNaN(n)) return undefined;
-  if (n < min || n > max) return undefined;
-  return n;
-}
-
-function clampNum(v: string, min: number, max: number): number | undefined {
-  const n = parseFloat(v.replace(",", "."));
-  if (Number.isNaN(n)) return undefined;
-  if (n < min || n > max) return undefined;
-  return n;
-}
 function computeHeart(a: QuizAnswers): HeartResult | null {
   if (typeof a.age !== "number" || !a.sex || typeof a.smoker !== "boolean" || !a.sbpChoice) {
     return null;
@@ -549,72 +547,99 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60">
-        {/* Progress bar */}
-        <div className="px-6 pt-6 pb-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              Шаг {Math.min(step, TOTAL_SCREENS)} из {TOTAL_SCREENS}
-            </span>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-card border-border/60 sm:rounded-2xl">
+        {/* Progress header */}
+        <div className="px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b border-border/40">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                {String(Math.min(step, TOTAL_SCREENS)).padStart(2, "0")}
+                <span className="text-muted-foreground/60">
+                  {" "}/ {String(TOTAL_SCREENS).padStart(2, "0")}
+                </span>
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                {STEP_LABELS[step] ?? ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <ShieldCheck className="w-3.5 h-3.5" />
               Не диагноз
             </div>
           </div>
-          <Progress value={(Math.min(step, TOTAL_SCREENS) / TOTAL_SCREENS) * 100} className="h-1" />
+          <div className="flex gap-1">
+            {Array.from({ length: TOTAL_SCREENS }).map((_, i) => {
+              const idx = i + 1;
+              const done = idx < step;
+              const current = idx === step;
+              return (
+                <div
+                  key={idx}
+                  className={cn(
+                    "h-1 flex-1 rounded-full transition-all duration-500",
+                    done && "bg-primary",
+                    current && "bg-primary",
+                    !done && !current && "bg-muted",
+                  )}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        <div className="px-6 md:px-8 pb-6 md:pb-8 pt-4 max-h-[80vh] overflow-y-auto">
-          {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
-          {step === 2 && (
-            <ScreenBasics
-              a={a}
-              update={update}
-              onBack={() => setStep(1)}
-              onNext={() => setStep(3)}
-            />
-          )}
-          {step === 3 && (
-            <ScreenHeart
-              a={a}
-              update={update}
-              onBack={() => setStep(2)}
-              onNext={() => setStep(4)}
-            />
-          )}
-          {step === 4 && (
-            <ScreenMetabolism
-              a={a}
-              update={update}
-              onBack={() => setStep(3)}
-              onNext={() => setStep(5)}
-            />
-          )}
-          {step === 5 && (
-            <ScreenLiver
-              a={a}
-              update={update}
-              onBack={() => setStep(4)}
-              onNext={() => setStep(6)}
-            />
-          )}
-          {step === 6 && (
-            <ScreenSleep
-              a={a}
-              update={update}
-              onBack={() => setStep(5)}
-              onNext={() => setStep(7)}
-            />
-          )}
-          {step === 7 && (
-            <ScreenEmail
-              a={a}
-              update={update}
-              onBack={() => setStep(6)}
-              onNext={() => setStep(8)}
-            />
-          )}
-          {step === 8 && <ScreenResult a={a} />}
+        <div className="px-5 md:px-8 pb-6 md:pb-8 pt-6 max-h-[78vh] overflow-y-auto">
+          <div key={step} className="animate-fade-in">
+            {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
+            {step === 2 && (
+              <ScreenBasics
+                a={a}
+                update={update}
+                onBack={() => setStep(1)}
+                onNext={() => setStep(3)}
+              />
+            )}
+            {step === 3 && (
+              <ScreenHeart
+                a={a}
+                update={update}
+                onBack={() => setStep(2)}
+                onNext={() => setStep(4)}
+              />
+            )}
+            {step === 4 && (
+              <ScreenMetabolism
+                a={a}
+                update={update}
+                onBack={() => setStep(3)}
+                onNext={() => setStep(5)}
+              />
+            )}
+            {step === 5 && (
+              <ScreenLiver
+                a={a}
+                update={update}
+                onBack={() => setStep(4)}
+                onNext={() => setStep(6)}
+              />
+            )}
+            {step === 6 && (
+              <ScreenSleep
+                a={a}
+                update={update}
+                onBack={() => setStep(5)}
+                onNext={() => setStep(7)}
+              />
+            )}
+            {step === 7 && (
+              <ScreenEmail
+                a={a}
+                update={update}
+                onBack={() => setStep(6)}
+                onNext={() => setStep(8)}
+              />
+            )}
+            {step === 8 && <ScreenResult a={a} />}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -691,11 +716,11 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Основные данные
+      <div className="mb-7">
+        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+          Расскажите немного о себе
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground leading-relaxed">
           Эти данные будут использоваться сразу в нескольких расчётах.
         </p>
       </div>
@@ -703,29 +728,30 @@ function ScreenBasics({
       <div className="space-y-6">
         {/* Age */}
         <FieldBlock label="Возраст" required>
-          <Input
-            type="number"
-            inputMode="numeric"
+          <NumberField
+            value={a.age}
             min={18}
             max={90}
             placeholder="Например, 42"
-            value={a.age ?? ""}
-            onChange={(e) => update({ age: clampInt(e.target.value, 18, 90) })}
-            className="max-w-[180px]"
+            ariaLabel="Возраст"
+            onChange={(v) => update({ age: v })}
+            className="max-w-[200px]"
           />
           <HintText>От 18 до 90 лет</HintText>
         </FieldBlock>
 
         {/* Sex */}
         <FieldBlock label="Пол" required>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <RadioChip
+              full
               active={a.sex === "male"}
               onClick={() => update({ sex: "male" })}
             >
               Мужской
             </RadioChip>
             <RadioChip
+              full
               active={a.sex === "female"}
               onClick={() => update({ sex: "female" })}
             >
@@ -734,33 +760,39 @@ function ScreenBasics({
           </div>
         </FieldBlock>
 
-        {/* Height */}
-        <OptionalMeasureField
-          label="Рост, см"
-          value={a.height}
-          min={140}
-          max={220}
-          placeholder="Например, 175"
-          onChange={(v) => update({ height: v })}
-        />
-
-        {/* Weight */}
-        <OptionalMeasureField
-          label="Вес, кг"
-          value={a.weight}
-          min={40}
-          max={200}
-          placeholder="Например, 74"
-          onChange={(v) => update({ weight: v })}
-        />
+        {/* Height + Weight side-by-side on wider screens */}
+        <div className="grid sm:grid-cols-2 gap-5">
+          <OptionalMeasureField
+            label="Рост, см"
+            value={a.height}
+            min={140}
+            max={220}
+            placeholder="Например, 175"
+            onChange={(v) => update({ height: v })}
+          />
+          <OptionalMeasureField
+            label="Вес, кг"
+            value={a.weight}
+            min={40}
+            max={200}
+            placeholder="Например, 74"
+            allowDecimal
+            onChange={(v) => update({ weight: v })}
+          />
+        </div>
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-            <Info className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-foreground">
-              Ваш ИМТ: <span className="font-semibold">{a.bmi}</span>
-            </span>
+          <div className="flex items-center gap-3 rounded-xl border-2 border-primary/25 bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-sm animate-scale-in">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+              <Info className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Ваш ИМТ</div>
+              <div className="text-lg font-bold text-foreground leading-tight">
+                {a.bmi}
+              </div>
+            </div>
           </div>
         )}
 
@@ -776,16 +808,7 @@ function ScreenBasics({
         />
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
@@ -813,31 +836,29 @@ function ScreenHeart({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Heart className="h-3 w-3" />
-          Блок 1 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Сердце и сосуды
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Расчёт по шкале{" "}
-          <span className="text-foreground font-medium">
-            WHO CVD Risk (non-laboratory)
-          </span>
-          . Возраст и пол уже известны — повторно не спрашиваем.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 1 из 4"
+        eyebrowIcon={Heart}
+        title="Сердце и сосуды"
+        subtitle={
+          <>
+            Расчёт по шкале{" "}
+            <span className="text-foreground font-medium">
+              WHO CVD Risk (non-laboratory)
+            </span>
+            . Возраст и пол уже известны — повторно не спрашиваем.
+          </>
+        }
+      />
 
       <div className="space-y-6">
         {/* Q1 — smoker */}
         <FieldBlock label="Курите ли Вы сейчас?" required>
-          <div className="flex gap-2">
-            <RadioChip active={a.smoker === true} onClick={() => update({ smoker: true })}>
+          <div className="grid grid-cols-2 gap-2">
+            <RadioChip full active={a.smoker === true} onClick={() => update({ smoker: true })}>
               Да
             </RadioChip>
-            <RadioChip active={a.smoker === false} onClick={() => update({ smoker: false })}>
+            <RadioChip full active={a.smoker === false} onClick={() => update({ smoker: false })}>
               Нет
             </RadioChip>
           </div>
@@ -854,20 +875,17 @@ function ScreenHeart({
               Знаю
             </RadioChip>
             {sbpNeedsValue && (
-              <div className="pl-1 pt-1">
-                <Label className="text-xs text-muted-foreground mb-1.5 block">
+              <div className="rounded-xl border-2 border-primary/20 bg-primary/[0.03] p-4 animate-scale-in">
+                <Label className="text-xs text-muted-foreground mb-2 block">
                   Систолическое (верхнее), мм рт. ст.
                 </Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
+                <NumberField
+                  value={a.sbpValue}
                   min={80}
                   max={240}
                   placeholder="Например, 128"
-                  value={a.sbpValue ?? ""}
-                  onChange={(e) =>
-                    update({ sbpValue: clampInt(e.target.value, 80, 240) })
-                  }
+                  ariaLabel="Систолическое давление"
+                  onChange={(v) => update({ sbpValue: v })}
                   className="max-w-[220px]"
                 />
                 <HintText>От 80 до 240</HintText>
@@ -898,16 +916,7 @@ function ScreenHeart({
         </FieldBlock>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
@@ -936,21 +945,19 @@ function ScreenMetabolism({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Activity className="h-3 w-3" />
-          Блок 2 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Обмен веществ
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Расчёт по шкале{" "}
-          <span className="text-foreground font-medium">FINDRISC</span> —
-          10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ и
-          окружность талии уже известны.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 2 из 4"
+        eyebrowIcon={Activity}
+        title="Обмен веществ"
+        subtitle={
+          <>
+            Расчёт по шкале{" "}
+            <span className="text-foreground font-medium">FINDRISC</span> —
+            10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ и
+            окружность талии уже известны.
+          </>
+        }
+      />
 
       <div className="space-y-6">
         <FieldBlock
@@ -961,17 +968,11 @@ function ScreenMetabolism({
             Учитывать работу, ходьбу, тренировки, велосипед и любую другую
             активность.
           </HintText>
-          <div className="flex gap-2 mt-2">
-            <RadioChip
-              active={a.activity === "yes"}
-              onClick={() => update({ activity: "yes" })}
-            >
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <RadioChip full active={a.activity === "yes"} onClick={() => update({ activity: "yes" })}>
               Да
             </RadioChip>
-            <RadioChip
-              active={a.activity === "no"}
-              onClick={() => update({ activity: "no" })}
-            >
+            <RadioChip full active={a.activity === "no"} onClick={() => update({ activity: "no" })}>
               Нет
             </RadioChip>
           </div>
@@ -981,17 +982,11 @@ function ScreenMetabolism({
           label="Едите ли Вы овощи, фрукты или ягоды ежедневно?"
           required
         >
-          <div className="flex gap-2">
-            <RadioChip
-              active={a.diet === "daily"}
-              onClick={() => update({ diet: "daily" })}
-            >
+          <div className="grid grid-cols-2 gap-2">
+            <RadioChip full active={a.diet === "daily"} onClick={() => update({ diet: "daily" })}>
               Каждый день
             </RadioChip>
-            <RadioChip
-              active={a.diet === "notDaily"}
-              onClick={() => update({ diet: "notDaily" })}
-            >
+            <RadioChip full active={a.diet === "notDaily"} onClick={() => update({ diet: "notDaily" })}>
               Не каждый день
             </RadioChip>
           </div>
@@ -1001,17 +996,11 @@ function ScreenMetabolism({
           label="Принимаете ли Вы регулярно препараты для снижения артериального давления?"
           required
         >
-          <div className="flex gap-2">
-            <RadioChip
-              active={a.bpMeds === "yes"}
-              onClick={() => update({ bpMeds: "yes" })}
-            >
+          <div className="grid grid-cols-2 gap-2">
+            <RadioChip full active={a.bpMeds === "yes"} onClick={() => update({ bpMeds: "yes" })}>
               Да
             </RadioChip>
-            <RadioChip
-              active={a.bpMeds === "no"}
-              onClick={() => update({ bpMeds: "no" })}
-            >
+            <RadioChip full active={a.bpMeds === "no"} onClick={() => update({ bpMeds: "no" })}>
               Нет
             </RadioChip>
           </div>
@@ -1026,25 +1015,13 @@ function ScreenMetabolism({
             обследовании или при болезни.
           </HintText>
           <div className="flex flex-col gap-2 mt-2">
-            <RadioChip
-              full
-              active={a.highGlucoseHistory === "yes"}
-              onClick={() => update({ highGlucoseHistory: "yes" })}
-            >
+            <RadioChip full active={a.highGlucoseHistory === "yes"} onClick={() => update({ highGlucoseHistory: "yes" })}>
               Да
             </RadioChip>
-            <RadioChip
-              full
-              active={a.highGlucoseHistory === "no"}
-              onClick={() => update({ highGlucoseHistory: "no" })}
-            >
+            <RadioChip full active={a.highGlucoseHistory === "no"} onClick={() => update({ highGlucoseHistory: "no" })}>
               Нет
             </RadioChip>
-            <RadioChip
-              full
-              active={a.highGlucoseHistory === "unknown"}
-              onClick={() => update({ highGlucoseHistory: "unknown" })}
-            >
+            <RadioChip full active={a.highGlucoseHistory === "unknown"} onClick={() => update({ highGlucoseHistory: "unknown" })}>
               Не знаю
             </RadioChip>
           </div>
@@ -1055,48 +1032,23 @@ function ScreenMetabolism({
           required
         >
           <div className="flex flex-col gap-2">
-            <RadioChip
-              full
-              active={a.familyDiabetes === "no"}
-              onClick={() => update({ familyDiabetes: "no" })}
-            >
+            <RadioChip full active={a.familyDiabetes === "no"} onClick={() => update({ familyDiabetes: "no" })}>
               Нет
             </RadioChip>
-            <RadioChip
-              full
-              active={a.familyDiabetes === "second"}
-              onClick={() => update({ familyDiabetes: "second" })}
-            >
+            <RadioChip full active={a.familyDiabetes === "second"} onClick={() => update({ familyDiabetes: "second" })}>
               Да, у бабушки, дедушки, тёти, дяди или двоюродных родственников
             </RadioChip>
-            <RadioChip
-              full
-              active={a.familyDiabetes === "first"}
-              onClick={() => update({ familyDiabetes: "first" })}
-            >
+            <RadioChip full active={a.familyDiabetes === "first"} onClick={() => update({ familyDiabetes: "first" })}>
               Да, у родителей, родных братьев, сестёр или детей
             </RadioChip>
-            <RadioChip
-              full
-              active={a.familyDiabetes === "unknown"}
-              onClick={() => update({ familyDiabetes: "unknown" })}
-            >
+            <RadioChip full active={a.familyDiabetes === "unknown"} onClick={() => update({ familyDiabetes: "unknown" })}>
               Не знаю
             </RadioChip>
           </div>
         </FieldBlock>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
@@ -1125,35 +1077,33 @@ function ScreenLiver({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Droplets className="h-3 w-3" />
-          Блок 3 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Печень
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Расчёт по шкале{" "}
-          <span className="text-foreground font-medium">NAFLD Simple Score</span>.
-          Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 3 из 4"
+        eyebrowIcon={Droplets}
+        title="Печень"
+        subtitle={
+          <>
+            Расчёт по шкале{" "}
+            <span className="text-foreground font-medium">NAFLD Simple Score</span>.
+            Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
+          </>
+        }
+      />
 
       <div className="space-y-6">
         <FieldBlock label="Диагностировали ли Вам сахарный диабет?" required>
-          <div className="flex gap-2 flex-wrap">
-            <RadioChip active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
-            <RadioChip active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
-            <RadioChip active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
+            <RadioChip full active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
           </div>
         </FieldBlock>
 
         <FieldBlock label="Диагностировали ли Вам повышенный холестерин или триглицериды?" required>
-          <div className="flex gap-2 flex-wrap">
-            <RadioChip active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
-            <RadioChip active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
-            <RadioChip active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
+            <RadioChip full active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
           </div>
         </FieldBlock>
 
@@ -1167,25 +1117,16 @@ function ScreenLiver({
 
         {needsMenopause && (
           <FieldBlock label="Наступила ли у Вас менопауза?" required>
-            <div className="flex gap-2 flex-wrap">
-              <RadioChip active={a.menopause === "yes"} onClick={() => update({ menopause: "yes" })}>Да</RadioChip>
-              <RadioChip active={a.menopause === "no"} onClick={() => update({ menopause: "no" })}>Нет</RadioChip>
-              <RadioChip active={a.menopause === "unknown"} onClick={() => update({ menopause: "unknown" })}>Не знаю</RadioChip>
+            <div className="grid grid-cols-3 gap-2">
+              <RadioChip full active={a.menopause === "yes"} onClick={() => update({ menopause: "yes" })}>Да</RadioChip>
+              <RadioChip full active={a.menopause === "no"} onClick={() => update({ menopause: "no" })}>Нет</RadioChip>
+              <RadioChip full active={a.menopause === "unknown"} onClick={() => update({ menopause: "unknown" })}>Не знаю</RadioChip>
             </div>
           </FieldBlock>
         )}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
@@ -1209,23 +1150,24 @@ function ScreenSleep({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Moon className="h-3 w-3" />
-          Блок 4 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Сон
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Оценка качества сна за последний месяц по шкале{" "}
-          <span className="text-foreground font-medium">Pittsburgh Sleep Quality Index (PSQI)</span>.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 4 из 4"
+        eyebrowIcon={Moon}
+        title="Сон"
+        subtitle={
+          <>
+            Оценка качества сна за последний месяц по шкале{" "}
+            <span className="text-foreground font-medium">
+              Pittsburgh Sleep Quality Index (PSQI)
+            </span>
+            .
+          </>
+        }
+      />
 
       <div className="space-y-6">
         <FieldBlock label="Сколько часов Вы обычно спите за ночь?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepDuration === "lt5"} onClick={() => update({ sleepDuration: "lt5" })}>Менее 5 часов</RadioChip>
             <RadioChip full active={a.sleepDuration === "5to6"} onClick={() => update({ sleepDuration: "5to6" })}>5–6 часов</RadioChip>
             <RadioChip full active={a.sleepDuration === "7to8"} onClick={() => update({ sleepDuration: "7to8" })}>7–8 часов</RadioChip>
@@ -1234,16 +1176,16 @@ function ScreenSleep({
         </FieldBlock>
 
         <FieldBlock label="Как часто за последний месяц Вам было трудно заснуть или Вы просыпались ночью?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepDifficulty === "never"} onClick={() => update({ sleepDifficulty: "never" })}>Никогда</RadioChip>
-            <RadioChip full active={a.sleepDifficulty === "lt1"} onClick={() => update({ sleepDifficulty: "lt1" })}>Реже одного раза в неделю</RadioChip>
+            <RadioChip full active={a.sleepDifficulty === "lt1"} onClick={() => update({ sleepDifficulty: "lt1" })}>Реже 1 раза в неделю</RadioChip>
             <RadioChip full active={a.sleepDifficulty === "1to2"} onClick={() => update({ sleepDifficulty: "1to2" })}>1–2 раза в неделю</RadioChip>
             <RadioChip full active={a.sleepDifficulty === "3plus"} onClick={() => update({ sleepDifficulty: "3plus" })}>3 раза в неделю или чаще</RadioChip>
           </div>
         </FieldBlock>
 
         <FieldBlock label="Как бы Вы оценили качество своего сна за последний месяц?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepQuality === "veryGood"} onClick={() => update({ sleepQuality: "veryGood" })}>Очень хорошее</RadioChip>
             <RadioChip full active={a.sleepQuality === "fairlyGood"} onClick={() => update({ sleepQuality: "fairlyGood" })}>Довольно хорошее</RadioChip>
             <RadioChip full active={a.sleepQuality === "fairlyBad"} onClick={() => update({ sleepQuality: "fairlyBad" })}>Довольно плохое</RadioChip>
@@ -1252,16 +1194,7 @@ function ScreenSleep({
         </FieldBlock>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
@@ -1357,17 +1290,20 @@ function ScreenEmail({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+      <div className="mb-7 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/25">
+          <CheckCircle2 className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
           Результат готов
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md mx-auto">
           Укажите адрес электронной почты, чтобы открыть результат и получить
           его копию.
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-5 max-w-md mx-auto">
         <FieldBlock label="Email" required>
           <Input
             type="email"
@@ -1377,36 +1313,60 @@ function ScreenEmail({
             value={a.email ?? ""}
             onChange={(e) => update({ email: e.target.value })}
             onBlur={() => setTouched(true)}
-            className="max-w-md"
+            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {touched && !emailOk && (
             <HintText>Пожалуйста, укажите корректный email.</HintText>
           )}
         </FieldBlock>
 
-        <label className="flex gap-3 items-start cursor-pointer select-none rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
+        <label
+          className={cn(
+            "flex gap-3 items-start cursor-pointer select-none rounded-xl border-2 px-4 py-3.5 transition-all",
+            a.consent
+              ? "border-primary/50 bg-primary/[0.06]"
+              : "border-border/60 bg-muted/20 hover:border-primary/30",
+          )}
+        >
+          <span
+            className={cn(
+              "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+              a.consent
+                ? "border-primary bg-primary"
+                : "border-border/70 bg-background",
+            )}
+          >
+            {a.consent && (
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
+            )}
+          </span>
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 accent-primary cursor-pointer"
+            className="sr-only"
             checked={!!a.consent}
             onChange={(e) => update({ consent: e.target.checked })}
           />
-          <span className="text-sm text-foreground/90 leading-relaxed">
+          <span className="text-[13px] text-foreground/85 leading-relaxed">
             Я соглашаюсь на обработку персональных данных и принимаю Политику
             конфиденциальности.
           </span>
         </label>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+      <div className="mt-9 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack} disabled={submitting} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
           Назад
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="min-w-[200px]"
+          size="lg"
+          className={cn(
+            "min-w-[220px] rounded-xl font-semibold shadow-lg shadow-primary/20",
+            "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
+            "hover:-translate-y-0.5 active:translate-y-0",
+          )}
         >
           {submitting ? (
             <>
@@ -1717,10 +1677,10 @@ function FieldBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">
+    <div className="space-y-2.5">
+      <Label className="text-[15px] font-medium text-foreground leading-snug block">
         {label}
-        {required && <span className="text-destructive ml-0.5">*</span>}
+        {required && <span className="text-primary ml-0.5">*</span>}
       </Label>
       <div>{children}</div>
     </div>
@@ -1729,6 +1689,77 @@ function FieldBlock({
 
 function HintText({ children }: { children: React.ReactNode }) {
   return <p className="mt-1.5 text-xs text-muted-foreground">{children}</p>;
+}
+
+function QuizFooter({
+  onBack,
+  onNext,
+  nextDisabled,
+  nextLabel = "Далее",
+  hideBack,
+}: {
+  onBack?: () => void;
+  onNext: () => void;
+  nextDisabled?: boolean;
+  nextLabel?: string;
+  hideBack?: boolean;
+}) {
+  return (
+    <div className="mt-9 flex items-center justify-between gap-3">
+      {!hideBack && onBack ? (
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Назад
+        </Button>
+      ) : (
+        <span />
+      )}
+      <Button
+        onClick={onNext}
+        disabled={nextDisabled}
+        size="lg"
+        className={cn(
+          "min-w-[180px] rounded-xl font-semibold shadow-lg shadow-primary/20",
+          "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
+          "hover:-translate-y-0.5 active:translate-y-0",
+        )}
+      >
+        {nextLabel}
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function QuizHeader({
+  eyebrow,
+  eyebrowIcon: Icon,
+  title,
+  subtitle,
+}: {
+  eyebrow?: string;
+  eyebrowIcon?: typeof Heart;
+  title: string;
+  subtitle?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-7">
+      {eyebrow && (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-3">
+          {Icon && <Icon className="h-3 w-3" />}
+          {eyebrow}
+        </div>
+      )}
+      <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-[15px] text-muted-foreground leading-relaxed">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function RadioChip({
@@ -1747,15 +1778,113 @@ function RadioChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all text-left",
+        "group relative px-4 py-3 rounded-xl border-2 text-[14px] font-medium",
+        "transition-all duration-200 text-left flex items-center gap-2.5",
+        "active:scale-[0.98]",
         full ? "w-full" : "",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-sm"
-          : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          ? "border-primary bg-primary/10 text-foreground shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.35)]"
+          : "border-border/60 bg-muted/20 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground",
       )}
     >
-      {children}
+      <span
+        className={cn(
+          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          active
+            ? "border-primary bg-primary"
+            : "border-border/70 bg-transparent group-hover:border-primary/60",
+        )}
+      >
+        {active && (
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+        )}
+      </span>
+      <span className="flex-1 leading-snug">{children}</span>
     </button>
+  );
+}
+
+/**
+ * Number field that actually lets the user type. Keeps a local string buffer
+ * so partially-typed values like "1" (before "18") aren't wiped out. Commits
+ * to the parent as a number only when the value is a valid finite number; on
+ * blur, out-of-range values are clamped into [min, max].
+ */
+function NumberField({
+  value,
+  onChange,
+  min,
+  max,
+  placeholder,
+  allowDecimal,
+  className,
+  ariaLabel,
+}: {
+  value: number | undefined | null;
+  onChange: (v: number | undefined) => void;
+  min: number;
+  max: number;
+  placeholder?: string;
+  allowDecimal?: boolean;
+  className?: string;
+  ariaLabel?: string;
+}) {
+  const [buf, setBuf] = useState<string>(
+    value === null || value === undefined ? "" : String(value),
+  );
+
+  // Keep buffer in sync when parent resets or externally updates.
+  const parentStr =
+    value === null || value === undefined ? "" : String(value);
+  if (
+    parentStr !== "" &&
+    buf === "" // parent has value but we're empty → hydrate
+  ) {
+    setBuf(parentStr);
+  }
+
+  return (
+    <Input
+      type="text"
+      inputMode={allowDecimal ? "decimal" : "numeric"}
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      value={buf}
+      onChange={(e) => {
+        const raw = e.target.value.replace(",", ".");
+        const cleaned = allowDecimal
+          ? raw.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1")
+          : raw.replace(/[^\d]/g, "");
+        setBuf(cleaned);
+        if (cleaned === "" || cleaned === ".") {
+          onChange(undefined);
+          return;
+        }
+        const n = allowDecimal ? parseFloat(cleaned) : parseInt(cleaned, 10);
+        if (Number.isFinite(n)) {
+          onChange(n);
+        }
+      }}
+      onBlur={() => {
+        if (buf === "") return;
+        const n = allowDecimal ? parseFloat(buf) : parseInt(buf, 10);
+        if (!Number.isFinite(n)) {
+          setBuf("");
+          onChange(undefined);
+          return;
+        }
+        const clamped = Math.min(max, Math.max(min, n));
+        const finalN = allowDecimal ? Math.round(clamped * 10) / 10 : clamped;
+        setBuf(String(finalN));
+        onChange(finalN);
+      }}
+      className={cn(
+        "h-12 text-[15px] rounded-xl bg-background border-2 border-border/60",
+        "focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0",
+        "transition-colors",
+        className,
+      )}
+    />
   );
 }
 
@@ -1766,6 +1895,7 @@ function OptionalMeasureField({
   max,
   placeholder,
   hint,
+  allowDecimal,
   onChange,
 }: {
   label: string;
@@ -1774,40 +1904,41 @@ function OptionalMeasureField({
   max: number;
   placeholder?: string;
   hint?: string;
+  allowDecimal?: boolean;
   onChange: (v: number | null) => void;
 }) {
-  const unknown = value === null;
-  const [touched, setTouched] = useState(false);
+  const [unknownPicked, setUnknownPicked] = useState(false);
+  const isUnknown = unknownPicked && value === null;
 
   return (
     <FieldBlock label={label}>
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-        <Input
-          type="number"
-          inputMode="decimal"
-          min={min}
-          max={max}
-          placeholder={placeholder}
-          disabled={unknown && touched}
-          value={value ?? ""}
-          onChange={(e) => {
-            setTouched(true);
-            const v = clampNum(e.target.value, min, max);
-            onChange(v === undefined ? null : v);
-          }}
-          className="max-w-[220px]"
-        />
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
+        <div className="flex-1 max-w-[240px]">
+          <NumberField
+            value={isUnknown ? undefined : value ?? undefined}
+            min={min}
+            max={max}
+            placeholder={placeholder}
+            allowDecimal={allowDecimal}
+            ariaLabel={label}
+            onChange={(v) => {
+              setUnknownPicked(false);
+              onChange(v === undefined ? null : v);
+            }}
+          />
+        </div>
         <button
           type="button"
           onClick={() => {
-            setTouched(true);
+            setUnknownPicked(true);
             onChange(null);
           }}
           className={cn(
-            "text-xs font-medium px-3 py-2 rounded-lg border transition-colors self-start sm:self-auto",
-            unknown && touched
-              ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/40",
+            "h-12 px-4 rounded-xl border-2 text-sm font-medium transition-all whitespace-nowrap",
+            "active:scale-[0.98]",
+            isUnknown
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
           )}
         >
           Не знаю
