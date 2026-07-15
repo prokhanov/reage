@@ -202,16 +202,16 @@ function nafldScore(a: Answers): { score: number; label: string; top: string[] }
   if (b >= 30) { s += 3; top.push({ k: "ИМТ ≥ 30", v: 3 }); }
   else if (b >= 25) { s += 1; }
 
-  const w = a.waist ?? 0;
+  const w = num(a.waist);
   const waistFlag =
-    a.sex === "male" ? w > 102 : w > 88;
+    w == null ? false : a.sex === "male" ? w > 102 : w > 88;
   if (waistFlag) { s += 2; top.push({ k: "окружность талии", v: 2 }); }
 
-  if (a.diabetes) { s += 3; top.push({ k: "диабет в анамнезе", v: 3 }); }
-  if (a.dyslipidemia) { s += 2; top.push({ k: "повышенный холестерин/триглицериды", v: 2 }); }
+  if (isTrue(a.diabetes)) { s += 3; top.push({ k: "диабет в анамнезе", v: 3 }); }
+  if (isTrue(a.dyslipidemia)) { s += 2; top.push({ k: "повышенный холестерин/триглицериды", v: 2 }); }
   if (a.alcohol === "often") { s += 2; top.push({ k: "частое употребление алкоголя", v: 2 }); }
   else if (a.alcohol === "moderate") { s += 1; }
-  if (a.activity === false) { s += 1; }
+  if (isFalse(a.activity)) { s += 1; }
   if (a.sex === "female" && a.menopause === "yes") { s += 1; }
 
   const label = s >= 8 ? "высокая вероятность повышенной нагрузки на печень" : "низкая вероятность повышенной нагрузки на печень";
