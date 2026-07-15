@@ -865,11 +865,25 @@ function ScreenHeart({
   onBack: () => void;
   onNext: () => void;
 }) {
-  const sbpNeedsValue = a.sbpChoice === "known";
+  const bpMedsNeeded = a.hypertensionHistory === "yes";
+  const sbpValueProvided = typeof a.sbpValue === "number";
   const sbpValueOk =
-    !sbpNeedsValue ||
+    !sbpValueProvided ||
     (typeof a.sbpValue === "number" && a.sbpValue >= 80 && a.sbpValue <= 240);
-  const valid = typeof a.smoker === "boolean" && !!a.sbpChoice && sbpValueOk;
+  const cholKnown = a.cholesterolStatus === "known";
+  const cholValueOk =
+    !cholKnown ||
+    (typeof a.cholesterolValue === "number" &&
+      a.cholesterolValue >= 2 &&
+      a.cholesterolValue <= 15);
+
+  const valid =
+    typeof a.smoker === "boolean" &&
+    !!a.hypertensionHistory &&
+    (!bpMedsNeeded || !!a.bpMeds) &&
+    sbpValueOk &&
+    !!a.cholesterolStatus &&
+    cholValueOk;
 
   return (
     <div>
@@ -901,57 +915,80 @@ function ScreenHeart({
           </div>
         </FieldBlock>
 
-        {/* Q2 — SBP */}
-        <FieldBlock label="Известно ли Вам Ваше артериальное давление?" required>
+        {/* Q2 — hypertension history */}
+        <FieldBlock label="Диагностировали ли Вам когда-либо повышенное артериальное давление?" required>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.hypertensionHistory === "yes"} onClick={() => update({ hypertensionHistory: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.hypertensionHistory === "no"} onClick={() => update({ hypertensionHistory: "no", bpMeds: undefined })}>Нет</RadioChip>
+            <RadioChip full active={a.hypertensionHistory === "unknown"} onClick={() => update({ hypertensionHistory: "unknown", bpMeds: undefined })}>Не знаю</RadioChip>
+          </div>
+        </FieldBlock>
+
+        {/* Q3 — BP meds (only if hypertension = yes) */}
+        {bpMedsNeeded && (
+          <div className="animate-scale-in">
+            <FieldBlock label="Принимаете ли Вы сейчас препараты для снижения давления?" required>
+              <div className="grid grid-cols-2 gap-2">
+                <RadioChip full active={a.bpMeds === "yes"} onClick={() => update({ bpMeds: "yes" })}>Да</RadioChip>
+                <RadioChip full active={a.bpMeds === "no"} onClick={() => update({ bpMeds: "no" })}>Нет</RadioChip>
+              </div>
+            </FieldBlock>
+          </div>
+        )}
+
+        {/* Q4 — SBP value (optional) */}
+        <FieldBlock label="Знаете ли Вы своё текущее систолическое (верхнее) давление?">
+          <HintText>Если нет — оставьте пустым, мы используем усреднённое значение.</HintText>
+          <div className="mt-2 max-w-[240px]">
+            <NumberField
+              value={a.sbpValue}
+              min={80}
+              max={240}
+              placeholder="Например, 128"
+              ariaLabel="Систолическое давление"
+              onChange={(v) => update({ sbpValue: v })}
+            />
+          </div>
+          <HintText>мм рт. ст., от 80 до 240</HintText>
+        </FieldBlock>
+
+        {/* Q5 — Cholesterol (unified) */}
+        <FieldBlock label="Известен ли Вам уровень общего холестерина?" required>
           <div className="flex flex-col gap-2">
-            <RadioChip
-              active={a.sbpChoice === "known"}
-              onClick={() => update({ sbpChoice: "known" })}
-              full
-            >
-              Знаю
+            <RadioChip full active={a.cholesterolStatus === "known"} onClick={() => update({ cholesterolStatus: "known" })}>
+              Знаю точное значение
             </RadioChip>
-            {sbpNeedsValue && (
+            {cholKnown && (
               <div className="rounded-xl border-2 border-primary/20 bg-primary/[0.03] p-4 animate-scale-in">
                 <Label className="text-xs text-muted-foreground mb-2 block">
-                  Систолическое (верхнее), мм рт. ст.
+                  Общий холестерин, ммоль/л
                 </Label>
                 <NumberField
-                  value={a.sbpValue}
-                  min={80}
-                  max={240}
-                  placeholder="Например, 128"
-                  ariaLabel="Систолическое давление"
-                  onChange={(v) => update({ sbpValue: v })}
+                  value={a.cholesterolValue}
+                  min={2}
+                  max={15}
+                  allowDecimal
+                  placeholder="Например, 5.1"
+                  ariaLabel="Общий холестерин"
+                  onChange={(v) => update({ cholesterolValue: v })}
                   className="max-w-[220px]"
                 />
-                <HintText>От 80 до 240</HintText>
+                <HintText>Норма — до 5,2 ммоль/л.</HintText>
               </div>
             )}
-            <RadioChip
-              active={a.sbpChoice === "wasHigh"}
-              onClick={() => update({ sbpChoice: "wasHigh", sbpValue: undefined })}
-              full
-            >
-              Давление повышалось, но цифры не помню
+            <RadioChip full active={a.cholesterolStatus === "wasHigh"} onClick={() => update({ cholesterolStatus: "wasHigh", cholesterolValue: undefined })}>
+              Был повышен
             </RadioChip>
-            <RadioChip
-              active={a.sbpChoice === "neverHigh"}
-              onClick={() => update({ sbpChoice: "neverHigh", sbpValue: undefined })}
-              full
-            >
-              Давление никогда не было повышенным
+            <RadioChip full active={a.cholesterolStatus === "wasNormal"} onClick={() => update({ cholesterolStatus: "wasNormal", cholesterolValue: undefined })}>
+              Был в пределах нормы
             </RadioChip>
-            <RadioChip
-              active={a.sbpChoice === "unknown"}
-              onClick={() => update({ sbpChoice: "unknown", sbpValue: undefined })}
-              full
-            >
+            <RadioChip full active={a.cholesterolStatus === "unknown"} onClick={() => update({ cholesterolStatus: "unknown", cholesterolValue: undefined })}>
               Не знаю
             </RadioChip>
           </div>
         </FieldBlock>
       </div>
+
 
       <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
