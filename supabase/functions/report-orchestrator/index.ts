@@ -103,10 +103,19 @@ async function handleStart(supabase: any, body: any) {
 
   // Гейт: без заполненной медицинской анкеты не запускаем отчёт —
   // хронические, лекарства и операции критичны для интерпретации.
+  // ВАЖНО: проверяем анкету владельца анализа, а не того, кто запускает
+  // генерацию. Иначе админ/врач, генерирующий отчёт для пациента, получает
+  // ложную ошибку, если у самого админа анкета не заполнена.
+  const { data: analysisRow } = await supabase
+    .from("analyses")
+    .select("user_id")
+    .eq("id", analysisId)
+    .maybeSingle();
+  const ownerId = analysisRow?.user_id || userId;
   const { data: profile } = await supabase
     .from("profiles")
     .select("medical_anketa_filled")
-    .eq("id", userId)
+    .eq("id", ownerId)
     .maybeSingle();
   if (!profile?.medical_anketa_filled) {
     return json({
