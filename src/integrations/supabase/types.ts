@@ -1117,6 +1117,66 @@ export type Database = {
         }
         Relationships: []
       }
+      health_risk_quiz_submissions: {
+        Row: {
+          age: number | null
+          answers: Json
+          bmi: number | null
+          consent: boolean
+          created_at: string
+          email: string
+          findrisc_result: Json | null
+          heart_result: Json | null
+          height: number | null
+          id: string
+          nafld_result: Json | null
+          quiz_version: string
+          sex: string | null
+          sleep_result: Json | null
+          user_agent: string | null
+          waist: number | null
+          weight: number | null
+        }
+        Insert: {
+          age?: number | null
+          answers?: Json
+          bmi?: number | null
+          consent?: boolean
+          created_at?: string
+          email: string
+          findrisc_result?: Json | null
+          heart_result?: Json | null
+          height?: number | null
+          id?: string
+          nafld_result?: Json | null
+          quiz_version?: string
+          sex?: string | null
+          sleep_result?: Json | null
+          user_agent?: string | null
+          waist?: number | null
+          weight?: number | null
+        }
+        Update: {
+          age?: number | null
+          answers?: Json
+          bmi?: number | null
+          consent?: boolean
+          created_at?: string
+          email?: string
+          findrisc_result?: Json | null
+          heart_result?: Json | null
+          height?: number | null
+          id?: string
+          nafld_result?: Json | null
+          quiz_version?: string
+          sex?: string | null
+          sleep_result?: Json | null
+          user_agent?: string | null
+          waist?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
       health_strategy_snapshots: {
         Row: {
           action_map: Json
