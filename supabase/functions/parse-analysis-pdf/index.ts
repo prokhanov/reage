@@ -138,6 +138,17 @@ const NAME_ALIASES: Record<string, string> = {
   "c reactive protein": "hs-CRP",
   "c reactive protein crp": "hs-CRP",
   "c reactive protein high sensitivity": "hs-CRP",
+  // Immunoglobulins: лаборатории часто печатают код в скобках
+  "иммуноглобулин g": "IgG",
+  "иммуноглобулин g igg": "IgG",
+  "igg": "IgG",
+  "immunoglobulin g": "IgG",
+  "immunoglobulin g igg": "IgG",
+  "иммуноглобулин m": "IgM",
+  "иммуноглобулин m igm": "IgM",
+  "igm": "IgM",
+  "immunoglobulin m": "IgM",
+  "immunoglobulin m igm": "IgM",
 };
 
 // Fuzzy fallback: keyword-based mapping used if exact alias lookup fails.
@@ -152,6 +163,10 @@ const NAME_KEYWORD_ALIASES: Array<{ keywords: string[]; code: string }> = [
   { keywords: ["реактивный", "белок"], code: "hs-CRP" },
   { keywords: ["crp"], code: "hs-CRP" },
   { keywords: ["срб"], code: "hs-CRP" },
+  { keywords: ["иммуноглобулин", "igg"], code: "IgG" },
+  { keywords: ["иммуноглобулин", "igm"], code: "IgM" },
+  { keywords: ["immunoglobulin", "g"], code: "IgG" },
+  { keywords: ["immunoglobulin", "m"], code: "IgM" },
 ];
 
 
