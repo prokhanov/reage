@@ -42,6 +42,32 @@ export type QuizAnswers = {
   bpMeds?: "yes" | "no";
   highGlucoseHistory?: "yes" | "no" | "unknown";
   familyDiabetes?: "no" | "second" | "first" | "unknown";
+  // Screen 5 — NAFLD
+  diabetes?: "yes" | "no" | "unknown";
+  dyslipidemia?: "yes" | "no" | "unknown";
+  alcohol?: "none" | "moderate" | "high";
+  menopause?: "yes" | "no" | "unknown";
+  // Screen 6 — PSQI (short)
+  sleepDuration?: "lt5" | "5to6" | "7to8" | "gt8";
+  sleepDifficulty?: "never" | "lt1" | "1to2" | "3plus";
+  sleepQuality?: "veryGood" | "fairlyGood" | "fairlyBad" | "veryBad";
+};
+
+export type NafldResult = {
+  score: number;
+  category: "low" | "elevated";
+  categoryLabel: string;
+  estimated: boolean;
+  mainFactors: string[];
+  breakdown: { factor: string; points: number }[];
+};
+
+export type SleepResult = {
+  score: number;
+  category: "good" | "some" | "poor";
+  categoryLabel: string;
+  mainFactors: string[];
+  breakdown: { factor: string; points: number }[];
 };
 
 export type FindriscResult = {
