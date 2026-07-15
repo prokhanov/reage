@@ -351,31 +351,34 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
   };
 
   // Validation per step
+  const validMeasure = (v: NumOrUnknown | undefined, min: number, max: number) =>
+    v === "unknown" || (typeof v === "number" && v >= min && v <= max);
+
   const baseValid =
     !!a.age && a.age >= 18 && a.age <= 90 &&
     !!a.sex &&
-    !!a.height && a.height >= 140 && a.height <= 220 &&
-    !!a.weight && a.weight >= 40 && a.weight <= 200 &&
-    !!a.waist && a.waist >= 50 && a.waist <= 150;
+    validMeasure(a.height, 140, 220) && a.height !== undefined &&
+    validMeasure(a.weight, 40, 200) && a.weight !== undefined &&
+    validMeasure(a.waist, 50, 150) && a.waist !== undefined;
 
   const heartValid =
-    typeof a.smoker === "boolean" &&
+    a.smoker !== undefined &&
     !!a.sbpKnown &&
     (a.sbpKnown !== "known" || (!!a.sbpValue && a.sbpValue >= 80 && a.sbpValue <= 240)) &&
-    typeof a.bpMeds === "boolean" &&
+    a.bpMeds !== undefined &&
     typeof a.cholKnown === "boolean" &&
     (a.cholKnown === false || (!!a.cholValue && a.cholValue >= 2 && a.cholValue <= 15));
 
   const metabValid =
-    typeof a.activity === "boolean" &&
-    typeof a.veggiesDaily === "boolean" &&
-    typeof a.everBpMeds === "boolean" &&
-    typeof a.everHighGlucose === "boolean" &&
+    a.activity !== undefined &&
+    a.veggiesDaily !== undefined &&
+    a.everBpMeds !== undefined &&
+    a.everHighGlucose !== undefined &&
     !!a.familyDiabetes;
 
   const liverValid =
-    typeof a.diabetes === "boolean" &&
-    typeof a.dyslipidemia === "boolean" &&
+    a.diabetes !== undefined &&
+    a.dyslipidemia !== undefined &&
     !!a.alcohol &&
     (a.sex === "male" || !!a.menopause);
 
