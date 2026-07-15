@@ -2010,28 +2010,33 @@ function OptionalMeasureField({
   const isUnknown = unknownPicked && value === null;
 
   return (
-    <FieldBlock label={unit ? `${label}, ${unit}` : label}>
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-        <div className="relative flex-1 max-w-[240px]">
-          <NumberField
-            value={isUnknown ? undefined : value ?? undefined}
-            min={min}
-            max={max}
-            placeholder={placeholder}
-            allowDecimal={allowDecimal}
-            ariaLabel={label}
-            onChange={(v) => {
-              setUnknownPicked(false);
-              onChange(v === undefined ? null : v);
-            }}
-            className={cn("text-[17px] font-semibold", unit && "pr-14")}
-          />
-          {unit && (
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
-              {unit}
-            </span>
-          )}
-        </div>
+    <FieldBlock label={label}>
+      <div className="relative">
+        <NumberField
+          value={isUnknown ? undefined : value ?? undefined}
+          min={min}
+          max={max}
+          placeholder={placeholder}
+          allowDecimal={allowDecimal}
+          ariaLabel={label}
+          onChange={(v) => {
+            setUnknownPicked(false);
+            onChange(v === undefined ? null : v);
+          }}
+          className={cn(unit && "pr-16")}
+        />
+        {unit && (
+          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">
+            {unit}
+          </span>
+        )}
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        {hint ? (
+          <p className="text-[12.5px] text-muted-foreground leading-relaxed flex-1">{hint}</p>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           onClick={() => {
@@ -2039,17 +2044,13 @@ function OptionalMeasureField({
             onChange(null);
           }}
           className={cn(
-            "h-12 px-4 rounded-xl border-2 text-sm font-medium transition-all whitespace-nowrap",
-            "active:scale-[0.98]",
-            isUnknown
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            "text-[12.5px] font-medium transition-colors whitespace-nowrap underline-offset-4 hover:underline",
+            isUnknown ? "text-primary" : "text-muted-foreground hover:text-foreground",
           )}
         >
-          Не знаю
+          {isUnknown ? "✓ Не знаю" : "Не знаю"}
         </button>
       </div>
-      {hint && <HintText>{hint}</HintText>}
     </FieldBlock>
   );
 }
