@@ -27,29 +27,31 @@ import { toast } from "@/hooks/use-toast";
 
 type Sex = "male" | "female";
 
-type SbpChoice = "known" | "wasHigh" | "neverHigh" | "unknown";
+type GlucoseStatus = "nothing" | "prediabetes" | "diabetes" | "unknown";
+type CholesterolStatus = "known" | "wasHigh" | "wasNormal" | "unknown";
+type HypertensionHistory = "yes" | "no" | "unknown";
 
 export type QuizAnswers = {
   // Screen 2 — base
   age?: number;
   sex?: Sex;
-  height: number | null; // cm, null = unknown
-  weight: number | null; // kg
-  waist: number | null; // cm
+  height: number | null;
+  weight: number | null;
+  waist: number | null;
   bmi: number | null;
-  // Screen 3 — heart (WHO CVD non-lab)
+  // Screen 3 — heart
   smoker?: boolean;
-  sbpChoice?: SbpChoice;
-  sbpValue?: number; // only when sbpChoice = "known"
-  // Screen 4 — FINDRISC
+  hypertensionHistory?: HypertensionHistory;
+  bpMeds?: "yes" | "no";
+  sbpValue?: number;
+  cholesterolStatus?: CholesterolStatus;
+  cholesterolValue?: number;
+  // Screen 4 — FINDRISC (activity/diet/family; glucose is unified)
   activity?: "yes" | "no";
   diet?: "daily" | "notDaily";
-  bpMeds?: "yes" | "no";
-  highGlucoseHistory?: "yes" | "no" | "unknown";
+  glucoseStatus?: GlucoseStatus;
   familyDiabetes?: "no" | "second" | "first" | "unknown";
-  // Screen 5 — NAFLD
-  diabetes?: "yes" | "no" | "unknown";
-  dyslipidemia?: "yes" | "no" | "unknown";
+  // Screen 5 — NAFLD (alcohol + menopause; rest derived)
   alcohol?: "none" | "moderate" | "high";
   menopause?: "yes" | "no" | "unknown";
   // Screen 6 — PSQI (short)
@@ -60,6 +62,34 @@ export type QuizAnswers = {
   email?: string;
   consent?: boolean;
 };
+
+const CHOL_UPPER_NORMAL = 5.2; // mmol/L, total cholesterol
+
+/** Derive legacy fields (diabetes, dyslipidemia, glucoseHistory, effective bpMeds) from unified answers. */
+function deriveFacts(a: QuizAnswers) {
+  let highGlucoseHistory: "yes" | "no" | "unknown" = "unknown";
+  let diabetes: "yes" | "no" | "unknown" = "unknown";
+  switch (a.glucoseStatus) {
+    case "nothing":       highGlucoseHistory = "no";      diabetes = "no";      break;
+    case "prediabetes":   highGlucoseHistory = "yes";     diabetes = "no";      break;
+    case "diabetes":      highGlucoseHistory = "yes";     diabetes = "yes";     break;
+    case "unknown":       highGlucoseHistory = "unknown"; diabetes = "unknown"; break;
+  }
+
+  let dyslipidemia: "yes" | "no" | "unknown" = "unknown";
+  if (a.cholesterolStatus === "known" && typeof a.cholesterolValue === "number") {
+    dyslipidemia = a.cholesterolValue > CHOL_UPPER_NORMAL ? "yes" : "no";
+  } else if (a.cholesterolStatus === "wasHigh") {
+    dyslipidemia = "yes";
+  } else if (a.cholesterolStatus === "wasNormal") {
+    dyslipidemia = "no";
+  }
+
+  const bpMedsEffective: "yes" | "no" =
+    a.hypertensionHistory === "yes" && a.bpMeds === "yes" ? "yes" : "no";
+
+  return { highGlucoseHistory, diabetes, dyslipidemia, bpMedsEffective };
+}
 
 const QUIZ_VERSION = "v1";
 
