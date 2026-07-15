@@ -1303,17 +1303,20 @@ function ScreenEmail({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+      <div className="mb-7 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/25">
+          <CheckCircle2 className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
           Результат готов
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md mx-auto">
           Укажите адрес электронной почты, чтобы открыть результат и получить
           его копию.
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-5 max-w-md mx-auto">
         <FieldBlock label="Email" required>
           <Input
             type="email"
@@ -1323,36 +1326,60 @@ function ScreenEmail({
             value={a.email ?? ""}
             onChange={(e) => update({ email: e.target.value })}
             onBlur={() => setTouched(true)}
-            className="max-w-md"
+            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {touched && !emailOk && (
             <HintText>Пожалуйста, укажите корректный email.</HintText>
           )}
         </FieldBlock>
 
-        <label className="flex gap-3 items-start cursor-pointer select-none rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
+        <label
+          className={cn(
+            "flex gap-3 items-start cursor-pointer select-none rounded-xl border-2 px-4 py-3.5 transition-all",
+            a.consent
+              ? "border-primary/50 bg-primary/[0.06]"
+              : "border-border/60 bg-muted/20 hover:border-primary/30",
+          )}
+        >
+          <span
+            className={cn(
+              "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+              a.consent
+                ? "border-primary bg-primary"
+                : "border-border/70 bg-background",
+            )}
+          >
+            {a.consent && (
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
+            )}
+          </span>
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 accent-primary cursor-pointer"
+            className="sr-only"
             checked={!!a.consent}
             onChange={(e) => update({ consent: e.target.checked })}
           />
-          <span className="text-sm text-foreground/90 leading-relaxed">
+          <span className="text-[13px] text-foreground/85 leading-relaxed">
             Я соглашаюсь на обработку персональных данных и принимаю Политику
             конфиденциальности.
           </span>
         </label>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+      <div className="mt-9 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack} disabled={submitting} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
           Назад
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="min-w-[200px]"
+          size="lg"
+          className={cn(
+            "min-w-[220px] rounded-xl font-semibold shadow-lg shadow-primary/20",
+            "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
+            "hover:-translate-y-0.5 active:translate-y-0",
+          )}
         >
           {submitting ? (
             <>
