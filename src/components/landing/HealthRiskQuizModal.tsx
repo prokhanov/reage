@@ -168,19 +168,24 @@ function calcBmi(height: number | null, weight: number | null): number | null {
 }
 
 function computeHeart(a: QuizAnswers): HeartResult | null {
-  if (typeof a.age !== "number" || !a.sex || typeof a.smoker !== "boolean" || !a.sbpChoice) {
+  if (
+    typeof a.age !== "number" ||
+    !a.sex ||
+    typeof a.smoker !== "boolean" ||
+    !a.hypertensionHistory
+  ) {
     return null;
   }
 
-  // Resolve SBP
+  // Resolve SBP: exact reading if provided, otherwise proxy from hypertension history.
   let sbpUsed: number;
   let estimatedSBP = false;
-  if (a.sbpChoice === "known" && typeof a.sbpValue === "number") {
+  if (typeof a.sbpValue === "number") {
     sbpUsed = a.sbpValue;
-  } else if (a.sbpChoice === "wasHigh") {
+  } else if (a.hypertensionHistory === "yes") {
     sbpUsed = 135;
     estimatedSBP = true;
-  } else if (a.sbpChoice === "neverHigh") {
+  } else if (a.hypertensionHistory === "no") {
     sbpUsed = 115;
     estimatedSBP = true;
   } else {
