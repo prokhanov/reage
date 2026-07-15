@@ -137,19 +137,6 @@ function calcBmi(height: number | null, weight: number | null): number | null {
   return Math.round((weight / (m * m)) * 10) / 10;
 }
 
-function clampInt(v: string, min: number, max: number): number | undefined {
-  const n = parseInt(v, 10);
-  if (Number.isNaN(n)) return undefined;
-  if (n < min || n > max) return undefined;
-  return n;
-}
-
-function clampNum(v: string, min: number, max: number): number | undefined {
-  const n = parseFloat(v.replace(",", "."));
-  if (Number.isNaN(n)) return undefined;
-  if (n < min || n > max) return undefined;
-  return n;
-}
 function computeHeart(a: QuizAnswers): HeartResult | null {
   if (typeof a.age !== "number" || !a.sex || typeof a.smoker !== "boolean" || !a.sbpChoice) {
     return null;
