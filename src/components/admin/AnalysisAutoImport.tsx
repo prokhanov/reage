@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { useToast } from "@/hooks/use-toast";
@@ -118,6 +119,9 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const [mergeMode, setMergeMode] = useState(true);
   const [mergedDate, setMergedDate] = useState<string>("");
   const [mergedLab, setMergedLab] = useState<string>("");
+  const [plans, setPlans] = useState<Array<{ id: string; name: string; count: number }>>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [planBiomarkers, setPlanBiomarkers] = useState<Array<{ id: string; code: string; name: string }>>([]);
 
   // Auto-fill merged date/lab from first recognized result
   useEffect(() => {
@@ -145,6 +149,37 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     })();
     return () => { aborted = true; };
   }, [viewAsUserId]);
+
+  // Load plans list once
+  useEffect(() => {
+    (async () => {
+      const [plansRes, pbRes] = await Promise.all([
+        supabase.from("subscription_plans").select("id, name").order("name"),
+        supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+      ]);
+      if (plansRes.error || pbRes.error) return;
+      const counts = new Map<string, number>();
+      (pbRes.data || []).forEach((r: any) => counts.set(r.plan_id, (counts.get(r.plan_id) || 0) + 1));
+      setPlans((plansRes.data || []).map((p: any) => ({ id: p.id, name: p.name, count: counts.get(p.id) || 0 })));
+    })();
+  }, []);
+
+  // Load biomarkers for selected plan
+  useEffect(() => {
+    if (!selectedPlanId) { setPlanBiomarkers([]); return; }
+    (async () => {
+      const { data: pb } = await supabase
+        .from("plan_biomarkers")
+        .select("biomarker_id")
+        .eq("plan_id", selectedPlanId);
+      const ids = (pb || []).map((r: any) => r.biomarker_id);
+      if (!ids.length) { setPlanBiomarkers([]); return; }
+      const { data: bms } = await (supabase.from("biomarkers") as any)
+        .select("id, code, name")
+        .in("id", ids);
+      setPlanBiomarkers((bms || []) as any);
+    })();
+  }, [selectedPlanId]);
 
   // Load biomarker norms for any newly recognized biomarker ids
   useEffect(() => {
@@ -542,6 +577,26 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const readyCount = entries.filter(e => e.status === "done").length;
   const queuedCount = entries.filter(e => e.status === "queued" || e.status === "error").length;
 
+  // Comparison of recognized biomarkers against the selected plan
+  const planComparison = useMemo(() => {
+    if (!selectedPlanId || !planBiomarkers.length) return null;
+    const recognizedIds = new Set<string>();
+    for (const e of entries) {
+      if (e.result) for (const r of e.result.recognized) recognizedIds.add(r.biomarker_id);
+    }
+    const planIds = new Set(planBiomarkers.map(b => b.id));
+    const matched = planBiomarkers.filter(b => recognizedIds.has(b.id));
+    const missing = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+    const extra: string[] = [];
+    for (const e of entries) {
+      if (!e.result) continue;
+      for (const r of e.result.recognized) {
+        if (!planIds.has(r.biomarker_id)) extra.push(r.biomarker_name);
+      }
+    }
+    return { matched, missing, extraCount: new Set(extra).size };
+  }, [selectedPlanId, planBiomarkers, entries]);
+
   return (
     <div className="space-y-4 py-2">
       <Alert>
@@ -611,6 +666,62 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
           </div>
         )}
       </div>
+
+      <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Label className="text-xs whitespace-nowrap">Сверка с тарифом</Label>
+          <Select value={selectedPlanId || "__none__"} onValueChange={(v) => setSelectedPlanId(v === "__none__" ? "" : v)}>
+            <SelectTrigger className="h-8">
+              <SelectValue placeholder="Без сверки" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Без сверки</SelectItem>
+              {plans.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name} ({p.count})</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {planComparison && (
+          readyCount === 0 ? (
+            <div className="text-xs text-muted-foreground">Распознайте файлы, чтобы увидеть сверку.</div>
+          ) : (
+            <div className="space-y-2 text-xs">
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-green-600 hover:bg-green-600">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
+                {planComparison.missing.length > 0 && (
+                  <Badge variant="destructive">Не найдено {planComparison.missing.length}</Badge>
+                )}
+                {planComparison.extraCount > 0 && (
+                  <Badge variant="secondary">Сверх тарифа {planComparison.extraCount}</Badge>
+                )}
+              </div>
+              {planComparison.missing.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Показать недостающие ({planComparison.missing.length})
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="pl-4 list-disc space-y-0.5 mt-1">
+                      {planComparison.missing.map(b => (
+                        <li key={b.id}>
+                          <span className="font-medium">{b.name}</span>
+                          <span className="text-muted-foreground"> · {b.code}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+            </div>
+          )
+        )}
+      </div>
+
+
 
 
       {entries.length > 0 && (
