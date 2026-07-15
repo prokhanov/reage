@@ -183,6 +183,7 @@ export function QuizCTASection() {
           </div>
         </div>
       </div>
+      <HealthRiskQuizModal open={open} onOpenChange={setOpen} />
     </section>
   );
 }
