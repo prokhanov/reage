@@ -207,8 +207,132 @@ function computeHeart(a: QuizAnswers): HeartResult | null {
   };
 }
 
+function computeFindrisc(a: QuizAnswers): FindriscResult | null {
+  if (
+    typeof a.age !== "number" ||
+    !a.activity ||
+    !a.diet ||
+    !a.bpMeds ||
+    !a.highGlucoseHistory ||
+    !a.familyDiabetes
+  ) {
+    return null;
+  }
 
-// -----------------------------------------------------------------------------
+  // Age
+  let agePoints = 0;
+  if (a.age >= 65) agePoints = 4;
+  else if (a.age >= 55) agePoints = 3;
+  else if (a.age >= 45) agePoints = 2;
+
+  // BMI
+  let bmiPoints: number | null = null;
+  let estimatedBMI = false;
+  if (a.bmi === null) {
+    estimatedBMI = true;
+  } else if (a.bmi < 25) bmiPoints = 0;
+  else if (a.bmi < 30) bmiPoints = 1;
+  else bmiPoints = 3;
+
+  // Waist
+  let waistPoints: number | null = null;
+  let estimatedWaist = false;
+  if (a.waist === null || !a.sex) {
+    estimatedWaist = true;
+  } else if (a.sex === "male") {
+    if (a.waist < 94) waistPoints = 0;
+    else if (a.waist < 102) waistPoints = 3;
+    else waistPoints = 4;
+  } else {
+    if (a.waist < 80) waistPoints = 0;
+    else if (a.waist < 88) waistPoints = 3;
+    else waistPoints = 4;
+  }
+
+  const activityPoints = a.activity === "yes" ? 0 : 2;
+  const dietPoints = a.diet === "daily" ? 0 : 1;
+  const bpPoints = a.bpMeds === "yes" ? 2 : 0;
+  const glucosePoints = a.highGlucoseHistory === "yes" ? 5 : 0;
+  let familyPoints = 0;
+  if (a.familyDiabetes === "second") familyPoints = 3;
+  else if (a.familyDiabetes === "first") familyPoints = 5;
+
+  const score =
+    agePoints +
+    (bmiPoints ?? 0) +
+    (waistPoints ?? 0) +
+    activityPoints +
+    dietPoints +
+    bpPoints +
+    glucosePoints +
+    familyPoints;
+
+  let category: FindriscResult["category"];
+  let categoryLabel: string;
+  let probabilityText: string;
+  if (score <= 6) {
+    category = "low";
+    categoryLabel = "Низкий риск";
+    probabilityText = "примерно 1 из 100";
+  } else if (score <= 11) {
+    category = "slightlyElevated";
+    categoryLabel = "Слегка повышенный риск";
+    probabilityText = "примерно 1 из 25";
+  } else if (score <= 14) {
+    category = "moderate";
+    categoryLabel = "Умеренный риск";
+    probabilityText = "примерно 1 из 6";
+  } else if (score <= 20) {
+    category = "high";
+    categoryLabel = "Высокий риск";
+    probabilityText = "примерно 1 из 3";
+  } else {
+    category = "veryHigh";
+    categoryLabel = "Очень высокий риск";
+    probabilityText = "примерно 1 из 2";
+  }
+
+  // Factor breakdown with tie-break priority
+  const priority = [
+    "Повышенный сахар",
+    "Наследственность",
+    "Окружность талии",
+    "ИМТ",
+    "Возраст",
+    "Препараты от давления",
+    "Недостаточная физическая активность",
+    "Недостаток овощей и фруктов",
+  ];
+  const raw = [
+    { factor: "Повышенный сахар", points: glucosePoints },
+    { factor: "Наследственность", points: familyPoints },
+    { factor: "Окружность талии", points: waistPoints ?? 0 },
+    { factor: "ИМТ", points: bmiPoints ?? 0 },
+    { factor: "Возраст", points: agePoints },
+    { factor: "Препараты от давления", points: bpPoints },
+    { factor: "Недостаточная физическая активность", points: activityPoints },
+    { factor: "Недостаток овощей и фруктов", points: dietPoints },
+  ];
+  const breakdown = raw
+    .filter((r) => r.points > 0)
+    .sort((x, y) => {
+      if (y.points !== x.points) return y.points - x.points;
+      return priority.indexOf(x.factor) - priority.indexOf(y.factor);
+    });
+  const mainFactors = breakdown.slice(0, 2).map((r) => r.factor);
+
+  return {
+    score,
+    category,
+    categoryLabel,
+    probabilityText,
+    estimated: estimatedBMI || estimatedWaist,
+    mainFactors,
+    breakdown,
+  };
+}
+
+
 // Modal
 // -----------------------------------------------------------------------------
 
