@@ -1449,7 +1449,14 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         categoryReports[category] = cleanedCategoryReport;
         totalTokens += tokensUsed;
 
-        // Сохраняем категорию сразу — клиент увидит прогресс через polling
+        // Сохраняем категорию сразу — клиент увидит прогресс через polling.
+        // Перед вставкой удаляем предыдущую запись того же типа, чтобы ретраи
+        // не порождали дубликаты разделов (например, два «Энергия и восстановление»).
+        await supabase
+          .from("recommendations")
+          .delete()
+          .eq("analysis_id", analysisId)
+          .eq("type", category);
         const { error: catInsertError } = await supabase.from("recommendations").insert({
           user_id: analysis.user_id,
           analysis_id: analysisId,
@@ -1469,6 +1476,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         console.error(`Error processing category ${category}:`, error);
         if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
         const fallbackReport = sanitizeReportTextForPatient(buildCategoryFallbackReport(category, biomarkers as any[], profile, age));
+        await supabase
+          .from("recommendations")
+          .delete()
+          .eq("analysis_id", analysisId)
+          .eq("type", category);
         const { error: fallbackInsertError } = await supabase.from("recommendations").insert({
           user_id: analysis.user_id,
           analysis_id: analysisId,
