@@ -596,7 +596,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
-                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+                <ShieldCheck className="h-4 w-4 text-primary" />
               </div>
               <div className="leading-tight">
                 <div className="text-[13px] font-semibold text-foreground">Оценка рисков</div>
@@ -759,20 +759,13 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-4">
-          Знакомство
-        </div>
-        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-foreground leading-[1.1] mb-3">
-          Расскажите немного о себе
-        </h2>
-        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-xl">
-          Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим.
-        </p>
-      </div>
+      <QuizHeader
+        title="Расскажите о себе"
+        subtitle="Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим."
+      />
 
       <div className="space-y-7">
-        {/* Sex — first, big pills */}
+        {/* Sex */}
         <FieldBlock label="Ваш пол">
           <div className="grid grid-cols-2 gap-3">
             <BigChoice
@@ -794,7 +787,7 @@ function ScreenBasics({
 
         {/* Age */}
         <FieldBlock label="Возраст">
-          <div className="relative max-w-[240px]">
+          <div className="relative max-w-[280px]">
             <NumberField
               value={a.age}
               min={18}
@@ -802,9 +795,9 @@ function ScreenBasics({
               placeholder="42"
               ariaLabel="Возраст"
               onChange={(v) => update({ age: v })}
-              className="pr-16 text-[17px] font-semibold"
+              className="pr-16"
             />
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">
               лет
             </span>
           </div>
@@ -836,15 +829,15 @@ function ScreenBasics({
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 to-accent/5 px-4 py-3.5 animate-scale-in">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-              <Info className="h-4.5 w-4.5 text-primary" />
+          <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary/[0.09] to-accent/[0.05] ring-1 ring-primary/25 px-5 py-4 animate-scale-in">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 ring-1 ring-primary/25">
+              <Info className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+              <div className="text-[11.5px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
                 Ваш ИМТ
               </div>
-              <div className="text-xl font-bold text-foreground leading-tight">
+              <div className="text-2xl font-bold text-foreground leading-none">
                 {a.bmi}
               </div>
             </div>
@@ -1723,16 +1716,17 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
 
 function FieldBlock({
   label,
-  required,
+  required: _required,
   children,
 }: {
   label: string;
+  /** Kept for backwards compat with callers; not rendered. */
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2.5">
-      <Label className="text-[15px] font-medium text-foreground/90 leading-snug block">
+    <div className="space-y-3">
+      <Label className="text-[16px] md:text-[17px] font-semibold text-foreground leading-snug block">
         {label}
       </Label>
       <div>{children}</div>
@@ -1741,7 +1735,7 @@ function FieldBlock({
 }
 
 function HintText({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1.5 text-xs text-muted-foreground">{children}</p>;
+  return <p className="mt-2 text-[12.5px] text-muted-foreground leading-relaxed">{children}</p>;
 }
 
 function QuizFooter({
@@ -1758,9 +1752,9 @@ function QuizFooter({
   hideBack?: boolean;
 }) {
   return (
-    <div className="mt-9 flex items-center justify-between gap-3">
+    <div className="mt-10 pt-6 border-t border-border/40 flex items-center justify-between gap-3">
       {!hideBack && onBack ? (
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground -ml-2">
           <ArrowLeft className="mr-1.5 h-4 w-4" />
           Назад
         </Button>
@@ -1772,9 +1766,10 @@ function QuizFooter({
         disabled={nextDisabled}
         size="lg"
         className={cn(
-          "min-w-[180px] rounded-xl font-semibold shadow-lg shadow-primary/20",
-          "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
-          "hover:-translate-y-0.5 active:translate-y-0",
+          "min-w-[200px] h-12 rounded-2xl font-semibold text-[15px]",
+          "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35",
+          "transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
+          "disabled:shadow-none disabled:hover:translate-y-0",
         )}
       >
         {nextLabel}
@@ -1796,18 +1791,22 @@ function QuizHeader({
   subtitle?: React.ReactNode;
 }) {
   return (
-    <div className="mb-7">
+    <div className="mb-8">
       {eyebrow && (
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-3">
-          {Icon && <Icon className="h-3 w-3" />}
+        <div className="inline-flex items-center gap-2 text-primary text-[12.5px] font-semibold mb-3">
+          {Icon && (
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12">
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+          )}
           {eyebrow}
         </div>
       )}
-      <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+      <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-[15px] text-muted-foreground leading-relaxed">
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
           {subtitle}
         </p>
       )}
@@ -1830,29 +1829,29 @@ function RadioChip({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "group relative px-4 py-3 rounded-xl border-2 text-[14px] font-medium",
-        "transition-all duration-200 text-left flex items-center gap-2.5",
-        "active:scale-[0.98]",
+        "group relative px-5 py-4 rounded-2xl text-[15px] font-medium text-left",
+        "transition-all duration-200 flex items-center gap-3",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
         full ? "w-full" : "",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.35)]"
-          : "border-border/60 bg-muted/20 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground",
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_6px_24px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40 hover:text-foreground",
       )}
     >
+      <span className="flex-1 leading-snug">{children}</span>
       <span
         className={cn(
-          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all",
           active
-            ? "border-primary bg-primary"
-            : "border-border/70 bg-transparent group-hover:border-primary/60",
+            ? "bg-primary text-primary-foreground scale-100 opacity-100"
+            : "bg-transparent scale-75 opacity-0",
         )}
       >
-        {active && (
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-        )}
+        <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
       </span>
-      <span className="flex-1 leading-snug">{children}</span>
     </button>
   );
 }
@@ -1872,22 +1871,24 @@ function BigChoice({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "group relative h-16 px-4 rounded-2xl border-2 text-[15px] font-semibold",
-        "transition-all duration-200 flex items-center gap-3 w-full",
-        "active:scale-[0.98]",
+        "group relative h-20 px-5 rounded-2xl text-[16px] font-semibold",
+        "transition-all duration-200 flex items-center gap-4 w-full",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]"
-          : "border-border/50 bg-muted/20 text-foreground/85 hover:border-primary/40 hover:bg-primary/5",
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_10px_28px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40",
       )}
     >
       {letter && (
         <span
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold transition-colors",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-bold transition-all",
             active
-              ? "bg-primary text-primary-foreground"
-              : "bg-background text-foreground/70 border border-border/60 group-hover:border-primary/40",
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+              : "bg-background text-foreground/70 ring-1 ring-border/60 group-hover:ring-primary/40",
           )}
         >
           {letter}
@@ -1973,9 +1974,9 @@ function NumberField({
         onChange(finalN);
       }}
       className={cn(
-        "h-12 text-[15px] rounded-xl bg-background border-2 border-border/60",
-        "focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0",
-        "transition-colors",
+        "h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60",
+        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0",
+        "hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60",
         className,
       )}
     />
@@ -2007,28 +2008,33 @@ function OptionalMeasureField({
   const isUnknown = unknownPicked && value === null;
 
   return (
-    <FieldBlock label={unit ? `${label}, ${unit}` : label}>
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-        <div className="relative flex-1 max-w-[240px]">
-          <NumberField
-            value={isUnknown ? undefined : value ?? undefined}
-            min={min}
-            max={max}
-            placeholder={placeholder}
-            allowDecimal={allowDecimal}
-            ariaLabel={label}
-            onChange={(v) => {
-              setUnknownPicked(false);
-              onChange(v === undefined ? null : v);
-            }}
-            className={cn("text-[17px] font-semibold", unit && "pr-14")}
-          />
-          {unit && (
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
-              {unit}
-            </span>
-          )}
-        </div>
+    <FieldBlock label={label}>
+      <div className="relative">
+        <NumberField
+          value={isUnknown ? undefined : value ?? undefined}
+          min={min}
+          max={max}
+          placeholder={placeholder}
+          allowDecimal={allowDecimal}
+          ariaLabel={label}
+          onChange={(v) => {
+            setUnknownPicked(false);
+            onChange(v === undefined ? null : v);
+          }}
+          className={cn(unit && "pr-16")}
+        />
+        {unit && (
+          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">
+            {unit}
+          </span>
+        )}
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        {hint ? (
+          <p className="text-[12.5px] text-muted-foreground leading-relaxed flex-1">{hint}</p>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           onClick={() => {
@@ -2036,17 +2042,13 @@ function OptionalMeasureField({
             onChange(null);
           }}
           className={cn(
-            "h-12 px-4 rounded-xl border-2 text-sm font-medium transition-all whitespace-nowrap",
-            "active:scale-[0.98]",
-            isUnknown
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            "text-[12.5px] font-medium transition-colors whitespace-nowrap underline-offset-4 hover:underline",
+            isUnknown ? "text-primary" : "text-muted-foreground hover:text-foreground",
           )}
         >
-          Не знаю
+          {isUnknown ? "✓ Не знаю" : "Не знаю"}
         </button>
       </div>
-      {hint && <HintText>{hint}</HintText>}
     </FieldBlock>
   );
 }
