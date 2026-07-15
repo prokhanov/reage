@@ -73,9 +73,11 @@ const QUIZ_STEPS = 6; // screens 2..7 with progress bar
 // ==== Scoring helpers ====
 
 function bmi(a: Answers): number | null {
-  if (!a.height || !a.weight) return null;
-  const m = a.height / 100;
-  return a.weight / (m * m);
+  const h = num(a.height);
+  const w = num(a.weight);
+  if (!h || !w) return null;
+  const m = h / 100;
+  return w / (m * m);
 }
 
 function medianCholesterol(a: Answers): number {
