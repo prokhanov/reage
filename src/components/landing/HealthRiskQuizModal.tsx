@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 
 type Sex = "male" | "female";
 
+type SbpChoice = "known" | "wasHigh" | "neverHigh" | "unknown";
+
 export type QuizAnswers = {
   // Screen 2 — base
   age?: number;
@@ -30,10 +32,27 @@ export type QuizAnswers = {
   weight: number | null; // kg
   waist: number | null; // cm
   bmi: number | null;
+  // Screen 3 — heart (WHO CVD non-lab)
+  smoker?: boolean;
+  sbpChoice?: SbpChoice;
+  sbpValue?: number; // only when sbpChoice = "known"
+};
+
+export type HeartResult = {
+  riskBand: "low" | "moderate" | "elevated" | "high" | "veryHigh";
+  riskLabel: string;
+  riskRangeText: string; // "5–<10%"
+  points: number;
+  sbpUsed: number;
+  bmiUsed: number;
+  estimatedSBP: boolean;
+  estimatedBMI: boolean;
+  estimated: boolean;
+  mainFactors: string[];
 };
 
 const SCALES = [
-  "ASCVD Pooled Cohort Equations",
+  "WHO CVD Risk (non-laboratory)",
   "FINDRISC",
   "NAFLD Simple Score",
   "Pittsburgh Sleep Quality Index",
