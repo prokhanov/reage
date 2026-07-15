@@ -1831,29 +1831,29 @@ function RadioChip({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "group relative px-4 py-3 rounded-xl border-2 text-[14px] font-medium",
-        "transition-all duration-200 text-left flex items-center gap-2.5",
-        "active:scale-[0.98]",
+        "group relative px-5 py-4 rounded-2xl text-[15px] font-medium text-left",
+        "transition-all duration-200 flex items-center gap-3",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
         full ? "w-full" : "",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.35)]"
-          : "border-border/60 bg-muted/20 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground",
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_6px_24px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40 hover:text-foreground",
       )}
     >
+      <span className="flex-1 leading-snug">{children}</span>
       <span
         className={cn(
-          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all",
           active
-            ? "border-primary bg-primary"
-            : "border-border/70 bg-transparent group-hover:border-primary/60",
+            ? "bg-primary text-primary-foreground scale-100 opacity-100"
+            : "bg-transparent scale-75 opacity-0",
         )}
       >
-        {active && (
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-        )}
+        <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
       </span>
-      <span className="flex-1 leading-snug">{children}</span>
     </button>
   );
 }
