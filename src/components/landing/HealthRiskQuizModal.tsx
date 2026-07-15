@@ -1075,8 +1075,7 @@ function ScreenMetabolism({
             </RadioChip>
           </div>
         </FieldBlock>
-          </div>
-        </FieldBlock>
+
 
         <FieldBlock
           label="Есть ли у Ваших родственников сахарный диабет 1 или 2 типа?"
