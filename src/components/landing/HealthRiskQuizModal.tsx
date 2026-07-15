@@ -1163,23 +1163,24 @@ function ScreenSleep({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Moon className="h-3 w-3" />
-          Блок 4 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Сон
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Оценка качества сна за последний месяц по шкале{" "}
-          <span className="text-foreground font-medium">Pittsburgh Sleep Quality Index (PSQI)</span>.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 4 из 4"
+        eyebrowIcon={Moon}
+        title="Сон"
+        subtitle={
+          <>
+            Оценка качества сна за последний месяц по шкале{" "}
+            <span className="text-foreground font-medium">
+              Pittsburgh Sleep Quality Index (PSQI)
+            </span>
+            .
+          </>
+        }
+      />
 
       <div className="space-y-6">
         <FieldBlock label="Сколько часов Вы обычно спите за ночь?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepDuration === "lt5"} onClick={() => update({ sleepDuration: "lt5" })}>Менее 5 часов</RadioChip>
             <RadioChip full active={a.sleepDuration === "5to6"} onClick={() => update({ sleepDuration: "5to6" })}>5–6 часов</RadioChip>
             <RadioChip full active={a.sleepDuration === "7to8"} onClick={() => update({ sleepDuration: "7to8" })}>7–8 часов</RadioChip>
@@ -1188,16 +1189,16 @@ function ScreenSleep({
         </FieldBlock>
 
         <FieldBlock label="Как часто за последний месяц Вам было трудно заснуть или Вы просыпались ночью?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepDifficulty === "never"} onClick={() => update({ sleepDifficulty: "never" })}>Никогда</RadioChip>
-            <RadioChip full active={a.sleepDifficulty === "lt1"} onClick={() => update({ sleepDifficulty: "lt1" })}>Реже одного раза в неделю</RadioChip>
+            <RadioChip full active={a.sleepDifficulty === "lt1"} onClick={() => update({ sleepDifficulty: "lt1" })}>Реже 1 раза в неделю</RadioChip>
             <RadioChip full active={a.sleepDifficulty === "1to2"} onClick={() => update({ sleepDifficulty: "1to2" })}>1–2 раза в неделю</RadioChip>
             <RadioChip full active={a.sleepDifficulty === "3plus"} onClick={() => update({ sleepDifficulty: "3plus" })}>3 раза в неделю или чаще</RadioChip>
           </div>
         </FieldBlock>
 
         <FieldBlock label="Как бы Вы оценили качество своего сна за последний месяц?" required>
-          <div className="flex flex-col gap-2">
+          <div className="grid sm:grid-cols-2 gap-2">
             <RadioChip full active={a.sleepQuality === "veryGood"} onClick={() => update({ sleepQuality: "veryGood" })}>Очень хорошее</RadioChip>
             <RadioChip full active={a.sleepQuality === "fairlyGood"} onClick={() => update({ sleepQuality: "fairlyGood" })}>Довольно хорошее</RadioChip>
             <RadioChip full active={a.sleepQuality === "fairlyBad"} onClick={() => update({ sleepQuality: "fairlyBad" })}>Довольно плохое</RadioChip>
@@ -1206,16 +1207,7 @@ function ScreenSleep({
         </FieldBlock>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
