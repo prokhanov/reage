@@ -671,14 +671,15 @@ function YesNo({
   onChange,
 }: {
   label: string;
-  value: boolean | undefined;
-  onChange: (v: boolean) => void;
+  value: Tri | undefined;
+  onChange: (v: Tri) => void;
 }) {
   return (
     <Field label={label}>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Chip active={value === true} onClick={() => onChange(true)}>Да</Chip>
         <Chip active={value === false} onClick={() => onChange(false)}>Нет</Chip>
+        <Chip active={value === "unknown"} onClick={() => onChange("unknown")}>Не знаю</Chip>
       </div>
     </Field>
   );
