@@ -449,6 +449,14 @@ ${catalogText}
       if (!bm && printedNorm && NAME_ALIASES[printedNorm]) {
         bm = byCode.get(NAME_ALIASES[printedNorm].toUpperCase());
       }
+      if (!bm && printedNorm) {
+        for (const rule of NAME_KEYWORD_ALIASES) {
+          if (rule.keywords.every(k => printedNorm.includes(k))) {
+            bm = byCode.get(rule.code.toUpperCase());
+            if (bm) break;
+          }
+        }
+      }
 
       const { value: parsedNum } = parseValue(it.value_raw);
       let numericValue = parsedNum;
