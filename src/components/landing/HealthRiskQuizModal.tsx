@@ -1723,16 +1723,17 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
 
 function FieldBlock({
   label,
-  required,
+  required: _required,
   children,
 }: {
   label: string;
+  /** Kept for backwards compat with callers; not rendered. */
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2.5">
-      <Label className="text-[15px] font-medium text-foreground/90 leading-snug block">
+    <div className="space-y-3">
+      <Label className="text-[16px] md:text-[17px] font-semibold text-foreground leading-snug block">
         {label}
       </Label>
       <div>{children}</div>
@@ -1741,7 +1742,7 @@ function FieldBlock({
 }
 
 function HintText({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1.5 text-xs text-muted-foreground">{children}</p>;
+  return <p className="mt-2 text-[12.5px] text-muted-foreground leading-relaxed">{children}</p>;
 }
 
 function QuizFooter({
