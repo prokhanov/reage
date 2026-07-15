@@ -15,8 +15,13 @@ export function cleanMarkdownArtifacts(text: string): string {
     .replace(/^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
     .replace(/^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
     .replace(/^\s*Всегда\s+указывай\s+связь\s+показателей[\s\S]*?(?=^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
-    .replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
+    // ВАЖНО: НЕ трогаем `<!-- anchor:... -->` — это служебные якоря парсера,
+    // по которым anchorRenderer расставляет BiomarkerCard/spacer/pagebreak.
+    // Раньше здесь стоял `.replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")` и общий
+    // strip HTML-комментариев — они выпиливали якоря, из-за чего при сохранении
+    // отчёта в редакторе исчезали все карточки биомаркеров.
+    // Убираем только НЕ-anchor HTML-комментарии.
+    .replace(/<!--(?!\s*anchor:)[\s\S]*?-->/g, "")
     // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
     // when AI wraps body text in code blocks. We don't render code blocks in reports.
     .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, "")
