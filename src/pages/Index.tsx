@@ -11,6 +11,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection, Footer } from "@/components/landing/CTASection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
+import { QuizCTASection } from "@/components/landing/QuizCTASection";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { ConsultationCtaBlock } from "@/components/landing/v2/ConsultationCtaBlock";
