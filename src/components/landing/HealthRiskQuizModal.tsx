@@ -620,7 +620,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
         </div>
 
 
-        <div className="px-5 md:px-8 pb-6 md:pb-8 pt-6 max-h-[78vh] overflow-y-auto">
+        <div className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 max-h-[80vh] overflow-y-auto">
           <div key={step} className="animate-fade-in">
             {step === 1 && <ScreenStart onNext={() => setStep(2)} />}
             {step === 2 && (
