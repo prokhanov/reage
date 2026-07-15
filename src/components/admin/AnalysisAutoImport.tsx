@@ -667,6 +667,62 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         )}
       </div>
 
+      <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Label className="text-xs whitespace-nowrap">Сверка с тарифом</Label>
+          <Select value={selectedPlanId || "__none__"} onValueChange={(v) => setSelectedPlanId(v === "__none__" ? "" : v)}>
+            <SelectTrigger className="h-8">
+              <SelectValue placeholder="Без сверки" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Без сверки</SelectItem>
+              {plans.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name} ({p.count})</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {planComparison && (
+          readyCount === 0 ? (
+            <div className="text-xs text-muted-foreground">Распознайте файлы, чтобы увидеть сверку.</div>
+          ) : (
+            <div className="space-y-2 text-xs">
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-green-600 hover:bg-green-600">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
+                {planComparison.missing.length > 0 && (
+                  <Badge variant="destructive">Не найдено {planComparison.missing.length}</Badge>
+                )}
+                {planComparison.extraCount > 0 && (
+                  <Badge variant="secondary">Сверх тарифа {planComparison.extraCount}</Badge>
+                )}
+              </div>
+              {planComparison.missing.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Показать недостающие ({planComparison.missing.length})
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="pl-4 list-disc space-y-0.5 mt-1">
+                      {planComparison.missing.map(b => (
+                        <li key={b.id}>
+                          <span className="font-medium">{b.name}</span>
+                          <span className="text-muted-foreground"> · {b.code}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+            </div>
+          )
+        )}
+      </div>
+
+
+
 
       {entries.length > 0 && (
         <div className="flex gap-2">
