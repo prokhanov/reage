@@ -1090,35 +1090,33 @@ function ScreenLiver({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Droplets className="h-3 w-3" />
-          Блок 3 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Печень
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Расчёт по шкале{" "}
-          <span className="text-foreground font-medium">NAFLD Simple Score</span>.
-          Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 3 из 4"
+        eyebrowIcon={Droplets}
+        title="Печень"
+        subtitle={
+          <>
+            Расчёт по шкале{" "}
+            <span className="text-foreground font-medium">NAFLD Simple Score</span>.
+            Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
+          </>
+        }
+      />
 
       <div className="space-y-6">
         <FieldBlock label="Диагностировали ли Вам сахарный диабет?" required>
-          <div className="flex gap-2 flex-wrap">
-            <RadioChip active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
-            <RadioChip active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
-            <RadioChip active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
+            <RadioChip full active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
           </div>
         </FieldBlock>
 
         <FieldBlock label="Диагностировали ли Вам повышенный холестерин или триглицериды?" required>
-          <div className="flex gap-2 flex-wrap">
-            <RadioChip active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
-            <RadioChip active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
-            <RadioChip active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
+            <RadioChip full active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
           </div>
         </FieldBlock>
 
@@ -1132,25 +1130,16 @@ function ScreenLiver({
 
         {needsMenopause && (
           <FieldBlock label="Наступила ли у Вас менопауза?" required>
-            <div className="flex gap-2 flex-wrap">
-              <RadioChip active={a.menopause === "yes"} onClick={() => update({ menopause: "yes" })}>Да</RadioChip>
-              <RadioChip active={a.menopause === "no"} onClick={() => update({ menopause: "no" })}>Нет</RadioChip>
-              <RadioChip active={a.menopause === "unknown"} onClick={() => update({ menopause: "unknown" })}>Не знаю</RadioChip>
+            <div className="grid grid-cols-3 gap-2">
+              <RadioChip full active={a.menopause === "yes"} onClick={() => update({ menopause: "yes" })}>Да</RadioChip>
+              <RadioChip full active={a.menopause === "no"} onClick={() => update({ menopause: "no" })}>Нет</RadioChip>
+              <RadioChip full active={a.menopause === "unknown"} onClick={() => update({ menopause: "unknown" })}>Не знаю</RadioChip>
             </div>
           </FieldBlock>
         )}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
