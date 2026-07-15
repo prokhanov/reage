@@ -1857,7 +1857,47 @@ function RadioChip({
   );
 }
 
-/**
+function BigChoice({
+  active,
+  onClick,
+  letter,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  letter?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group relative h-16 px-4 rounded-2xl border-2 text-[15px] font-semibold",
+        "transition-all duration-200 flex items-center gap-3 w-full",
+        "active:scale-[0.98]",
+        active
+          ? "border-primary bg-primary/10 text-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]"
+          : "border-border/50 bg-muted/20 text-foreground/85 hover:border-primary/40 hover:bg-primary/5",
+      )}
+    >
+      {letter && (
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold transition-colors",
+            active
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-foreground/70 border border-border/60 group-hover:border-primary/40",
+          )}
+        >
+          {letter}
+        </span>
+      )}
+      <span className="flex-1 text-left leading-tight">{children}</span>
+    </button>
+  );
+}
+
  * Number field that actually lets the user type. Keeps a local string buffer
  * so partially-typed values like "1" (before "18") aren't wiped out. Commits
  * to the parent as a number only when the value is a valid finite number; on
