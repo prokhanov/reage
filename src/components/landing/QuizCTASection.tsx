@@ -64,6 +64,7 @@ const systemCards = [
 ];
 
 export function QuizCTASection() {
+  const [open, setOpen] = useState(false);
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
       {/* Background layers */}
