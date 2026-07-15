@@ -759,20 +759,13 @@ function ScreenBasics({
 
   return (
     <div>
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-4">
-          Знакомство
-        </div>
-        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-foreground leading-[1.1] mb-3">
-          Расскажите немного о себе
-        </h2>
-        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-xl">
-          Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим.
-        </p>
-      </div>
+      <QuizHeader
+        title="Расскажите о себе"
+        subtitle="Эти данные — фундамент всех четырёх расчётов. Спросим один раз и больше не потревожим."
+      />
 
       <div className="space-y-7">
-        {/* Sex — first, big pills */}
+        {/* Sex */}
         <FieldBlock label="Ваш пол">
           <div className="grid grid-cols-2 gap-3">
             <BigChoice
@@ -794,7 +787,7 @@ function ScreenBasics({
 
         {/* Age */}
         <FieldBlock label="Возраст">
-          <div className="relative max-w-[240px]">
+          <div className="relative max-w-[280px]">
             <NumberField
               value={a.age}
               min={18}
@@ -802,9 +795,9 @@ function ScreenBasics({
               placeholder="42"
               ariaLabel="Возраст"
               onChange={(v) => update({ age: v })}
-              className="pr-16 text-[17px] font-semibold"
+              className="pr-16"
             />
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">
               лет
             </span>
           </div>
@@ -836,15 +829,15 @@ function ScreenBasics({
 
         {/* BMI (auto) */}
         {a.bmi !== null && (
-          <div className="flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 to-accent/5 px-4 py-3.5 animate-scale-in">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-              <Info className="h-4.5 w-4.5 text-primary" />
+          <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary/[0.09] to-accent/[0.05] ring-1 ring-primary/25 px-5 py-4 animate-scale-in">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 ring-1 ring-primary/25">
+              <Info className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+              <div className="text-[11.5px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
                 Ваш ИМТ
               </div>
-              <div className="text-xl font-bold text-foreground leading-tight">
+              <div className="text-2xl font-bold text-foreground leading-none">
                 {a.bmi}
               </div>
             </div>
