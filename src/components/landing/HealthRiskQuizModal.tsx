@@ -83,6 +83,114 @@ function clampNum(v: string, min: number, max: number): number | undefined {
   if (n < min || n > max) return undefined;
   return n;
 }
+function computeHeart(a: QuizAnswers): HeartResult | null {
+  if (typeof a.age !== "number" || !a.sex || typeof a.smoker !== "boolean" || !a.sbpChoice) {
+    return null;
+  }
+
+  // Resolve SBP
+  let sbpUsed: number;
+  let estimatedSBP = false;
+  if (a.sbpChoice === "known" && typeof a.sbpValue === "number") {
+    sbpUsed = a.sbpValue;
+  } else if (a.sbpChoice === "wasHigh") {
+    sbpUsed = 135;
+    estimatedSBP = true;
+  } else if (a.sbpChoice === "neverHigh") {
+    sbpUsed = 115;
+    estimatedSBP = true;
+  } else {
+    sbpUsed = 125;
+    estimatedSBP = true;
+  }
+
+  // Resolve BMI (fallback = 25 = normal, mark as estimated)
+  let bmiUsed: number;
+  let estimatedBMI = false;
+  if (a.bmi !== null) {
+    bmiUsed = a.bmi;
+  } else {
+    bmiUsed = 25;
+    estimatedBMI = true;
+  }
+
+  // ---- Points model — approximation of the WHO non-lab CVD chart bands ----
+  // Age bands (WHO chart is 40–74 in 5-year bands; under 40 = 0 pts).
+  let agePts = 0;
+  if (a.age >= 75) agePts = 7;
+  else if (a.age >= 70) agePts = 6;
+  else if (a.age >= 65) agePts = 5;
+  else if (a.age >= 60) agePts = 4;
+  else if (a.age >= 55) agePts = 3;
+  else if (a.age >= 50) agePts = 2;
+  else if (a.age >= 45) agePts = 1;
+  else agePts = 0;
+
+  const sexPts = a.sex === "male" ? 1 : 0;
+  const smokePts = a.smoker ? 2 : 0;
+
+  let sbpPts = 0;
+  if (sbpUsed >= 180) sbpPts = 4;
+  else if (sbpUsed >= 160) sbpPts = 3;
+  else if (sbpUsed >= 140) sbpPts = 2;
+  else if (sbpUsed >= 120) sbpPts = 1;
+
+  let bmiPts = 0;
+  if (bmiUsed >= 35) bmiPts = 3;
+  else if (bmiUsed >= 30) bmiPts = 2;
+  else if (bmiUsed >= 25) bmiPts = 1;
+
+  const points = agePts + sexPts + smokePts + sbpPts + bmiPts;
+
+  // Band mapping tuned to WHO non-lab EECA-region output (<5 / 5–<10 / 10–<20 / 20–<30 / ≥30 %).
+  let band: HeartResult["riskBand"];
+  let label: string;
+  let rangeText: string;
+  if (points <= 3) {
+    band = "low";
+    label = "Низкий риск";
+    rangeText = "10-летний риск: <5%";
+  } else if (points <= 5) {
+    band = "moderate";
+    label = "Умеренный риск";
+    rangeText = "10-летний риск: 5–<10%";
+  } else if (points <= 8) {
+    band = "elevated";
+    label = "Повышенный риск";
+    rangeText = "10-летний риск: 10–<20%";
+  } else if (points <= 11) {
+    band = "high";
+    label = "Высокий риск";
+    rangeText = "10-летний риск: 20–<30%";
+  } else {
+    band = "veryHigh";
+    label = "Очень высокий риск";
+    rangeText = "10-летний риск: ≥30%";
+  }
+
+  // Main factors — priority: Age → Smoking → High SBP → High BMI.
+  const factors: { key: string; label: string; active: boolean }[] = [
+    { key: "age", label: "Возраст", active: a.age >= 55 },
+    { key: "smoke", label: "Курение", active: !!a.smoker },
+    { key: "sbp", label: "Повышенное артериальное давление", active: sbpUsed >= 140 },
+    { key: "bmi", label: "Избыточный вес", active: bmiUsed >= 30 },
+  ];
+  const mainFactors = factors.filter((f) => f.active).slice(0, 2).map((f) => f.label);
+
+  return {
+    riskBand: band,
+    riskLabel: label,
+    riskRangeText: rangeText,
+    points,
+    sbpUsed,
+    bmiUsed,
+    estimatedSBP,
+    estimatedBMI,
+    estimated: estimatedSBP || estimatedBMI,
+    mainFactors,
+  };
+}
+
 
 // -----------------------------------------------------------------------------
 // Modal
