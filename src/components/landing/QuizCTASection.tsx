@@ -2,27 +2,63 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Activity, Droplets, Timer, Stethoscope, ShieldCheck } from "lucide-react";
 
+const statusColors = {
+  heart: {
+    fg: "hsl(var(--status-danger))",
+    bg: "hsl(var(--status-danger) / 0.12)",
+    border: "hsl(var(--status-danger) / 0.18)",
+  },
+  metabolism: {
+    fg: "hsl(var(--status-warning))",
+    bg: "hsl(var(--status-warning) / 0.12)",
+    border: "hsl(var(--status-warning) / 0.18)",
+  },
+  liver: {
+    fg: "hsl(var(--status-good))",
+    bg: "hsl(var(--status-good) / 0.12)",
+    border: "hsl(var(--status-good) / 0.18)",
+  },
+};
+
 const bullets = [
   {
     icon: Heart,
     title: "3 системы",
     text: "Сердце, обмен веществ, печень",
-    color: "text-rose-400",
-    bg: "bg-rose-500/10",
+    colors: statusColors.heart,
   },
   {
     icon: Timer,
     title: "90 секунд",
     text: "Без регистрации до результата",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
+    colors: statusColors.metabolism,
   },
   {
     icon: Stethoscope,
     title: "Валидировано",
     text: "Методики, которые используют врачи на приёме",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
+    colors: statusColors.liver,
+  },
+];
+
+const systemCards = [
+  {
+    icon: Heart,
+    label: "Сердце",
+    desc: "ASCVD — риск сердечно-сосудистых событий",
+    colors: statusColors.heart,
+  },
+  {
+    icon: Activity,
+    label: "Обмен веществ",
+    desc: "FINDRISC — риск диабета 2 типа",
+    colors: statusColors.metabolism,
+  },
+  {
+    icon: Droplets,
+    label: "Печень",
+    desc: "NAFLD Score — риск жирового гепатоза",
+    colors: statusColors.liver,
   },
 ];
 
@@ -99,35 +135,24 @@ export function QuizCTASection() {
                       </div>
 
                       <div className="space-y-4">
-                        <div className="flex items-center gap-3.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/10">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/15">
-                            <Heart className="w-5 h-5 text-rose-400" />
+                        {systemCards.map(({ icon: Icon, label, desc, colors }) => (
+                          <div
+                            key={label}
+                            className="flex items-center gap-3.5 p-3 rounded-xl"
+                            style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
+                          >
+                            <div
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                              style={{ backgroundColor: colors.border }}
+                            >
+                              <Icon className="w-5 h-5" style={{ color: colors.fg }} />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-foreground">{label}</div>
+                              <div className="text-xs text-muted-foreground">{desc}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">Сердце</div>
-                            <div className="text-xs text-muted-foreground">ASCVD — риск сердечно-сосудистых событий</div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/10">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/15">
-                            <Activity className="w-5 h-5 text-amber-400" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">Обмен веществ</div>
-                            <div className="text-xs text-muted-foreground">FINDRISC — риск диабета 2 типа</div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/10">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/15">
-                            <Droplets className="w-5 h-5 text-emerald-400" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">Печень</div>
-                            <div className="text-xs text-muted-foreground">NAFLD Score — риск жирового гепатоза</div>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -138,13 +163,16 @@ export function QuizCTASection() {
 
           {/* Bottom bullets */}
           <div className="mt-10 md:mt-14 grid sm:grid-cols-3 gap-4 md:gap-6">
-            {bullets.map(({ icon: Icon, title, text, color, bg }) => (
+            {bullets.map(({ icon: Icon, title, text, colors }) => (
               <div
                 key={title}
                 className="flex items-start gap-4 p-4 md:p-5 rounded-2xl bg-card/50 border border-border/40 backdrop-blur-sm hover:bg-card/80 transition-colors"
               >
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                  <Icon className={`w-5 h-5 ${color}`} />
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: colors.bg }}
+                >
+                  <Icon className="w-5 h-5" style={{ color: colors.fg }} />
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-foreground mb-0.5">{title}</div>
