@@ -849,31 +849,29 @@ function ScreenHeart({
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-          <Heart className="h-3 w-3" />
-          Блок 1 из 4
-        </div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-          Сердце и сосуды
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Расчёт по шкале{" "}
-          <span className="text-foreground font-medium">
-            WHO CVD Risk (non-laboratory)
-          </span>
-          . Возраст и пол уже известны — повторно не спрашиваем.
-        </p>
-      </div>
+      <QuizHeader
+        eyebrow="Блок 1 из 4"
+        eyebrowIcon={Heart}
+        title="Сердце и сосуды"
+        subtitle={
+          <>
+            Расчёт по шкале{" "}
+            <span className="text-foreground font-medium">
+              WHO CVD Risk (non-laboratory)
+            </span>
+            . Возраст и пол уже известны — повторно не спрашиваем.
+          </>
+        }
+      />
 
       <div className="space-y-6">
         {/* Q1 — smoker */}
         <FieldBlock label="Курите ли Вы сейчас?" required>
-          <div className="flex gap-2">
-            <RadioChip active={a.smoker === true} onClick={() => update({ smoker: true })}>
+          <div className="grid grid-cols-2 gap-2">
+            <RadioChip full active={a.smoker === true} onClick={() => update({ smoker: true })}>
               Да
             </RadioChip>
-            <RadioChip active={a.smoker === false} onClick={() => update({ smoker: false })}>
+            <RadioChip full active={a.smoker === false} onClick={() => update({ smoker: false })}>
               Нет
             </RadioChip>
           </div>
@@ -890,20 +888,17 @@ function ScreenHeart({
               Знаю
             </RadioChip>
             {sbpNeedsValue && (
-              <div className="pl-1 pt-1">
-                <Label className="text-xs text-muted-foreground mb-1.5 block">
+              <div className="rounded-xl border-2 border-primary/20 bg-primary/[0.03] p-4 animate-scale-in">
+                <Label className="text-xs text-muted-foreground mb-2 block">
                   Систолическое (верхнее), мм рт. ст.
                 </Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
+                <NumberField
+                  value={a.sbpValue}
                   min={80}
                   max={240}
                   placeholder="Например, 128"
-                  value={a.sbpValue ?? ""}
-                  onChange={(e) =>
-                    update({ sbpValue: clampInt(e.target.value, 80, 240) })
-                  }
+                  ariaLabel="Систолическое давление"
+                  onChange={(v) => update({ sbpValue: v })}
                   className="max-w-[220px]"
                 />
                 <HintText>От 80 до 240</HintText>
@@ -934,16 +929,7 @@ function ScreenHeart({
         </FieldBlock>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
-          Далее
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
   );
 }
