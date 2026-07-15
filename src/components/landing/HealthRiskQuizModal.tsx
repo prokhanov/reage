@@ -417,27 +417,24 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                     <Chip active={a.sex === "female"} onClick={() => update({ sex: "female" })}>Женский</Chip>
                   </div>
                 </Field>
-                <Field label="Рост, см" hint="140–220">
-                  <Input
-                    type="number"
-                    value={a.height ?? ""}
-                    onChange={(e) => update({ height: Number(e.target.value) || undefined })}
-                  />
-                </Field>
-                <Field label="Вес, кг" hint="40–200">
-                  <Input
-                    type="number"
-                    value={a.weight ?? ""}
-                    onChange={(e) => update({ weight: Number(e.target.value) || undefined })}
-                  />
-                </Field>
-                <Field label="Окружность талии, см" hint="измерь на уровне пупка">
-                  <Input
-                    type="number"
-                    value={a.waist ?? ""}
-                    onChange={(e) => update({ waist: Number(e.target.value) || undefined })}
-                  />
-                </Field>
+                <MeasureField
+                  label="Рост, см"
+                  hint="140–220"
+                  value={a.height}
+                  onChange={(v) => update({ height: v })}
+                />
+                <MeasureField
+                  label="Вес, кг"
+                  hint="40–200"
+                  value={a.weight}
+                  onChange={(v) => update({ weight: v })}
+                />
+                <MeasureField
+                  label="Окружность талии, см"
+                  hint="измерь на уровне пупка"
+                  value={a.waist}
+                  onChange={(v) => update({ waist: v })}
+                />
                 {bmi(a) && (
                   <div className="flex items-end">
                     <div className="text-sm text-muted-foreground">
