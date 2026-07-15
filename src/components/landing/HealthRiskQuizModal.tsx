@@ -615,17 +615,20 @@ function RadioChip({
   active,
   onClick,
   children,
+  full,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  full?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all",
+        "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all text-left",
+        full ? "w-full" : "",
         active
           ? "border-primary bg-primary/10 text-foreground shadow-sm"
           : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
