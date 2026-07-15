@@ -34,8 +34,7 @@ type Answers = {
   sbpKnown?: "known" | "wasHigh" | "neverHigh" | "unknown";
   sbpValue?: number;
   bpMeds?: Tri;
-  cholKnown?: boolean;
-  cholValue?: number; // mmol/L
+  cholLevel?: "high" | "normal" | "low" | "unknown";
   // findrisc extras
   activity?: Tri; // 30+ min/day
   veggiesDaily?: Tri;
