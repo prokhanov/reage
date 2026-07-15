@@ -520,6 +520,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                   <Chip active={a.familyDiabetes === "no"} onClick={() => update({ familyDiabetes: "no" })}>Нет</Chip>
                   <Chip active={a.familyDiabetes === "distant"} onClick={() => update({ familyDiabetes: "distant" })}>У дальних родственников</Chip>
                   <Chip active={a.familyDiabetes === "close"} onClick={() => update({ familyDiabetes: "close" })}>У близких родственников</Chip>
+                  <Chip active={a.familyDiabetes === "unknown"} onClick={() => update({ familyDiabetes: "unknown" })}>Не знаю</Chip>
                 </div>
               </Field>
             </StepShell>
