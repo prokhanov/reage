@@ -257,7 +257,15 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
               onNext={() => setStep(3)}
             />
           )}
-          {step >= 3 && (
+          {step === 3 && (
+            <ScreenHeart
+              a={a}
+              update={update}
+              onBack={() => setStep(2)}
+              onNext={() => setStep(4)}
+            />
+          )}
+          {step >= 4 && (
             <ScreenPlaceholder step={step} onBack={() => setStep(step - 1)} />
           )}
         </div>
