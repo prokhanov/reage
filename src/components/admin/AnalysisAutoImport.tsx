@@ -150,6 +150,37 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     return () => { aborted = true; };
   }, [viewAsUserId]);
 
+  // Load plans list once
+  useEffect(() => {
+    (async () => {
+      const [plansRes, pbRes] = await Promise.all([
+        supabase.from("subscription_plans").select("id, name").order("name"),
+        supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+      ]);
+      if (plansRes.error || pbRes.error) return;
+      const counts = new Map<string, number>();
+      (pbRes.data || []).forEach((r: any) => counts.set(r.plan_id, (counts.get(r.plan_id) || 0) + 1));
+      setPlans((plansRes.data || []).map((p: any) => ({ id: p.id, name: p.name, count: counts.get(p.id) || 0 })));
+    })();
+  }, []);
+
+  // Load biomarkers for selected plan
+  useEffect(() => {
+    if (!selectedPlanId) { setPlanBiomarkers([]); return; }
+    (async () => {
+      const { data: pb } = await supabase
+        .from("plan_biomarkers")
+        .select("biomarker_id")
+        .eq("plan_id", selectedPlanId);
+      const ids = (pb || []).map((r: any) => r.biomarker_id);
+      if (!ids.length) { setPlanBiomarkers([]); return; }
+      const { data: bms } = await (supabase.from("biomarkers") as any)
+        .select("id, code, name")
+        .in("id", ids);
+      setPlanBiomarkers((bms || []) as any);
+    })();
+  }, [selectedPlanId]);
+
   // Load biomarker norms for any newly recognized biomarker ids
   useEffect(() => {
     const ids = new Set<string>();
