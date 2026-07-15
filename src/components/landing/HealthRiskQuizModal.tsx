@@ -358,6 +358,143 @@ function computeFindrisc(a: QuizAnswers): FindriscResult | null {
   };
 }
 
+function computeNafld(a: QuizAnswers): NafldResult | null {
+  if (
+    typeof a.age !== "number" ||
+    !a.sex ||
+    !a.diabetes ||
+    !a.dyslipidemia ||
+    !a.alcohol
+  ) {
+    return null;
+  }
+
+  let estimated = false;
+
+  let agePts = 0;
+  if (a.age >= 60) agePts = 2;
+  else if (a.age >= 45) agePts = 1;
+
+  const sexPts = a.sex === "male" ? 1 : 0;
+
+  let bmiPts = 0;
+  if (a.bmi === null) {
+    estimated = true;
+  } else if (a.bmi >= 30) bmiPts = 3;
+  else if (a.bmi >= 25) bmiPts = 1;
+
+  let waistPts = 0;
+  if (a.waist === null) {
+    estimated = true;
+  } else if (a.sex === "male") {
+    if (a.waist >= 102) waistPts = 2;
+    else if (a.waist >= 94) waistPts = 1;
+  } else {
+    if (a.waist >= 88) waistPts = 2;
+    else if (a.waist >= 80) waistPts = 1;
+  }
+
+  const diabetesPts = a.diabetes === "yes" ? 3 : 0;
+  if (a.diabetes === "unknown") estimated = true;
+
+  const dyslipPts = a.dyslipidemia === "yes" ? 2 : 0;
+  if (a.dyslipidemia === "unknown") estimated = true;
+
+  let alcoholPts = 0;
+  if (a.alcohol === "moderate") alcoholPts = 1;
+  else if (a.alcohol === "high") alcoholPts = 2;
+
+  let activityPts = 0;
+  if (a.activity === "no") activityPts = 1;
+  else if (!a.activity) estimated = true;
+
+  let menoPts = 0;
+  if (a.sex === "female") {
+    if (a.menopause === "yes") menoPts = 1;
+    else if (!a.menopause || a.menopause === "unknown") estimated = true;
+  }
+
+  const score =
+    agePts + sexPts + bmiPts + waistPts + diabetesPts + dyslipPts +
+    alcoholPts + activityPts + menoPts;
+
+  const category: NafldResult["category"] = score >= 8 ? "elevated" : "low";
+  const categoryLabel =
+    category === "elevated"
+      ? "Повышенная вероятность повышенной нагрузки на печень"
+      : "Низкая вероятность повышенной нагрузки на печень";
+
+  const priority = [
+    "Диабет",
+    "ИМТ",
+    "Окружность талии",
+    "Дислипидемия",
+    "Алкоголь",
+    "Возраст",
+    "Менопауза",
+    "Недостаточная физическая активность",
+  ];
+  const raw = [
+    { factor: "Диабет", points: diabetesPts },
+    { factor: "ИМТ", points: bmiPts },
+    { factor: "Окружность талии", points: waistPts },
+    { factor: "Дислипидемия", points: dyslipPts },
+    { factor: "Алкоголь", points: alcoholPts },
+    { factor: "Возраст", points: agePts },
+    { factor: "Менопауза", points: menoPts },
+    { factor: "Недостаточная физическая активность", points: activityPts },
+  ];
+  const breakdown = raw
+    .filter((r) => r.points > 0)
+    .sort((x, y) => {
+      if (y.points !== x.points) return y.points - x.points;
+      return priority.indexOf(x.factor) - priority.indexOf(y.factor);
+    });
+  const mainFactors = breakdown.slice(0, 2).map((r) => r.factor);
+
+  return { score, category, categoryLabel, estimated, mainFactors, breakdown };
+}
+
+function computeSleep(a: QuizAnswers): SleepResult | null {
+  if (!a.sleepDuration || !a.sleepDifficulty || !a.sleepQuality) return null;
+
+  const durationMap = { lt5: 3, "5to6": 2, "7to8": 0, gt8: 1 } as const;
+  const difficultyMap = { never: 0, lt1: 1, "1to2": 2, "3plus": 3 } as const;
+  const qualityMap = { veryGood: 0, fairlyGood: 1, fairlyBad: 2, veryBad: 3 } as const;
+
+  const durationPts = durationMap[a.sleepDuration];
+  const difficultyPts = difficultyMap[a.sleepDifficulty];
+  const qualityPts = qualityMap[a.sleepQuality];
+  const score = durationPts + difficultyPts + qualityPts;
+
+  let category: SleepResult["category"];
+  let categoryLabel: string;
+  if (score <= 2) {
+    category = "good";
+    categoryLabel = "Хорошее качество сна";
+  } else if (score <= 4) {
+    category = "some";
+    categoryLabel = "Есть отдельные признаки нарушения качества сна";
+  } else {
+    category = "poor";
+    categoryLabel = "Выраженные признаки нарушения качества сна";
+  }
+
+  const raw = [
+    { factor: "Недостаточная продолжительность сна", points: durationPts },
+    { factor: "Частые ночные пробуждения", points: difficultyPts },
+    { factor: "Низкая субъективная оценка сна", points: qualityPts },
+  ];
+  const breakdown = raw
+    .filter((r) => r.points > 0)
+    .sort((x, y) => y.points - x.points);
+  const mainFactors = breakdown.slice(0, 2).map((r) => r.factor);
+
+  return { score, category, categoryLabel, mainFactors, breakdown };
+}
+
+
+
 
 // Modal
 // -----------------------------------------------------------------------------
