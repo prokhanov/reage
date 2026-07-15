@@ -325,8 +325,8 @@ function computeFindrisc(a: QuizAnswers): FindriscResult | null {
 
   const activityPoints = a.activity === "yes" ? 0 : 2;
   const dietPoints = a.diet === "daily" ? 0 : 1;
-  const bpPoints = a.bpMeds === "yes" ? 2 : 0;
-  const glucosePoints = a.highGlucoseHistory === "yes" ? 5 : 0;
+  const bpPoints = facts.bpMedsEffective === "yes" ? 2 : 0;
+  const glucosePoints = facts.highGlucoseHistory === "yes" ? 5 : 0;
   let familyPoints = 0;
   if (a.familyDiabetes === "second") familyPoints = 3;
   else if (a.familyDiabetes === "first") familyPoints = 5;
