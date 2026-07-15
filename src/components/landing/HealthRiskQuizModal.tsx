@@ -36,6 +36,22 @@ export type QuizAnswers = {
   smoker?: boolean;
   sbpChoice?: SbpChoice;
   sbpValue?: number; // only when sbpChoice = "known"
+  // Screen 4 — FINDRISC
+  activity?: "yes" | "no";
+  diet?: "daily" | "notDaily";
+  bpMeds?: "yes" | "no";
+  highGlucoseHistory?: "yes" | "no" | "unknown";
+  familyDiabetes?: "no" | "second" | "first" | "unknown";
+};
+
+export type FindriscResult = {
+  score: number;
+  category: "low" | "slightlyElevated" | "moderate" | "high" | "veryHigh";
+  categoryLabel: string;
+  probabilityText: string;
+  estimated: boolean;
+  mainFactors: string[];
+  breakdown: { factor: string; points: number }[];
 };
 
 export type HeartResult = {
