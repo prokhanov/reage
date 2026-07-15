@@ -1759,9 +1759,9 @@ function QuizFooter({
   hideBack?: boolean;
 }) {
   return (
-    <div className="mt-9 flex items-center justify-between gap-3">
+    <div className="mt-10 pt-6 border-t border-border/40 flex items-center justify-between gap-3">
       {!hideBack && onBack ? (
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground -ml-2">
           <ArrowLeft className="mr-1.5 h-4 w-4" />
           Назад
         </Button>
@@ -1773,9 +1773,10 @@ function QuizFooter({
         disabled={nextDisabled}
         size="lg"
         className={cn(
-          "min-w-[180px] rounded-xl font-semibold shadow-lg shadow-primary/20",
-          "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
-          "hover:-translate-y-0.5 active:translate-y-0",
+          "min-w-[200px] h-13 rounded-2xl font-semibold text-[15px]",
+          "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35",
+          "transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
+          "disabled:shadow-none disabled:hover:translate-y-0",
         )}
       >
         {nextLabel}
@@ -1797,18 +1798,22 @@ function QuizHeader({
   subtitle?: React.ReactNode;
 }) {
   return (
-    <div className="mb-7">
+    <div className="mb-8">
       {eyebrow && (
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-3">
-          {Icon && <Icon className="h-3 w-3" />}
+        <div className="inline-flex items-center gap-2 text-primary text-[12.5px] font-semibold mb-3">
+          {Icon && (
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12">
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+          )}
           {eyebrow}
         </div>
       )}
-      <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+      <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-[15px] text-muted-foreground leading-relaxed">
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
           {subtitle}
         </p>
       )}
