@@ -1755,10 +1755,10 @@ function FieldBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">
+    <div className="space-y-2.5">
+      <Label className="text-[15px] font-medium text-foreground leading-snug block">
         {label}
-        {required && <span className="text-destructive ml-0.5">*</span>}
+        {required && <span className="text-primary ml-0.5">*</span>}
       </Label>
       <div>{children}</div>
     </div>
@@ -1785,15 +1785,113 @@ function RadioChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all text-left",
+        "group relative px-4 py-3 rounded-xl border-2 text-[14px] font-medium",
+        "transition-all duration-200 text-left flex items-center gap-2.5",
+        "active:scale-[0.98]",
         full ? "w-full" : "",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-sm"
-          : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          ? "border-primary bg-primary/10 text-foreground shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.35)]"
+          : "border-border/60 bg-muted/20 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground",
       )}
     >
-      {children}
+      <span
+        className={cn(
+          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          active
+            ? "border-primary bg-primary"
+            : "border-border/70 bg-transparent group-hover:border-primary/60",
+        )}
+      >
+        {active && (
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+        )}
+      </span>
+      <span className="flex-1 leading-snug">{children}</span>
     </button>
+  );
+}
+
+/**
+ * Number field that actually lets the user type. Keeps a local string buffer
+ * so partially-typed values like "1" (before "18") aren't wiped out. Commits
+ * to the parent as a number only when the value is a valid finite number; on
+ * blur, out-of-range values are clamped into [min, max].
+ */
+function NumberField({
+  value,
+  onChange,
+  min,
+  max,
+  placeholder,
+  allowDecimal,
+  className,
+  ariaLabel,
+}: {
+  value: number | undefined | null;
+  onChange: (v: number | undefined) => void;
+  min: number;
+  max: number;
+  placeholder?: string;
+  allowDecimal?: boolean;
+  className?: string;
+  ariaLabel?: string;
+}) {
+  const [buf, setBuf] = useState<string>(
+    value === null || value === undefined ? "" : String(value),
+  );
+
+  // Keep buffer in sync when parent resets or externally updates.
+  const parentStr =
+    value === null || value === undefined ? "" : String(value);
+  if (
+    parentStr !== "" &&
+    buf === "" // parent has value but we're empty → hydrate
+  ) {
+    setBuf(parentStr);
+  }
+
+  return (
+    <Input
+      type="text"
+      inputMode={allowDecimal ? "decimal" : "numeric"}
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      value={buf}
+      onChange={(e) => {
+        const raw = e.target.value.replace(",", ".");
+        const cleaned = allowDecimal
+          ? raw.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1")
+          : raw.replace(/[^\d]/g, "");
+        setBuf(cleaned);
+        if (cleaned === "" || cleaned === ".") {
+          onChange(undefined);
+          return;
+        }
+        const n = allowDecimal ? parseFloat(cleaned) : parseInt(cleaned, 10);
+        if (Number.isFinite(n)) {
+          onChange(n);
+        }
+      }}
+      onBlur={() => {
+        if (buf === "") return;
+        const n = allowDecimal ? parseFloat(buf) : parseInt(buf, 10);
+        if (!Number.isFinite(n)) {
+          setBuf("");
+          onChange(undefined);
+          return;
+        }
+        const clamped = Math.min(max, Math.max(min, n));
+        const finalN = allowDecimal ? Math.round(clamped * 10) / 10 : clamped;
+        setBuf(String(finalN));
+        onChange(finalN);
+      }}
+      className={cn(
+        "h-12 text-[15px] rounded-xl bg-background border-2 border-border/60",
+        "focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0",
+        "transition-colors",
+        className,
+      )}
+    />
   );
 }
 
@@ -1804,6 +1902,7 @@ function OptionalMeasureField({
   max,
   placeholder,
   hint,
+  allowDecimal,
   onChange,
 }: {
   label: string;
@@ -1812,40 +1911,41 @@ function OptionalMeasureField({
   max: number;
   placeholder?: string;
   hint?: string;
+  allowDecimal?: boolean;
   onChange: (v: number | null) => void;
 }) {
-  const unknown = value === null;
-  const [touched, setTouched] = useState(false);
+  const [unknownPicked, setUnknownPicked] = useState(false);
+  const isUnknown = unknownPicked && value === null;
 
   return (
     <FieldBlock label={label}>
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-        <Input
-          type="number"
-          inputMode="decimal"
-          min={min}
-          max={max}
-          placeholder={placeholder}
-          disabled={unknown && touched}
-          value={value ?? ""}
-          onChange={(e) => {
-            setTouched(true);
-            const v = clampNum(e.target.value, min, max);
-            onChange(v === undefined ? null : v);
-          }}
-          className="max-w-[220px]"
-        />
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
+        <div className="flex-1 max-w-[240px]">
+          <NumberField
+            value={isUnknown ? undefined : value ?? undefined}
+            min={min}
+            max={max}
+            placeholder={placeholder}
+            allowDecimal={allowDecimal}
+            ariaLabel={label}
+            onChange={(v) => {
+              setUnknownPicked(false);
+              onChange(v === undefined ? null : v);
+            }}
+          />
+        </div>
         <button
           type="button"
           onClick={() => {
-            setTouched(true);
+            setUnknownPicked(true);
             onChange(null);
           }}
           className={cn(
-            "text-xs font-medium px-3 py-2 rounded-lg border transition-colors self-start sm:self-auto",
-            unknown && touched
-              ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/40",
+            "h-12 px-4 rounded-xl border-2 text-sm font-medium transition-all whitespace-nowrap",
+            "active:scale-[0.98]",
+            isUnknown
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
           )}
         >
           Не знаю
