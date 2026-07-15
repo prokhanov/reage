@@ -1873,22 +1873,24 @@ function BigChoice({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "group relative h-16 px-4 rounded-2xl border-2 text-[15px] font-semibold",
-        "transition-all duration-200 flex items-center gap-3 w-full",
-        "active:scale-[0.98]",
+        "group relative h-20 px-5 rounded-2xl text-[16px] font-semibold",
+        "transition-all duration-200 flex items-center gap-4 w-full",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
         active
-          ? "border-primary bg-primary/10 text-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]"
-          : "border-border/50 bg-muted/20 text-foreground/85 hover:border-primary/40 hover:bg-primary/5",
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_10px_28px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40",
       )}
     >
       {letter && (
         <span
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold transition-colors",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-bold transition-all",
             active
-              ? "bg-primary text-primary-foreground"
-              : "bg-background text-foreground/70 border border-border/60 group-hover:border-primary/40",
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+              : "bg-background text-foreground/70 ring-1 ring-border/60 group-hover:ring-primary/40",
           )}
         >
           {letter}
