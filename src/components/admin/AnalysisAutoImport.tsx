@@ -577,6 +577,26 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const readyCount = entries.filter(e => e.status === "done").length;
   const queuedCount = entries.filter(e => e.status === "queued" || e.status === "error").length;
 
+  // Comparison of recognized biomarkers against the selected plan
+  const planComparison = useMemo(() => {
+    if (!selectedPlanId || !planBiomarkers.length) return null;
+    const recognizedIds = new Set<string>();
+    for (const e of entries) {
+      if (e.result) for (const r of e.result.recognized) recognizedIds.add(r.biomarker_id);
+    }
+    const planIds = new Set(planBiomarkers.map(b => b.id));
+    const matched = planBiomarkers.filter(b => recognizedIds.has(b.id));
+    const missing = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+    const extra: string[] = [];
+    for (const e of entries) {
+      if (!e.result) continue;
+      for (const r of e.result.recognized) {
+        if (!planIds.has(r.biomarker_id)) extra.push(r.biomarker_name);
+      }
+    }
+    return { matched, missing, extraCount: new Set(extra).size };
+  }, [selectedPlanId, planBiomarkers, entries]);
+
   return (
     <div className="space-y-4 py-2">
       <Alert>
