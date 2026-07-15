@@ -108,7 +108,15 @@ function ascvdCategory(a: Answers): {
       : a.sbpKnown === "neverHigh"
       ? 115
       : 125;
-  const chol = a.cholKnown ? a.cholValue ?? medianCholesterol(a) : medianCholesterol(a);
+  // Map user-reported category to a representative mmol/L value (or median if unknown)
+  const chol =
+    a.cholLevel === "high"
+      ? 6.5
+      : a.cholLevel === "low"
+      ? 4.2
+      : a.cholLevel === "normal"
+      ? 5.0
+      : medianCholesterol(a);
   const smoker = isTrue(a.smoker);
   const meds = isTrue(a.bpMeds);
 
