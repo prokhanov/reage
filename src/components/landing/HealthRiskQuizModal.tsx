@@ -1013,8 +1013,7 @@ function ScreenMetabolism({
   const valid =
     !!a.activity &&
     !!a.diet &&
-    !!a.bpMeds &&
-    !!a.highGlucoseHistory &&
+    !!a.glucoseStatus &&
     !!a.familyDiabetes;
 
   return (
@@ -1027,8 +1026,8 @@ function ScreenMetabolism({
           <>
             Расчёт по шкале{" "}
             <span className="text-foreground font-medium">FINDRISC</span> —
-            10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ и
-            окружность талии уже известны.
+            10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ,
+            окружность талии и данные о давлении уже известны.
           </>
         }
       />
@@ -1043,61 +1042,39 @@ function ScreenMetabolism({
             активность.
           </HintText>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            <RadioChip full active={a.activity === "yes"} onClick={() => update({ activity: "yes" })}>
-              Да
-            </RadioChip>
-            <RadioChip full active={a.activity === "no"} onClick={() => update({ activity: "no" })}>
-              Нет
-            </RadioChip>
+            <RadioChip full active={a.activity === "yes"} onClick={() => update({ activity: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.activity === "no"} onClick={() => update({ activity: "no" })}>Нет</RadioChip>
           </div>
         </FieldBlock>
 
-        <FieldBlock
-          label="Едите ли Вы овощи, фрукты или ягоды ежедневно?"
-          required
-        >
+        <FieldBlock label="Едите ли Вы овощи, фрукты или ягоды ежедневно?" required>
           <div className="grid grid-cols-2 gap-2">
-            <RadioChip full active={a.diet === "daily"} onClick={() => update({ diet: "daily" })}>
-              Каждый день
-            </RadioChip>
-            <RadioChip full active={a.diet === "notDaily"} onClick={() => update({ diet: "notDaily" })}>
-              Не каждый день
-            </RadioChip>
+            <RadioChip full active={a.diet === "daily"} onClick={() => update({ diet: "daily" })}>Каждый день</RadioChip>
+            <RadioChip full active={a.diet === "notDaily"} onClick={() => update({ diet: "notDaily" })}>Не каждый день</RadioChip>
           </div>
         </FieldBlock>
 
-        <FieldBlock
-          label="Принимаете ли Вы регулярно препараты для снижения артериального давления?"
-          required
-        >
-          <div className="grid grid-cols-2 gap-2">
-            <RadioChip full active={a.bpMeds === "yes"} onClick={() => update({ bpMeds: "yes" })}>
-              Да
-            </RadioChip>
-            <RadioChip full active={a.bpMeds === "no"} onClick={() => update({ bpMeds: "no" })}>
-              Нет
-            </RadioChip>
-          </div>
-        </FieldBlock>
-
-        <FieldBlock
-          label="Обнаруживали ли у Вас когда-либо повышенный уровень сахара в крови?"
-          required
-        >
+        {/* Unified: replaces both FINDRISC "повышенный сахар" and NAFLD "диабет". */}
+        <FieldBlock label="Что из перечисленного Вам когда-либо диагностировали?" required>
           <HintText>
             Например: при диспансеризации, во время беременности, при
             обследовании или при болезни.
           </HintText>
           <div className="flex flex-col gap-2 mt-2">
-            <RadioChip full active={a.highGlucoseHistory === "yes"} onClick={() => update({ highGlucoseHistory: "yes" })}>
-              Да
+            <RadioChip full active={a.glucoseStatus === "nothing"} onClick={() => update({ glucoseStatus: "nothing" })}>
+              Ничего из перечисленного
             </RadioChip>
-            <RadioChip full active={a.highGlucoseHistory === "no"} onClick={() => update({ highGlucoseHistory: "no" })}>
-              Нет
+            <RadioChip full active={a.glucoseStatus === "prediabetes"} onClick={() => update({ glucoseStatus: "prediabetes" })}>
+              Повышенный сахар крови или предиабет
             </RadioChip>
-            <RadioChip full active={a.highGlucoseHistory === "unknown"} onClick={() => update({ highGlucoseHistory: "unknown" })}>
+            <RadioChip full active={a.glucoseStatus === "diabetes"} onClick={() => update({ glucoseStatus: "diabetes" })}>
+              Сахарный диабет
+            </RadioChip>
+            <RadioChip full active={a.glucoseStatus === "unknown"} onClick={() => update({ glucoseStatus: "unknown" })}>
               Не знаю
             </RadioChip>
+          </div>
+        </FieldBlock>
           </div>
         </FieldBlock>
 
