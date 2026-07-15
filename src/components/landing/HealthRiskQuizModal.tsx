@@ -444,7 +444,129 @@ function ScreenBasics({
 }
 
 // -----------------------------------------------------------------------------
-// Screen 3+ — placeholder (will be built out per spec)
+// Screen 3 — Heart & vessels (WHO CVD non-laboratory)
+// -----------------------------------------------------------------------------
+
+function ScreenHeart({
+  a,
+  update,
+  onBack,
+  onNext,
+}: {
+  a: QuizAnswers;
+  update: (patch: Partial<QuizAnswers>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const sbpNeedsValue = a.sbpChoice === "known";
+  const sbpValueOk =
+    !sbpNeedsValue ||
+    (typeof a.sbpValue === "number" && a.sbpValue >= 80 && a.sbpValue <= 240);
+  const valid = typeof a.smoker === "boolean" && !!a.sbpChoice && sbpValueOk;
+
+  return (
+    <div>
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+          <Heart className="h-3 w-3" />
+          Блок 1 из 4
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+          Сердце и сосуды
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Расчёт по шкале{" "}
+          <span className="text-foreground font-medium">
+            WHO CVD Risk (non-laboratory)
+          </span>
+          . Возраст и пол уже известны — повторно не спрашиваем.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* Q1 — smoker */}
+        <FieldBlock label="Курите ли Вы сейчас?" required>
+          <div className="flex gap-2">
+            <RadioChip active={a.smoker === true} onClick={() => update({ smoker: true })}>
+              Да
+            </RadioChip>
+            <RadioChip active={a.smoker === false} onClick={() => update({ smoker: false })}>
+              Нет
+            </RadioChip>
+          </div>
+        </FieldBlock>
+
+        {/* Q2 — SBP */}
+        <FieldBlock label="Известно ли Вам Ваше артериальное давление?" required>
+          <div className="flex flex-col gap-2">
+            <RadioChip
+              active={a.sbpChoice === "known"}
+              onClick={() => update({ sbpChoice: "known" })}
+              full
+            >
+              Знаю
+            </RadioChip>
+            {sbpNeedsValue && (
+              <div className="pl-1 pt-1">
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
+                  Систолическое (верхнее), мм рт. ст.
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={80}
+                  max={240}
+                  placeholder="Например, 128"
+                  value={a.sbpValue ?? ""}
+                  onChange={(e) =>
+                    update({ sbpValue: clampInt(e.target.value, 80, 240) })
+                  }
+                  className="max-w-[220px]"
+                />
+                <HintText>От 80 до 240</HintText>
+              </div>
+            )}
+            <RadioChip
+              active={a.sbpChoice === "wasHigh"}
+              onClick={() => update({ sbpChoice: "wasHigh", sbpValue: undefined })}
+              full
+            >
+              Давление повышалось, но цифры не помню
+            </RadioChip>
+            <RadioChip
+              active={a.sbpChoice === "neverHigh"}
+              onClick={() => update({ sbpChoice: "neverHigh", sbpValue: undefined })}
+              full
+            >
+              Давление никогда не было повышенным
+            </RadioChip>
+            <RadioChip
+              active={a.sbpChoice === "unknown"}
+              onClick={() => update({ sbpChoice: "unknown", sbpValue: undefined })}
+              full
+            >
+              Не знаю
+            </RadioChip>
+          </div>
+        </FieldBlock>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <Button onClick={onNext} disabled={!valid} className="min-w-[160px]">
+          Далее
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Screen 4+ — placeholder (will be built out per spec)
 // -----------------------------------------------------------------------------
 
 function ScreenPlaceholder({ step, onBack }: { step: number; onBack: () => void }) {
