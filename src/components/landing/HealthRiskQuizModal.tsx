@@ -1767,6 +1767,77 @@ function HintText({ children }: { children: React.ReactNode }) {
   return <p className="mt-1.5 text-xs text-muted-foreground">{children}</p>;
 }
 
+function QuizFooter({
+  onBack,
+  onNext,
+  nextDisabled,
+  nextLabel = "Далее",
+  hideBack,
+}: {
+  onBack?: () => void;
+  onNext: () => void;
+  nextDisabled?: boolean;
+  nextLabel?: string;
+  hideBack?: boolean;
+}) {
+  return (
+    <div className="mt-9 flex items-center justify-between gap-3">
+      {!hideBack && onBack ? (
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Назад
+        </Button>
+      ) : (
+        <span />
+      )}
+      <Button
+        onClick={onNext}
+        disabled={nextDisabled}
+        size="lg"
+        className={cn(
+          "min-w-[180px] rounded-xl font-semibold shadow-lg shadow-primary/20",
+          "transition-all duration-200 hover:shadow-xl hover:shadow-primary/30",
+          "hover:-translate-y-0.5 active:translate-y-0",
+        )}
+      >
+        {nextLabel}
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function QuizHeader({
+  eyebrow,
+  eyebrowIcon: Icon,
+  title,
+  subtitle,
+}: {
+  eyebrow?: string;
+  eyebrowIcon?: typeof Heart;
+  title: string;
+  subtitle?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-7">
+      {eyebrow && (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider mb-3">
+          {Icon && <Icon className="h-3 w-3" />}
+          {eyebrow}
+        </div>
+      )}
+      <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-[15px] text-muted-foreground leading-relaxed">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function RadioChip({
   active,
   onClick,
