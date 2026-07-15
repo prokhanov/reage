@@ -112,6 +112,18 @@ const NAME_ALIASES: Record<string, string> = {
   "индекс свободных андрогенов": "FAI",
   "индекс свободных андрогенов fai": "FAI",
   "free androgen index": "FAI",
+  // Реакции ОАМ (Sysmex-style): «Реакция на …» / химический тест мочи
+  "реакция на гемоглобин": "HB-U",
+  "реакция на кровь": "HB-U",
+  "гемоглобин мочи": "HB-U",
+  "кровь в моче": "HB-U",
+  "blood": "HB-U",
+  "hemoglobin urine": "HB-U",
+  "реакция на лейкоцитарную эстеразу": "LEU-EST-U",
+  "лейкоцитарная эстераза": "LEU-EST-U",
+  "leukocyte esterase": "LEU-EST-U",
+  "реакция на эритроциты": "ERY-RXN-U",
+  "эритроциты качественно": "ERY-RXN-U",
 };
 
 // Fuzzy fallback: keyword-based mapping used if exact alias lookup fails.
@@ -120,7 +132,11 @@ const NAME_KEYWORD_ALIASES: Array<{ keywords: string[]; code: string }> = [
   { keywords: ["sex", "hormone", "binding"], code: "SHBG" },
   { keywords: ["свободн", "андроген"], code: "FAI" },
   { keywords: ["free", "androgen", "index"], code: "FAI" },
+  { keywords: ["реакция", "гемоглобин"], code: "HB-U" },
+  { keywords: ["реакция", "лейкоцитарн"], code: "LEU-EST-U" },
+  { keywords: ["реакция", "эритроцит"], code: "ERY-RXN-U" },
 ];
+
 
 const UNIT_ALIASES: Record<string, string> = {
   "сек": "с",
