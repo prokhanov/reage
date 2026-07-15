@@ -27,29 +27,31 @@ import { toast } from "@/hooks/use-toast";
 
 type Sex = "male" | "female";
 
-type SbpChoice = "known" | "wasHigh" | "neverHigh" | "unknown";
+type GlucoseStatus = "nothing" | "prediabetes" | "diabetes" | "unknown";
+type CholesterolStatus = "known" | "wasHigh" | "wasNormal" | "unknown";
+type HypertensionHistory = "yes" | "no" | "unknown";
 
 export type QuizAnswers = {
   // Screen 2 — base
   age?: number;
   sex?: Sex;
-  height: number | null; // cm, null = unknown
-  weight: number | null; // kg
-  waist: number | null; // cm
+  height: number | null;
+  weight: number | null;
+  waist: number | null;
   bmi: number | null;
-  // Screen 3 — heart (WHO CVD non-lab)
+  // Screen 3 — heart
   smoker?: boolean;
-  sbpChoice?: SbpChoice;
-  sbpValue?: number; // only when sbpChoice = "known"
-  // Screen 4 — FINDRISC
+  hypertensionHistory?: HypertensionHistory;
+  bpMeds?: "yes" | "no";
+  sbpValue?: number;
+  cholesterolStatus?: CholesterolStatus;
+  cholesterolValue?: number;
+  // Screen 4 — FINDRISC (activity/diet/family; glucose is unified)
   activity?: "yes" | "no";
   diet?: "daily" | "notDaily";
-  bpMeds?: "yes" | "no";
-  highGlucoseHistory?: "yes" | "no" | "unknown";
+  glucoseStatus?: GlucoseStatus;
   familyDiabetes?: "no" | "second" | "first" | "unknown";
-  // Screen 5 — NAFLD
-  diabetes?: "yes" | "no" | "unknown";
-  dyslipidemia?: "yes" | "no" | "unknown";
+  // Screen 5 — NAFLD (alcohol + menopause; rest derived)
   alcohol?: "none" | "moderate" | "high";
   menopause?: "yes" | "no" | "unknown";
   // Screen 6 — PSQI (short)
@@ -60,6 +62,34 @@ export type QuizAnswers = {
   email?: string;
   consent?: boolean;
 };
+
+const CHOL_UPPER_NORMAL = 5.2; // mmol/L, total cholesterol
+
+/** Derive legacy fields (diabetes, dyslipidemia, glucoseHistory, effective bpMeds) from unified answers. */
+function deriveFacts(a: QuizAnswers) {
+  let highGlucoseHistory: "yes" | "no" | "unknown" = "unknown";
+  let diabetes: "yes" | "no" | "unknown" = "unknown";
+  switch (a.glucoseStatus) {
+    case "nothing":       highGlucoseHistory = "no";      diabetes = "no";      break;
+    case "prediabetes":   highGlucoseHistory = "yes";     diabetes = "no";      break;
+    case "diabetes":      highGlucoseHistory = "yes";     diabetes = "yes";     break;
+    case "unknown":       highGlucoseHistory = "unknown"; diabetes = "unknown"; break;
+  }
+
+  let dyslipidemia: "yes" | "no" | "unknown" = "unknown";
+  if (a.cholesterolStatus === "known" && typeof a.cholesterolValue === "number") {
+    dyslipidemia = a.cholesterolValue > CHOL_UPPER_NORMAL ? "yes" : "no";
+  } else if (a.cholesterolStatus === "wasHigh") {
+    dyslipidemia = "yes";
+  } else if (a.cholesterolStatus === "wasNormal") {
+    dyslipidemia = "no";
+  }
+
+  const bpMedsEffective: "yes" | "no" =
+    a.hypertensionHistory === "yes" && a.bpMeds === "yes" ? "yes" : "no";
+
+  return { highGlucoseHistory, diabetes, dyslipidemia, bpMedsEffective };
+}
 
 const QUIZ_VERSION = "v1";
 
@@ -138,19 +168,24 @@ function calcBmi(height: number | null, weight: number | null): number | null {
 }
 
 function computeHeart(a: QuizAnswers): HeartResult | null {
-  if (typeof a.age !== "number" || !a.sex || typeof a.smoker !== "boolean" || !a.sbpChoice) {
+  if (
+    typeof a.age !== "number" ||
+    !a.sex ||
+    typeof a.smoker !== "boolean" ||
+    !a.hypertensionHistory
+  ) {
     return null;
   }
 
-  // Resolve SBP
+  // Resolve SBP: exact reading if provided, otherwise proxy from hypertension history.
   let sbpUsed: number;
   let estimatedSBP = false;
-  if (a.sbpChoice === "known" && typeof a.sbpValue === "number") {
+  if (typeof a.sbpValue === "number") {
     sbpUsed = a.sbpValue;
-  } else if (a.sbpChoice === "wasHigh") {
+  } else if (a.hypertensionHistory === "yes") {
     sbpUsed = 135;
     estimatedSBP = true;
-  } else if (a.sbpChoice === "neverHigh") {
+  } else if (a.hypertensionHistory === "no") {
     sbpUsed = 115;
     estimatedSBP = true;
   } else {
@@ -250,12 +285,13 @@ function computeFindrisc(a: QuizAnswers): FindriscResult | null {
     typeof a.age !== "number" ||
     !a.activity ||
     !a.diet ||
-    !a.bpMeds ||
-    !a.highGlucoseHistory ||
+    !a.hypertensionHistory ||
+    !a.glucoseStatus ||
     !a.familyDiabetes
   ) {
     return null;
   }
+  const facts = deriveFacts(a);
 
   // Age
   let agePoints = 0;
@@ -289,8 +325,8 @@ function computeFindrisc(a: QuizAnswers): FindriscResult | null {
 
   const activityPoints = a.activity === "yes" ? 0 : 2;
   const dietPoints = a.diet === "daily" ? 0 : 1;
-  const bpPoints = a.bpMeds === "yes" ? 2 : 0;
-  const glucosePoints = a.highGlucoseHistory === "yes" ? 5 : 0;
+  const bpPoints = facts.bpMedsEffective === "yes" ? 2 : 0;
+  const glucosePoints = facts.highGlucoseHistory === "yes" ? 5 : 0;
   let familyPoints = 0;
   if (a.familyDiabetes === "second") familyPoints = 3;
   else if (a.familyDiabetes === "first") familyPoints = 5;
@@ -374,12 +410,13 @@ function computeNafld(a: QuizAnswers): NafldResult | null {
   if (
     typeof a.age !== "number" ||
     !a.sex ||
-    !a.diabetes ||
-    !a.dyslipidemia ||
+    !a.glucoseStatus ||
+    !a.cholesterolStatus ||
     !a.alcohol
   ) {
     return null;
   }
+  const facts = deriveFacts(a);
 
   let estimated = false;
 
@@ -406,11 +443,11 @@ function computeNafld(a: QuizAnswers): NafldResult | null {
     else if (a.waist >= 80) waistPts = 1;
   }
 
-  const diabetesPts = a.diabetes === "yes" ? 3 : 0;
-  if (a.diabetes === "unknown") estimated = true;
+  const diabetesPts = facts.diabetes === "yes" ? 3 : 0;
+  if (facts.diabetes === "unknown") estimated = true;
 
-  const dyslipPts = a.dyslipidemia === "yes" ? 2 : 0;
-  if (a.dyslipidemia === "unknown") estimated = true;
+  const dyslipPts = facts.dyslipidemia === "yes" ? 2 : 0;
+  if (facts.dyslipidemia === "unknown") estimated = true;
 
   let alcoholPts = 0;
   if (a.alcohol === "moderate") alcoholPts = 1;
@@ -828,11 +865,25 @@ function ScreenHeart({
   onBack: () => void;
   onNext: () => void;
 }) {
-  const sbpNeedsValue = a.sbpChoice === "known";
+  const bpMedsNeeded = a.hypertensionHistory === "yes";
+  const sbpValueProvided = typeof a.sbpValue === "number";
   const sbpValueOk =
-    !sbpNeedsValue ||
+    !sbpValueProvided ||
     (typeof a.sbpValue === "number" && a.sbpValue >= 80 && a.sbpValue <= 240);
-  const valid = typeof a.smoker === "boolean" && !!a.sbpChoice && sbpValueOk;
+  const cholKnown = a.cholesterolStatus === "known";
+  const cholValueOk =
+    !cholKnown ||
+    (typeof a.cholesterolValue === "number" &&
+      a.cholesterolValue >= 2 &&
+      a.cholesterolValue <= 15);
+
+  const valid =
+    typeof a.smoker === "boolean" &&
+    !!a.hypertensionHistory &&
+    (!bpMedsNeeded || !!a.bpMeds) &&
+    sbpValueOk &&
+    !!a.cholesterolStatus &&
+    cholValueOk;
 
   return (
     <div>
@@ -864,57 +915,80 @@ function ScreenHeart({
           </div>
         </FieldBlock>
 
-        {/* Q2 — SBP */}
-        <FieldBlock label="Известно ли Вам Ваше артериальное давление?" required>
+        {/* Q2 — hypertension history */}
+        <FieldBlock label="Диагностировали ли Вам когда-либо повышенное артериальное давление?" required>
+          <div className="grid grid-cols-3 gap-2">
+            <RadioChip full active={a.hypertensionHistory === "yes"} onClick={() => update({ hypertensionHistory: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.hypertensionHistory === "no"} onClick={() => update({ hypertensionHistory: "no", bpMeds: undefined })}>Нет</RadioChip>
+            <RadioChip full active={a.hypertensionHistory === "unknown"} onClick={() => update({ hypertensionHistory: "unknown", bpMeds: undefined })}>Не знаю</RadioChip>
+          </div>
+        </FieldBlock>
+
+        {/* Q3 — BP meds (only if hypertension = yes) */}
+        {bpMedsNeeded && (
+          <div className="animate-scale-in">
+            <FieldBlock label="Принимаете ли Вы сейчас препараты для снижения давления?" required>
+              <div className="grid grid-cols-2 gap-2">
+                <RadioChip full active={a.bpMeds === "yes"} onClick={() => update({ bpMeds: "yes" })}>Да</RadioChip>
+                <RadioChip full active={a.bpMeds === "no"} onClick={() => update({ bpMeds: "no" })}>Нет</RadioChip>
+              </div>
+            </FieldBlock>
+          </div>
+        )}
+
+        {/* Q4 — SBP value (optional) */}
+        <FieldBlock label="Знаете ли Вы своё текущее систолическое (верхнее) давление?">
+          <HintText>Если нет — оставьте пустым, мы используем усреднённое значение.</HintText>
+          <div className="mt-2 max-w-[240px]">
+            <NumberField
+              value={a.sbpValue}
+              min={80}
+              max={240}
+              placeholder="Например, 128"
+              ariaLabel="Систолическое давление"
+              onChange={(v) => update({ sbpValue: v })}
+            />
+          </div>
+          <HintText>мм рт. ст., от 80 до 240</HintText>
+        </FieldBlock>
+
+        {/* Q5 — Cholesterol (unified) */}
+        <FieldBlock label="Известен ли Вам уровень общего холестерина?" required>
           <div className="flex flex-col gap-2">
-            <RadioChip
-              active={a.sbpChoice === "known"}
-              onClick={() => update({ sbpChoice: "known" })}
-              full
-            >
-              Знаю
+            <RadioChip full active={a.cholesterolStatus === "known"} onClick={() => update({ cholesterolStatus: "known" })}>
+              Знаю точное значение
             </RadioChip>
-            {sbpNeedsValue && (
+            {cholKnown && (
               <div className="rounded-xl border-2 border-primary/20 bg-primary/[0.03] p-4 animate-scale-in">
                 <Label className="text-xs text-muted-foreground mb-2 block">
-                  Систолическое (верхнее), мм рт. ст.
+                  Общий холестерин, ммоль/л
                 </Label>
                 <NumberField
-                  value={a.sbpValue}
-                  min={80}
-                  max={240}
-                  placeholder="Например, 128"
-                  ariaLabel="Систолическое давление"
-                  onChange={(v) => update({ sbpValue: v })}
+                  value={a.cholesterolValue}
+                  min={2}
+                  max={15}
+                  allowDecimal
+                  placeholder="Например, 5.1"
+                  ariaLabel="Общий холестерин"
+                  onChange={(v) => update({ cholesterolValue: v })}
                   className="max-w-[220px]"
                 />
-                <HintText>От 80 до 240</HintText>
+                <HintText>Норма — до 5,2 ммоль/л.</HintText>
               </div>
             )}
-            <RadioChip
-              active={a.sbpChoice === "wasHigh"}
-              onClick={() => update({ sbpChoice: "wasHigh", sbpValue: undefined })}
-              full
-            >
-              Давление повышалось, но цифры не помню
+            <RadioChip full active={a.cholesterolStatus === "wasHigh"} onClick={() => update({ cholesterolStatus: "wasHigh", cholesterolValue: undefined })}>
+              Был повышен
             </RadioChip>
-            <RadioChip
-              active={a.sbpChoice === "neverHigh"}
-              onClick={() => update({ sbpChoice: "neverHigh", sbpValue: undefined })}
-              full
-            >
-              Давление никогда не было повышенным
+            <RadioChip full active={a.cholesterolStatus === "wasNormal"} onClick={() => update({ cholesterolStatus: "wasNormal", cholesterolValue: undefined })}>
+              Был в пределах нормы
             </RadioChip>
-            <RadioChip
-              active={a.sbpChoice === "unknown"}
-              onClick={() => update({ sbpChoice: "unknown", sbpValue: undefined })}
-              full
-            >
+            <RadioChip full active={a.cholesterolStatus === "unknown"} onClick={() => update({ cholesterolStatus: "unknown", cholesterolValue: undefined })}>
               Не знаю
             </RadioChip>
           </div>
         </FieldBlock>
       </div>
+
 
       <QuizFooter onBack={onBack} onNext={onNext} nextDisabled={!valid} />
     </div>
@@ -939,8 +1013,7 @@ function ScreenMetabolism({
   const valid =
     !!a.activity &&
     !!a.diet &&
-    !!a.bpMeds &&
-    !!a.highGlucoseHistory &&
+    !!a.glucoseStatus &&
     !!a.familyDiabetes;
 
   return (
@@ -953,8 +1026,8 @@ function ScreenMetabolism({
           <>
             Расчёт по шкале{" "}
             <span className="text-foreground font-medium">FINDRISC</span> —
-            10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ и
-            окружность талии уже известны.
+            10-летний риск развития сахарного диабета 2 типа. Возраст, ИМТ,
+            окружность талии и данные о давлении уже известны.
           </>
         }
       />
@@ -969,63 +1042,40 @@ function ScreenMetabolism({
             активность.
           </HintText>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            <RadioChip full active={a.activity === "yes"} onClick={() => update({ activity: "yes" })}>
-              Да
-            </RadioChip>
-            <RadioChip full active={a.activity === "no"} onClick={() => update({ activity: "no" })}>
-              Нет
-            </RadioChip>
+            <RadioChip full active={a.activity === "yes"} onClick={() => update({ activity: "yes" })}>Да</RadioChip>
+            <RadioChip full active={a.activity === "no"} onClick={() => update({ activity: "no" })}>Нет</RadioChip>
           </div>
         </FieldBlock>
 
-        <FieldBlock
-          label="Едите ли Вы овощи, фрукты или ягоды ежедневно?"
-          required
-        >
+        <FieldBlock label="Едите ли Вы овощи, фрукты или ягоды ежедневно?" required>
           <div className="grid grid-cols-2 gap-2">
-            <RadioChip full active={a.diet === "daily"} onClick={() => update({ diet: "daily" })}>
-              Каждый день
-            </RadioChip>
-            <RadioChip full active={a.diet === "notDaily"} onClick={() => update({ diet: "notDaily" })}>
-              Не каждый день
-            </RadioChip>
+            <RadioChip full active={a.diet === "daily"} onClick={() => update({ diet: "daily" })}>Каждый день</RadioChip>
+            <RadioChip full active={a.diet === "notDaily"} onClick={() => update({ diet: "notDaily" })}>Не каждый день</RadioChip>
           </div>
         </FieldBlock>
 
-        <FieldBlock
-          label="Принимаете ли Вы регулярно препараты для снижения артериального давления?"
-          required
-        >
-          <div className="grid grid-cols-2 gap-2">
-            <RadioChip full active={a.bpMeds === "yes"} onClick={() => update({ bpMeds: "yes" })}>
-              Да
-            </RadioChip>
-            <RadioChip full active={a.bpMeds === "no"} onClick={() => update({ bpMeds: "no" })}>
-              Нет
-            </RadioChip>
-          </div>
-        </FieldBlock>
-
-        <FieldBlock
-          label="Обнаруживали ли у Вас когда-либо повышенный уровень сахара в крови?"
-          required
-        >
+        {/* Unified: replaces both FINDRISC "повышенный сахар" and NAFLD "диабет". */}
+        <FieldBlock label="Что из перечисленного Вам когда-либо диагностировали?" required>
           <HintText>
             Например: при диспансеризации, во время беременности, при
             обследовании или при болезни.
           </HintText>
           <div className="flex flex-col gap-2 mt-2">
-            <RadioChip full active={a.highGlucoseHistory === "yes"} onClick={() => update({ highGlucoseHistory: "yes" })}>
-              Да
+            <RadioChip full active={a.glucoseStatus === "nothing"} onClick={() => update({ glucoseStatus: "nothing" })}>
+              Ничего из перечисленного
             </RadioChip>
-            <RadioChip full active={a.highGlucoseHistory === "no"} onClick={() => update({ highGlucoseHistory: "no" })}>
-              Нет
+            <RadioChip full active={a.glucoseStatus === "prediabetes"} onClick={() => update({ glucoseStatus: "prediabetes" })}>
+              Повышенный сахар крови или предиабет
             </RadioChip>
-            <RadioChip full active={a.highGlucoseHistory === "unknown"} onClick={() => update({ highGlucoseHistory: "unknown" })}>
+            <RadioChip full active={a.glucoseStatus === "diabetes"} onClick={() => update({ glucoseStatus: "diabetes" })}>
+              Сахарный диабет
+            </RadioChip>
+            <RadioChip full active={a.glucoseStatus === "unknown"} onClick={() => update({ glucoseStatus: "unknown" })}>
               Не знаю
             </RadioChip>
           </div>
         </FieldBlock>
+
 
         <FieldBlock
           label="Есть ли у Ваших родственников сахарный диабет 1 или 2 типа?"
@@ -1070,8 +1120,6 @@ function ScreenLiver({
 }) {
   const needsMenopause = a.sex === "female";
   const valid =
-    !!a.diabetes &&
-    !!a.dyslipidemia &&
     !!a.alcohol &&
     (!needsMenopause || !!a.menopause);
 
@@ -1085,27 +1133,12 @@ function ScreenLiver({
           <>
             Расчёт по шкале{" "}
             <span className="text-foreground font-medium">NAFLD Simple Score</span>.
-            Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
+            Возраст, пол, ИМТ, окружность талии, данные о диабете и холестерине уже известны — повторно не спрашиваем.
           </>
         }
       />
 
       <div className="space-y-6">
-        <FieldBlock label="Диагностировали ли Вам сахарный диабет?" required>
-          <div className="grid grid-cols-3 gap-2">
-            <RadioChip full active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
-            <RadioChip full active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
-            <RadioChip full active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
-          </div>
-        </FieldBlock>
-
-        <FieldBlock label="Диагностировали ли Вам повышенный холестерин или триглицериды?" required>
-          <div className="grid grid-cols-3 gap-2">
-            <RadioChip full active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
-            <RadioChip full active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
-            <RadioChip full active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
-          </div>
-        </FieldBlock>
 
         <FieldBlock label="Как часто Вы употребляете алкоголь?" required>
           <div className="flex flex-col gap-2">
@@ -1247,20 +1280,21 @@ function ScreenEmail({
           bmi: a.bmi,
           waist: a.waist,
           smoker: a.smoker,
-          sbpChoice: a.sbpChoice,
+          hypertensionHistory: a.hypertensionHistory,
+          bpMeds: a.bpMeds,
           sbpValue: a.sbpValue,
+          cholesterolStatus: a.cholesterolStatus,
+          cholesterolValue: a.cholesterolValue,
           activity: a.activity,
           diet: a.diet,
-          bpMeds: a.bpMeds,
-          highGlucoseHistory: a.highGlucoseHistory,
+          glucoseStatus: a.glucoseStatus,
           familyDiabetes: a.familyDiabetes,
-          diabetes: a.diabetes,
-          dyslipidemia: a.dyslipidemia,
           alcohol: a.alcohol,
           menopause: a.menopause,
           sleepDuration: a.sleepDuration,
           sleepDifficulty: a.sleepDifficulty,
           sleepQuality: a.sleepQuality,
+          derived: deriveFacts(a),
         },
         heart_result: heart,
         findrisc_result: findrisc,
