@@ -285,12 +285,13 @@ function computeFindrisc(a: QuizAnswers): FindriscResult | null {
     typeof a.age !== "number" ||
     !a.activity ||
     !a.diet ||
-    !a.bpMeds ||
-    !a.highGlucoseHistory ||
+    !a.hypertensionHistory ||
+    !a.glucoseStatus ||
     !a.familyDiabetes
   ) {
     return null;
   }
+  const facts = deriveFacts(a);
 
   // Age
   let agePoints = 0;
