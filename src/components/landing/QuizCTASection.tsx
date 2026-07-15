@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Activity, Droplets, Timer, Stethoscope, ShieldCheck } from "lucide-react";
+import { HealthRiskQuizModal } from "./HealthRiskQuizModal";
 
 const statusColors = {
   heart: {
@@ -63,6 +64,7 @@ const systemCards = [
 ];
 
 export function QuizCTASection() {
+  const [open, setOpen] = useState(false);
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
       {/* Background layers */}
@@ -105,14 +107,12 @@ export function QuizCTASection() {
 
                     <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                       <Button
-                        asChild
+                        onClick={() => setOpen(true)}
                         size="lg"
                         className="w-full sm:w-auto text-lg px-10 py-7 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
                       >
-                        <Link to="/quiz">
-                          Пройти тест
-                          <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                        Пройти тест
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
 
@@ -183,6 +183,7 @@ export function QuizCTASection() {
           </div>
         </div>
       </div>
+      <HealthRiskQuizModal open={open} onOpenChange={setOpen} />
     </section>
   );
 }
