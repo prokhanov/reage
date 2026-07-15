@@ -33,6 +33,7 @@ const Index = () => {
         />
         <CycleInfographicBlock />
         <HowItWorksBlock />
+        <QuizCTASection />
         <WhyCheckupsFail />
         <ConsultationCtaBlock />
         <ComparisonSection />
