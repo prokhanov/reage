@@ -1898,6 +1898,7 @@ function BigChoice({
   );
 }
 
+/**
  * Number field that actually lets the user type. Keeps a local string buffer
  * so partially-typed values like "1" (before "18") aren't wiped out. Commits
  * to the parent as a number only when the value is a valid finite number; on
