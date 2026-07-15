@@ -1120,8 +1120,6 @@ function ScreenLiver({
 }) {
   const needsMenopause = a.sex === "female";
   const valid =
-    !!a.diabetes &&
-    !!a.dyslipidemia &&
     !!a.alcohol &&
     (!needsMenopause || !!a.menopause);
 
@@ -1135,27 +1133,12 @@ function ScreenLiver({
           <>
             Расчёт по шкале{" "}
             <span className="text-foreground font-medium">NAFLD Simple Score</span>.
-            Возраст, пол, ИМТ, окружность талии и уровень активности уже известны.
+            Возраст, пол, ИМТ, окружность талии, данные о диабете и холестерине уже известны — повторно не спрашиваем.
           </>
         }
       />
 
       <div className="space-y-6">
-        <FieldBlock label="Диагностировали ли Вам сахарный диабет?" required>
-          <div className="grid grid-cols-3 gap-2">
-            <RadioChip full active={a.diabetes === "yes"} onClick={() => update({ diabetes: "yes" })}>Да</RadioChip>
-            <RadioChip full active={a.diabetes === "no"} onClick={() => update({ diabetes: "no" })}>Нет</RadioChip>
-            <RadioChip full active={a.diabetes === "unknown"} onClick={() => update({ diabetes: "unknown" })}>Не знаю</RadioChip>
-          </div>
-        </FieldBlock>
-
-        <FieldBlock label="Диагностировали ли Вам повышенный холестерин или триглицериды?" required>
-          <div className="grid grid-cols-3 gap-2">
-            <RadioChip full active={a.dyslipidemia === "yes"} onClick={() => update({ dyslipidemia: "yes" })}>Да</RadioChip>
-            <RadioChip full active={a.dyslipidemia === "no"} onClick={() => update({ dyslipidemia: "no" })}>Нет</RadioChip>
-            <RadioChip full active={a.dyslipidemia === "unknown"} onClick={() => update({ dyslipidemia: "unknown" })}>Не знаю</RadioChip>
-          </div>
-        </FieldBlock>
 
         <FieldBlock label="Как часто Вы употребляете алкоголь?" required>
           <div className="flex flex-col gap-2">
