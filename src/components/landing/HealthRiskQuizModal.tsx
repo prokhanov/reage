@@ -19,31 +19,33 @@ import {
 import { cn } from "@/lib/utils";
 
 type Sex = "male" | "female";
+type Tri = boolean | "unknown";
+type NumOrUnknown = number | "unknown";
 
 type Answers = {
   // base
   age?: number;
   sex?: Sex;
-  height?: number; // cm
-  weight?: number; // kg
-  waist?: number; // cm
+  height?: NumOrUnknown; // cm
+  weight?: NumOrUnknown; // kg
+  waist?: NumOrUnknown; // cm
   // heart
-  smoker?: boolean;
+  smoker?: Tri;
   sbpKnown?: "known" | "wasHigh" | "neverHigh" | "unknown";
   sbpValue?: number;
-  bpMeds?: boolean;
+  bpMeds?: Tri;
   cholKnown?: boolean;
   cholValue?: number; // mmol/L
   // findrisc extras
-  activity?: boolean; // 30+ min/day
-  veggiesDaily?: boolean;
-  everBpMeds?: boolean;
-  everHighGlucose?: boolean;
-  familyDiabetes?: "no" | "distant" | "close";
+  activity?: Tri; // 30+ min/day
+  veggiesDaily?: Tri;
+  everBpMeds?: Tri;
+  everHighGlucose?: Tri;
+  familyDiabetes?: "no" | "distant" | "close" | "unknown";
   // liver
-  diabetes?: boolean;
-  dyslipidemia?: boolean;
-  alcohol?: "none" | "moderate" | "often";
+  diabetes?: Tri;
+  dyslipidemia?: Tri;
+  alcohol?: "none" | "moderate" | "often" | "unknown";
   menopause?: "yes" | "no" | "na";
   // sleep
   sleepHours?: "<5" | "5-6" | "7-8" | "8+";
@@ -53,6 +55,13 @@ type Answers = {
   email?: string;
   consent?: boolean;
 };
+
+// Return numeric value if user provided one, otherwise null (unknown/missing).
+function num(v: NumOrUnknown | undefined): number | null {
+  return typeof v === "number" ? v : null;
+}
+const isTrue = (t: Tri | undefined) => t === true;
+const isFalse = (t: Tri | undefined) => t === false;
 
 type Props = {
   open: boolean;
@@ -64,9 +73,11 @@ const QUIZ_STEPS = 6; // screens 2..7 with progress bar
 // ==== Scoring helpers ====
 
 function bmi(a: Answers): number | null {
-  if (!a.height || !a.weight) return null;
-  const m = a.height / 100;
-  return a.weight / (m * m);
+  const h = num(a.height);
+  const w = num(a.weight);
+  if (!h || !w) return null;
+  const m = h / 100;
+  return w / (m * m);
 }
 
 function medianCholesterol(a: Answers): number {
@@ -99,8 +110,8 @@ function ascvdCategory(a: Answers): {
       ? 115
       : 125;
   const chol = a.cholKnown ? a.cholValue ?? medianCholesterol(a) : medianCholesterol(a);
-  const smoker = !!a.smoker;
-  const meds = !!a.bpMeds;
+  const smoker = isTrue(a.smoker);
+  const meds = isTrue(a.bpMeds);
 
   let s = 0;
   const top: string[] = [];
@@ -151,18 +162,20 @@ function findriscScore(a: Answers): {
   s += bmiPts;
   if (bmiPts) top.push({ k: "ИМТ", v: bmiPts });
 
-  const w = a.waist ?? 0;
+  const w = num(a.waist);
   const waistPts =
-    a.sex === "male"
+    w == null
+      ? 0
+      : a.sex === "male"
       ? w > 102 ? 4 : w >= 94 ? 3 : 0
       : w > 88 ? 4 : w >= 80 ? 3 : 0;
   s += waistPts;
   if (waistPts) top.push({ k: "окружность талии", v: waistPts });
 
-  if (a.activity === false) { s += 2; top.push({ k: "низкая физическая активность", v: 2 }); }
-  if (a.veggiesDaily === false) { s += 1; top.push({ k: "мало овощей и фруктов", v: 1 }); }
-  if (a.everBpMeds) { s += 2; top.push({ k: "препараты от давления в анамнезе", v: 2 }); }
-  if (a.everHighGlucose) { s += 5; top.push({ k: "повышенный сахар в анамнезе", v: 5 }); }
+  if (isFalse(a.activity)) { s += 2; top.push({ k: "низкая физическая активность", v: 2 }); }
+  if (isFalse(a.veggiesDaily)) { s += 1; top.push({ k: "мало овощей и фруктов", v: 1 }); }
+  if (isTrue(a.everBpMeds)) { s += 2; top.push({ k: "препараты от давления в анамнезе", v: 2 }); }
+  if (isTrue(a.everHighGlucose)) { s += 5; top.push({ k: "повышенный сахар в анамнезе", v: 5 }); }
   if (a.familyDiabetes === "distant") { s += 3; top.push({ k: "диабет у дальних родственников", v: 3 }); }
   if (a.familyDiabetes === "close") { s += 5; top.push({ k: "диабет у близких родственников", v: 5 }); }
 
@@ -189,16 +202,16 @@ function nafldScore(a: Answers): { score: number; label: string; top: string[] }
   if (b >= 30) { s += 3; top.push({ k: "ИМТ ≥ 30", v: 3 }); }
   else if (b >= 25) { s += 1; }
 
-  const w = a.waist ?? 0;
+  const w = num(a.waist);
   const waistFlag =
-    a.sex === "male" ? w > 102 : w > 88;
+    w == null ? false : a.sex === "male" ? w > 102 : w > 88;
   if (waistFlag) { s += 2; top.push({ k: "окружность талии", v: 2 }); }
 
-  if (a.diabetes) { s += 3; top.push({ k: "диабет в анамнезе", v: 3 }); }
-  if (a.dyslipidemia) { s += 2; top.push({ k: "повышенный холестерин/триглицериды", v: 2 }); }
+  if (isTrue(a.diabetes)) { s += 3; top.push({ k: "диабет в анамнезе", v: 3 }); }
+  if (isTrue(a.dyslipidemia)) { s += 2; top.push({ k: "повышенный холестерин/триглицериды", v: 2 }); }
   if (a.alcohol === "often") { s += 2; top.push({ k: "частое употребление алкоголя", v: 2 }); }
   else if (a.alcohol === "moderate") { s += 1; }
-  if (a.activity === false) { s += 1; }
+  if (isFalse(a.activity)) { s += 1; }
   if (a.sex === "female" && a.menopause === "yes") { s += 1; }
 
   const label = s >= 8 ? "высокая вероятность повышенной нагрузки на печень" : "низкая вероятность повышенной нагрузки на печень";
@@ -338,31 +351,34 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
   };
 
   // Validation per step
+  const validMeasure = (v: NumOrUnknown | undefined, min: number, max: number) =>
+    v === "unknown" || (typeof v === "number" && v >= min && v <= max);
+
   const baseValid =
     !!a.age && a.age >= 18 && a.age <= 90 &&
     !!a.sex &&
-    !!a.height && a.height >= 140 && a.height <= 220 &&
-    !!a.weight && a.weight >= 40 && a.weight <= 200 &&
-    !!a.waist && a.waist >= 50 && a.waist <= 150;
+    validMeasure(a.height, 140, 220) && a.height !== undefined &&
+    validMeasure(a.weight, 40, 200) && a.weight !== undefined &&
+    validMeasure(a.waist, 50, 150) && a.waist !== undefined;
 
   const heartValid =
-    typeof a.smoker === "boolean" &&
+    a.smoker !== undefined &&
     !!a.sbpKnown &&
     (a.sbpKnown !== "known" || (!!a.sbpValue && a.sbpValue >= 80 && a.sbpValue <= 240)) &&
-    typeof a.bpMeds === "boolean" &&
+    a.bpMeds !== undefined &&
     typeof a.cholKnown === "boolean" &&
     (a.cholKnown === false || (!!a.cholValue && a.cholValue >= 2 && a.cholValue <= 15));
 
   const metabValid =
-    typeof a.activity === "boolean" &&
-    typeof a.veggiesDaily === "boolean" &&
-    typeof a.everBpMeds === "boolean" &&
-    typeof a.everHighGlucose === "boolean" &&
+    a.activity !== undefined &&
+    a.veggiesDaily !== undefined &&
+    a.everBpMeds !== undefined &&
+    a.everHighGlucose !== undefined &&
     !!a.familyDiabetes;
 
   const liverValid =
-    typeof a.diabetes === "boolean" &&
-    typeof a.dyslipidemia === "boolean" &&
+    a.diabetes !== undefined &&
+    a.dyslipidemia !== undefined &&
     !!a.alcohol &&
     (a.sex === "male" || !!a.menopause);
 
@@ -401,27 +417,24 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                     <Chip active={a.sex === "female"} onClick={() => update({ sex: "female" })}>Женский</Chip>
                   </div>
                 </Field>
-                <Field label="Рост, см" hint="140–220">
-                  <Input
-                    type="number"
-                    value={a.height ?? ""}
-                    onChange={(e) => update({ height: Number(e.target.value) || undefined })}
-                  />
-                </Field>
-                <Field label="Вес, кг" hint="40–200">
-                  <Input
-                    type="number"
-                    value={a.weight ?? ""}
-                    onChange={(e) => update({ weight: Number(e.target.value) || undefined })}
-                  />
-                </Field>
-                <Field label="Окружность талии, см" hint="измерь на уровне пупка">
-                  <Input
-                    type="number"
-                    value={a.waist ?? ""}
-                    onChange={(e) => update({ waist: Number(e.target.value) || undefined })}
-                  />
-                </Field>
+                <MeasureField
+                  label="Рост, см"
+                  hint="140–220"
+                  value={a.height}
+                  onChange={(v) => update({ height: v })}
+                />
+                <MeasureField
+                  label="Вес, кг"
+                  hint="40–200"
+                  value={a.weight}
+                  onChange={(v) => update({ weight: v })}
+                />
+                <MeasureField
+                  label="Окружность талии, см"
+                  hint="измерь на уровне пупка"
+                  value={a.waist}
+                  onChange={(v) => update({ waist: v })}
+                />
                 {bmi(a) && (
                   <div className="flex items-end">
                     <div className="text-sm text-muted-foreground">
@@ -507,6 +520,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                   <Chip active={a.familyDiabetes === "no"} onClick={() => update({ familyDiabetes: "no" })}>Нет</Chip>
                   <Chip active={a.familyDiabetes === "distant"} onClick={() => update({ familyDiabetes: "distant" })}>У дальних родственников</Chip>
                   <Chip active={a.familyDiabetes === "close"} onClick={() => update({ familyDiabetes: "close" })}>У близких родственников</Chip>
+                  <Chip active={a.familyDiabetes === "unknown"} onClick={() => update({ familyDiabetes: "unknown" })}>Не знаю</Chip>
                 </div>
               </Field>
             </StepShell>
@@ -529,6 +543,7 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
                   <Chip active={a.alcohol === "none"} onClick={() => update({ alcohol: "none" })}>Не пью</Chip>
                   <Chip active={a.alcohol === "moderate"} onClick={() => update({ alcohol: "moderate" })}>Умеренно</Chip>
                   <Chip active={a.alcohol === "often"} onClick={() => update({ alcohol: "often" })}>Часто</Chip>
+                  <Chip active={a.alcohol === "unknown"} onClick={() => update({ alcohol: "unknown" })}>Не знаю</Chip>
                 </div>
               </Field>
               {a.sex === "female" && (
@@ -655,18 +670,60 @@ function YesNo({
   onChange,
 }: {
   label: string;
-  value: boolean | undefined;
-  onChange: (v: boolean) => void;
+  value: Tri | undefined;
+  onChange: (v: Tri) => void;
 }) {
   return (
     <Field label={label}>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Chip active={value === true} onClick={() => onChange(true)}>Да</Chip>
         <Chip active={value === false} onClick={() => onChange(false)}>Нет</Chip>
+        <Chip active={value === "unknown"} onClick={() => onChange("unknown")}>Не знаю</Chip>
       </div>
     </Field>
   );
 }
+
+function MeasureField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: NumOrUnknown | undefined;
+  onChange: (v: NumOrUnknown | undefined) => void;
+}) {
+  const isUnknown = value === "unknown";
+  return (
+    <Field label={label} hint={hint}>
+      <Input
+        type="number"
+        disabled={isUnknown}
+        placeholder={isUnknown ? "не знаю" : undefined}
+        value={typeof value === "number" ? value : ""}
+        onChange={(e) => onChange(Number(e.target.value) || undefined)}
+      />
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => onChange(isUnknown ? undefined : "unknown")}
+          className={cn(
+            "text-xs px-2.5 py-1 rounded-md border transition-colors",
+            isUnknown
+              ? "bg-primary/15 border-primary/30 text-primary"
+              : "border-border/60 text-muted-foreground hover:text-foreground hover:border-border"
+          )}
+        >
+          {isUnknown ? "✓ не знаю" : "не знаю"}
+        </button>
+      </div>
+    </Field>
+  );
+}
+
+
 
 function HookScreen({ onStart }: { onStart: () => void }) {
   return (
