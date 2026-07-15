@@ -124,6 +124,20 @@ const NAME_ALIASES: Record<string, string> = {
   "leukocyte esterase": "LEU-EST-U",
   "реакция на эритроциты": "ERY-RXN-U",
   "эритроциты качественно": "ERY-RXN-U",
+  // CRP / hs-CRP: лаборатории часто печатают расширенное название метода
+  "с реактивный белок": "hs-CRP",
+  "с реактивный белок crp": "hs-CRP",
+  "с реактивный белок crp ультрачувствительный метод": "hs-CRP",
+  "с реактивный белок ультрачувствительный метод": "hs-CRP",
+  "срб": "hs-CRP",
+  "вч срб": "hs-CRP",
+  "ультрачувствительный с реактивный белок": "hs-CRP",
+  "crp": "hs-CRP",
+  "hs crp": "hs-CRP",
+  "high sensitivity crp": "hs-CRP",
+  "c reactive protein": "hs-CRP",
+  "c reactive protein crp": "hs-CRP",
+  "c reactive protein high sensitivity": "hs-CRP",
 };
 
 // Fuzzy fallback: keyword-based mapping used if exact alias lookup fails.
@@ -135,6 +149,9 @@ const NAME_KEYWORD_ALIASES: Array<{ keywords: string[]; code: string }> = [
   { keywords: ["реакция", "гемоглобин"], code: "HB-U" },
   { keywords: ["реакция", "лейкоцитарн"], code: "LEU-EST-U" },
   { keywords: ["реакция", "эритроцит"], code: "ERY-RXN-U" },
+  { keywords: ["реактивный", "белок"], code: "hs-CRP" },
+  { keywords: ["crp"], code: "hs-CRP" },
+  { keywords: ["срб"], code: "hs-CRP" },
 ];
 
 
