@@ -168,7 +168,7 @@ function DashboardWidgets() {
         width={1600}
         height={1000}
         className="w-full h-auto rounded-xl block"
-        loading="lazy"
+        loading="eager"
         decoding="async"
       />
     </div>
