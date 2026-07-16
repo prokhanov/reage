@@ -158,6 +158,7 @@ export function AnalysisBookingBanner() {
       const active =
         find("report_pending") ||
         find("collected") ||
+        find("application_submitted") ||
         find("scheduled", true) ||
         find("no_answer") ||
         find("waiting_call") ||
