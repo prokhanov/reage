@@ -163,6 +163,7 @@ Deno.serve(async (req) => {
               appointment_date: '15 июня 2026',
               appointment_time: '09:30',
               clinic_address: 'г. Москва, ул. Примерная, д. 1',
+              request_number: 'ЛК-000123',
               ...(body.vars || {}),
             })
       : (body.vars || {})
