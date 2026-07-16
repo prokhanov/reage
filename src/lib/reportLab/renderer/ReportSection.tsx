@@ -86,30 +86,28 @@ export function ReportSection({
 
         if (!bio) {
           return (
-            <>
+            <div key={i}>
               {insertBefore}
               <div
-                key={i}
                 className="rl-prose"
                 style={{ opacity: 0.5, fontSize: "9pt" }}
               >
                 [биомаркер «{b.code}» не найден в снапшоте]
               </div>
-            </>
+            </div>
           );
         }
         return (
-          <>
+          <div key={i}>
             {insertBefore}
             <BiomarkerCard
-              key={i}
               biomarker={bio}
               commentary={b.commentary}
               gender={gender}
               age={age}
               editableId={editableId}
             />
-          </>
+          </div>
         );
       })}
 
