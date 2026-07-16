@@ -182,6 +182,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   const [creating, setCreating] = useState(false);
   const [sendDialog, setSendDialog] = useState<Booking | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [requestNumberFor, setRequestNumberFor] = useState<Booking | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["patient-bookings", userId],
