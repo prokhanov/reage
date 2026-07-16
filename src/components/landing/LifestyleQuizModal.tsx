@@ -104,8 +104,6 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     return computeResult(answers, demo as Demography);
   }, [step, answers, demo, demoComplete]);
 
-  const progressValue = Math.min(100, ((step + (step === 7 ? 0 : 0)) / TOTAL_INPUT_STEPS) * 100);
-
   const goNext = () => setStep((s) => Math.min(7, s + 1));
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
