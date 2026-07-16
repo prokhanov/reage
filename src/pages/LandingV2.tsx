@@ -4,6 +4,7 @@ import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 import { CycleInfographicBlock } from "@/components/landing/v2/CycleInfographicBlock";
 import { ConsultationCtaBlock } from "@/components/landing/v2/ConsultationCtaBlock";
 import { QuizCTASection } from "@/components/landing/QuizCTASection";
+import { LifestyleQuizCTASection } from "@/components/landing/LifestyleQuizCTASection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import {
   ReportCollageBlock,
@@ -139,6 +140,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <QuizCTASection />
+        </Block>
+        <Block>
+          <LifestyleQuizCTASection />
         </Block>
         <Block>
           <ReportCollageBlock editMode={editOn} />
