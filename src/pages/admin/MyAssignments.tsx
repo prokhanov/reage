@@ -65,6 +65,7 @@ interface BookingData {
 
 const statusLabels: Record<BookingStatus, string> = {
   scheduled: bookingStatusLabels.scheduled,
+  application_submitted: bookingStatusLabels.application_submitted,
   collected: bookingStatusLabels.collected,
   report_pending: bookingStatusLabels.report_pending,
   report_ready: bookingStatusLabels.report_ready,
@@ -72,6 +73,7 @@ const statusLabels: Record<BookingStatus, string> = {
 
 const statusColors: Record<BookingStatus, string> = {
   scheduled: bookingStatusColors.scheduled,
+  application_submitted: bookingStatusColors.application_submitted,
   collected: bookingStatusColors.collected,
   report_pending: bookingStatusColors.report_pending,
   report_ready: bookingStatusColors.report_ready,
