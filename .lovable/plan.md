@@ -1,50 +1,43 @@
-# Фикс: 15-секундная задержка блока «Полный контроль…» + аудит остальных
+Две проблемы из AI-agent аудита, обе быстро чинятся в коде.
 
-## Что произошло
+## 1. Кнопки без доступного текста (WCAG button-name)
 
-Блок `AppFeaturesSection` («Полный контроль в вашем личном кабинете») грузился ~15 сек с пустым местом. Причины (по убыванию влияния):
+**Где:** `src/components/landing/BiomarkersDeepDiveSection.tsx`
 
-1. **`vite-imagetools` трансформит картинки on-demand в dev-режиме.** Первый запрос к `?format=avif` PNG весом 554 КБ прогоняется через `sharp` → холодная генерация 3-10 сек. В prod-билде это уже готовые файлы, но в preview / dev пользователь ловит этот таймаут.
-2. **Все секции ниже сгиба обёрнуты в один общий `<Suspense>` в `Index.tsx`.** Если один чанк тормозит, все соседние секции скрыты за общим fallback → визуально «пусто».
-3. **`loading="lazy"` на главной картинке блока.** Изображение — фактический LCP этого экрана; ленивая загрузка триггерится только при появлении в viewport, что добавляет ещё паузу.
-4. **`ReportCollageBlock` использует неоптимизированные PNG:** `report-card-2.png` 236 КБ, `-3` 136 КБ, `-4` 146 КБ — суммарно ~518 КБ мимо AVIF/WebP.
-5. **Warning в консоли:** React не распознаёт `fetchPriority` на `<img>` (нужен lowercase `fetchpriority`).
+Табы систем организма (строки 199-219) на мобильном показывают только иконку — текст `{c.name.split(" ")[0]}` скрыт классом `hidden md:inline`. У кнопки нет ни видимого текста, ни `aria-label` → скринридер и AI-агент читают её как безымянную.
 
-## Что сделать
+Соседние icon-only кнопки в этой же секции (`prev`/`next` стрелки, строки 225-230 и парная кнопка ниже) тоже без `aria-label`.
 
-### 1. Отключить `vite-imagetools` в dev-режиме
-`vite.config.ts` — включать плагин только при `command === 'build'`. В dev картинки идут напрямую (Vite всё равно их кеширует), холодных `sharp`-трансформов больше нет. Prod-эффект не меняется.
+**Фикс:**
+- добавить `aria-label={c.name}` на кнопку-таб;
+- добавить `aria-label="Предыдущая система"` / `aria-label="Следующая система"` на стрелки.
 
-### 2. Разбить один `<Suspense>` на несколько в `src/pages/Index.tsx`
-Каждая lazy-секция получает свой `<Suspense fallback={<SectionFallback/>}>`. Медленный чанк одной секции не блокирует показ соседних. Fallback остаётся тем же (`min-h-[320px]` — CLS ноль).
+Заодно быстро проверю остальные icon-only кнопки на лендинге (`rg "size=\"icon\"" + Button без текста`) — если ещё где-то нет `aria-label`, добавлю в том же проходе.
 
-### 3. Убрать `loading="lazy"` с основной картинки `AppFeaturesSection`
-`src/components/landing/AppFeaturesSection.tsx:171` — заменить на `loading="eager" decoding="async"`. Картинка — LCP блока, ленивая загрузка тут вредит. Остальные табы (analyses/reports/state/assistant/recommendations) — DOM-виджеты без картинок, ничего не меняется.
+## 2. `public/llms.txt` не содержит ссылок
 
-### 4. Оптимизировать `ReportCollageBlock`
-`src/components/landing/v2/ReportCollageBlock.tsx` — обернуть 4 `report-card-*.png` в `SmartPicture` с AVIF+WebP. Экономия ~400 КБ. Визуально идентично.
+Сканер ожидает формат [llmstxt.org](https://llmstxt.org): секции `## Section` со списком markdown-ссылок `- [Title](url): description`. Сейчас в файле ссылки написаны как plain-текст (`- https://reage.life/how-it-works`), парсер не распознаёт их как ссылки.
 
-### 5. Пофиксить warning `fetchPriority`
-В `SmartPicture` — передавать атрибут как lowercase через объект-спред (`{...({ fetchpriority: ... } as any)}`), убрать проп `fetchPriority` из типов. React 18.x до 18.3 не распознаёт camelCase-вариант. Функционально работает так же — браузер видит правильный атрибут.
+Переписываю `## Основные страницы` в правильный формат:
 
-## Что НЕ меняется
+```md
+## Основные страницы
 
-- Никакого сервера, БД, nginx, edge-функций.
-- Все картинки продолжают идти через Vite (никаких `.asset.json`).
-- Визуально пиксель-в-пиксель, только скорость.
+- [Главная](https://reage.life/): описание сервиса ReAge и ключевых возможностей.
+- [Как это работает](https://reage.life/how-it-works): 4 шага чекапа и формирования персонального отчёта.
+- [Тарифы](https://reage.life/pricing): годовые программы мониторинга здоровья.
+- [FAQ](https://reage.life/faq): ответы на частые вопросы о сервисе.
+- [Биомаркеры](https://reage.life/biomarkers): 100+ биомаркеров и 5 систем организма.
+- [Контакты](https://reage.life/contact): связь с командой ReAge.
+```
 
-## Ожидаемый эффект
+Остальные секции (описание, направления, принципы) оставляю как есть — они и должны быть свободным markdown-текстом по спецификации.
 
-- Dev/preview: холодный запуск блока `AppFeaturesSection` — из ~15 сек в <1 сек (нет `sharp`-трансформа).
-- Prod: AppFeaturesSection LCP-картинка стартует сразу при парсинге чанка, а не при `IntersectionObserver`.
-- Медленный чанк одной секции больше не «замораживает» соседние.
-- ReportCollage: −400 КБ трафика.
-- Чистая консоль без warning про `fetchPriority`.
+Заодно исправляю последнюю строку файла — сейчас `https://reage.life/---` (нет переноса перед `---` в heredoc).
 
-## Порядок коммитов (независимо откатываемы)
+## Что НЕ трогаю
 
-1. `perf(vite): imagetools only in build mode`
-2. `perf(landing): per-section Suspense`
-3. `perf(landing): eager LCP image in AppFeaturesSection`
-4. `perf(images): AVIF/WebP for ReportCollage cards`
-5. `fix(SmartPicture): lowercase fetchpriority attr`
+- Сервер, nginx, БД, edge-функции — только фронт-код (`.tsx` + `public/llms.txt`).
+- Дизайн и логику кнопок — только добавляю `aria-label`.
+
+Всё легко откатывается.
