@@ -372,6 +372,22 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="labquest_request_number">
+              Номер заявки ЛабКвест{status === "application_submitted" ? " *" : ""}
+            </Label>
+            <Input
+              id="labquest_request_number"
+              value={requestNumber}
+              onChange={(e) => setRequestNumber(e.target.value)}
+              placeholder="например, ЛК-000123"
+              maxLength={64}
+            />
+            <p className="text-xs text-muted-foreground">
+              Обязателен для статуса «Заявка оформлена». Попадёт в SMS/Email пациенту.
+            </p>
+          </div>
         </div>
 
         <DialogFooter>
