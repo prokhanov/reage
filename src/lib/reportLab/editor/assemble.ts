@@ -1,4 +1,5 @@
 import type { LabReport, ReportRecommendationRow } from "../types";
+import { buildBiomarkerIndex, parseCategory } from "../parser";
 
 /**
  * Собирает текст рекомендации обратно из draft-блоков.
@@ -98,6 +99,7 @@ function splitRecommendation(text: string): Segment[] {
 export function assembleRecommendationText(
   rec: ReportRecommendationRow,
   drafts: Record<string, string>,
+  report?: LabReport,
 ): string {
   const originalText = rec.text || "";
   const idPrefix = `rec:${rec.id}#`;
@@ -119,6 +121,16 @@ export function assembleRecommendationText(
     }
     return bodyDraft;
   }
+
+  // Есть ли новые «insert»-блоки (текст, добавленный между биомаркерами)?
+  const hasInsertDrafts = Object.keys(drafts).some(
+    (k) => k.startsWith(idPrefix) && /#insert:\d+$/.test(k),
+  );
+  if (hasInsertDrafts && report) {
+    const rebuilt = assembleFromParsedBlocks(rec, drafts, report, idPrefix);
+    if (rebuilt !== null) return rebuilt;
+  }
+
 
   const segments = splitRecommendation(originalText);
   const parts: string[] = [];
@@ -158,16 +170,86 @@ export function assembleRecommendationText(
   return parts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+/**
+ * Пересобирает текст рекомендации из parseCategory-блоков, вплетая
+ * пользовательские «insert:N» drafts перед N-м биомаркером и после
+ * последнего. Возвращает `null`, если parseCategory не смог распознать
+ * структуру (в этом случае fallback — исходная логика на splitRecommendation).
+ */
+function assembleFromParsedBlocks(
+  rec: ReportRecommendationRow,
+  drafts: Record<string, string>,
+  report: LabReport,
+  idPrefix: string,
+): string | null {
+  const originalText = rec.text || "";
+  const biomarkerIndex = buildBiomarkerIndex(report);
+  const parsed = parseCategory(rec.type, originalText, biomarkerIndex);
+  if (!parsed.blocks.length) return null;
+
+  const parts: string[] = [];
+  const firstLine = originalText.split("\n")[0]?.trim() || "";
+  const isHeader =
+    /^#{1,3}\s/.test(firstLine) ||
+    firstLine.toLowerCase() === rec.type.toLowerCase();
+  if (isHeader) parts.push(firstLine);
+
+  let proseIdx = 0;
+  let bioIdx = 0;
+
+  const pushInsertIfAny = (idx: number) => {
+    const key = `${idPrefix}insert:${idx}`;
+    const draft = drafts[key];
+    if (draft !== undefined) {
+      const clean = draft.trim();
+      if (clean) parts.push(clean);
+    }
+  };
+
+  for (const block of parsed.blocks) {
+    if (block.kind === "prose") {
+      const key = `${idPrefix}prose:${proseIdx}`;
+      const draft = drafts[key];
+      let content: string;
+      if (draft !== undefined) {
+        content = draft.trim();
+      } else {
+        content = block.markdown;
+        if (isHeader && parts.length === 1 && content.startsWith(firstLine)) {
+          content = content.slice(firstLine.length).trim();
+        }
+      }
+      if (content) parts.push(content);
+      proseIdx += 1;
+    } else if (block.kind === "biomarker") {
+      pushInsertIfAny(bioIdx);
+      const key = `${idPrefix}bio:${block.code}`;
+      const draft = drafts[key];
+      const inner =
+        draft !== undefined ? draft.trim() : (block.commentary || "").trim();
+      parts.push(
+        `<!-- anchor:biomarker ${block.code} -->\n${inner}\n<!-- anchor:biomarker_end -->`,
+      );
+      bioIdx += 1;
+    }
+  }
+  // Слот после последнего биомаркера
+  pushInsertIfAny(bioIdx);
+
+  return parts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export function collectDirtyRecommendations(
   report: LabReport,
   drafts: Record<string, string>,
 ): Array<{ id: string; text: string }> {
   const changed: Array<{ id: string; text: string }> = [];
   for (const rec of report.recommendations) {
-    const next = assembleRecommendationText(rec, drafts);
+    const next = assembleRecommendationText(rec, drafts, report);
     if (next !== (rec.text || "")) {
       changed.push({ id: rec.id, text: next });
     }
   }
   return changed;
 }
+
