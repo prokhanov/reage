@@ -31,6 +31,7 @@ type SmsTemplate = {
 const TYPE_LABELS: Record<string, string> = {
   otp: "Код подтверждения",
   booking_scheduled: "Запись назначена",
+  booking_application_submitted: "Заявка оформлена",
   booking_collected: "Анализ в работе",
   booking_report_pending: "Отчёт в работе",
   booking_report_ready: "Отчёт загружен",
@@ -40,6 +41,7 @@ const TYPE_LABELS: Record<string, string> = {
 // Stable ordering inside SMS templates tab — group booking_* together.
 const TYPE_ORDER: Record<string, number> = {
   booking_scheduled: 10,
+  booking_application_submitted: 10.5,
   booking_collected: 11,
   booking_report_pending: 12,
   booking_report_ready: 13,
