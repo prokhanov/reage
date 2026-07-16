@@ -278,8 +278,17 @@ export function AnalysisBookingBanner() {
     subtitle = subtitle
       .replace(/\{date\}/g, dateStr)
       .replace(/\{time\}/g, bookingInfo.booking_time || "")
-      .replace(/\{address\}/g, bookingInfo.address || "")
-      .replace(/\{request_number\}/g, bookingInfo.labquest_request_number || "—");
+      .replace(/\{address\}/g, bookingInfo.address || "");
+
+    // Render the request number on a separate line below the subtitle.
+    // Remove any inline placeholder from the subtitle text to avoid duplication.
+    if (bookingInfo.labquest_request_number) {
+      subtitle = subtitle
+        .replace(/\s*•\s*Номер заявки:\s*\{request_number\}/g, "")
+        .replace(/\s*Номер заявки:\s*\{request_number\}/g, "")
+        .replace(/\{request_number\}/g, "");
+      subtitle = subtitle.replace(/\s*•\s*$/, "").trim();
+    }
   }
 
   // Statuses where we show the "Инструкция" button instead of a scheduling action
