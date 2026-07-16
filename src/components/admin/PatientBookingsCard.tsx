@@ -553,6 +553,8 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           currentTime={editing.booking_time}
           currentAddress={editing.address}
           currentAddressComment={editing.address_comment || ""}
+          currentRequestNumber={editing.labquest_request_number || ""}
+          currentStatus={editing.status}
           onClose={() => setEditing(null)}
           onSuccess={invalidateAll}
         />
