@@ -230,24 +230,50 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   };
 
   const statusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+      requestNumber,
+    }: {
+      id: string;
+      status: BookingStatus;
+      requestNumber?: string;
+    }) => {
+      const update: Record<string, unknown> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+      if (typeof requestNumber === "string") {
+        update.labquest_request_number = requestNumber.trim() || null;
+      }
       const { error } = await supabase
         .from("analysis_bookings")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(update as any)
         .eq("id", id);
       if (error) throw error;
     },
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, status, requestNumber }) => {
       await qc.cancelQueries({ queryKey: ["patient-bookings", userId] });
       const previous = qc.getQueryData<Booking[]>(["patient-bookings", userId]);
       qc.setQueryData<Booking[]>(["patient-bookings", userId], (old) =>
-        (old || []).map((b) => (b.id === id ? { ...b, status } : b))
+        (old || []).map((b) =>
+          b.id === id
+            ? {
+                ...b,
+                status,
+                labquest_request_number:
+                  typeof requestNumber === "string"
+                    ? requestNumber.trim() || null
+                    : b.labquest_request_number,
+              }
+            : b
+        )
       );
       return { previous };
     },
     onSuccess: () => {
       invalidateAll();
-      toast({ title: "Статус обновлен" });
+      toast({ title: "Статус обновлён" });
     },
     onError: (e: any, _vars, ctx) => {
       if (ctx?.previous) {
