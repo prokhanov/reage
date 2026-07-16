@@ -3106,6 +3106,10 @@ export type Database = {
           table_name: string
         }[]
       }
+      compose_lab_address: {
+        Args: { p_fallback: string; p_lab_id: string }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
