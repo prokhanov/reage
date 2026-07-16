@@ -203,6 +203,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
     !!time &&
     address.trim().length > 0 &&
     !willConflict &&
+    (status !== "application_submitted" || requestNumber.trim().length > 0) &&
     !createMutation.isPending;
 
   return (
