@@ -200,6 +200,8 @@ export function BiomarkersDeepDiveSection() {
               <button
                 key={c.id}
                 onClick={() => go(i, true)}
+                aria-label={c.name}
+                aria-pressed={active === i}
                 className={`relative px-3 md:px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0 ${
                   active === i ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 }`}
@@ -212,7 +214,7 @@ export function BiomarkersDeepDiveSection() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <c.icon className="w-4 h-4" strokeWidth={2} />
+                  <c.icon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
                   <span className="hidden md:inline">{c.name.split(" ")[0]}</span>
                 </span>
               </button>
@@ -224,15 +226,17 @@ export function BiomarkersDeepDiveSection() {
         <div className="relative max-w-6xl mx-auto">
           <button
             onClick={prev}
+            aria-label="Предыдущая система"
             className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
           </button>
           <button
             onClick={next}
+            aria-label="Следующая система"
             className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5" aria-hidden="true" />
           </button>
 
           <div className="relative grid">
@@ -288,15 +292,18 @@ export function BiomarkersDeepDiveSection() {
           <div className="flex items-center justify-center gap-3 mt-8">
             <button
               onClick={prev}
+              aria-label="Предыдущая система"
               className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </button>
             <div className="flex gap-2">
-              {biomarkerCategories.map((_, i) => (
+              {biomarkerCategories.map((c, i) => (
                 <button
                   key={i}
                   onClick={() => go(i, true)}
+                  aria-label={`Перейти к системе: ${c.name}`}
+                  aria-current={active === i ? "true" : undefined}
                   className={`transition-all duration-300 rounded-full ${
                     active === i ? "w-8 h-2 bg-primary" : "w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40"
                   }`}
@@ -305,9 +312,10 @@ export function BiomarkersDeepDiveSection() {
             </div>
             <button
               onClick={next}
+              aria-label="Следующая система"
               className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
 
