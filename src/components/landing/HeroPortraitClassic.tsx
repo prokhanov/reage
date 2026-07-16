@@ -340,7 +340,7 @@ function Artboard({ bp }: { bp: Breakpoint }) {
           alt="Пара изучает персональный отчёт ReAge на смартфоне"
           width={1600}
           height={1600}
-          fetchPriority="high"
+          fetchpriority="high"
           decoding="async"
           className="absolute animate-fade-in pointer-events-none object-contain"
           style={{
