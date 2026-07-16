@@ -148,6 +148,15 @@
   color: #f6f0e0;
   overflow: hidden;
   break-before: auto;
+  /* Обложка — единое целое. Запрещаем paged.js/принтеру дробить её:
+     из-за суб-пиксельного округления 297mm иногда «вылезала» за фрагментатор,
+     и нижняя мета уезжала на страницу 2 под белый колонтитул. */
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+.reportlab .rl-page.rl-cover > * {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
 }
 
 html, body {
