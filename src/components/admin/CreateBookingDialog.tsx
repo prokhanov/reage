@@ -40,6 +40,7 @@ type BookingStatus =
   | "waiting_call"
   | "no_answer"
   | "scheduled"
+  | "application_submitted"
   | "collected"
   | "report_pending"
   | "report_ready"
@@ -49,6 +50,7 @@ const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: "scheduled", label: "Назначен" },
   { value: "waiting_call", label: "Ожидает звонка" },
   { value: "no_answer", label: "Не дозвонились" },
+  { value: "application_submitted", label: "Заявка оформлена" },
   { value: "collected", label: "Анализ в работе" },
   { value: "report_pending", label: "Отчёт в работе" },
   { value: "report_ready", label: "Отчёт загружен" },
@@ -56,6 +58,7 @@ const statusOptions: { value: BookingStatus; label: string }[] = [
 
 const ACTIVE_STATUSES: BookingStatus[] = [
   "scheduled",
+  "application_submitted",
   "collected",
   "waiting_call",
   "no_answer",
