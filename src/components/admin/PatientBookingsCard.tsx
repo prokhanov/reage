@@ -985,3 +985,52 @@ function SendRemindersDialog({
   );
 }
 
+function RequestNumberDialog({
+  booking,
+  onClose,
+  onConfirm,
+}: {
+  booking: Booking;
+  onClose: () => void;
+  onConfirm: (requestNumber: string) => void;
+}) {
+  const [value, setValue] = useState(booking.labquest_request_number || "");
+  const trimmed = value.trim();
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-[440px]">
+        <DialogHeader>
+          <DialogTitle>Заявка ЛабКвест оформлена</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-2">
+          <Label htmlFor="labquest_request_number">Номер заявки ЛабКвест</Label>
+          <Input
+            id="labquest_request_number"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="например, ЛК-000123"
+            autoFocus
+            maxLength={64}
+          />
+          <p className="text-xs text-muted-foreground">
+            Без номера заявки статус выставить нельзя. Номер попадёт в SMS и Email пациенту
+            и в уведомление администраторам.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button
+            disabled={!trimmed}
+            onClick={() => onConfirm(trimmed)}
+          >
+            Сохранить и выставить статус
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
