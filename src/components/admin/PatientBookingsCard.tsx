@@ -587,6 +587,21 @@ export function PatientBookingsCard({ userId, patient }: Props) {
         />
       )}
 
+      {requestNumberFor && (
+        <RequestNumberDialog
+          booking={requestNumberFor}
+          onClose={() => setRequestNumberFor(null)}
+          onConfirm={(number) => {
+            statusMutation.mutate({
+              id: requestNumberFor.id,
+              status: "application_submitted",
+              requestNumber: number,
+            });
+            setRequestNumberFor(null);
+          }}
+        />
+      )}
+
       {sendDialog && (
         <SendRemindersDialog
           booking={sendDialog}
