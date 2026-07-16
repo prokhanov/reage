@@ -827,9 +827,20 @@ function SendRemindersDialog({
   const phoneChanged =
     phone.replace(/\D/g, "") !== initialPhone.replace(/\D/g, "");
 
+  const needsRequestNumber =
+    templateKey === "application_submitted" && !booking.labquest_request_number;
+
   const handleSubmit = async () => {
     if (!emailOn && !smsOn && !tgOn) {
       toast({ title: "Выберите хотя бы один канал", variant: "destructive" });
+      return;
+    }
+    if (needsRequestNumber) {
+      toast({
+        title: "Нужен номер заявки",
+        description: "Сначала выставьте статус «Заявка оформлена» и введите номер заявки ЛабКвест.",
+        variant: "destructive",
+      });
       return;
     }
     const emailNorm = email.trim().toLowerCase();
