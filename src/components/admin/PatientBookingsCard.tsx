@@ -434,6 +434,11 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                                 💬 {b.address_comment}
                               </div>
                             )}
+                            {b.labquest_request_number && (
+                              <div className="text-xs text-indigo-700 dark:text-indigo-300 mt-0.5">
+                                🔖 Заявка ЛабКвест: <span className="font-medium">{b.labquest_request_number}</span>
+                              </div>
+                            )}
                           </button>
                         </TableCell>
                         <TableCell>
