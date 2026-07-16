@@ -75,6 +75,7 @@ type BookingStatus =
   | "no_answer"
   | "not_scheduled"
   | "scheduled"
+  | "application_submitted"
   | "collected"
   | "report_pending"
   | "report_ready";
@@ -84,6 +85,7 @@ const statusLabels: Record<BookingStatus, string> = {
   no_answer: "Не дозвонились",
   not_scheduled: "Не назначен",
   scheduled: "Назначен",
+  application_submitted: "Заявка оформлена",
   collected: "Анализ в работе",
   report_pending: "Отчёт в работе",
   report_ready: "Отчёт загружен",
@@ -94,15 +96,22 @@ const statusColors: Record<BookingStatus, string> = {
   no_answer: "bg-orange-50 text-orange-700 border-orange-200",
   not_scheduled: "bg-slate-50 text-slate-700 border-slate-200",
   scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  application_submitted: "bg-indigo-50 text-indigo-700 border-indigo-200",
   collected: "bg-teal-50 text-teal-700 border-teal-200",
   report_pending: "bg-violet-50 text-violet-700 border-violet-200",
   report_ready: "bg-emerald-600 text-white border-emerald-600",
 };
 
-type TemplateKey = "scheduled" | "collected" | "report_pending" | "report_ready";
+type TemplateKey =
+  | "scheduled"
+  | "application_submitted"
+  | "collected"
+  | "report_pending"
+  | "report_ready";
 
 const TEMPLATE_LABELS: Record<TemplateKey, string> = {
   scheduled: "Запись назначена",
+  application_submitted: "Заявка оформлена",
   collected: "Анализ в работе",
   report_pending: "Отчёт в работе",
   report_ready: "Отчёт загружен",
@@ -110,6 +119,7 @@ const TEMPLATE_LABELS: Record<TemplateKey, string> = {
 
 const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -117,6 +127,7 @@ const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -124,6 +135,7 @@ const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -131,6 +143,7 @@ const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const STATUS_TO_TEMPLATE_KEY: Partial<Record<BookingStatus, TemplateKey>> = {
   scheduled: "scheduled",
+  application_submitted: "application_submitted",
   collected: "collected",
   report_pending: "report_pending",
   report_ready: "report_ready",
@@ -150,6 +163,7 @@ interface Booking {
   created_at: string;
   location_type?: "home" | "clinic" | null;
   lab_location_id?: string | null;
+  labquest_request_number?: string | null;
 }
 
 interface Props {
