@@ -5,7 +5,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Building2, Home } from "lucide-react";
+import { Building2, Home, MessageCircle } from "lucide-react";
+
+const COMPANY_PHONE = "+7 (995) 998-46-38";
+const TELEGRAM_CHAT_URL = "https://t.me/reage_life";
+const TELEGRAM_CHAT_LABEL = "@reage_life";
 
 interface AnalysisInstructionsDialogProps {
   open: boolean;
