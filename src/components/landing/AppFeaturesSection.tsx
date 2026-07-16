@@ -32,7 +32,10 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import dashboardMockV9 from "@/assets/landing-v2/dashboard-mock-light-v9.png";
+import dashboardMockV9Avif from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=avif&quality=68&url";
+import dashboardMockV9Webp from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=webp&quality=78&url";
+import dashboardMockV9 from "@/assets/landing-v2/dashboard-mock-light-v9.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 type SectionKey =
   | "dashboard"
