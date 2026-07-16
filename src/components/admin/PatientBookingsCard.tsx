@@ -665,6 +665,7 @@ function CreateBookingForPatientDialog({
   const [address, setAddress] = useState("");
   const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
+  const [requestNumber, setRequestNumber] = useState("");
 
   const createM = useMutation({
     mutationFn: async () => {
