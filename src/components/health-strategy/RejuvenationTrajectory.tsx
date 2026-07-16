@@ -87,7 +87,7 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr_320px] gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)_420px] items-start gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden relative">
         {/* ambient glow */}
@@ -205,9 +205,9 @@ export function RejuvenationTrajectory({
             </div>
           </div>
 
-          <div className="h-[220px] md:h-[240px] -mx-2">
+          <div className="h-[200px] md:h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={data} margin={{ top: 24, right: 16, left: -10, bottom: 0 }}>
+              <ComposedChart data={data} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="bioStroke" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor={PRIMARY} />
@@ -220,7 +220,7 @@ export function RejuvenationTrajectory({
                 </defs>
                 <CartesianGrid strokeDasharray="2 4" stroke={gridStroke} vertical={false} />
                 <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval={1} />
-                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={28} />
+                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={44} />
                 <Tooltip
                   cursor={{ stroke: axisColor, strokeWidth: 1, strokeDasharray: "4 4" }}
                   content={({ active, payload }) => {
