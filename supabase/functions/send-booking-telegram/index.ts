@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await admin
       .from("analysis_bookings")
-      .select("id, user_id, booking_date, booking_time, address, status, assigned_staff_id")
+      .select("id, user_id, booking_date, booking_time, address, status, assigned_staff_id, labquest_request_number")
       .eq("id", booking_id)
       .maybeSingle();
     if (!booking) return json({ error: "Booking not found" }, 404);
