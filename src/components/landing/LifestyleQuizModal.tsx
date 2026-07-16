@@ -403,10 +403,10 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button asChild size="lg" className="flex-1">
-          <Link to="/subscription">Оформить подписку</Link>
+          <Link to="/register">Оформить подписку</Link>
         </Button>
         <Button asChild size="lg" variant="outline" className="flex-1">
-          <Link to="/analysis-prep">Записаться на анализы</Link>
+          <Link to="/prep">Записаться на анализы</Link>
         </Button>
       </div>
 
