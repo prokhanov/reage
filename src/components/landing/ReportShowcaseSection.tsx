@@ -501,9 +501,9 @@ import { SmartPicture } from "@/components/landing/SmartPicture";
 
 function PreviewCardsRow() {
   const shots = [
-    { src: reportPage01, alt: "Титульная страница отчёта ReAge" },
-    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы" },
-    { src: reportPage61, alt: "Персональные рекомендации" },
+    { src: reportPage01, avif: reportPage01Avif, webp: reportPage01Webp, alt: "Титульная страница отчёта ReAge" },
+    { src: reportPage13, avif: reportPage13Avif, webp: reportPage13Webp, alt: "Раздел сердечно-сосудистой системы" },
+    { src: reportPage61, avif: reportPage61Avif, webp: reportPage61Webp, alt: "Персональные рекомендации" },
   ];
   const [active, setActive] = useState(0);
   const n = shots.length;
