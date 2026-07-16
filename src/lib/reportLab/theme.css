@@ -760,3 +760,23 @@ html, body {
   background: rgba(181, 138, 68, 0.35);
   color: inherit;
 }
+
+/* ─── Insert-слоты «добавить текст здесь» между биомаркерами ───────────── */
+.reportlab .rl-insert-slot {
+  position: relative;
+  min-height: 5mm;
+  margin: 2mm 0;
+}
+.reportlab .rl-insert-slot[data-empty]:not(:focus)::before {
+  content: "+ добавить текст здесь";
+  display: block;
+  color: rgba(20, 36, 56, 0.35);
+  font-style: italic;
+  font-size: 9pt;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.reportlab .rl-insert-slot[data-empty]:not(:focus) > p {
+  display: none;
+}
+
