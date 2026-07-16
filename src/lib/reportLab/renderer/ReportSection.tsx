@@ -2,6 +2,7 @@ import type { ParsedCategory, ReportBiomarker } from "../types";
 import { normalizeCode } from "../parser";
 import { BiomarkerCard } from "./BiomarkerCard";
 import { ProseMarkdown } from "./ProseMarkdown";
+import { useReportEditor } from "../editor/ReportEditorContext";
 
 interface Props {
   index: number;
@@ -10,6 +11,31 @@ interface Props {
   gender: "male" | "female" | "other" | null;
   age?: number | null;
   recommendationId?: string;
+}
+
+/**
+ * Пустой editable-слот «добавить текст здесь». Рендерится только в режиме edit
+ * между карточками биомаркеров. Реальный markdown попадает в текст
+ * рекомендации на этапе save (см. `assembleRecommendationText` → `insert:N`).
+ */
+function InsertSlot({
+  editableId,
+}: {
+  editableId: string;
+}) {
+  const ctx = useReportEditor();
+  if (ctx?.mode !== "edit") {
+    // В view-режиме draft может быть непустым только между Save и следующим
+    // ре-парсингом — в этом случае родитель уже перезагрузил report.
+    return null;
+  }
+  return (
+    <ProseMarkdown
+      markdown=""
+      editableId={editableId}
+      className="rl-insert-slot"
+    />
+  );
 }
 
 export function ReportSection({
@@ -21,6 +47,10 @@ export function ReportSection({
   recommendationId,
 }: Props) {
   let proseIndex = 0;
+  let bioIndex = 0;
+  const blocks = category.blocks;
+  const hasBiomarker = blocks.some((b) => b.kind === "biomarker");
+
   return (
     <section className="rl-page" data-section-id={`category-${index}`}>
       <header className="rl-section-header">
@@ -31,7 +61,7 @@ export function ReportSection({
         <div className="kicker">Раздел {index} из 5</div>
       </header>
 
-      {category.blocks.map((b, i) => {
+      {blocks.map((b, i) => {
         if (b.kind === "prose") {
           const editableId = recommendationId
             ? `rec:${recommendationId}#prose:${proseIndex}`
@@ -42,32 +72,50 @@ export function ReportSection({
           );
         }
         const bio = biomarkerByCode.get(normalizeCode(b.code));
-        if (!bio) {
-          return (
-            <div
-              key={i}
-              className="rl-prose"
-              style={{ opacity: 0.5, fontSize: "9pt" }}
-            >
-              [биомаркер «{b.code}» не найден в снапшоте]
-            </div>
-          );
-        }
+        const currentBioIndex = bioIndex;
+        bioIndex += 1;
         const editableId = recommendationId
           ? `rec:${recommendationId}#bio:${b.code}`
           : undefined;
-        return (
-          <BiomarkerCard
-            key={i}
-            biomarker={bio}
-            commentary={b.commentary}
-            gender={gender}
-            age={age}
-            editableId={editableId}
+        const insertBefore = recommendationId ? (
+          <InsertSlot
+            key={`insert-${i}`}
+            editableId={`rec:${recommendationId}#insert:${currentBioIndex}`}
           />
+        ) : null;
+
+        if (!bio) {
+          return (
+            <>
+              {insertBefore}
+              <div
+                key={i}
+                className="rl-prose"
+                style={{ opacity: 0.5, fontSize: "9pt" }}
+              >
+                [биомаркер «{b.code}» не найден в снапшоте]
+              </div>
+            </>
+          );
+        }
+        return (
+          <>
+            {insertBefore}
+            <BiomarkerCard
+              key={i}
+              biomarker={bio}
+              commentary={b.commentary}
+              gender={gender}
+              age={age}
+              editableId={editableId}
+            />
+          </>
         );
       })}
+
+      {hasBiomarker && recommendationId && (
+        <InsertSlot editableId={`rec:${recommendationId}#insert:${bioIndex}`} />
+      )}
     </section>
   );
 }
-
