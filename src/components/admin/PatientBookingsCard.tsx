@@ -769,13 +769,29 @@ function CreateBookingForPatientDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="labquest_request_number_new">
+              Номер заявки ЛабКвест{status === "application_submitted" ? " *" : ""}
+            </Label>
+            <Input
+              id="labquest_request_number_new"
+              value={requestNumber}
+              onChange={(e) => setRequestNumber(e.target.value)}
+              placeholder="например, ЛК-000123"
+              maxLength={64}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Отмена
           </Button>
           <Button
-            disabled={!address.trim() || createM.isPending}
+            disabled={
+              !address.trim() ||
+              createM.isPending ||
+              (status === "application_submitted" && !requestNumber.trim())
+            }
             onClick={() => createM.mutate()}
           >
             {createM.isPending ? "Создание…" : "Создать"}
