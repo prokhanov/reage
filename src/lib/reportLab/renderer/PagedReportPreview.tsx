@@ -29,6 +29,12 @@ const pagedCss = `
   min-height: 297mm !important;
   height: 297mm !important;
   padding: 0 !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+.reportlab .rl-page.rl-cover > * {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
 }
 @page :first {
   margin: 0 !important;
