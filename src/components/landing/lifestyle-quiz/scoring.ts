@@ -4,12 +4,13 @@ import {
   QUESTIONS,
   QUESTIONS_BY_ID,
 } from "./questions";
-import { QUESTION_MATRIX } from "./matrix";
+import { MARKER_FALLBACK, QUESTION_MATRIX } from "./matrix";
 import type {
   Answers,
   Demography,
   DomainKey,
   DomainScore,
+  MarkerWithReason,
   QuizResult,
   ResultItem,
   Tier,
@@ -20,29 +21,38 @@ export function calcBmi(d: Demography): number {
   return Math.round((d.weightKg / (m * m)) * 10) / 10;
 }
 
-function tierFromSum(sum: number): Tier {
-  if (sum <= 10) return 0;
-  if (sum <= 20) return 1;
-  return 2;
+/**
+ * Пороги пересобраны: раньше tier 0 включал в себя случаи, где пользователь
+ * отвечал «средне» на большинстве вопросов — это давало ложное «на верном пути».
+ */
+function tierFromSum(sum: number, twosCount: number): Tier {
+  let t: Tier = 0;
+  if (sum > 6) t = 1;
+  if (sum > 16) t = 2;
+  // Правило-предохранитель: 3+ жёстких ответа (score=2) → минимум средний уровень.
+  if (twosCount >= 3 && t < 1) t = 1;
+  if (twosCount >= 5 && t < 2) t = 2;
+  return t;
 }
 
 const TIER_COPY: Record<Tier, { headline: string; cta: string }> = {
   0: {
-    headline: "Похоже, вы на верном пути.",
+    headline:
+      "База неплохая — но пара сигналов, которые стоит проверить, всё же есть.",
     cta:
-      "Проверить, совпадает ли самоощущение с реальными маркерами, можно за одно исследование.",
+      "По самоощущению такие сигналы почти не заметны. Что за ними стоит — покажет один разбор биомаркеров.",
   },
   1: {
     headline:
-      "Эти сигналы легко списать на усталость или возраст — но за ними могут стоять конкретные, измеримые причины.",
+      "Есть несколько сигналов, которые легко списать на усталость или возраст — а за ними обычно стоят измеримые причины.",
     cta:
-      "Стоит сверить их с анализами, чтобы понять, что причина, а что следствие.",
+      "Стоит сверить их с анализами: часть окажется мелочью, часть — тем, что действительно стоит внимания.",
   },
   2: {
     headline:
-      "У вас сразу несколько сигналов, которые стоит сверить с анализами — на глаз не определить, что причина, а что следствие.",
+      "У вас сразу несколько заметных сигналов. По ощущениям их не разделить — на глаз не понять, что причина, а что следствие.",
     cta:
-      "Это не видно по самочувствию: базовые биомаркеры покажут картину точнее.",
+      "Базовые биомаркеры покажут, где реальный источник, а где просто перекрёстное эхо от других систем.",
   },
 };
 
@@ -56,6 +66,11 @@ function sortDomains(list: DomainScore[]): DomainScore[] {
     if (b.score !== a.score) return b.score - a.score;
     return domainRank(a.key) - domainRank(b.key);
   });
+}
+
+/** Максимальный балл для домена — из его вопросов (по 2 за каждый). */
+function maxScoreForDomain(domain: DomainKey): number {
+  return QUESTIONS.filter((q) => q.domain === domain).length * 2;
 }
 
 /** Top-scoring question inside a domain (with priority for lower-numbered id on ties). */
@@ -74,89 +89,89 @@ function pickTopQuestion(
   return best.id;
 }
 
+/** Применяет калибровку к списку маркеров и подтягивает объяснения. */
 function applyCalibration(
-  markers: string[],
+  baseMarkers: { code: string; why: string }[],
   domain: DomainKey,
   demo: Demography,
   bmi: number,
-): string[] {
-  const set = new Set(markers);
+): MarkerWithReason[] {
+  const explain = (code: string): string =>
+    MARKER_FALLBACK[code] ?? "Помогает уточнить картину по этой системе.";
 
-  // Rule 1: BMI < 18.5 — заменяем инсулинорезистентность на дефициты в nutrition/stress
+  const map = new Map<string, string>();
+  for (const m of baseMarkers) map.set(m.code, m.why);
+
+  // Rule 1: BMI < 18.5 — заменяем инсулинорезистентность на дефициты
   if (bmi < 18.5 && (domain === "nutrition" || domain === "stress")) {
-    ["Инсулин", "HOMA-IR", "Глюкоза натощак"].forEach((m) => set.delete(m));
-    ["Витамин B12", "Ферритин", "ТТГ"].forEach((m) => set.add(m));
+    ["Инсулин", "HOMA-IR", "Глюкоза натощак"].forEach((m) => map.delete(m));
+    ["Витамин B12", "Ферритин", "ТТГ"].forEach((m) => {
+      if (!map.has(m)) map.set(m, explain(m));
+    });
   }
+
+  const promotedFront: string[] = [];
+  const promote = (code: string) => {
+    if (!map.has(code)) map.set(code, explain(code));
+    promotedFront.push(code);
+  };
 
   // Rule 2: BMI >= 25 — глюкоза/инсулин/липиды первыми в nutrition/body
-  const promotedFront: string[] = [];
   if (bmi >= 25 && (domain === "nutrition" || domain === "body")) {
-    ["Глюкоза натощак", "Инсулин", "HOMA-IR", "ЛПНП", "Триглицериды"].forEach(
-      (m) => {
-        set.add(m);
-        promotedFront.push(m);
-      },
-    );
+    ["Глюкоза натощак", "Инсулин", "HOMA-IR", "ЛПНП", "Триглицериды"].forEach(promote);
   }
 
-  // Rule 3: женщина 18–45 — ферритин/гемоглобин в топ во всех активных доменах
   const ageBand = demo.ageBand;
+
+  // Rule 3: женщина 18–49 — ферритин/гемоглобин в топ
   const isWomanRepro =
     demo.sex === "female" && (ageBand === "18-29" || ageBand === "30-39" || ageBand === "40-49");
   if (isWomanRepro) {
-    ["Ферритин", "Гемоглобин"].forEach((m) => {
-      set.add(m);
-      promotedFront.push(m);
-    });
+    ["Ферритин", "Гемоглобин"].forEach(promote);
   }
 
-  // Rule 4: женщина 45+ — в sleep/body добавляется упоминание гормональных колебаний
+  // Rule 4: женщина 45+ — sleep/body добавляют гормональный фон
   const isWomanMid =
     demo.sex === "female" && (ageBand === "40-49" || ageBand === "50-64" || ageBand === "65+");
   if (isWomanMid && (domain === "sleep" || domain === "body")) {
-    set.add("Гормональный фон (эстрадиол, ФСГ)");
+    const code = "Гормональный фон (эстрадиол, ФСГ)";
+    if (!map.has(code)) map.set(code, explain(code));
   }
 
-  // Rule 5: мужчина 40+ — липиды/СРБ/тестостерон в топ в movement/body/habits
+  // Rule 5: мужчина 40+ — липиды/СРБ/тестостерон в movement/body/habits
   const isMan40 =
     demo.sex === "male" && (ageBand === "40-49" || ageBand === "50-64" || ageBand === "65+");
   if (isMan40 && (domain === "movement" || domain === "body" || domain === "habits")) {
-    ["Липидный профиль", "СРБ", "Тестостерон"].forEach((m) => {
-      set.add(m);
-      promotedFront.push(m);
-    });
+    ["Липидный профиль", "СРБ", "Тестостерон"].forEach(promote);
   }
 
-  // Rule 6: возраст 50+ — СРБ первой строкой во всех доменах с баллом ≥1
+  // Rule 6: возраст 50+ — СРБ первой строкой
   if (ageBand === "50-64" || ageBand === "65+") {
-    set.add("СРБ");
-    promotedFront.unshift("СРБ");
+    promote("СРБ");
   }
 
-  // Build output: promotedFront (dedup, preserving order) then rest
+  // Build ordered output
   const seen = new Set<string>();
-  const front: string[] = [];
-  for (const m of promotedFront) {
-    if (set.has(m) && !seen.has(m)) {
-      front.push(m);
-      seen.add(m);
+  const out: MarkerWithReason[] = [];
+  for (const code of promotedFront) {
+    if (!seen.has(code) && map.has(code)) {
+      out.push({ code, why: map.get(code)! });
+      seen.add(code);
     }
   }
-  const rest: string[] = [];
-  for (const m of markers) {
-    if (set.has(m) && !seen.has(m)) {
-      rest.push(m);
-      seen.add(m);
+  for (const m of baseMarkers) {
+    if (!seen.has(m.code) && map.has(m.code)) {
+      out.push({ code: m.code, why: map.get(m.code)! });
+      seen.add(m.code);
     }
   }
-  // Also any markers added via calibration but not in original list
-  for (const m of set) {
-    if (!seen.has(m)) {
-      rest.push(m);
-      seen.add(m);
+  for (const [code, why] of map) {
+    if (!seen.has(code)) {
+      out.push({ code, why });
+      seen.add(code);
     }
   }
-  return [...front, ...rest].slice(0, 8);
+  return out.slice(0, 5);
 }
 
 export function computeResult(
@@ -165,7 +180,7 @@ export function computeResult(
 ): QuizResult {
   const bmi = calcBmi(demo);
 
-  // 1. Domain sums (base — все вопросы домена, кроме отдельной логики q17/q18)
+  // 1. Domain sums
   const domainSums: Record<DomainKey, number> = {
     nutrition: 0,
     sleep: 0,
@@ -179,9 +194,8 @@ export function computeResult(
     if (q.id === "q17" || q.id === "q18") continue;
     domainSums[q.domain] += answers[q.id] ?? 0;
   }
-  // q12 is already in stress via domain assignment — no extra step needed.
 
-  // 2. q18 amplifier — прибавляется к домену с максимальным баллом (ничья по приоритету)
+  // 2. q18 amplifier
   const q18 = answers["q18"] ?? 0;
   if (q18 > 0) {
     const initial: DomainScore[] = (
@@ -190,43 +204,61 @@ export function computeResult(
       key: k,
       label: DOMAIN_LABELS[k],
       score: domainSums[k],
+      maxScore: maxScoreForDomain(k),
       topQuestionId: null,
     }));
     const top = sortDomains(initial)[0];
     domainSums[top.key] += q18;
   }
 
-  // 3. Base tier from raw sum of q1..q16 + q18 (q17 отдельно)
+  // 3. Tier: raw sum + количество жёстких ответов
   let baseSum = 0;
+  let twosCount = 0;
   for (const q of QUESTIONS) {
     if (q.id === "q17") continue;
-    baseSum += answers[q.id] ?? 0;
+    const a = answers[q.id] ?? 0;
+    baseSum += a;
+    if (a === 2) twosCount += 1;
   }
-  let tier: Tier = tierFromSum(baseSum);
+  let tier: Tier = tierFromSum(baseSum, twosCount);
 
-  // 4. q17 amplifier: если = 2, tier +1 (clamped)
+  // 4. q17 amplifier
   if ((answers["q17"] ?? 0) === 2) {
     tier = Math.min(2, tier + 1) as Tier;
   }
 
-  // 5. Build sorted domain list
-  const scored: DomainScore[] = (Object.keys(domainSums) as DomainKey[]).map(
-    (k) => ({
+  // 5. Все домены
+  const allDomains: DomainScore[] = sortDomains(
+    (Object.keys(domainSums) as DomainKey[]).map((k) => ({
       key: k,
       label: DOMAIN_LABELS[k],
       score: domainSums[k],
+      maxScore: maxScoreForDomain(k),
       topQuestionId: pickTopQuestion(k, answers),
-    }),
+    })),
   );
-  const sorted = sortDomains(scored).filter((d) => d.score > 0);
 
-  // 6. How many domains to show
-  const takeCount = tier === 0 ? 1 : tier === 1 ? 2 : 3;
-  const chosen = sorted.slice(0, takeCount);
+  // 6. Разделение: strong = score >= 2, weak = 1, clean = 0.
+  //    В items берём strong (мин 2, макс 4), плюс — если strong < 2 — добираем из weak,
+  //    чтобы у пользователя всегда было хотя бы 2 карточки для разбора.
+  const strong = allDomains.filter((d) => d.score >= 2);
+  const weak = allDomains.filter((d) => d.score === 1);
+  const clean = allDomains.filter((d) => d.score === 0);
+
+  const chosen: DomainScore[] = [];
+  for (const d of strong) {
+    if (chosen.length >= 4) break;
+    chosen.push(d);
+  }
+  if (chosen.length < 2) {
+    for (const d of weak) {
+      if (chosen.length >= 2) break;
+      chosen.push(d);
+    }
+  }
 
   // 7. Build items
   const items: ResultItem[] = chosen.map((d) => {
-    // Pick hypothesis based on top question in domain; fallback to first question
     const qId = d.topQuestionId ?? QUESTIONS.find((q) => q.domain === d.key)!.id;
     const q = QUESTIONS_BY_ID[qId];
     const matrix = QUESTION_MATRIX[qId];
@@ -234,27 +266,24 @@ export function computeResult(
     return {
       domain: d,
       observation: q.observationOnMax,
+      cause: matrix.cause,
       hypothesis: matrix.hypothesis,
       markers,
     };
   });
 
-  // Fallback: если ничего не набралось (все нули), показываем "низкий" tier с nutrition
-  if (items.length === 0) {
-    return {
-      tier: 0,
-      toneHeadline: TIER_COPY[0].headline,
-      toneCta: TIER_COPY[0].cta,
-      items: [],
-      bmi,
-    };
-  }
+  // Веаk-домены, которые НЕ попали в items — идут в свёрнутый блок «мелкие сигналы».
+  const chosenKeys = new Set(chosen.map((d) => d.key));
+  const weakOut = weak.filter((d) => !chosenKeys.has(d.key));
 
   return {
     tier,
     toneHeadline: TIER_COPY[tier].headline,
     toneCta: TIER_COPY[tier].cta,
     items,
+    allDomains,
+    weakDomains: weakOut,
+    cleanDomains: clean,
     bmi,
   };
 }
