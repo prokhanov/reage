@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-couple-v9.webp";
+import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
+import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 const glass =
   "hero-glass-card rounded-2xl";
@@ -321,9 +323,14 @@ function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
         className="relative origin-top-left"
         style={{ width: ab.width, height: ab.height, transform: `scale(${ab.scale})` }}
       >
-        <img
+        <SmartPicture
+          avif={heroManAvif}
           src={heroMan}
           alt="Пара изучает персональный отчёт ReAge на смартфоне"
+          width={1600}
+          height={1600}
+          fetchPriority="high"
+          decoding="async"
           className="absolute animate-fade-in pointer-events-none object-contain"
           style={{
             left: ab.man.left,

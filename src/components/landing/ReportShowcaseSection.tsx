@@ -488,15 +488,22 @@ function ReportMockup({
 }
 
 // ============ Screenshot preview stack ============
-import reportPage01 from "@/assets/landing-v2/report-page-01.png";
-import reportPage13 from "@/assets/landing-v2/report-page-13.png";
-import reportPage61 from "@/assets/landing-v2/report-page-61.png";
+import reportPage01Avif from "@/assets/landing-v2/report-page-01.png?format=avif&quality=68&url";
+import reportPage01Webp from "@/assets/landing-v2/report-page-01.png?format=webp&quality=78&url";
+import reportPage01 from "@/assets/landing-v2/report-page-01.png?url";
+import reportPage13Avif from "@/assets/landing-v2/report-page-13.png?format=avif&quality=68&url";
+import reportPage13Webp from "@/assets/landing-v2/report-page-13.png?format=webp&quality=78&url";
+import reportPage13 from "@/assets/landing-v2/report-page-13.png?url";
+import reportPage61Avif from "@/assets/landing-v2/report-page-61.png?format=avif&quality=68&url";
+import reportPage61Webp from "@/assets/landing-v2/report-page-61.png?format=webp&quality=78&url";
+import reportPage61 from "@/assets/landing-v2/report-page-61.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 function PreviewCardsRow() {
   const shots = [
-    { src: reportPage01, alt: "Титульная страница отчёта ReAge" },
-    { src: reportPage13, alt: "Раздел сердечно-сосудистой системы" },
-    { src: reportPage61, alt: "Персональные рекомендации" },
+    { src: reportPage01, avif: reportPage01Avif, webp: reportPage01Webp, alt: "Титульная страница отчёта ReAge" },
+    { src: reportPage13, avif: reportPage13Avif, webp: reportPage13Webp, alt: "Раздел сердечно-сосудистой системы" },
+    { src: reportPage61, avif: reportPage61Avif, webp: reportPage61Webp, alt: "Персональные рекомендации" },
   ];
   const [active, setActive] = useState(0);
   const n = shots.length;
@@ -543,10 +550,15 @@ function PreviewCardsRow() {
               transition={{ type: "spring", stiffness: 220, damping: 26 }}
               style={{ zIndex: st.z, cursor: "pointer" }}
             >
-              <img
+              <SmartPicture
+                avif={s.avif}
+                webp={s.webp}
                 src={s.src}
                 alt={s.alt}
+                width={1240}
+                height={1754}
                 loading="lazy"
+                decoding="async"
                 draggable={false}
                 className="w-full h-full object-cover object-top block pointer-events-none scale-[1.02]"
               />
