@@ -250,8 +250,7 @@ export function AnalysisBookingBanner() {
     },
     application_submitted: {
       title: "Заявка подтверждена — сдайте анализы",
-      subtitle:
-        "{date} в {time} • {address} • Номер заявки: {request_number}",
+      subtitle: "{date} в {time} • {address}",
     },
     collected: {
       title: "Анализ в работе",
@@ -279,8 +278,17 @@ export function AnalysisBookingBanner() {
     subtitle = subtitle
       .replace(/\{date\}/g, dateStr)
       .replace(/\{time\}/g, bookingInfo.booking_time || "")
-      .replace(/\{address\}/g, bookingInfo.address || "")
-      .replace(/\{request_number\}/g, bookingInfo.labquest_request_number || "—");
+      .replace(/\{address\}/g, bookingInfo.address || "");
+
+    // Render the request number on a separate line below the subtitle.
+    // Remove any inline placeholder from the subtitle text to avoid duplication.
+    if (bookingInfo.labquest_request_number) {
+      subtitle = subtitle
+        .replace(/\s*•\s*Номер заявки:\s*\{request_number\}/g, "")
+        .replace(/\s*Номер заявки:\s*\{request_number\}/g, "")
+        .replace(/\{request_number\}/g, "");
+      subtitle = subtitle.replace(/\s*•\s*$/, "").trim();
+    }
   }
 
   // Statuses where we show the "Инструкция" button instead of a scheduling action
@@ -340,6 +348,11 @@ export function AnalysisBookingBanner() {
             <div className="space-y-0.5 min-w-0 flex-1">
               <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
+              {bookingInfo?.labquest_request_number && (
+                <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
+                  Номер заявки: {bookingInfo.labquest_request_number}
+                </p>
+              )}
               {showInstructions && (
                 <p className="text-xs text-muted-foreground leading-snug pt-1">
                   Для изменения записи свяжитесь с нами по телефону{" "}
