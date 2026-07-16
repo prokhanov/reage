@@ -84,6 +84,11 @@ Deno.serve(async (req) => {
       STATUS_TO_TEMPLATE[String(booking.status)] ||
       null;
 
+    const requestNumber = (booking as any).labquest_request_number || "";
+    if (templateKey === "booking_application_submitted" && !requestNumber) {
+      return json({ success: false, error: "Не заполнен номер заявки ЛабКвест" }, 400);
+    }
+
     const { error: rpcErr } = await admin.rpc("invoke_telegram_notify", {
       p_event_type: "booking_status_changed",
       p_payload: {
@@ -98,6 +103,7 @@ Deno.serve(async (req) => {
         status: booking.status,
         triggered_by: user.id,
         template_key: templateKey,
+        request_number: requestNumber,
       },
     });
 
