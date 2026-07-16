@@ -1,4 +1,5 @@
 import type { LabReport, ReportRecommendationRow } from "../types";
+import { buildBiomarkerIndex, parseCategory } from "../parser";
 
 /**
  * Собирает текст рекомендации обратно из draft-блоков.
