@@ -341,6 +341,7 @@ export default function AnalysisBookings() {
               <SelectItem value="waiting_call">Ожидает звонка</SelectItem>
               <SelectItem value="no_answer">Не дозвонились</SelectItem>
               <SelectItem value="scheduled">Назначен</SelectItem>
+              <SelectItem value="application_submitted">Заявка оформлена</SelectItem>
               <SelectItem value="collected">Анализ в работе</SelectItem>
               <SelectItem value="report_pending">Отчёт в работе</SelectItem>
               <SelectItem value="report_ready">Отчёт загружен</SelectItem>
