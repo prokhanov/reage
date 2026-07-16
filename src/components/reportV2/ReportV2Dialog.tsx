@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ReportV2Editor } from "./ReportV2Editor";
+import type { LabReport } from "@/lib/reportLab/types";
 
 interface Props {
   open: boolean;
@@ -7,6 +8,13 @@ interface Props {
   analysisId: string | null;
   userId: string | null;
   mode: "view" | "edit";
+  /**
+   * Если задан — рендерер использует этот отчёт вместо загрузки из БД
+   * (для демо-режима, где данных в БД нет).
+   */
+  initialReport?: LabReport;
+  /** Скрыть кнопку «Скачать PDF» (используется в демо, где нет auth-сессии). */
+  hideDownload?: boolean;
 }
 
 /**
@@ -14,7 +22,8 @@ interface Props {
  * (Beta-иконки в списке). В ЛК пациента и режиме «Просмотр как пациент»
  * используется компактная панель без служебных подписей.
  */
-export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode }: Props) {
+export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload }: Props) {
+  const hasSource = initialReport || (analysisId && userId);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -28,13 +37,15 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode }:
           Персонализированный отчёт пациента.
         </DialogDescription>
         <div className="flex-1 overflow-auto p-0 sm:p-4 min-h-0">
-          {analysisId && userId ? (
+          {hasSource ? (
             <ReportV2Editor
-              analysisId={analysisId}
-              userId={userId}
+              analysisId={initialReport?.analysis.id ?? analysisId ?? "demo"}
+              userId={userId ?? "demo"}
               mode={mode}
               compact
               onClose={() => onOpenChange(false)}
+              initialReport={initialReport}
+              hideDownload={hideDownload}
             />
           ) : (
             <div className="text-sm text-muted-foreground">Не удалось определить пациента/анализ.</div>

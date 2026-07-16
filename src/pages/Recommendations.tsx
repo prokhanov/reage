@@ -24,6 +24,7 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { ReportV2Dialog } from "@/components/reportV2/ReportV2Dialog";
+import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
 
 const ENABLE_REPORT_V2 = true;
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
@@ -1494,6 +1495,8 @@ export default function Recommendations() {
             analysisId={reportV2State.analysisId}
             userId={reportV2State.userId}
             mode={reportV2State.mode}
+            initialReport={demoMode ? buildLabReportFromExample() : undefined}
+            hideDownload={demoMode}
           />
         )}
 
