@@ -205,6 +205,11 @@ Deno.serve(async (req) => {
     }
 
     const template = tpl as Template
+    if (templateType === 'booking_application_submitted' && !isTest && !String(vars.request_number || '').trim()) {
+      return new Response(JSON.stringify({ error: 'Не заполнен номер заявки ЛабКвест' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     const subject = (isTest ? '[ТЕСТ] ' : '') + applyVars(template.subject, vars)
     const html = renderHtml(template, vars, ctaUrl)
     const text = renderText(template, vars, ctaUrl)
