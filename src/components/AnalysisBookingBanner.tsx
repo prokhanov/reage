@@ -245,8 +245,13 @@ export function AnalysisBookingBanner() {
       subtitle: "Медсестра приедет к вам домой в удобное время",
     },
     scheduled: {
-      title: "Ожидайте визита специалиста",
+      title: "Сдайте анализы",
       subtitle: "{date} в {time} • {address}",
+    },
+    application_submitted: {
+      title: "Заявка подтверждена — сдайте анализы",
+      subtitle:
+        "{date} в {time} • {address} • Номер заявки: {request_number}",
     },
     collected: {
       title: "Анализ в работе",
