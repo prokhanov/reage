@@ -904,6 +904,12 @@ function SendRemindersDialog({
             <p className="text-xs text-muted-foreground">
               По умолчанию выбран шаблон, соответствующий текущему статусу записи.
             </p>
+            {needsRequestNumber && (
+              <p className="text-xs text-destructive">
+                Для шаблона «Заявка оформлена» нужен номер заявки ЛабКвест. Сначала выставьте
+                этот статус в таблице и введите номер.
+              </p>
+            )}
           </div>
           <div className="space-y-2 rounded-md border p-3">
             <label className="flex items-center gap-2 cursor-pointer">
