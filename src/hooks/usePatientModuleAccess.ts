@@ -20,19 +20,28 @@ export const usePatientModuleAccess = () => {
         return;
       }
 
-      // Check if user is superadmin
-      const { data: superAdminData, error: superAdminError } = await supabase
+      // Check all roles at once — нужны superadmin И doctor
+      // (doctor по встроенному правилу всегда имеет модуль patients).
+      const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "superadmin")
-        .maybeSingle();
+        .eq("user_id", user.id);
 
-      const isSuperAdminUser = !superAdminError && !!superAdminData;
+      const roles = (!rolesError && rolesData) ? rolesData.map((r) => r.role) : [];
+      const isSuperAdminUser = roles.includes("superadmin");
+      const isDoctor = roles.includes("doctor");
       setIsSuperAdmin(isSuperAdminUser);
 
       if (isSuperAdminUser) {
         // Superadmins have full access
+        setHasPatientAccess(true);
+        setLoading(false);
+        return;
+      }
+
+      // Врач по умолчанию имеет доступ к модулю пациентов
+      // (соответствует правилу в useUserRole и RLS на has_admin_permission).
+      if (isDoctor) {
         setHasPatientAccess(true);
         setLoading(false);
         return;
