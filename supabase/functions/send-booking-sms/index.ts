@@ -127,6 +127,11 @@ Deno.serve(async (req) => {
     }
     if (!tpl) return json({ error: `Шаблон ${templateName} не найден` }, 404);
 
+    const requestNumber = (booking as any).labquest_request_number || "";
+    if (templateName === "booking_application_submitted" && !requestNumber) {
+      return json({ error: "Не заполнен номер заявки ЛабКвест" }, 400);
+    }
+
     const dateStr = new Date(booking.booking_date).toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
@@ -138,6 +143,7 @@ Deno.serve(async (req) => {
       address: shortenAddressForSms(booking.address || ""),
       name: profile?.name || "",
       url: `${APP_URL}/profile`,
+      request_number: requestNumber,
     });
 
     const { data: sender } = await admin
