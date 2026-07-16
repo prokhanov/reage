@@ -1,90 +1,50 @@
-# План ускорения лендинга (только код)
+# Фикс: 15-секундная задержка блока «Полный контроль…» + аудит остальных
 
-Цель: улучшить PageSpeed (LCP, TBT, размер бандла) **без** правок сервера, nginx, БД, edge-функций и без изменения внешнего вида/логики. Каждый шаг — независимый коммит, легко откатывается через git revert.
+## Что произошло
 
-## Проверка безопасности изменений
+Блок `AppFeaturesSection` («Полный контроль в вашем личном кабинете») грузился ~15 сек с пустым местом. Причины (по убыванию влияния):
 
-Перепроверил после первичного анализа:
+1. **`vite-imagetools` трансформит картинки on-demand в dev-режиме.** Первый запрос к `?format=avif` PNG весом 554 КБ прогоняется через `sharp` → холодная генерация 3-10 сек. В prod-билде это уже готовые файлы, но в preview / dev пользователь ловит этот таймаут.
+2. **Все секции ниже сгиба обёрнуты в один общий `<Suspense>` в `Index.tsx`.** Если один чанк тормозит, все соседние секции скрыты за общим fallback → визуально «пусто».
+3. **`loading="lazy"` на главной картинке блока.** Изображение — фактический LCP этого экрана; ленивая загрузка триггерится только при появлении в viewport, что добавляет ещё паузу.
+4. **`ReportCollageBlock` использует неоптимизированные PNG:** `report-card-2.png` 236 КБ, `-3` 136 КБ, `-4` 146 КБ — суммарно ~518 КБ мимо AVIF/WebP.
+5. **Warning в консоли:** React не распознаёт `fetchPriority` на `<img>` (нужен lowercase `fetchpriority`).
 
-- `vite.config.ts` — уже есть `dedupe`/`optimizeDeps`. Добавление `manualChunks` в `build.rollupOptions.output` не ломает dev, влияет только на прод-бандл. **Безопасно, откатываемо.**
-- `index.html` — блокирующий Google Fonts CSS + синхронная Яндекс.Метрика в `<head>`. Метрика поддерживает отложенную инициализацию через `ym.a` очередь (мы уже так вызываем `ym(id,'init',...)`), так что перенос загрузки `tag.js` в `requestIdleCallback` **не потеряет события** — они буферизуются в очереди и обработаются при загрузке скрипта. `webvisor:true` и `clickmap` начнут работать чуть позже (~1-2 сек), это допустимо.
-- `<noscript>` пиксель Метрики сейчас в `<body>` ✅ (правило соблюдено).
-- Тяжёлые PNG (`hero-couple-v7.png` 924KB, `hero-couple-v4.png` 856KB, `dashboard-mock-light-v9.png` 554KB, `report-page-13.png` 352KB) — все импортируются через `@/assets/...` → пойдут через Vite, никаких `.asset.json`/CDN путей. Правило "медиа через Vite" соблюдено.
-- Никаких изменений в `src/integrations/supabase/*`, `.env`, auth, роутах, edge-функциях, квизах, письмах, Telegram.
-- Никаких хардкодов `reage.life` / `*.supabase.co`.
+## Что сделать
 
-## Шаги (в порядке приоритета)
+### 1. Отключить `vite-imagetools` в dev-режиме
+`vite.config.ts` — включать плагин только при `command === 'build'`. В dev картинки идут напрямую (Vite всё равно их кеширует), холодных `sharp`-трансформов больше нет. Prod-эффект не меняется.
 
-### 1. Оптимизация изображений (самый большой выигрыш, ~1.5–2 MB)
+### 2. Разбить один `<Suspense>` на несколько в `src/pages/Index.tsx`
+Каждая lazy-секция получает свой `<Suspense fallback={<SectionFallback/>}>`. Медленный чанк одной секции не блокирует показ соседних. Fallback остаётся тем же (`min-h-[320px]` — CLS ноль).
 
-- Установить `vite-imagetools` (dev-dep, только билд-тайм).
-- Для 4 тяжёлых PNG на лендинге (`hero-couple-v7`, `hero-couple-v4`, `dashboard-mock-light-v9`, `report-page-13`, а также `report-page-01`, `report-page-61`) заменить импорты на формат-специфичные:
-  ```ts
-  import heroAvif from "@/assets/landing-v2/hero-couple-v7.png?format=avif&quality=70";
-  import heroWebp from "@/assets/landing-v2/hero-couple-v7.png?format=webp&quality=78";
-  import heroPng  from "@/assets/landing-v2/hero-couple-v7.png?w=1600";
-  ```
-- Обернуть `<img>` в `<picture>` с `<source type="image/avif">`, `<source type="image/webp">` и fallback `<img>`.
-- Проставить `width`/`height` (реальные из файлов) — устраняет CLS, PageSpeed требует.
-- LCP-кандидату (первое изображение hero) — `fetchpriority="high"` + `<link rel="preload" as="image" imagesrcset=... imagetype="image/avif">` в `index.html`.
-- Всем остальным изображениям ниже сгиба — `loading="lazy" decoding="async"`.
-- Визуально: пиксель в пиксель, отличий не будет. Откат: `git revert` одного коммита + `bun remove vite-imagetools`.
+### 3. Убрать `loading="lazy"` с основной картинки `AppFeaturesSection`
+`src/components/landing/AppFeaturesSection.tsx:171` — заменить на `loading="eager" decoding="async"`. Картинка — LCP блока, ленивая загрузка тут вредит. Остальные табы (analyses/reports/state/assistant/recommendations) — DOM-виджеты без картинок, ничего не меняется.
 
-### 2. Google Fonts — non-blocking
+### 4. Оптимизировать `ReportCollageBlock`
+`src/components/landing/v2/ReportCollageBlock.tsx` — обернуть 4 `report-card-*.png` в `SmartPicture` с AVIF+WebP. Экономия ~400 КБ. Визуально идентично.
 
-Заменить в `index.html`:
-```html
-<link rel="preload" href="…css2?family=Inter…" as="style" onload="this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="…css2?family=Inter…"></noscript>
-```
-Плюс уже есть `&display=swap` — FOUT минимален. Визуально почти незаметно. Откат: 1 строка.
+### 5. Пофиксить warning `fetchPriority`
+В `SmartPicture` — передавать атрибут как lowercase через объект-спред (`{...({ fetchpriority: ... } as any)}`), убрать проп `fetchPriority` из типов. React 18.x до 18.3 не распознаёт camelCase-вариант. Функционально работает так же — браузер видит правильный атрибут.
 
-### 3. Яндекс.Метрика — отложенная загрузка
+## Что НЕ меняется
 
-- Оставить `ym(id,'init',...)` синхронно (создаёт очередь).
-- Загрузку `tag.js` перенести в `requestIdleCallback` (fallback `setTimeout(…, 2000)`).
-- События из очереди `ym.a` подхватятся автоматически, `webvisor` начнёт запись после загрузки скрипта.
-- Никакой потери трафика/данных: hit фиксируется через init.
-
-### 4. Code-splitting лендинга
-
-- `React.lazy` + `Suspense` (с fallback = пустой div высотой ~секции) для тяжёлых секций ниже первого экрана:
-  `HowItWorksBlock`, `CycleInfographicBlock`, `ReportCollageBlock`, `ReportShowcaseSection`, `ComparisonSection`, `FAQSection`, `TestimonialsSection`, `PricingSection`, `PersonasSection`.
-- Модалки квизов уже редко открываются — тоже в `lazy`: `HealthRiskQuizModal`, `LifestyleQuizModal`, `FeedbackDialog`, `BiomarkerComparisonDialog`.
-- В `vite.config.ts` добавить `build.rollupOptions.output.manualChunks`:
-  ```ts
-  { 'vendor-motion': ['framer-motion'],
-    'vendor-charts': ['recharts'],
-    'vendor-query':  ['@tanstack/react-query'] }
-  ```
-- Ничего в UI/логике не меняется. Откат: revert.
-
-### 5. Мелочи
-
-- `will-change: transform` на анимируемых marquee/портрете (уменьшает layout thrash).
-- Удалить `console.log` из прод-сборки через `esbuild.drop: ['console','debugger']` в `vite.config.ts` для `mode==='production'`.
-- Убедиться, что все `<img>` на лендинге имеют `width`/`height`/`alt`.
-
-## Что НЕ трогаем
-
-- ❌ nginx / REG.RU / `deploy/nginx/default.conf` (согласовано, шаг 5 из прошлого плана исключён).
-- ❌ Supabase client, `.env`, edge-функции, миграции.
-- ❌ Логика квизов, авторизации, писем, Telegram, отчётов.
-- ❌ Роутинг, дизайн-токены, темы.
+- Никакого сервера, БД, nginx, edge-функций.
+- Все картинки продолжают идти через Vite (никаких `.asset.json`).
+- Визуально пиксель-в-пиксель, только скорость.
 
 ## Ожидаемый эффект
 
-- LCP: −40…55% (AVIF hero + preload).
-- TBT: −30…50% (code-split + отложенная Метрика).
-- Total bundle: −400…600 KB gzip на первом заходе.
-- Repeat-visit кеш без nginx-TTL — эффект слабее, но 304 от If-Modified-Since всё равно работает.
+- Dev/preview: холодный запуск блока `AppFeaturesSection` — из ~15 сек в <1 сек (нет `sharp`-трансформа).
+- Prod: AppFeaturesSection LCP-картинка стартует сразу при парсинге чанка, а не при `IntersectionObserver`.
+- Медленный чанк одной секции больше не «замораживает» соседние.
+- ReportCollage: −400 КБ трафика.
+- Чистая консоль без warning про `fetchPriority`.
 
-## Порядок коммитов (для лёгкого отката)
+## Порядок коммитов (независимо откатываемы)
 
-1. `perf(images): AVIF/WebP + <picture> + dims for landing heroes`
-2. `perf(fonts): non-blocking Google Fonts`
-3. `perf(metrika): defer tag.js via requestIdleCallback`
-4. `perf(build): lazy load landing sections + manualChunks`
-5. `perf(build): drop console/debugger in prod`
-
-Каждый коммит самодостаточен — можно откатить любой независимо.
+1. `perf(vite): imagetools only in build mode`
+2. `perf(landing): per-section Suspense`
+3. `perf(landing): eager LCP image in AppFeaturesSection`
+4. `perf(images): AVIF/WebP for ReportCollage cards`
+5. `fix(SmartPicture): lowercase fetchpriority attr`

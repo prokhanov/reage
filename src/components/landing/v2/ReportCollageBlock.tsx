@@ -4,10 +4,19 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { ExampleReportDialog } from "./ExampleReportDialog";
-import card1 from "@/assets/report-card-1.png";
-import card2 from "@/assets/report-card-2.png";
-import card3 from "@/assets/report-card-3.png";
-import card4 from "@/assets/report-card-4.png";
+import card1Avif from "@/assets/report-card-1.png?format=avif&quality=68&url";
+import card1Webp from "@/assets/report-card-1.png?format=webp&quality=78&url";
+import card1 from "@/assets/report-card-1.png?url";
+import card2Avif from "@/assets/report-card-2.png?format=avif&quality=68&url";
+import card2Webp from "@/assets/report-card-2.png?format=webp&quality=78&url";
+import card2 from "@/assets/report-card-2.png?url";
+import card3Avif from "@/assets/report-card-3.png?format=avif&quality=68&url";
+import card3Webp from "@/assets/report-card-3.png?format=webp&quality=78&url";
+import card3 from "@/assets/report-card-3.png?url";
+import card4Avif from "@/assets/report-card-4.png?format=avif&quality=68&url";
+import card4Webp from "@/assets/report-card-4.png?format=webp&quality=78&url";
+import card4 from "@/assets/report-card-4.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 /* ===================== DATA ===================== */
 
@@ -18,10 +27,10 @@ type StoredLayout = Partial<Record<ElementId, Partial<Pos>>>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
 const CARDS = {
-  card1: { num: "01", title: "Общее резюме", img: card1 },
-  card2: { num: "02", title: "Разбор по системам организма", img: card2 },
-  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3 },
-  card4: { num: "04", title: "Персональные назначения", img: card4 },
+  card1: { num: "01", title: "Общее резюме", img: card1, avif: card1Avif, webp: card1Webp },
+  card2: { num: "02", title: "Разбор по системам организма", img: card2, avif: card2Avif, webp: card2Webp },
+  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3, avif: card3Avif, webp: card3Webp },
+  card4: { num: "04", title: "Персональные назначения", img: card4, avif: card4Avif, webp: card4Webp },
 } as const;
 
 const LABELS: Record<ElementId, string> = {
@@ -105,7 +114,7 @@ function CardElement({ id }: { id: "card1" | "card2" | "card3" | "card4" }) {
         <h3 className="text-sm md:text-base font-semibold text-foreground">{c.title}</h3>
       </div>
       <div className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden">
-        <img src={c.img} alt={c.title} loading="lazy" className="w-full h-auto block" />
+        <SmartPicture avif={c.avif} webp={c.webp} src={c.img} alt={c.title} loading="lazy" decoding="async" className="w-full h-auto block" />
       </div>
     </div>
   );
