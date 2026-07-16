@@ -44,7 +44,7 @@ import {
 
 type BookingStatus = Extract<
   AllBookingStatus,
-  "scheduled" | "collected" | "report_pending" | "report_ready"
+  "scheduled" | "application_submitted" | "collected" | "report_pending" | "report_ready"
 >;
 
 interface BookingData {
