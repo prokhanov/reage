@@ -311,6 +311,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
             appointment_date: dateStr,
             appointment_time: (b.booking_time || "").slice(0, 5),
             clinic_address: b.address || "",
+            request_number: b.labquest_request_number || "",
           },
         },
       });
