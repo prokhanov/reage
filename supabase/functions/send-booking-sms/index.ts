@@ -12,6 +12,7 @@ const corsHeaders = {
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -19,6 +20,7 @@ const STATUS_TO_TEMPLATE: Record<string, string> = {
 
 const ALLOWED_TEMPLATES = new Set([
   "booking_scheduled",
+  "booking_application_submitted",
   "booking_collected",
   "booking_report_pending",
   "booking_report_ready",
@@ -84,7 +86,7 @@ Deno.serve(async (req) => {
 
     const { data: booking, error: bErr } = await admin
       .from("analysis_bookings")
-      .select("id, user_id, booking_date, booking_time, address, status")
+      .select("id, user_id, booking_date, booking_time, address, status, labquest_request_number")
       .eq("id", booking_id)
       .maybeSingle();
     if (bErr || !booking) return json({ error: "Booking not found" }, 404);
@@ -125,6 +127,11 @@ Deno.serve(async (req) => {
     }
     if (!tpl) return json({ error: `Шаблон ${templateName} не найден` }, 404);
 
+    const requestNumber = (booking as any).labquest_request_number || "";
+    if (templateName === "booking_application_submitted" && !requestNumber) {
+      return json({ error: "Не заполнен номер заявки ЛабКвест" }, 400);
+    }
+
     const dateStr = new Date(booking.booking_date).toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
@@ -136,6 +143,7 @@ Deno.serve(async (req) => {
       address: shortenAddressForSms(booking.address || ""),
       name: profile?.name || "",
       url: `${APP_URL}/profile`,
+      request_number: requestNumber,
     });
 
     const { data: sender } = await admin

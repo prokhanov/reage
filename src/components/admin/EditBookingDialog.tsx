@@ -26,6 +26,8 @@ interface EditBookingDialogProps {
   currentTime: string;
   currentAddress: string;
   currentAddressComment?: string | null;
+  currentRequestNumber?: string | null;
+  currentStatus?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -36,6 +38,8 @@ export function EditBookingDialog({
   currentTime,
   currentAddress,
   currentAddressComment,
+  currentRequestNumber,
+  currentStatus,
   onClose,
   onSuccess,
 }: EditBookingDialogProps) {
@@ -43,22 +47,28 @@ export function EditBookingDialog({
   const [time, setTime] = useState(currentTime);
   const [address, setAddress] = useState(currentAddress);
   const [addressComment, setAddressComment] = useState(currentAddressComment || "");
+  const [requestNumber, setRequestNumber] = useState(currentRequestNumber || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const requestNumberRequired = currentStatus === "application_submitted";
 
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!bookingId) return;
 
+      const payload: Record<string, unknown> = {
+        booking_date: format(date, "yyyy-MM-dd"),
+        booking_time: time,
+        address: address,
+        address_comment: addressComment || null,
+        labquest_request_number: requestNumber.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from("analysis_bookings")
-        .update({
-          booking_date: format(date, "yyyy-MM-dd"),
-          booking_time: time,
-          address: address,
-          address_comment: addressComment || null,
-          updated_at: new Date().toISOString(),
-        } as any)
+        .update(payload as any)
         .eq("id", bookingId);
 
       if (error) throw error;
@@ -74,14 +84,19 @@ export function EditBookingDialog({
       onSuccess?.();
       onClose();
     },
-    onError: () => {
+    onError: (err: any) => {
       toast({
         title: "Ошибка",
-        description: "Не удалось обновить запись",
+        description: err?.message || "Не удалось обновить запись",
         variant: "destructive",
       });
     },
   });
+
+  const canSubmit =
+    !!bookingId &&
+    (!requestNumberRequired || requestNumber.trim().length > 0) &&
+    !updateMutation.isPending;
 
   return (
     <Dialog open={!!bookingId} onOpenChange={onClose}>
@@ -146,6 +161,22 @@ export function EditBookingDialog({
               placeholder="Подъезд, этаж, домофон и т.д."
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="labquest_request_number">
+              Номер заявки ЛабКвест{requestNumberRequired ? " *" : ""}
+            </Label>
+            <Input
+              id="labquest_request_number"
+              value={requestNumber}
+              onChange={(e) => setRequestNumber(e.target.value)}
+              placeholder="например, ЛК-000123"
+              maxLength={64}
+            />
+            <p className="text-xs text-muted-foreground">
+              Обязателен для статуса «Заявка оформлена». Подставляется в SMS/Email пациенту.
+            </p>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
@@ -153,9 +184,10 @@ export function EditBookingDialog({
           </Button>
           <Button
             onClick={() => updateMutation.mutate()}
-            disabled={updateMutation.isPending}
+            disabled={!canSubmit}
           >
-            {updateMutation.isPending && <ButtonSpinner className="mr-2" />}{updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+            {updateMutation.isPending && <ButtonSpinner className="mr-2" />}
+            {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
       </DialogContent>

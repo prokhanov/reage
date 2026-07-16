@@ -135,6 +135,7 @@ export type Database = {
           created_at: string
           id: string
           lab_location_id: string | null
+          labquest_request_number: string | null
           location_type: string
           next_analysis_date: string | null
           slot_id: string | null
@@ -151,6 +152,7 @@ export type Database = {
           created_at?: string
           id?: string
           lab_location_id?: string | null
+          labquest_request_number?: string | null
           location_type?: string
           next_analysis_date?: string | null
           slot_id?: string | null
@@ -167,6 +169,7 @@ export type Database = {
           created_at?: string
           id?: string
           lab_location_id?: string | null
+          labquest_request_number?: string | null
           location_type?: string
           next_analysis_date?: string | null
           slot_id?: string | null

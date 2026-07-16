@@ -40,6 +40,7 @@ type BookingStatus =
   | "waiting_call"
   | "no_answer"
   | "scheduled"
+  | "application_submitted"
   | "collected"
   | "report_pending"
   | "report_ready"
@@ -49,6 +50,7 @@ const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: "scheduled", label: "Назначен" },
   { value: "waiting_call", label: "Ожидает звонка" },
   { value: "no_answer", label: "Не дозвонились" },
+  { value: "application_submitted", label: "Заявка оформлена" },
   { value: "collected", label: "Анализ в работе" },
   { value: "report_pending", label: "Отчёт в работе" },
   { value: "report_ready", label: "Отчёт загружен" },
@@ -56,6 +58,7 @@ const statusOptions: { value: BookingStatus; label: string }[] = [
 
 const ACTIVE_STATUSES: BookingStatus[] = [
   "scheduled",
+  "application_submitted",
   "collected",
   "waiting_call",
   "no_answer",
@@ -76,6 +79,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
   const [address, setAddress] = useState("");
   const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
+  const [requestNumber, setRequestNumber] = useState("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -89,6 +93,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
       setAddress("");
       setAddressComment("");
       setStatus("scheduled");
+      setRequestNumber("");
     }
   }, [open]);
 
@@ -164,6 +169,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
         address: address.trim(),
         address_comment: addressComment.trim() || null,
         status,
+        labquest_request_number: requestNumber.trim() || null,
       } as any);
       if (error) throw error;
     },
@@ -197,6 +203,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
     !!time &&
     address.trim().length > 0 &&
     !willConflict &&
+    (status !== "application_submitted" || requestNumber.trim().length > 0) &&
     !createMutation.isPending;
 
   return (
@@ -364,6 +371,22 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="labquest_request_number">
+              Номер заявки ЛабКвест{status === "application_submitted" ? " *" : ""}
+            </Label>
+            <Input
+              id="labquest_request_number"
+              value={requestNumber}
+              onChange={(e) => setRequestNumber(e.target.value)}
+              placeholder="например, ЛК-000123"
+              maxLength={64}
+            />
+            <p className="text-xs text-muted-foreground">
+              Обязателен для статуса «Заявка оформлена». Попадёт в SMS/Email пациенту.
+            </p>
           </div>
         </div>
 

@@ -75,6 +75,7 @@ type BookingStatus =
   | "no_answer"
   | "not_scheduled"
   | "scheduled"
+  | "application_submitted"
   | "collected"
   | "report_pending"
   | "report_ready";
@@ -84,6 +85,7 @@ const statusLabels: Record<BookingStatus, string> = {
   no_answer: "Не дозвонились",
   not_scheduled: "Не назначен",
   scheduled: "Назначен",
+  application_submitted: "Заявка оформлена",
   collected: "Анализ в работе",
   report_pending: "Отчёт в работе",
   report_ready: "Отчёт загружен",
@@ -94,15 +96,22 @@ const statusColors: Record<BookingStatus, string> = {
   no_answer: "bg-orange-50 text-orange-700 border-orange-200",
   not_scheduled: "bg-slate-50 text-slate-700 border-slate-200",
   scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  application_submitted: "bg-indigo-50 text-indigo-700 border-indigo-200",
   collected: "bg-teal-50 text-teal-700 border-teal-200",
   report_pending: "bg-violet-50 text-violet-700 border-violet-200",
   report_ready: "bg-emerald-600 text-white border-emerald-600",
 };
 
-type TemplateKey = "scheduled" | "collected" | "report_pending" | "report_ready";
+type TemplateKey =
+  | "scheduled"
+  | "application_submitted"
+  | "collected"
+  | "report_pending"
+  | "report_ready";
 
 const TEMPLATE_LABELS: Record<TemplateKey, string> = {
   scheduled: "Запись назначена",
+  application_submitted: "Заявка оформлена",
   collected: "Анализ в работе",
   report_pending: "Отчёт в работе",
   report_ready: "Отчёт загружен",
@@ -110,6 +119,7 @@ const TEMPLATE_LABELS: Record<TemplateKey, string> = {
 
 const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -117,6 +127,7 @@ const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -124,6 +135,7 @@ const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -131,6 +143,7 @@ const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
 
 const STATUS_TO_TEMPLATE_KEY: Partial<Record<BookingStatus, TemplateKey>> = {
   scheduled: "scheduled",
+  application_submitted: "application_submitted",
   collected: "collected",
   report_pending: "report_pending",
   report_ready: "report_ready",
@@ -150,6 +163,7 @@ interface Booking {
   created_at: string;
   location_type?: "home" | "clinic" | null;
   lab_location_id?: string | null;
+  labquest_request_number?: string | null;
 }
 
 interface Props {
@@ -168,6 +182,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   const [creating, setCreating] = useState(false);
   const [sendDialog, setSendDialog] = useState<Booking | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [requestNumberFor, setRequestNumberFor] = useState<Booking | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["patient-bookings", userId],
@@ -215,24 +230,50 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   };
 
   const statusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+      requestNumber,
+    }: {
+      id: string;
+      status: BookingStatus;
+      requestNumber?: string;
+    }) => {
+      const update: Record<string, unknown> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+      if (typeof requestNumber === "string") {
+        update.labquest_request_number = requestNumber.trim() || null;
+      }
       const { error } = await supabase
         .from("analysis_bookings")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(update as any)
         .eq("id", id);
       if (error) throw error;
     },
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, status, requestNumber }) => {
       await qc.cancelQueries({ queryKey: ["patient-bookings", userId] });
       const previous = qc.getQueryData<Booking[]>(["patient-bookings", userId]);
       qc.setQueryData<Booking[]>(["patient-bookings", userId], (old) =>
-        (old || []).map((b) => (b.id === id ? { ...b, status } : b))
+        (old || []).map((b) =>
+          b.id === id
+            ? {
+                ...b,
+                status,
+                labquest_request_number:
+                  typeof requestNumber === "string"
+                    ? requestNumber.trim() || null
+                    : b.labquest_request_number,
+              }
+            : b
+        )
       );
       return { previous };
     },
     onSuccess: () => {
       invalidateAll();
-      toast({ title: "Статус обновлен" });
+      toast({ title: "Статус обновлён" });
     },
     onError: (e: any, _vars, ctx) => {
       if (ctx?.previous) {
@@ -270,6 +311,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
             appointment_date: dateStr,
             appointment_time: (b.booking_time || "").slice(0, 5),
             clinic_address: b.address || "",
+            request_number: b.labquest_request_number || "",
           },
         },
       });
@@ -392,14 +434,27 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                                 💬 {b.address_comment}
                               </div>
                             )}
+                            {b.labquest_request_number && (
+                              <div className="text-xs text-indigo-700 dark:text-indigo-300 mt-0.5">
+                                🔖 Заявка ЛабКвест: <span className="font-medium">{b.labquest_request_number}</span>
+                              </div>
+                            )}
                           </button>
                         </TableCell>
                         <TableCell>
                           <Select
                             value={b.status}
-                            onValueChange={(v) =>
-                              statusMutation.mutate({ id: b.id, status: v as BookingStatus })
-                            }
+                            onValueChange={(v) => {
+                              const next = v as BookingStatus;
+                              if (
+                                next === "application_submitted" &&
+                                !b.labquest_request_number
+                              ) {
+                                setRequestNumberFor(b);
+                                return;
+                              }
+                              statusMutation.mutate({ id: b.id, status: next });
+                            }}
                           >
                             <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
                               <Badge
@@ -498,6 +553,8 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           currentTime={editing.booking_time}
           currentAddress={editing.address}
           currentAddressComment={editing.address_comment || ""}
+          currentRequestNumber={editing.labquest_request_number || ""}
+          currentStatus={editing.status}
           onClose={() => setEditing(null)}
           onSuccess={invalidateAll}
         />
@@ -529,6 +586,21 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           userId={userId}
           onClose={() => setCreating(false)}
           onCreated={invalidateAll}
+        />
+      )}
+
+      {requestNumberFor && (
+        <RequestNumberDialog
+          booking={requestNumberFor}
+          onClose={() => setRequestNumberFor(null)}
+          onConfirm={(number) => {
+            statusMutation.mutate({
+              id: requestNumberFor.id,
+              status: "application_submitted",
+              requestNumber: number,
+            });
+            setRequestNumberFor(null);
+          }}
         />
       )}
 
@@ -593,6 +665,7 @@ function CreateBookingForPatientDialog({
   const [address, setAddress] = useState("");
   const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
+  const [requestNumber, setRequestNumber] = useState("");
 
   const createM = useMutation({
     mutationFn: async () => {
@@ -603,6 +676,7 @@ function CreateBookingForPatientDialog({
         address: address.trim(),
         address_comment: addressComment.trim() || null,
         status,
+        labquest_request_number: requestNumber.trim() || null,
       } as any);
       if (error) throw error;
     },
@@ -695,13 +769,29 @@ function CreateBookingForPatientDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="labquest_request_number_new">
+              Номер заявки ЛабКвест{status === "application_submitted" ? " *" : ""}
+            </Label>
+            <Input
+              id="labquest_request_number_new"
+              value={requestNumber}
+              onChange={(e) => setRequestNumber(e.target.value)}
+              placeholder="например, ЛК-000123"
+              maxLength={64}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Отмена
           </Button>
           <Button
-            disabled={!address.trim() || createM.isPending}
+            disabled={
+              !address.trim() ||
+              createM.isPending ||
+              (status === "application_submitted" && !requestNumber.trim())
+            }
             onClick={() => createM.mutate()}
           >
             {createM.isPending ? "Создание…" : "Создать"}
@@ -757,9 +847,20 @@ function SendRemindersDialog({
   const phoneChanged =
     phone.replace(/\D/g, "") !== initialPhone.replace(/\D/g, "");
 
+  const needsRequestNumber =
+    templateKey === "application_submitted" && !booking.labquest_request_number;
+
   const handleSubmit = async () => {
     if (!emailOn && !smsOn && !tgOn) {
       toast({ title: "Выберите хотя бы один канал", variant: "destructive" });
+      return;
+    }
+    if (needsRequestNumber) {
+      toast({
+        title: "Нужен номер заявки",
+        description: "Сначала выставьте статус «Заявка оформлена» и введите номер заявки ЛабКвест.",
+        variant: "destructive",
+      });
       return;
     }
     const emailNorm = email.trim().toLowerCase();
@@ -823,6 +924,12 @@ function SendRemindersDialog({
             <p className="text-xs text-muted-foreground">
               По умолчанию выбран шаблон, соответствующий текущему статусу записи.
             </p>
+            {needsRequestNumber && (
+              <p className="text-xs text-destructive">
+                Для шаблона «Заявка оформлена» нужен номер заявки ЛабКвест. Сначала выставьте
+                этот статус в таблице и введите номер.
+              </p>
+            )}
           </div>
           <div className="space-y-2 rounded-md border p-3">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -906,7 +1013,7 @@ function SendRemindersDialog({
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Отмена
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting || needsRequestNumber}>
             {submitting ? "Отправка…" : "Отправить"}
           </Button>
         </DialogFooter>
@@ -914,4 +1021,53 @@ function SendRemindersDialog({
     </Dialog>
   );
 }
+
+function RequestNumberDialog({
+  booking,
+  onClose,
+  onConfirm,
+}: {
+  booking: Booking;
+  onClose: () => void;
+  onConfirm: (requestNumber: string) => void;
+}) {
+  const [value, setValue] = useState(booking.labquest_request_number || "");
+  const trimmed = value.trim();
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-[440px]">
+        <DialogHeader>
+          <DialogTitle>Заявка ЛабКвест оформлена</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-2">
+          <Label htmlFor="labquest_request_number">Номер заявки ЛабКвест</Label>
+          <Input
+            id="labquest_request_number"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="например, ЛК-000123"
+            autoFocus
+            maxLength={64}
+          />
+          <p className="text-xs text-muted-foreground">
+            Без номера заявки статус выставить нельзя. Номер попадёт в SMS и Email пациенту
+            и в уведомление администраторам.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button
+            disabled={!trimmed}
+            onClick={() => onConfirm(trimmed)}
+          >
+            Сохранить и выставить статус
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 

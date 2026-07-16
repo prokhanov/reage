@@ -19,6 +19,7 @@ const DEFAULT_TEMPLATE_TYPE = 'booking_scheduled'
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: 'booking_scheduled',
+  application_submitted: 'booking_application_submitted',
   collected: 'booking_collected',
   report_pending: 'booking_report_pending',
   report_ready: 'booking_report_ready',
@@ -26,6 +27,7 @@ const STATUS_TO_TEMPLATE: Record<string, string> = {
 
 const ALLOWED_TEMPLATES = new Set([
   'booking_scheduled',
+  'booking_application_submitted',
   'booking_collected',
   'booking_report_pending',
   'booking_report_ready',
@@ -161,6 +163,7 @@ Deno.serve(async (req) => {
               appointment_date: '15 июня 2026',
               appointment_time: '09:30',
               clinic_address: 'г. Москва, ул. Примерная, д. 1',
+              request_number: 'ЛК-000123',
               ...(body.vars || {}),
             })
       : (body.vars || {})
@@ -203,6 +206,11 @@ Deno.serve(async (req) => {
     }
 
     const template = tpl as Template
+    if (templateType === 'booking_application_submitted' && !isTest && !String(vars.request_number || '').trim()) {
+      return new Response(JSON.stringify({ error: 'Не заполнен номер заявки ЛабКвест' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     const subject = (isTest ? '[ТЕСТ] ' : '') + applyVars(template.subject, vars)
     const html = renderHtml(template, vars, ctaUrl)
     const text = renderText(template, vars, ctaUrl)

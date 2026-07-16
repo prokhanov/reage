@@ -39,8 +39,11 @@ const STATUS_LABELS: Record<string, string> = {
   no_answer: "Не дозвонились",
   not_scheduled: "Не назначен",
   scheduled: "Назначен",
+  application_submitted: "Заявка оформлена",
   received: "Получен",
   collected: "Обрабатывается",
+  report_pending: "Отчёт в работе",
+  report_ready: "Отчёт загружен",
   uploaded: "Загружен",
 };
 
@@ -56,6 +59,7 @@ function applyBookingVars(template: string, payload: Record<string, any>): strin
     address: escapeHtml(payload.address || "—"),
     status: escapeHtml(STATUS_LABELS[String(payload.status)] || String(payload.status || "—")),
     url: escapeHtml(payload.url || "https://reage.life/profile"),
+    request_number: escapeHtml(payload.request_number || "—"),
   };
   return template.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
 }

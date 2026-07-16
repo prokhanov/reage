@@ -10,6 +10,7 @@ const corsHeaders = {
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -17,6 +18,7 @@ const STATUS_TO_TEMPLATE: Record<string, string> = {
 
 const ALLOWED_TEMPLATES = new Set([
   "booking_scheduled",
+  "booking_application_submitted",
   "booking_collected",
   "booking_report_pending",
   "booking_report_ready",
@@ -66,7 +68,7 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await admin
       .from("analysis_bookings")
-      .select("id, user_id, booking_date, booking_time, address, status, assigned_staff_id")
+      .select("id, user_id, booking_date, booking_time, address, status, assigned_staff_id, labquest_request_number")
       .eq("id", booking_id)
       .maybeSingle();
     if (!booking) return json({ error: "Booking not found" }, 404);
@@ -82,6 +84,11 @@ Deno.serve(async (req) => {
       STATUS_TO_TEMPLATE[String(booking.status)] ||
       null;
 
+    const requestNumber = (booking as any).labquest_request_number || "";
+    if (templateKey === "booking_application_submitted" && !requestNumber) {
+      return json({ success: false, error: "Не заполнен номер заявки ЛабКвест" }, 400);
+    }
+
     const { error: rpcErr } = await admin.rpc("invoke_telegram_notify", {
       p_event_type: "booking_status_changed",
       p_payload: {
@@ -96,6 +103,7 @@ Deno.serve(async (req) => {
         status: booking.status,
         triggered_by: user.id,
         template_key: templateKey,
+        request_number: requestNumber,
       },
     });
 
