@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Phone } from "lucide-react";
+import { Calendar, Phone, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +10,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
 import { CallbackRequestDialog } from "./CallbackRequestDialog";
 import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
+import { AnalysisInstructionsDialog } from "./AnalysisInstructionsDialog";
 import {
   useBookingModeSettings,
   getStatusText,
@@ -22,6 +23,7 @@ interface BookingInfo {
   address: string;
   status: string;
   next_analysis_date?: string;
+  labquest_request_number?: string | null;
 }
 
 export function AnalysisBookingBanner() {
@@ -30,6 +32,7 @@ export function AnalysisBookingBanner() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [medicalAnketaFilled, setMedicalAnketaFilled] = useState(true);
   const { data: userRoleData, isLoading } = useUserRole();
@@ -155,6 +158,7 @@ export function AnalysisBookingBanner() {
       const active =
         find("report_pending") ||
         find("collected") ||
+        find("application_submitted") ||
         find("scheduled", true) ||
         find("no_answer") ||
         find("waiting_call") ||
@@ -241,8 +245,13 @@ export function AnalysisBookingBanner() {
       subtitle: "Медсестра приедет к вам домой в удобное время",
     },
     scheduled: {
-      title: "Ожидайте визита специалиста",
+      title: "Сдайте анализы",
       subtitle: "{date} в {time} • {address}",
+    },
+    application_submitted: {
+      title: "Заявка подтверждена — сдайте анализы",
+      subtitle:
+        "{date} в {time} • {address} • Номер заявки: {request_number}",
     },
     collected: {
       title: "Анализ в работе",
@@ -257,9 +266,12 @@ export function AnalysisBookingBanner() {
 
   const text = getStatusText(modeSettings, statusKey, fallbackMap[statusKey] ?? fallbackMap.empty);
 
-  // Interpolate placeholders for scheduled
+  // Interpolate placeholders for scheduled / application_submitted
   let subtitle = text.subtitle;
-  if (bookingInfo && statusKey === "scheduled") {
+  if (
+    bookingInfo &&
+    (statusKey === "scheduled" || statusKey === "application_submitted")
+  ) {
     const dateStr = new Date(bookingInfo.booking_date).toLocaleDateString(
       "ru-RU",
       { day: "numeric", month: "long" }
@@ -267,11 +279,21 @@ export function AnalysisBookingBanner() {
     subtitle = subtitle
       .replace(/\{date\}/g, dateStr)
       .replace(/\{time\}/g, bookingInfo.booking_time || "")
-      .replace(/\{address\}/g, bookingInfo.address || "");
+      .replace(/\{address\}/g, bookingInfo.address || "")
+      .replace(/\{request_number\}/g, bookingInfo.labquest_request_number || "—");
   }
 
+  // Statuses where we show the "Инструкция" button instead of a scheduling action
+  const instructionStatuses = ["scheduled", "application_submitted"];
+  const showInstructions = instructionStatuses.includes(statusKey);
+
   // Decide whether to show action button
-  const terminalStatuses = ["collected", "report_pending", "scheduled"];
+  const terminalStatuses = [
+    "collected",
+    "report_pending",
+    "scheduled",
+    "application_submitted",
+  ];
   const showButton = !terminalStatuses.includes(statusKey);
   let buttonLabel = "Назначить дату";
   if (mode === "phone") {
@@ -283,6 +305,7 @@ export function AnalysisBookingBanner() {
   }
 
   const Icon = mode === "phone" ? Phone : Calendar;
+  const callbackPhone = modeSettings?.callback_phone ?? null;
 
   return (
     <>
@@ -302,6 +325,12 @@ export function AnalysisBookingBanner() {
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
+      <AnalysisInstructionsDialog
+        open={instructionsOpen}
+        onOpenChange={setInstructionsOpen}
+        requestNumber={bookingInfo?.labquest_request_number ?? null}
+        callbackPhone={callbackPhone}
+      />
       <div className="relative rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5 animate-fade-in">
         <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -311,17 +340,47 @@ export function AnalysisBookingBanner() {
             <div className="space-y-0.5 min-w-0 flex-1">
               <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
+              {showInstructions && (
+                <p className="text-xs text-muted-foreground leading-snug pt-1">
+                  Для изменения записи свяжитесь с нами по телефону
+                  {callbackPhone ? (
+                    <>
+                      {" "}
+                      <a
+                        href={`tel:${callbackPhone.replace(/[^+\d]/g, "")}`}
+                        className="font-semibold text-foreground underline"
+                      >
+                        {callbackPhone}
+                      </a>
+                    </>
+                  ) : null}
+                  .
+                </p>
+              )}
             </div>
           </div>
-          {showButton && (
-            <Button
-              onClick={handleSchedule}
-              size="sm"
-              className="bg-gradient-primary shadow-neon-primary text-white w-full sm:w-auto h-10 rounded-xl"
-            >
-              {buttonLabel}
-            </Button>
-          )}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {showInstructions && (
+              <Button
+                onClick={() => setInstructionsOpen(true)}
+                size="sm"
+                variant="outline"
+                className="w-full sm:w-auto h-10 rounded-xl"
+              >
+                <Info className="h-4 w-4 mr-1.5" />
+                Инструкция
+              </Button>
+            )}
+            {showButton && (
+              <Button
+                onClick={handleSchedule}
+                size="sm"
+                className="bg-gradient-primary shadow-neon-primary text-white w-full sm:w-auto h-10 rounded-xl"
+              >
+                {buttonLabel}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </>
