@@ -99,6 +99,7 @@ function splitRecommendation(text: string): Segment[] {
 export function assembleRecommendationText(
   rec: ReportRecommendationRow,
   drafts: Record<string, string>,
+  report?: LabReport,
 ): string {
   const originalText = rec.text || "";
   const idPrefix = `rec:${rec.id}#`;
@@ -120,6 +121,16 @@ export function assembleRecommendationText(
     }
     return bodyDraft;
   }
+
+  // Есть ли новые «insert»-блоки (текст, добавленный между биомаркерами)?
+  const hasInsertDrafts = Object.keys(drafts).some(
+    (k) => k.startsWith(idPrefix) && /#insert:\d+$/.test(k),
+  );
+  if (hasInsertDrafts && report) {
+    const rebuilt = assembleFromParsedBlocks(rec, drafts, report, idPrefix);
+    if (rebuilt !== null) return rebuilt;
+  }
+
 
   const segments = splitRecommendation(originalText);
   const parts: string[] = [];
