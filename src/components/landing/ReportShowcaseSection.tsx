@@ -550,10 +550,15 @@ function PreviewCardsRow() {
               transition={{ type: "spring", stiffness: 220, damping: 26 }}
               style={{ zIndex: st.z, cursor: "pointer" }}
             >
-              <img
+              <SmartPicture
+                avif={s.avif}
+                webp={s.webp}
                 src={s.src}
                 alt={s.alt}
+                width={1240}
+                height={1754}
                 loading="lazy"
+                decoding="async"
                 draggable={false}
                 className="w-full h-full object-cover object-top block pointer-events-none scale-[1.02]"
               />
