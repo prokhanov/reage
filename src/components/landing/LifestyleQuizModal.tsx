@@ -168,9 +168,6 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
       </DialogContent>
     </Dialog>
   );
-
-  // Helpers pattern: don't render progress bar's redundant filler
-  void progressValue;
 }
 
 // ---------- Step components ----------
