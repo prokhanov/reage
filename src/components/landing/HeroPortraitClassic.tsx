@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroManAvif from "../../assets/landing-v2/hero-couple-v4.png?format=avif&quality=68&url";
-import heroManWebp from "../../assets/landing-v2/hero-couple-v4.png?format=webp&quality=78&url";
-import heroMan from "../../assets/landing-v2/hero-couple-v4.png?url";
+import heroManAvif from "@/assets/landing-v2/hero-couple-v4.png?format=avif&quality=68&url";
+import heroManWebp from "@/assets/landing-v2/hero-couple-v4.png?format=webp&quality=78&url";
+import heroMan from "@/assets/landing-v2/hero-couple-v4.png?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
 
 const glass =
