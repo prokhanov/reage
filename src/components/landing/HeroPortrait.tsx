@@ -323,9 +323,14 @@ function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
         className="relative origin-top-left"
         style={{ width: ab.width, height: ab.height, transform: `scale(${ab.scale})` }}
       >
-        <img
+        <SmartPicture
+          avif={heroManAvif}
           src={heroMan}
           alt="Пара изучает персональный отчёт ReAge на смартфоне"
+          width={1600}
+          height={1600}
+          fetchPriority="high"
+          decoding="async"
           className="absolute animate-fade-in pointer-events-none object-contain"
           style={{
             left: ab.man.left,
