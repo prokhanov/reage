@@ -114,7 +114,7 @@ function CardElement({ id }: { id: "card1" | "card2" | "card3" | "card4" }) {
         <h3 className="text-sm md:text-base font-semibold text-foreground">{c.title}</h3>
       </div>
       <div className="rounded-2xl bg-card border border-border/60 shadow-xl shadow-primary/10 overflow-hidden">
-        <img src={c.img} alt={c.title} loading="lazy" className="w-full h-auto block" />
+        <SmartPicture avif={c.avif} webp={c.webp} src={c.img} alt={c.title} loading="lazy" decoding="async" className="w-full h-auto block" />
       </div>
     </div>
   );
