@@ -1,19 +1,23 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 
 const STYLE_ID = "jivo-hide-style";
 
 /**
  * Скрывает виджет Jivo для ролей: суперадмин, администратор, врач.
- * Для остальных (пациенты, гости) виджет отображается.
+ * Исключение: на главной странице (лендинге) виджет всегда виден для всех.
  */
 export function JivoVisibility() {
   const { data: roleData } = useUserRole();
+  const { pathname } = useLocation();
 
   useEffect(() => {
+    const isLanding = pathname === "/";
     const role = roleData?.userRole;
     const shouldHide =
-      role === "Суперадмин" || role === "Администратор" || role === "Врач";
+      !isLanding &&
+      (role === "Суперадмин" || role === "Администратор" || role === "Врач");
 
     let styleEl = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
 
@@ -27,7 +31,7 @@ export function JivoVisibility() {
     } else if (styleEl) {
       styleEl.remove();
     }
-  }, [roleData?.userRole]);
+  }, [roleData?.userRole, pathname]);
 
   return null;
 }
