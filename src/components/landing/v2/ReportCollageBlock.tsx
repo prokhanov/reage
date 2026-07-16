@@ -27,10 +27,10 @@ type StoredLayout = Partial<Record<ElementId, Partial<Pos>>>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
 const CARDS = {
-  card1: { num: "01", title: "Общее резюме", img: card1 },
-  card2: { num: "02", title: "Разбор по системам организма", img: card2 },
-  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3 },
-  card4: { num: "04", title: "Персональные назначения", img: card4 },
+  card1: { num: "01", title: "Общее резюме", img: card1, avif: card1Avif, webp: card1Webp },
+  card2: { num: "02", title: "Разбор по системам организма", img: card2, avif: card2Avif, webp: card2Webp },
+  card3: { num: "03", title: "Биомаркеры с расшифровкой", img: card3, avif: card3Avif, webp: card3Webp },
+  card4: { num: "04", title: "Персональные назначения", img: card4, avif: card4Avif, webp: card4Webp },
 } as const;
 
 const LABELS: Record<ElementId, string> = {
