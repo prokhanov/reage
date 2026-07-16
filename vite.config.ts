@@ -12,7 +12,9 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    imagetools(),
+    // vite-imagetools transforms images through `sharp` on-demand in dev,
+    // causing 3-10s cold-start delays per image. Enable only for production builds.
+    mode !== "development" && imagetools(),
     mode === "development" && componentTagger(),
   ].filter(Boolean),
   resolve: {
