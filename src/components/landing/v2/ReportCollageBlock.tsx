@@ -4,10 +4,19 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { ExampleReportDialog } from "./ExampleReportDialog";
-import card1 from "@/assets/report-card-1.png";
-import card2 from "@/assets/report-card-2.png";
-import card3 from "@/assets/report-card-3.png";
-import card4 from "@/assets/report-card-4.png";
+import card1Avif from "@/assets/report-card-1.png?format=avif&quality=68&url";
+import card1Webp from "@/assets/report-card-1.png?format=webp&quality=78&url";
+import card1 from "@/assets/report-card-1.png?url";
+import card2Avif from "@/assets/report-card-2.png?format=avif&quality=68&url";
+import card2Webp from "@/assets/report-card-2.png?format=webp&quality=78&url";
+import card2 from "@/assets/report-card-2.png?url";
+import card3Avif from "@/assets/report-card-3.png?format=avif&quality=68&url";
+import card3Webp from "@/assets/report-card-3.png?format=webp&quality=78&url";
+import card3 from "@/assets/report-card-3.png?url";
+import card4Avif from "@/assets/report-card-4.png?format=avif&quality=68&url";
+import card4Webp from "@/assets/report-card-4.png?format=webp&quality=78&url";
+import card4 from "@/assets/report-card-4.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 /* ===================== DATA ===================== */
 
