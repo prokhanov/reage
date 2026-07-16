@@ -993,7 +993,7 @@ function SendRemindersDialog({
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Отмена
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting || needsRequestNumber}>
             {submitting ? "Отправка…" : "Отправить"}
           </Button>
         </DialogFooter>
