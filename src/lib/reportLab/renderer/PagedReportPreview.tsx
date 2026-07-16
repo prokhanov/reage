@@ -862,6 +862,27 @@ function installEditableOverlay(
     // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
     // Save через window.__reportLabCollectDrafts().
 
+    // Для insert-слотов между биомаркерами показываем плейсхолдер
+    // «+ добавить текст здесь», пока пользователь не ввёл текст.
+    if (el.classList.contains("rl-insert-slot")) {
+      const updateEmpty = () => {
+        const txt = (el.textContent || "").replace(/\u00A0/g, "").trim();
+        if (!txt) el.setAttribute("data-empty", "");
+        else el.removeAttribute("data-empty");
+      };
+      updateEmpty();
+      el.addEventListener("input", updateEmpty);
+      el.addEventListener("focus", () => {
+        // Гарантируем наличие фокусируемого <p><br></p>, если пусто.
+        if (!el.querySelector("p")) {
+          const p = document.createElement("p");
+          p.appendChild(document.createElement("br"));
+          el.appendChild(p);
+        }
+      });
+    }
+
+
     // ─── Enter → <br>, а не новый <p> ─────────────────────────────────────
     // Причина: у `.rl-prose p` заданы вертикальные margin. Дефолтное
     // поведение Chrome в contentEditable — на Enter расщепить текущий <p>
