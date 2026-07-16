@@ -250,8 +250,7 @@ export function AnalysisBookingBanner() {
     },
     application_submitted: {
       title: "Заявка подтверждена — сдайте анализы",
-      subtitle:
-        "{date} в {time} • {address} • Номер заявки: {request_number}",
+      subtitle: "{date} в {time} • {address}",
     },
     collected: {
       title: "Анализ в работе",
