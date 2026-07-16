@@ -31,7 +31,7 @@ export function ThemedLogo({ className, alt = "ReAge", eager = false }: ThemedLo
       height={681}
       decoding={eager ? "sync" : "async"}
       loading={eager ? "eager" : "lazy"}
-      fetchPriority={eager ? "high" : "auto"}
+      {...({ fetchpriority: eager ? "high" : "auto" } as Record<string, string>)}
     />
   );
 }
