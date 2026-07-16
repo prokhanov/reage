@@ -25,6 +25,7 @@ const EVENTS: EventDef[] = [
 const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
   { key: "booking_waiting_call", label: "Заявка «Перезвоните мне»", description: "Когда пациент оставляет заявку на анализы через форму обратного звонка" },
   { key: "booking_scheduled", label: "Запись назначена", description: "Когда админ подтверждает время и адрес забора" },
+  { key: "booking_application_submitted", label: "Заявка оформлена", description: "Когда админ вводит номер заявки ЛабКвест и переводит запись в статус «Заявка оформлена»" },
   { key: "booking_collected", label: "Анализ в работе", description: "Когда биоматериал передан в лабораторию" },
   { key: "booking_report_pending", label: "Отчёт в работе", description: "Когда лаборатория вернула результаты и мы начали формировать персональный отчёт" },
   { key: "booking_report_ready", label: "Отчёт загружен", description: "Когда персональный отчёт доступен пациенту в кабинете" },
