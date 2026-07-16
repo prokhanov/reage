@@ -12,6 +12,7 @@ const corsHeaders = {
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: "booking_scheduled",
+  application_submitted: "booking_application_submitted",
   collected: "booking_collected",
   report_pending: "booking_report_pending",
   report_ready: "booking_report_ready",
@@ -19,6 +20,7 @@ const STATUS_TO_TEMPLATE: Record<string, string> = {
 
 const ALLOWED_TEMPLATES = new Set([
   "booking_scheduled",
+  "booking_application_submitted",
   "booking_collected",
   "booking_report_pending",
   "booking_report_ready",
