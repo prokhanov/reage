@@ -1495,6 +1495,8 @@ export default function Recommendations() {
             analysisId={reportV2State.analysisId}
             userId={reportV2State.userId}
             mode={reportV2State.mode}
+            initialReport={demoMode ? buildLabReportFromExample() : undefined}
+            hideDownload={demoMode}
           />
         )}
 
