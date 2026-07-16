@@ -1,4 +1,18 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-imagetools/client" />
+
+declare module "*&url" {
+  const src: string;
+  export default src;
+}
+declare module "*&format=avif&url" {
+  const src: string;
+  export default src;
+}
+declare module "*&format=webp&url" {
+  const src: string;
+  export default src;
+}
 
 declare module "pagedjs" {
   export class Previewer {
