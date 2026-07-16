@@ -169,6 +169,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
         address: address.trim(),
         address_comment: addressComment.trim() || null,
         status,
+        labquest_request_number: requestNumber.trim() || null,
       } as any);
       if (error) throw error;
     },
