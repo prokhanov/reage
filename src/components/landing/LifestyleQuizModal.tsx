@@ -333,8 +333,10 @@ function DomainStep({
 }
 
 function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeResult>> }) {
+  const hasStrong = result.items.length > 0;
   return (
     <div className="space-y-6">
+      {/* Заголовок с тоном */}
       <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
         <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div className="space-y-1">
@@ -347,18 +349,63 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
         </div>
       </div>
 
-      {result.items.length === 0 ? (
-        <div className="text-sm text-muted-foreground text-center py-8">
-          Вы отметили только положительные ответы — по образу жизни явных сигналов нет.
+      {/* Карта образа жизни — все 6 доменов */}
+      <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            Карта образа жизни
+          </div>
+          <div className="text-[11px] text-muted-foreground">
+            нагрузка по 6 системам
+          </div>
         </div>
-      ) : (
+        <div className="space-y-2">
+          {result.allDomains.map((d) => {
+            const Icon = DOMAIN_ICONS[d.key];
+            const pct = d.maxScore > 0 ? (d.score / d.maxScore) * 100 : 0;
+            const level: "clean" | "weak" | "strong" =
+              d.score === 0 ? "clean" : d.score === 1 ? "weak" : "strong";
+            const barCls =
+              level === "strong"
+                ? "bg-primary"
+                : level === "weak"
+                  ? "bg-primary/40"
+                  : "bg-muted-foreground/25";
+            const labelCls =
+              level === "clean" ? "text-muted-foreground" : "text-foreground";
+            return (
+              <div key={d.key} className="flex items-center gap-3">
+                <Icon className={cn("w-4 h-4 shrink-0", level === "clean" ? "text-muted-foreground/60" : "text-primary")} />
+                <div className={cn("text-xs w-40 shrink-0 truncate", labelCls)}>
+                  {d.label}
+                </div>
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn("h-full rounded-full transition-all", barCls)}
+                    style={{ width: `${Math.max(pct, level === "clean" ? 0 : 8)}%` }}
+                  />
+                </div>
+                <div className="text-[11px] text-muted-foreground w-8 text-right tabular-nums">
+                  {d.score}/{d.maxScore}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Развёрнутые карточки — доменные сигналы */}
+      {hasStrong ? (
         <div className="space-y-4">
+          <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            Где стоит смотреть внимательнее
+          </div>
           {result.items.map((item) => {
             const Icon = DOMAIN_ICONS[item.domain.key];
             return (
               <div
                 key={item.domain.key}
-                className="rounded-2xl border border-border bg-card p-4 space-y-3"
+                className="rounded-2xl border border-border bg-card p-4 space-y-4"
               >
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -366,42 +413,98 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
                   </div>
                   <div className="text-sm font-semibold">{item.domain.label}</div>
                 </div>
-                <div className="text-sm leading-relaxed">
-                  <span className="text-muted-foreground">Отметили: </span>
-                  <span className="font-medium">{item.observation}</span>
+
+                {/* Цепочка: наблюдение → возможная причина → что проверит */}
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-stretch">
+                  <div className="rounded-lg border border-border/70 bg-muted/30 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                      Отметили
+                    </div>
+                    <div className="text-sm font-medium leading-snug">
+                      {item.observation}
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center justify-center text-muted-foreground">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-primary/80 mb-1">
+                      За этим может стоять
+                    </div>
+                    <div className="text-sm font-medium leading-snug text-foreground">
+                      {item.cause || "измеримая причина"}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground leading-relaxed">
+
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {item.hypothesis}
-                </div>
+                </p>
+
                 {item.markers.length > 0 && (
                   <div className="pt-1">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-                      Что это покажет
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                      Что покажут анализы
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <ul className="space-y-2">
                       {item.markers.map((m) => (
-                        <span
-                          key={m}
-                          className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20"
-                        >
-                          {m}
-                        </span>
+                        <li key={m.code} className="flex gap-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold border border-primary/20 shrink-0 h-fit mt-0.5 whitespace-nowrap">
+                            {m.code}
+                          </span>
+                          <span className="text-xs text-muted-foreground leading-relaxed">
+                            {m.why}
+                          </span>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
+      ) : (
+        <div className="text-sm text-muted-foreground text-center py-4">
+          Ярких сигналов по образу жизни нет — но базовые биомаркеры всё равно
+          покажут то, что не видно по самочувствию.
+        </div>
       )}
 
+      {/* Мелкие сигналы */}
+      {result.weakDomains.length > 0 && (
+        <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
+            Мелкие сигналы
+          </div>
+          <div className="text-xs text-muted-foreground leading-relaxed">
+            Есть небольшие отметки по:{" "}
+            <span className="text-foreground font-medium">
+              {result.weakDomains.map((d) => d.label.toLowerCase()).join(", ")}
+            </span>
+            . Отдельного разбора не требует — но эти системы всё равно попадут в общий чекап.
+          </div>
+        </div>
+      )}
+
+      {/* Что уже работает */}
+      {result.cleanDomains.length > 0 && (
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-muted-foreground leading-relaxed">
+            <span className="text-foreground font-medium">Что уже работает: </span>
+            {result.cleanDomains.map((d) => d.label.toLowerCase()).join(", ")}. Это хорошая база — её и стоит удерживать.
+          </div>
+        </div>
+      )}
+
+      {/* CTA */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button asChild size="lg" className="flex-1">
-          <Link to="/register">Оформить подписку</Link>
+          <Link to="/prep">Записаться на анализы</Link>
         </Button>
         <Button asChild size="lg" variant="outline" className="flex-1">
-          <Link to="/prep">Записаться на анализы</Link>
+          <Link to="/register">Оформить годовое наблюдение</Link>
         </Button>
       </div>
 

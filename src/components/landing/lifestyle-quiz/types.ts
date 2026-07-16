@@ -25,24 +25,40 @@ export interface DomainScore {
   key: DomainKey;
   label: string;
   score: number;
+  /** Максимально возможный балл в домене — для нормировки в UI. */
+  maxScore: number;
   /** Question id that had the maximum score within domain (for hypothesis pick). */
   topQuestionId: string | null;
+}
+
+export interface MarkerWithReason {
+  code: string;
+  why: string;
 }
 
 export interface ResultItem {
   domain: DomainScore;
   /** «Что отметил» — short verbatim of the top-scoring answer */
   observation: string;
-  /** Hypothesis text */
+  /** Короткая формулировка возможной причины (bridge). */
+  cause: string;
+  /** Расширенный контекст-гипотеза */
   hypothesis: string;
-  /** Ordered markers, calibrated */
-  markers: string[];
+  /** Ordered markers with per-marker explanation */
+  markers: MarkerWithReason[];
 }
 
 export interface QuizResult {
   tier: Tier;
   toneHeadline: string;
   toneCta: string;
+  /** Домены с максимальными сигналами — развёрнутые карточки */
   items: ResultItem[];
+  /** Все 6 доменов, отсортированные по нагрузке — для «Карты образа жизни» */
+  allDomains: DomainScore[];
+  /** Домены со слабыми сигналами (не попали в items, но score > 0) */
+  weakDomains: DomainScore[];
+  /** Домены без сигналов (score = 0) */
+  cleanDomains: DomainScore[];
   bmi: number;
 }
