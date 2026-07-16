@@ -160,11 +160,16 @@ const order: SectionKey[] = [
 function DashboardWidgets() {
   return (
     <div className={`${glass} p-2 sm:p-3 overflow-hidden`}>
-      <img
+      <SmartPicture
+        avif={dashboardMockV9Avif}
+        webp={dashboardMockV9Webp}
         src={dashboardMockV9}
         alt="Контрольная панель ReAge — биологический возраст, индекс здоровья и рейтинг систем"
+        width={1600}
+        height={1000}
         className="w-full h-auto rounded-xl block"
         loading="lazy"
+        decoding="async"
       />
     </div>
   );
