@@ -444,9 +444,17 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                         <TableCell>
                           <Select
                             value={b.status}
-                            onValueChange={(v) =>
-                              statusMutation.mutate({ id: b.id, status: v as BookingStatus })
-                            }
+                            onValueChange={(v) => {
+                              const next = v as BookingStatus;
+                              if (
+                                next === "application_submitted" &&
+                                !b.labquest_request_number
+                              ) {
+                                setRequestNumberFor(b);
+                                return;
+                              }
+                              statusMutation.mutate({ id: b.id, status: next });
+                            }}
                           >
                             <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
                               <Badge
