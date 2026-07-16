@@ -472,10 +472,24 @@ html, body {
 }
 .reportlab .rl-prose ul {
   margin: 0 0 4mm 6mm;
+  padding-left: 4mm;
+  list-style: disc outside;
+}
+.reportlab .rl-prose ol {
+  margin: 0 0 4mm 6mm;
+  padding-left: 4mm;
+  list-style: decimal outside;
 }
 .reportlab .rl-prose li {
   margin: 0 0 1.5mm;
   color: var(--ink-soft);
+  display: list-item;
+}
+.reportlab .rl-prose ul ul {
+  list-style: circle outside;
+}
+.reportlab .rl-prose ul ul ul {
+  list-style: square outside;
 }
 
 /* ─── Карточки ───────────────────────────────────────────────────────────── */
