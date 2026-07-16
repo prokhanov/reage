@@ -220,11 +220,25 @@ export function CallbackRequestDialog({
         .eq("id", userId);
 
       const homeCityLabel = HOME_CITIES.find((c) => c.key === homeCity)?.label ?? "";
+      const buildClinicAddress = () => {
+        if (!selectedLab) return "";
+        const base =
+          selectedLab.full_address ||
+          selectedLab.address_short ||
+          selectedLab.title ||
+          "";
+        const metroRaw = (selectedLab.metro ?? "").trim();
+        if (!metroRaw) return base;
+        const metroCap =
+          metroRaw.charAt(0).toUpperCase() + metroRaw.slice(1);
+        const metroLabel = `м. ${metroCap}`;
+        // Avoid duplicating metro if it's already part of the address string
+        if (base.toLowerCase().includes(metroRaw.toLowerCase())) return base;
+        return [metroLabel, base].filter(Boolean).join(" • ");
+      };
       const addressValue =
         locationType === "clinic" && selectedLab
-          ? [selectedLab.title, selectedLab.full_address ?? selectedLab.address_short ?? ""]
-              .filter(Boolean)
-              .join(" — ")
+          ? buildClinicAddress()
           : [homeCityLabel, homeAddress.trim()].filter(Boolean).join(", ");
 
       const patch: Record<string, any> = {
