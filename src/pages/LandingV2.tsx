@@ -142,6 +142,9 @@ const LandingV2 = () => {
           <QuizCTASection />
         </Block>
         <Block>
+          <LifestyleQuizCTASection />
+        </Block>
+        <Block>
           <ReportCollageBlock editMode={editOn} />
         </Block>
         <Block>
