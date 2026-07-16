@@ -488,9 +488,16 @@ function ReportMockup({
 }
 
 // ============ Screenshot preview stack ============
-import reportPage01 from "@/assets/landing-v2/report-page-01.png";
-import reportPage13 from "@/assets/landing-v2/report-page-13.png";
-import reportPage61 from "@/assets/landing-v2/report-page-61.png";
+import reportPage01Avif from "@/assets/landing-v2/report-page-01.png?format=avif&quality=68&url";
+import reportPage01Webp from "@/assets/landing-v2/report-page-01.png?format=webp&quality=78&url";
+import reportPage01 from "@/assets/landing-v2/report-page-01.png?url";
+import reportPage13Avif from "@/assets/landing-v2/report-page-13.png?format=avif&quality=68&url";
+import reportPage13Webp from "@/assets/landing-v2/report-page-13.png?format=webp&quality=78&url";
+import reportPage13 from "@/assets/landing-v2/report-page-13.png?url";
+import reportPage61Avif from "@/assets/landing-v2/report-page-61.png?format=avif&quality=68&url";
+import reportPage61Webp from "@/assets/landing-v2/report-page-61.png?format=webp&quality=78&url";
+import reportPage61 from "@/assets/landing-v2/report-page-61.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 function PreviewCardsRow() {
   const shots = [
