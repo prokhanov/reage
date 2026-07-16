@@ -79,6 +79,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
   const [address, setAddress] = useState("");
   const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
+  const [requestNumber, setRequestNumber] = useState("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,6 +93,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
       setAddress("");
       setAddressComment("");
       setStatus("scheduled");
+      setRequestNumber("");
     }
   }, [open]);
 
