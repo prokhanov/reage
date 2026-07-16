@@ -53,40 +53,42 @@ const ConsultationCtaBlock = lazy(() =>
 // Reserved placeholder to prevent CLS while a lazy section resolves.
 const SectionFallback = () => <div aria-hidden className="min-h-[320px]" />;
 
+/** Wraps a lazy section in its own <Suspense> so slow chunks don't block siblings. */
+const S = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<SectionFallback />}>{children}</Suspense>
+);
+
 const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />
       <PasswordResetTokenHandler />
       <HeroPortrait />
-      <Suspense fallback={<SectionFallback />}>
-        <div className="relative -mt-px">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-48 sm:h-56 lg:h-64 z-[1]"
-            style={{
-              background:
-                "linear-gradient(to bottom, hsl(210 85% 45% / 0.10) 0%, hsl(210 85% 45% / 0.04) 50%, transparent 100%)",
-            }}
-          />
-          <CycleInfographicBlock />
-          <HowItWorksBlock />
-          <WhyCheckupsFail />
-          <ConsultationCtaBlock />
-          <ComparisonSection />
-        </div>
-        {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
-        {/* <BenefitsSection /> */}
-        <BiomarkersDeepDiveSection />
-        <ReportCollageBlock />
-        <AppFeaturesSection />
-
-        <WhereToTestSection />
-        <PricingSection />
-        <FAQSection />
-        <CTASection />
-        <Footer />
-      </Suspense>
+      <div className="relative -mt-px">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-48 sm:h-56 lg:h-64 z-[1]"
+          style={{
+            background:
+              "linear-gradient(to bottom, hsl(210 85% 45% / 0.10) 0%, hsl(210 85% 45% / 0.04) 50%, transparent 100%)",
+          }}
+        />
+        <S><CycleInfographicBlock /></S>
+        <S><HowItWorksBlock /></S>
+        <S><WhyCheckupsFail /></S>
+        <S><ConsultationCtaBlock /></S>
+        <S><ComparisonSection /></S>
+      </div>
+      {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
+      {/* <BenefitsSection /> */}
+      <S><BiomarkersDeepDiveSection /></S>
+      <S><ReportCollageBlock /></S>
+      <S><AppFeaturesSection /></S>
+      <S><WhereToTestSection /></S>
+      <S><PricingSection /></S>
+      <S><FAQSection /></S>
+      <S><CTASection /></S>
+      <S><Footer /></S>
     </div>
   );
 };
