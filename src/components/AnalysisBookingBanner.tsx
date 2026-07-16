@@ -342,18 +342,22 @@ export function AnalysisBookingBanner() {
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
               {showInstructions && (
                 <p className="text-xs text-muted-foreground leading-snug pt-1">
-                  Для изменения записи свяжитесь с нами по телефону
-                  {callbackPhone ? (
-                    <>
-                      {" "}
-                      <a
-                        href={`tel:${callbackPhone.replace(/[^+\d]/g, "")}`}
-                        className="font-semibold text-foreground underline"
-                      >
-                        {callbackPhone}
-                      </a>
-                    </>
-                  ) : null}
+                  Для изменения записи свяжитесь с нами по телефону{" "}
+                  <a
+                    href={`tel:${(callbackPhone ?? "+7 (995) 998-46-38").replace(/[^+\d]/g, "")}`}
+                    className="font-semibold text-foreground underline"
+                  >
+                    {callbackPhone ?? "+7 (995) 998-46-38"}
+                  </a>{" "}
+                  или в Telegram-чате{" "}
+                  <a
+                    href="https://t.me/reage_life"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-foreground underline"
+                  >
+                    @reage_life
+                  </a>
                   .
                 </p>
               )}

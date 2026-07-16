@@ -5,7 +5,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Building2, Home } from "lucide-react";
+import { Building2, Home, MessageCircle } from "lucide-react";
+
+const COMPANY_PHONE = "+7 (995) 998-46-38";
+const TELEGRAM_CHAT_URL = "https://t.me/reage_life";
+const TELEGRAM_CHAT_LABEL = "@reage_life";
 
 interface AnalysisInstructionsDialogProps {
   open: boolean;
@@ -110,24 +114,27 @@ export function AnalysisInstructionsDialog({
             </ul>
           </section>
 
-          <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-muted-foreground">
+          <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-muted-foreground space-y-1.5">
             <p className="text-xs">
               Нужно изменить или перенести запись — свяжитесь с нами по
-              телефону
-              {callbackPhone ? (
-                <>
-                  {" "}
-                  <a
-                    href={`tel:${callbackPhone.replace(/[^+\d]/g, "")}`}
-                    className="font-semibold text-foreground underline"
-                  >
-                    {callbackPhone}
-                  </a>
-                  .
-                </>
-              ) : (
-                "."
-              )}
+              телефону{" "}
+              <a
+                href={`tel:${(callbackPhone ?? COMPANY_PHONE).replace(/[^+\d]/g, "")}`}
+                className="font-semibold text-foreground underline"
+              >
+                {callbackPhone ?? COMPANY_PHONE}
+              </a>{" "}
+              или в Telegram-чате{" "}
+              <a
+                href={TELEGRAM_CHAT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-foreground underline inline-flex items-center gap-1"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                {TELEGRAM_CHAT_LABEL}
+              </a>
+              .
             </p>
           </div>
         </div>
