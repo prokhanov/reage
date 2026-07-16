@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Phone } from "lucide-react";
+import { Calendar, Phone, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +10,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
 import { CallbackRequestDialog } from "./CallbackRequestDialog";
 import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
+import { AnalysisInstructionsDialog } from "./AnalysisInstructionsDialog";
 import {
   useBookingModeSettings,
   getStatusText,
@@ -22,6 +23,7 @@ interface BookingInfo {
   address: string;
   status: string;
   next_analysis_date?: string;
+  labquest_request_number?: string | null;
 }
 
 export function AnalysisBookingBanner() {
