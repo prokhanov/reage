@@ -12,13 +12,11 @@ type State =
   | { kind: "already"; email?: string }
   | { kind: "error"; message: string };
 
-// UUID → токен из email_unsubscribe_tokens (футер транзакционных/auth-писем,
-// обрабатывает handle-email-unsubscribe).
-// Иначе (base64.base64 через точку) → HMAC-токен drip-серии → drip-unsubscribe.
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
+// Queue-токен (footer транзакционных/auth-писем, таблица email_unsubscribe_tokens)
+// — 64 hex-символа без точки. Drip HMAC-токен имеет формат base64url.base64url,
+// т.е. всегда содержит точку.
 function detectTokenKind(token: string): "queue" | "drip" {
-  return UUID_RE.test(token) ? "queue" : "drip";
+  return token.includes(".") ? "drip" : "queue";
 }
 
 export default function Unsubscribe() {
