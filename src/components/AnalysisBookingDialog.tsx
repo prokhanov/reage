@@ -15,7 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
-import { PassportFields, isPassportDataComplete } from "./PassportFields";
+import { isPassportDataComplete } from "./PassportFields";
 import { PassportDataDialog } from "./PassportDataDialog";
 
 interface AnalysisBookingDialogProps {
