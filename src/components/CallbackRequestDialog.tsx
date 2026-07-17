@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { PassportFields, isPassportValid, isFullNameFilled } from "./PassportFields";
+
+
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
@@ -180,7 +182,7 @@ export function CallbackRequestDialog({
   };
 
   const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
-  const passportComplete = isPassportValid(passportSeries, passportNumber) && fullNameFilled;
+  const passportValid = isPassportValid(passportSeries, passportNumber);
 
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
@@ -192,10 +194,18 @@ export function CallbackRequestDialog({
       });
       return;
     }
-    if (!passportComplete) {
+    if (!fullNameFilled) {
+      toast({
+        title: "Заполните ФИО",
+        description: "Укажите фамилию, имя и отчество",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!passportValid) {
       toast({
         title: "Заполните паспортные данные",
-        description: "Нужны ФИО и серия/номер паспорта",
+        description: "Укажите серию и номер паспорта",
         variant: "destructive",
       });
       return;
@@ -345,6 +355,7 @@ export function CallbackRequestDialog({
               className="h-12 text-base"
             />
           </div>
+
           <div className="space-y-2">
             <Label>ФИО (как в паспорте)</Label>
             <div className="grid grid-cols-1 gap-2">
@@ -376,7 +387,6 @@ export function CallbackRequestDialog({
             onNumberChange={setPassportNumber}
             showIcon={false}
           />
-
 
           <div className="space-y-2">
             <Label>Где сдать анализы</Label>
@@ -521,7 +531,6 @@ export function CallbackRequestDialog({
             onClick={handleSubmit}
             disabled={
               loading ||
-              !passportComplete ||
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
