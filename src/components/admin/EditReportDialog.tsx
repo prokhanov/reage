@@ -488,6 +488,34 @@ export function EditReportDialog({
     }
   };
 
+  const handleSaveStatusOnly = async () => {
+    if (selectedStatus === analysisStatus) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("analyses")
+        .update({ status: selectedStatus })
+        .eq("id", analysisId);
+
+      if (error) throw error;
+
+      setAnalysisStatus(selectedStatus);
+      onStatusChange?.();
+      toast({
+        title: "Успешно!",
+        description: "Статус сохранён",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleConfirmPrescription = async (prescriptionId: string) => {
     try {
       const { error } = await supabase
@@ -906,21 +934,25 @@ export function EditReportDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 shrink-0">
-            <Button
-              onClick={handleSaveChanges}
-              disabled={saving || loading}
-            >
-              {saving ? (
-                <>
-                  <ButtonSpinner className="mr-2" />
-                  Сохранение...
-                </>
-              ) : (
-                "Сохранить"
-              )}
-            </Button>
-          </div>
+          {(!(viewMode === "v2" && ENABLE_REPORT_V2) || selectedStatus !== analysisStatus) && (
+            <div className="flex justify-end gap-3 pt-4 shrink-0">
+              <Button
+                onClick={viewMode === "v2" && ENABLE_REPORT_V2 ? handleSaveStatusOnly : handleSaveChanges}
+                disabled={saving || loading}
+              >
+                {saving ? (
+                  <>
+                    <ButtonSpinner className="mr-2" />
+                    Сохранение...
+                  </>
+                ) : viewMode === "v2" && ENABLE_REPORT_V2 ? (
+                  "Сохранить статус"
+                ) : (
+                  "Сохранить"
+                )}
+              </Button>
+            </div>
+          )}
 
 
           {(qaRunning || qaEvents.length > 0) && (
