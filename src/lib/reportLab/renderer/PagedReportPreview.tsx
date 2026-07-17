@@ -753,14 +753,27 @@ function restoreCaret(
  *               массовом удалении), и первый блок следующей мог бы подтянуться.
  */
 function needsReflow(output: HTMLElement): boolean {
-  const contents = Array.from(
-    output.querySelectorAll<HTMLElement>(".pagedjs_page_content"),
-  );
-  if (!contents.length) return false;
-  for (const c of contents) {
-    if (c.scrollHeight - c.clientHeight > 1) return true;
-  }
   const pages = Array.from(output.querySelectorAll<HTMLElement>(".pagedjs_page"));
+  if (!pages.length) return false;
+
+  for (const page of pages) {
+    const box =
+      page.querySelector<HTMLElement>(".pagedjs_page_content") ??
+      page.querySelector<HTMLElement>(".pagedjs_area") ??
+      page;
+    const pageBottom = box.getBoundingClientRect().bottom;
+    const descendants = Array.from(
+      box.querySelectorAll<HTMLElement>(".reportlab [data-editable-id], .reportlab .rl-biomarker, .reportlab .rl-prose, .reportlab p, .reportlab li"),
+    );
+    for (const node of descendants) {
+      const rects = Array.from(node.getClientRects());
+      if (rects.some((rect) => rect.bottom - pageBottom > 1)) return true;
+    }
+    // scrollHeight больше не надёжен после overflow:visible на Paged.js-обёртках,
+    // но оставляем как быстрый fallback для не-editable элементов.
+    if (box.scrollHeight - box.clientHeight > 1) return true;
+  }
+
   for (let i = 0; i < pages.length - 1; i++) {
     const content = pages[i].querySelector<HTMLElement>(".pagedjs_page_content");
     if (!content) continue;
@@ -773,6 +786,29 @@ function needsReflow(output: HTMLElement): boolean {
     if (firstBlock.offsetHeight + 8 <= free) return true;
   }
   return false;
+}
+
+function caretNearPageBottom(output: HTMLElement, thresholdPx = 72): boolean {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return false;
+  const range = sel.getRangeAt(0).cloneRange();
+  range.collapse(false);
+  const marker = document.createElement("span");
+  marker.setAttribute("data-rl-caret-probe", "");
+  marker.style.cssText = "display:inline-block;width:0;height:1px;overflow:hidden;line-height:1px;";
+  try {
+    range.insertNode(marker);
+    const page = marker.closest(".pagedjs_page");
+    const content = page?.querySelector<HTMLElement>(".pagedjs_page_content") ?? null;
+    if (!content) return false;
+    const caretBottom = marker.getBoundingClientRect().bottom;
+    const pageBottom = content.getBoundingClientRect().bottom;
+    return pageBottom - caretBottom <= thresholdPx;
+  } catch {
+    return false;
+  } finally {
+    marker.remove();
+  }
 }
 
 function editableSelector(id: string): string {
@@ -833,7 +869,7 @@ function installEditableOverlay(
   output: HTMLElement,
   onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
-  triggerReflow: () => void,
+  triggerReflow: (force?: boolean) => void,
 ) {
   const toolbar = ensureToolbar(output);
 
@@ -871,8 +907,8 @@ function installEditableOverlay(
     if (reflowTimer != null) window.clearTimeout(reflowTimer);
     reflowTimer = window.setTimeout(() => {
       reflowTimer = null;
-      if (force || needsReflow(output)) triggerReflow();
-    }, force ? 60 : 350);
+        if (force || needsReflow(output)) triggerReflow(force);
+      }, force ? 80 : 180);
   };
   // Экспонируем для совместимости с bubble-toolbar (Bold/Italic/H2/H3).
   (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
@@ -886,7 +922,7 @@ function installEditableOverlay(
     el.setAttribute("spellcheck", "true");
     // Live-reflow: при вводе / вставке проверяем переполнение и, если нужно,
     // пересобираем страницы, чтобы текст не «улетал» за пределы листа.
-    el.addEventListener("input", () => scheduleReflowCheck(false));
+    el.addEventListener("input", () => scheduleReflowCheck(caretNearPageBottom(output)));
 
     // Для insert-слотов между биомаркерами показываем плейсхолдер
     // «+ добавить текст здесь», пока пользователь не ввёл текст.
