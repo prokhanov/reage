@@ -122,8 +122,14 @@ export function parseCategory(
 
     if (tag.startsWith("biomarker ")) {
       // Открывающий якорь биомаркера
-      pushProse(cursor, start);
       const code = tag.slice("biomarker ".length).trim();
+      const before = splitTrailingBiomarkerIntro(
+        text.slice(cursor, start),
+        code,
+        biomarkerIndex,
+      );
+      const cleanBefore = cleanProse(before.prose);
+      if (cleanBefore) blocks.push({ kind: "prose", markdown: cleanBefore });
 
       // Ищем следующую границу: biomarker_end ИЛИ следующий biomarker
       let nextBoundary = text.length;
@@ -145,7 +151,9 @@ export function parseCategory(
         cursor = text.length;
       }
 
-      const rawCommentary = text.slice(end, nextBoundary);
+      const rawCommentary = before.intro
+        ? `${before.intro}\n\n${text.slice(end, nextBoundary)}`
+        : text.slice(end, nextBoundary);
       const commentary = cleanProse(stripLeadingBiomarkerName(rawCommentary));
       blocks.push({ kind: "biomarker", code, commentary });
     } else {
@@ -321,6 +329,8 @@ function stripLeadingBiomarkerName(text: string): string {
   const head = nlIdx === -1 ? trimmed : trimmed.slice(0, nlIdx);
   if (
     head.length < 120 &&
+    !/[.!?…]$/.test(head.trim()) &&
+    head.trim().split(/\s+/).length <= 8 &&
     !/^[-*•]/.test(head) &&
     !/^\d+\./.test(head) &&
     !/^#{1,6}\s/.test(head) &&
@@ -330,6 +340,60 @@ function stripLeadingBiomarkerName(text: string): string {
     return nlIdx === -1 ? "" : trimmed.slice(nlIdx + 2);
   }
   return trimmed;
+}
+
+/**
+ * После автодобора карточек в старых отчётах якорь иногда стоит не перед
+ * образовательным абзацем, а прямо перед фразой «Ваш показатель …». Тогда
+ * вводный текст визуально оказывается НАД карточкой и выглядит как текст
+ * предыдущего биомаркера. Если хвост перед якорем начинается с имени/кода
+ * текущего маркера — переносим этот хвост внутрь commentary текущей карточки.
+ */
+function splitTrailingBiomarkerIntro(
+  chunk: string,
+  code: string,
+  biomarkerIndex?: Map<string, ReportBiomarker>,
+): { prose: string; intro: string } {
+  if (!chunk.trim() || !biomarkerIndex) return { prose: chunk, intro: "" };
+
+  const bio = biomarkerIndex.get(normalizeCode(code));
+  if (!bio) return { prose: chunk, intro: "" };
+
+  const marker = findBiomarkerLeadStart(chunk, bio);
+  if (marker === -1) return { prose: chunk, intro: "" };
+
+  return {
+    prose: chunk.slice(0, marker),
+    intro: cleanProse(chunk.slice(marker)),
+  };
+}
+
+function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
+  const starts: string[] = [];
+  const fullName = bio.name.trim();
+  const strippedName = fullName.replace(/\s*\([^()]{1,30}\)\s*$/u, "").trim();
+  const code = bio.code.trim();
+  for (const value of [fullName, strippedName, code]) {
+    if (value && !starts.some((s) => normalizeName(s) === normalizeName(value))) {
+      starts.push(value);
+    }
+  }
+
+  for (const lead of starts) {
+    const re = new RegExp(
+      `(?:^|\\n\\s*\\n|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*\\*)?${escapeRegex(lead)}(?:\\*\\*)?(?=[\\s(—–-]|$)`,
+      "iu",
+    );
+    const m = re.exec(chunk);
+    if (m) {
+      const rawIndex = m.index + (m[0].match(/^[\s\S]*?(?=\S)/)?.[0].length ?? 0);
+      // Не забираем большой общий intro: маркер должен быть в хвосте перед
+      // якорем, а не в середине длинного раздела.
+      if (chunk.length - rawIndex <= 1_200) return rawIndex;
+    }
+  }
+
+  return -1;
 }
 
 /**
