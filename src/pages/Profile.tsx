@@ -17,6 +17,7 @@ import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { PassportDataDialog } from "@/components/PassportDataDialog";
+import { isPassportDataComplete } from "@/components/PassportFields";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { MedicalAnketaCard } from "@/components/profile/MedicalAnketaCard";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
