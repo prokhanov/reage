@@ -37,6 +37,10 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [addressComment, setAddressComment] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
