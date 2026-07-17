@@ -22,7 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { PassportFields, isPassportValid, isFullNameFilled } from "./PassportFields";
+
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
@@ -71,11 +71,6 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [middleName, setMiddleName] = useState("");
-  const [passportSeries, setPassportSeries] = useState("");
-  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
@@ -93,15 +88,10 @@ export function CallbackRequestDialog({
     if (!userId) return;
     const { data } = await supabase
       .from("profiles")
-      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
+      .select("phone")
       .eq("id", userId)
       .maybeSingle();
     if (data?.phone) setPhone(formatPhone(data.phone));
-    setFirstName((data as any)?.first_name || "");
-    setLastName((data as any)?.last_name || "");
-    setMiddleName((data as any)?.middle_name || "");
-    setPassportSeries((data as any)?.passport_series || "");
-    setPassportNumber((data as any)?.passport_number || "");
   };
 
   useEffect(() => {
@@ -179,23 +169,12 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
-  const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
-  const passportComplete = isPassportValid(passportSeries, passportNumber) && fullNameFilled;
-
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
     if (!normalized) {
       toast({
         title: "Введите телефон",
         description: "Укажите корректный номер для связи",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!passportComplete) {
-      toast({
-        title: "Заполните паспортные данные",
-        description: "Нужны ФИО и серия/номер паспорта",
         variant: "destructive",
       });
       return;
@@ -221,20 +200,9 @@ export function CallbackRequestDialog({
       const userId = await getUserId();
       if (!userId) throw new Error("Не удалось определить пользователя");
 
-      const fn = firstName.trim();
-      const ln = lastName.trim();
-      const mn = middleName.trim();
       await supabase
         .from("profiles")
-        .update({
-          phone: normalized,
-          first_name: fn,
-          last_name: ln,
-          middle_name: mn || null,
-          name: [ln, fn, mn].filter(Boolean).join(" "),
-          passport_series: passportSeries,
-          passport_number: passportNumber,
-        } as any)
+        .update({ phone: normalized } as any)
         .eq("id", userId);
 
       const homeCityLabel = HOME_CITIES.find((c) => c.key === homeCity)?.label ?? "";
