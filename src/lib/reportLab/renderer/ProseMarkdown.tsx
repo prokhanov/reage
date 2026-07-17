@@ -28,6 +28,8 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
     (editableId && ctx?.getDraft(editableId)) ?? markdown ?? "";
   const clean = source
     .replace(/\r\n/g, "\n")
+    .replace(/\u200B/g, "")
+    .replace(/\u00A0/g, " ")
     .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
     .replace(/\$\$/g, "")
     .replace(/\n{3,}/g, "\n\n")
