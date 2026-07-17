@@ -20,13 +20,14 @@ export default function Subscription() {
   const { toast } = useToast();
   const { data: plans, isLoading } = useSubscriptionPlans();
   const { data: isTestMode } = usePaymentGatewayTestMode();
+  const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
 
   // Check for active subscription
   const { data: activeSubscription, isLoading: loadingSubscription } = useQuery({
-    queryKey: ['subscription'],
+    queryKey: ['subscription', viewAsUserId ?? 'self'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const userId = await getUserId();
+      if (!userId) return null;
 
       const { data, error } = await supabase
         .from('subscriptions')
@@ -41,7 +42,7 @@ export default function Subscription() {
             comparison_highlights
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
