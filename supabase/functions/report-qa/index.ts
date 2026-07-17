@@ -956,11 +956,16 @@ Deno.serve(async (req) => {
 
           // 5. AI repair for blocks missing educational text
           const reportContext = text.slice(0, 4000);
-          const blocksToFix = blocks.filter(
-            (b) =>
-              knownCodesNorm.has(normalizeBiomarkerCode(b.code)) &&
-              isBiomarkerMissingEducation(b.content),
-          );
+          const blocksToFix = blocks.filter((b, idx) => {
+            if (!knownCodesNorm.has(normalizeBiomarkerCode(b.code))) return false;
+            const prevEnd = idx > 0 ? blocks[idx - 1].end : 0;
+            const precedingProse = text.slice(prevEnd, b.start);
+            const bm = biomarkers.find(
+              (bb) =>
+                normalizeBiomarkerCode(bb.code) === normalizeBiomarkerCode(b.code),
+            );
+            return isBiomarkerMissingEducation(b.content, precedingProse, bm);
+          });
           if (blocksToFix.length > 0) {
             send({
               type: "status",
