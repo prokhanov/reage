@@ -190,9 +190,44 @@ Deno.serve(async (req) => {
     }
 
     const invId = Number(order.inv_id);
-    const signature = buildCreateSignature(merchantLogin, outSum, invId, password1);
 
-    const params = new URLSearchParams({
+    // Fetch plan display name for receipt item
+    const { data: plan } = await admin
+      .from("subscription_plans")
+      .select("display_name, name")
+      .eq("id", planId)
+      .maybeSingle();
+    const planTitle = plan?.display_name || plan?.name || "тариф";
+    const periodLabel = PERIOD_LABELS[pricing.period] || pricing.period || "";
+    const itemName = `Подписка ReAge: ${planTitle}${periodLabel ? `, ${periodLabel}` : ""}`;
+
+    const receipt = {
+      sno: "usn_income_outcome",
+      items: [
+        {
+          name: itemName.slice(0, 128),
+          quantity: 1,
+          sum: Number(finalAmount.toFixed(2)),
+          payment_method: "full_payment",
+          payment_object: "service",
+          tax: "none",
+        },
+      ],
+    };
+    const receiptJson = JSON.stringify(receipt);
+    const receiptEncoded = encodeURIComponent(receiptJson);
+
+    const signature = buildCreateSignature(
+      merchantLogin,
+      outSum,
+      invId,
+      password1,
+      receiptEncoded,
+    );
+
+    // Собираем URL вручную, чтобы Receipt был закодирован ровно тем же
+    // encodeURIComponent, что и в подписи (URLSearchParams кодирует пробелы как '+').
+    const baseParams: Record<string, string> = {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
@@ -200,11 +235,16 @@ Deno.serve(async (req) => {
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",
-    });
-    if (userEmail) params.set("Email", userEmail);
-    if (isTest) params.set("IsTest", "1");
+    };
+    if (userEmail) baseParams.Email = userEmail;
+    if (isTest) baseParams.IsTest = "1";
 
-    const paymentUrl = `${ROBOKASSA_URL}?${params.toString()}`;
+    const query = Object.entries(baseParams)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .concat(`Receipt=${receiptEncoded}`)
+      .join("&");
+
+    const paymentUrl = `${ROBOKASSA_URL}?${query}`;
 
     return json({ url: paymentUrl, invId, isTest });
   } catch (e) {
