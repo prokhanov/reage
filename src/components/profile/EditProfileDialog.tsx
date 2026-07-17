@@ -65,6 +65,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || initialSplit.first,
     last_name: profile?.last_name || initialSplit.last,
+    middle_name: profile?.middle_name || "",
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
