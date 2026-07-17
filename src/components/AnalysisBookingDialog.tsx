@@ -101,12 +101,20 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
+  const passportComplete = isPassportDataComplete({
+    firstName,
+    lastName,
+    middleName,
+    series: passportSeries,
+    number: passportNumber,
+  });
+
   const isValid =
     bookingDate &&
     bookingTime &&
     selectedSlotId &&
     bookingAddress.trim().length > 0 &&
-    isPassportValid(passportSeries, passportNumber);
+    passportComplete;
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
