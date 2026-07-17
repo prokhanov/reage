@@ -113,6 +113,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   const handleSave = async () => {
     const firstName = formData.first_name.trim();
     const lastName = formData.last_name.trim();
+    const middleName = formData.middle_name.trim();
     if (!firstName || !formData.birth_date) {
       toast({
         title: "Ошибка",
@@ -127,7 +128,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       if (!userId) throw new Error("Не авторизован");
 
       const weightValue = formData.weight ? parseFloat(formData.weight) : null;
-      const fullName = [firstName, lastName].filter(Boolean).join(" ");
+      const fullName = [lastName, firstName, middleName].filter(Boolean).join(" ");
 
       const { error, data } = await supabase
         .from("profiles")
@@ -135,6 +136,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           name: fullName,
           first_name: firstName,
           last_name: lastName || null,
+          middle_name: middleName || null,
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
