@@ -107,6 +107,10 @@ const pagedCss = `
    contentEditable во время редактирования не «улетает» в середину следующего
    листа, а сам чанкер продолжает корректно считать разбиение страниц. */
 .pagedjs_page { overflow: hidden !important; }
+/* В режиме редактирования снимаем clip: если текст мгновенно вылез за низ
+   листа до срабатывания debounced reflow, он должен оставаться видимым,
+   а не «пропадать» под нижней границей страницы. */
+.rl-paged-output[data-editing="1"] .pagedjs_page { overflow: visible !important; }
 
 /* Inline editor markers */
 .reportlab [data-editable-id] {
