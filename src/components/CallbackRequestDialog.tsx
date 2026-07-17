@@ -179,6 +179,14 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
+  const passportComplete = isPassportDataComplete({
+    firstName,
+    lastName,
+    middleName,
+    series: passportSeries,
+    number: passportNumber,
+  });
+
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
     if (!normalized) {
