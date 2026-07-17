@@ -523,7 +523,7 @@ export function CallbackRequestDialog({
             onClick={handleSubmit}
             disabled={
               loading ||
-              !isPassportValid(passportSeries, passportNumber) ||
+              !passportComplete ||
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
@@ -533,6 +533,14 @@ export function CallbackRequestDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <PassportDataDialog
+        open={passportDialogOpen}
+        onOpenChange={setPassportDialogOpen}
+        onSaved={() => {
+          loadProfile();
+        }}
+      />
     </Dialog>
   );
 }
