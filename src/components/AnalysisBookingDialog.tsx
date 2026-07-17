@@ -125,10 +125,17 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       const userId = await getUserId();
       if (!userId) throw new Error("User not authenticated");
 
-      // Save passport data to profile
+      // Save name & passport data to profile
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      const mn = middleName.trim();
       await supabase
         .from("profiles")
         .update({
+          first_name: fn,
+          last_name: ln,
+          middle_name: mn || null,
+          name: [ln, fn, mn].filter(Boolean).join(" "),
           passport_series: passportSeries,
           passport_number: passportNumber,
         } as any)
@@ -472,18 +479,36 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             />
           </div>
 
+          <div className="space-y-3">
+            <Label className="text-base font-medium">ФИО (как в паспорте)</Label>
+            <div className="grid grid-cols-1 gap-2">
+              <Input
+                placeholder="Фамилия"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="h-12 text-base"
+              />
+              <Input
+                placeholder="Имя"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="h-12 text-base"
+              />
+              <Input
+                placeholder="Отчество"
+                value={middleName}
+                onChange={(e) => setMiddleName(e.target.value)}
+                className="h-12 text-base"
+              />
+            </div>
+          </div>
+
           <PassportFields
             series={passportSeries}
             number={passportNumber}
             onSeriesChange={setPassportSeries}
             onNumberChange={setPassportNumber}
           />
-
-          {!fullNameFilled && (
-            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-              В профиле не заполнены фамилия, имя или отчество. Заполните ФИО в профиле — они нужны для оформления забора в лаборатории.
-            </div>
-          )}
         </div>
 
         <div className="space-y-3 pt-4">
