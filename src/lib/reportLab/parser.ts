@@ -96,7 +96,7 @@ export function parseCategory(
   // (просто `Название (CODE)` отдельной строкой), всё равно превращаем такие
   // блоки в карточки со шкалой. Инжектируем только для кодов, реально
   // присутствующих в снапшоте.
-  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex);
+  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex, title);
 
   const matches = [...text.matchAll(ANCHOR_RE)];
   if (matches.length === 0) {
