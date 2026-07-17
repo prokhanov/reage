@@ -442,7 +442,7 @@ function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
   for (const lead of starts) {
     const re = new RegExp(
       `(?:^|\\n\\s*\\n|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*\\*)?${escapeRegex(lead)}(?:\\*\\*)?(?=[\\s(—–-]|$)`,
-      "iu",
+      "giu",
     );
     const m = re.exec(chunk);
     if (m) {
