@@ -1115,12 +1115,26 @@ Deno.serve(async (req) => {
             const sortedKeys = Object.keys(translations).sort(
               (a, b) => b.length - a.length,
             );
+            // Замену делаем только ВНЕ anchor-тегов и HTML-комментариев,
+            // чтобы точно не задеть коды в `<!-- anchor:biomarker CODE -->`.
+            const applyOutsideComments = (
+              src: string,
+              needle: string,
+              replacement: string,
+            ): string => {
+              const parts = src.split(/(<!--[\s\S]*?-->)/g);
+              const re = new RegExp(escapeRegex(needle), "g");
+              return parts
+                .map((part) =>
+                  part.startsWith("<!--") ? part : part.replace(re, replacement),
+                )
+                .join("");
+            };
             for (const orig of sortedKeys) {
               const ru = translations[orig];
               if (!ru || ru === orig) continue;
-              const re = new RegExp(escapeRegex(orig), "g");
               const before = text;
-              text = text.replace(re, ru);
+              text = applyOutsideComments(text, orig, ru);
               if (before !== text) {
                 replaced++;
                 const msg = `[${sectionLabel}] ✓ Английский → русский: «${orig}» → «${ru}»`;
