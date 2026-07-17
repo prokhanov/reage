@@ -447,6 +447,56 @@ function injectHeadingBiomarkerAnchors(
     }
   }
 
+  // ── Pass 3: value-driven detection for reports without biomarker headings.
+  // Некоторые версии AI-отчёта пропускают заголовки биомаркеров и оставляют
+  // только прозу с фразой «Ваш показатель <value> <unit>». Матчим по точному
+  // значению против снапшота, чтобы всё равно нарисовать карточки.
+  const valuePhraseRegex =
+    /Ваш(?:и|е|его)?\s+(?:текущ(?:ий|ее|ая)\s+)?(?:показател[ьия]|уровень|значение|индекс|результат)\s+([-]?\d+(?:[.,]\d+)?)/giu;
+  const valueMatches = [...text.matchAll(valuePhraseRegex)];
+  if (valueMatches.length > 0) {
+    const byValue = new Map<string, string[]>();
+    for (const bio of biomarkerIndex.values()) {
+      if (typeof bio.value !== "number") continue;
+      const key = String(bio.value).replace(/,/g, ".");
+      const arr = byValue.get(key) || [];
+      arr.push(bio.code);
+      byValue.set(key, arr);
+    }
+    const usedCodes = new Set<string>(anchoredCodes);
+    for (const h of hits) usedCodes.add(normalizeCode(h.code));
+
+    for (const vm of valueMatches) {
+      const rawVal = (vm[1] || "").replace(/,/g, ".");
+      const codes = byValue.get(rawVal);
+      if (!codes || codes.length === 0) continue;
+      const code = codes.find((c) => !usedCodes.has(normalizeCode(c)));
+      if (!code) continue;
+      const pos = vm.index ?? 0;
+      if (hits.some((hh) => pos >= hh.start && pos <= hh.end)) continue;
+      // Начало блока — предыдущий ZWS-разделитель («невидимый» абзац) либо
+      // предыдущий двойной перевод строки.
+      const zwsSepRegex = /\n[ \t]*[\u200B\u200C\u200D\uFEFF][ \t]*\n/g;
+      let blockStart = 0;
+      let z: RegExpExecArray | null;
+      while ((z = zwsSepRegex.exec(text)) !== null) {
+        if (z.index >= pos) break;
+        blockStart = z.index + z[0].length;
+      }
+      if (blockStart === 0) {
+        const prev = text.lastIndexOf("\n\n", pos);
+        if (prev !== -1) blockStart = prev + 2;
+      }
+      hits.push({
+        start: blockStart,
+        end: pos + vm[0].length,
+        code,
+        nameLen: 0,
+      });
+      usedCodes.add(normalizeCode(code));
+    }
+  }
+
   if (hits.length === 0) return text;
 
   // ── Сортировка/дедуп по коду и позиции.
