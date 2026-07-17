@@ -96,7 +96,7 @@ export function parseCategory(
   // (просто `Название (CODE)` отдельной строкой), всё равно превращаем такие
   // блоки в карточки со шкалой. Инжектируем только для кодов, реально
   // присутствующих в снапшоте.
-  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex);
+  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex, title);
 
   const matches = [...text.matchAll(ANCHOR_RE)];
   if (matches.length === 0) {
@@ -469,6 +469,7 @@ function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
 function injectHeadingBiomarkerAnchors(
   text: string,
   biomarkerIndex?: Map<string, ReportBiomarker>,
+  sectionCategory?: string,
 ): string {
   if (!text) return text;
   if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
@@ -581,8 +582,21 @@ function injectHeadingBiomarkerAnchors(
   const valueMatches = [...text.matchAll(valuePhraseRegex)];
   if (valueMatches.length > 0) {
     const byValue = new Map<string, string[]>();
+    const normalizedSection = sectionCategory
+      ? normalizeName(sectionCategory)
+      : "";
     for (const bio of biomarkerIndex.values()) {
       if (typeof bio.value !== "number") continue;
+      // Pass-3 неоднозначен: разные биомаркеры могут иметь одинаковое значение
+      // (напр. K и GLU оба 3.9). Чтобы такие «дубликаты» не ушли в чужую
+      // систему, ограничиваем поиск биомаркерами текущей категории.
+      if (
+        normalizedSection &&
+        bio.category &&
+        normalizeName(bio.category) !== normalizedSection
+      ) {
+        continue;
+      }
       const key = String(bio.value).replace(/,/g, ".");
       const arr = byValue.get(key) || [];
       arr.push(bio.code);
