@@ -346,6 +346,12 @@ export function CallbackRequestDialog({
             showIcon={false}
           />
 
+          {!fullNameFilled && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              В профиле не заполнены фамилия, имя или отчество. Заполните ФИО в профиле — они нужны для оформления забора в лаборатории.
+            </div>
+          )}
+
 
           <div className="space-y-2">
             <Label>Где сдать анализы</Label>
