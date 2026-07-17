@@ -65,11 +65,15 @@ export function ReportEditorToolbar({
       __reportLabCollectDrafts?: () => Record<string, string>;
     };
     const liveDrafts = w.__reportLabCollectDrafts?.() ?? drafts;
-    const changed = collectDirtyRecommendations(report, liveDrafts).map((c) => ({
-      ...c,
-      // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
-      text: cleanMarkdownArtifacts(c.text),
-    }));
+    const changed = collectDirtyRecommendations(report, liveDrafts).map((c) => {
+      const rec = report.recommendations.find((r) => r.id === c.id);
+      return {
+        ...c,
+        type: rec?.type ?? "",
+        // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
+        text: cleanMarkdownArtifacts(c.text),
+      };
+    });
     const coverDirty = !jsonEqual(coverOverrides, report.coverOverrides ?? null);
 
     if (changed.length === 0 && !coverDirty) {
@@ -82,9 +86,18 @@ export function ReportEditorToolbar({
     try {
       if (persist) {
         for (const c of changed) {
+          const shouldInvalidateStructuredSnapshot = c.type !== "Назначения";
+          const patch = shouldInvalidateStructuredSnapshot
+            ? { text: c.text, content_json: null }
+            : { text: c.text };
           const { error } = await supabase
             .from("recommendations")
-            .update({ text: c.text })
+            // content_json — структурный snapshot. Если оставить старый snapshot
+            // после ручной правки markdown, часть отчёта (например «Общее резюме»)
+            // при следующем рендере снова берётся из старого JSON и выглядит так,
+            // будто правка «откатилась».
+            // @ts-ignore — локальные generated types могут не знать content_json.
+            .update(patch)
             .eq("id", c.id);
           if (error) throw error;
         }
@@ -98,7 +111,12 @@ export function ReportEditorToolbar({
       }
       const updatedRecs = report.recommendations.map((r) => {
         const hit = changed.find((c) => c.id === r.id);
-        return hit ? { ...r, text: hit.text } : r;
+        if (!hit) return r;
+        return {
+          ...r,
+          text: hit.text,
+          content_json: hit.type !== "Назначения" ? null : r.content_json,
+        };
       });
       onReportUpdate({
         ...report,
