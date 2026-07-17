@@ -295,19 +295,22 @@ function isBiomarkerMissingEducation(content: string): boolean {
   // Empty / near-empty block — definitely missing.
   if (stripped.length < 60) return true;
   const valueMatch =
-    /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.exec(
+    /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат|концентрация|анализ|маркер|значения|параметр|коэффициент)/i.exec(
       stripped,
     );
   if (!valueMatch) {
     // Нет value-предложения — но может это просто заглушка без обучения.
-    // Если всего <200 символов прозы кириллицы, считаем что описания нет.
+    // Если после предыдущего исправления уже есть нормальный короткий
+    // образовательный абзац, не гоняем AI повторно на каждом QA-прогоне.
     const cyr = (stripped.match(/[а-яё]/gi) || []).length;
-    return cyr < 200;
+    const sentenceCount = (stripped.match(/[.!?…](?:\s|$)/g) || []).length;
+    return cyr < 120 || sentenceCount < 1;
   }
   const prefix = stripped.slice(0, valueMatch.index).trim();
   // Drop the first line (likely the biomarker title) and check what's left
   const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
-  return withoutTitle.length < 60;
+  const educationalCyr = (withoutTitle.match(/[а-яё]/gi) || []).length;
+  return educationalCyr < 60;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
@@ -414,6 +417,11 @@ const ENGLISH_WHITELIST_BASE = new Set<string>([
   "cholecalciferol", "ergocalciferol", "menaquinone",
   "berberine", "curcumin", "resveratrol", "quercetin",
   "ashwagandha", "rhodiola", "spirulina",
+  // legitimate Latin microbiology / clinical taxonomy terms in Russian reports
+  "candida", "albicans", "helicobacter", "pylori", "escherichia", "coli",
+  "lactobacillus", "bifidobacterium", "streptococcus", "staphylococcus",
+  "clostridium", "enterococcus", "klebsiella", "proteus", "salmonella",
+  "shigella", "aspergillus", "cryptococcus",
 ]);
 
 /** Normalize a token for whitelist comparison. */
