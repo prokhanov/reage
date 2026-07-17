@@ -305,7 +305,7 @@ export function AnalysisBookingBanner() {
   const showButton = !terminalStatuses.includes(statusKey);
   let buttonLabel = "Назначить дату";
   if (mode === "phone") {
-    if (statusKey === "waiting_call") buttonLabel = "Изменить заявку";
+    if (statusKey === "waiting_call") buttonLabel = "Запланировать сдачу";
     else if (statusKey === "no_answer") buttonLabel = "Запросить звонок";
     else buttonLabel = "Оставить заявку";
   } else if (statusKey === "scheduled") {

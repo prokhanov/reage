@@ -356,8 +356,37 @@ export function CallbackRequestDialog({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label>ФИО (как в паспорте)</Label>
+            <div className="grid grid-cols-1 gap-2">
+              <Input
+                placeholder="Фамилия"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="h-12 text-base"
+              />
+              <Input
+                placeholder="Имя"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="h-12 text-base"
+              />
+              <Input
+                placeholder="Отчество"
+                value={middleName}
+                onChange={(e) => setMiddleName(e.target.value)}
+                className="h-12 text-base"
+              />
+            </div>
+          </div>
 
-
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+            showIcon={false}
+          />
 
           <div className="space-y-2">
             <Label>Где сдать анализы</Label>
