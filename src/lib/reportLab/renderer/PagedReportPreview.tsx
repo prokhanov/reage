@@ -594,6 +594,7 @@ export function PagedReportPreview({
       <div
         ref={outputRef}
         className="rl-paged-output"
+        data-editing={editable ? "1" : undefined}
         style={{ position: "relative" }}
       />
     </div>
