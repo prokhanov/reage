@@ -44,7 +44,7 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
     // переносим его на отдельную строку, чтобы он стал самостоятельным заголовком.
     .replace(
       new RegExp(
-        `(^|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*{1,2})?(${SUMMARY_SUBHEADING_RE})(?:\\*{1,2})?[ \\t]*(?=[:—–-]|[А-ЯЁA-Z])`,
+        `(^|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*{1,2})?(${SUMMARY_SUBHEADING_RE})(?:\\*{1,2})?[ \\t]*(?:(?:[:：—–-][ \\t]*)|(?=[А-ЯЁA-Z]))`,
         "gi",
       ),
       (_m, nl: string, title: string) => `${nl}\n**${title.trim()}**\n\n`,
