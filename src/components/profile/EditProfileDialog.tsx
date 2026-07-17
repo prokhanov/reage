@@ -206,15 +206,15 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Редактировать профиль</DialogTitle>
           <DialogDescription>
             Обновите вашу личную информацию
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 px-6 overflow-y-auto flex-1 min-h-0">
+        <div className="flex-1 min-h-0 space-y-4 py-4 px-6 overflow-y-auto overscroll-contain">
 
           {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -519,7 +519,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         </div>
 
 
-        <div className="flex gap-3 px-6 pb-6 pt-2 border-t border-border/50">
+        <div className="shrink-0 flex gap-3 px-6 pb-6 pt-2 border-t border-border/50">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
