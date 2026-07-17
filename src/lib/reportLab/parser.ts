@@ -469,7 +469,16 @@ function injectHeadingBiomarkerAnchors(
     seenCodes.add(norm);
     lastEnd = h.end;
   }
-  if (filtered.length === 0) return text;
+  if (filtered.length === 0) {
+    const narrativeHits = findNarrativeBiomarkerHits(
+      text,
+      biomarkerIndex,
+      seenCodes,
+      summaryStart,
+    );
+    if (narrativeHits.length === 0) return text;
+    filtered.push(...narrativeHits);
+  }
 
   const findNextBoundary = (from: number): number => {
     const headerRegex = /^#{1,2}[ \t]+/gm;
@@ -495,6 +504,189 @@ function injectHeadingBiomarkerAnchors(
       result.slice(cur.start);
   }
   return result;
+}
+
+/**
+ * Recovery-path для уже сохранённых отчётов, где HTML-якоря биомаркеров были
+ * потеряны, но остался текстовый блок «Интерпретация биомаркеров» с разделением
+ * через zero-width spacer (`\u200B`). В таком виде карточки не появляются, потому
+ * что у парсера нет явной границы `<!-- anchor:biomarker CODE -->`.
+ *
+ * Мы аккуратно распознаём начало каждого биомаркерного абзаца по упоминанию
+ * названия/кода в тексте и дальше используем обычный механизм оборачивания:
+ * блок длится до следующего распознанного биомаркера. Это возвращает карточки
+ * без изменения данных в БД и без влияния на отчёты, где якоря уже есть.
+ */
+function findNarrativeBiomarkerHits(
+  text: string,
+  biomarkerIndex: Map<string, ReportBiomarker>,
+  seenCodes: Set<string>,
+  summaryStart: number,
+): Array<{ start: number; end: number; code: string; nameLen: number }> {
+  if (!/[\u200B\u200C\u200D\uFEFF]/.test(text)) return [];
+
+  const headingRe = /^[ \t]*(?:#{1,6}[ \t]+)?Интерпретация\s+биомаркеров[^\n]*$/gim;
+  let headingEnd = -1;
+  for (const m of text.matchAll(headingRe)) {
+    const end = (m.index ?? 0) + m[0].length;
+    if (end < summaryStart) headingEnd = end;
+  }
+  if (headingEnd < 0) return [];
+
+  const parts = splitByZeroWidthSpacers(text, headingEnd, summaryStart);
+  if (parts.length < 2) return [];
+
+  const candidates = Array.from(biomarkerIndex.values()).filter(
+    (bio) => !seenCodes.has(normalizeCode(bio.code)),
+  );
+  const used = new Set<string>(seenCodes);
+  const hits: Array<{ start: number; end: number; code: string; nameLen: number }> = [];
+
+  for (const part of parts) {
+    const clean = part.text.trim();
+    if (clean.length < 90) continue;
+    if (/^(?:Ваши\s+анализы|Общая\s+оценка|Сильные\s+стороны|Дефициты|Заключение|Резюме)/i.test(clean)) {
+      continue;
+    }
+
+    let best: { bio: ReportBiomarker; score: number; firstPos: number } | null = null;
+    for (const bio of candidates) {
+      const normCode = normalizeCode(bio.code);
+      if (!normCode || used.has(normCode)) continue;
+      const scored = scoreBiomarkerChunk(clean, bio);
+      if (scored.score < 3) continue;
+      if (
+        !best ||
+        scored.score > best.score ||
+        (scored.score === best.score && scored.firstPos < best.firstPos)
+      ) {
+        best = { bio, score: scored.score, firstPos: scored.firstPos };
+      }
+    }
+
+    if (!best) continue;
+    const norm = normalizeCode(best.bio.code);
+    used.add(norm);
+    hits.push({
+      start: part.start,
+      end: part.start,
+      code: best.bio.code,
+      nameLen: best.bio.name.length,
+    });
+  }
+
+  return hits;
+}
+
+function splitByZeroWidthSpacers(
+  text: string,
+  start: number,
+  end: number,
+): Array<{ start: number; end: number; text: string }> {
+  const out: Array<{ start: number; end: number; text: string }> = [];
+  const spacerRe = /[\u200B\u200C\u200D\uFEFF]+/g;
+  spacerRe.lastIndex = start;
+  let cursor = start;
+  let m: RegExpExecArray | null;
+  const push = (from: number, to: number) => {
+    const raw = text.slice(from, to);
+    const leading = raw.match(/^\s*/)?.[0].length ?? 0;
+    const trailing = raw.match(/\s*$/)?.[0].length ?? 0;
+    const partStart = from + leading;
+    const partEnd = Math.max(partStart, to - trailing);
+    const value = text.slice(partStart, partEnd);
+    if (value.trim()) out.push({ start: partStart, end: partEnd, text: value });
+  };
+  while ((m = spacerRe.exec(text)) !== null && (m.index ?? 0) < end) {
+    push(cursor, m.index ?? cursor);
+    cursor = (m.index ?? cursor) + m[0].length;
+  }
+  push(cursor, end);
+  return out;
+}
+
+function scoreBiomarkerChunk(
+  chunk: string,
+  bio: ReportBiomarker,
+): { score: number; firstPos: number } {
+  const hay = normalizeSearchText(chunk.slice(0, 1400));
+  const fullHay = normalizeSearchText(chunk);
+  let score = 0;
+  let firstPos = Number.MAX_SAFE_INTEGER;
+
+  const code = bio.code.trim();
+  if (code.length >= 2) {
+    const codeRe = new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9])${escapeRegex(code)}([^A-Za-zА-Яа-яЁё0-9]|$)`, "i");
+    const m = codeRe.exec(chunk.slice(0, 1000));
+    if (m) {
+      score += 6;
+      firstPos = Math.min(firstPos, m.index);
+    }
+  }
+
+  const name = normalizeSearchText(bio.name.replace(/\s*\([^)]*\)\s*$/u, ""));
+  const exactNamePos = name.length >= 4 ? hay.indexOf(name) : -1;
+  if (exactNamePos >= 0) {
+    score += 6;
+    firstPos = Math.min(firstPos, exactNamePos);
+  }
+
+  const stems = meaningfulNameStems(bio.name);
+  let stemHits = 0;
+  for (const stem of stems) {
+    const pos = hay.indexOf(stem);
+    if (pos >= 0) {
+      stemHits += 1;
+      firstPos = Math.min(firstPos, pos);
+    }
+  }
+  if (stemHits > 0) score += Math.min(6, stemHits * 2);
+
+  const descNeedle = normalizeSearchText((bio.general_description ?? "").slice(0, 90));
+  if (descNeedle.length >= 50) {
+    const pos = fullHay.indexOf(descNeedle);
+    if (pos >= 0) {
+      score += 4;
+      firstPos = Math.min(firstPos, pos);
+    }
+  }
+
+  if (firstPos !== Number.MAX_SAFE_INTEGER && firstPos < 260) score += 1;
+  return { score, firstPos };
+}
+
+const NAME_STOP_WORDS = new Set([
+  "общий",
+  "общая",
+  "свободный",
+  "свободная",
+  "абс",
+  "индекс",
+  "коэффициент",
+  "расчетный",
+  "расчётный",
+]);
+
+function meaningfulNameStems(name: string): string[] {
+  const tokens = normalizeSearchText(name)
+    .replace(/[()]/g, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 4 && !NAME_STOP_WORDS.has(t));
+  const stems = tokens.map((t) => {
+    if (t.length <= 5) return t;
+    return t.slice(0, Math.min(7, Math.max(5, t.length - 2)));
+  });
+  return Array.from(new Set(stems));
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/[^a-zа-я0-9]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 
