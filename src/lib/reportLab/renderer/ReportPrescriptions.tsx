@@ -1,6 +1,12 @@
 import type { LabReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
+import {
+  sanitizeLifestyle,
+  extractFollowUpsFromLifestyle,
+  mergeFollowUps,
+} from "@/components/prescriptions/AdvisorySections";
+
 
 
 interface Props {
