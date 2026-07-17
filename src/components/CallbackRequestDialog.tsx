@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, Home, Building2, MapPin, Check, X } from "lucide-react";
+import { Phone, Home, Building2, MapPin, X } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
@@ -22,8 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { isPassportDataComplete } from "./PassportFields";
-import { PassportDataDialog } from "./PassportDataDialog";
+import { PassportFields, isPassportValid } from "./PassportFields";
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
@@ -72,12 +71,8 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [middleName, setMiddleName] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
-  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
@@ -94,13 +89,10 @@ export function CallbackRequestDialog({
     if (!userId) return;
     const { data } = await supabase
       .from("profiles")
-      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
+      .select("phone, passport_series, passport_number")
       .eq("id", userId)
       .maybeSingle();
     if (data?.phone) setPhone(formatPhone(data.phone));
-    setFirstName((data as any)?.first_name || "");
-    setLastName((data as any)?.last_name || "");
-    setMiddleName((data as any)?.middle_name || "");
     setPassportSeries((data as any)?.passport_series || "");
     setPassportNumber((data as any)?.passport_number || "");
   };
