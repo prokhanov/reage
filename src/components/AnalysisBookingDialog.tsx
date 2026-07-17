@@ -15,8 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
-import { isPassportDataComplete } from "./PassportFields";
-import { PassportDataDialog } from "./PassportDataDialog";
+import { PassportFields, isPassportValid } from "./PassportFields";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -37,10 +36,6 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [addressComment, setAddressComment] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [middleName, setMiddleName] = useState("");
-  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -62,12 +57,9 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, middle_name, passport_series, passport_number")
+        .select("passport_series, passport_number")
         .eq("id", userId)
         .maybeSingle();
-      setFirstName((profile as any)?.first_name || "");
-      setLastName((profile as any)?.last_name || "");
-      setMiddleName((profile as any)?.middle_name || "");
       setPassportSeries((profile as any)?.passport_series || "");
       setPassportNumber((profile as any)?.passport_number || "");
 
@@ -101,20 +93,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const passportComplete = isPassportDataComplete({
-    firstName,
-    lastName,
-    middleName,
-    series: passportSeries,
-    number: passportNumber,
-  });
-
   const isValid =
     bookingDate &&
     bookingTime &&
     selectedSlotId &&
     bookingAddress.trim().length > 0 &&
-    passportComplete;
+    isPassportValid(passportSeries, passportNumber);
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
@@ -123,6 +107,16 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("User not authenticated");
+
+      // Save passport data to profile
+      await supabase
+        .from("profiles")
+        .update({
+          passport_series: passportSeries,
+          passport_number: passportNumber,
+        } as any)
+        .eq("id", userId);
+
 
 
 
@@ -461,45 +455,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             />
           </div>
 
-          {/* Passport data (required): ФИО + серия/номер */}
-          <div className="space-y-2">
-            <Label className="text-base font-medium">Паспортные данные</Label>
-            {passportComplete ? (
-              <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-start gap-3">
-                <Check className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                <div className="flex-1 min-w-0 text-sm">
-                  <div className="font-medium truncate">
-                    {[lastName, firstName, middleName].filter(Boolean).join(" ")}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5 tracking-wider">
-                    Серия {passportSeries} · Номер {passportNumber}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setPassportDialogOpen(true)}
-                  className="shrink-0 h-8 px-2 text-xs"
-                >
-                  Изменить
-                </Button>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-border/70 bg-background/30 p-3 text-sm space-y-2">
-                <p className="text-muted-foreground">
-                  Заполните ФИО (фамилия, имя, отчество) и серию/номер паспорта — они уйдут в лабораторию.
-                </p>
-                <Button
-                  type="button"
-                  onClick={() => setPassportDialogOpen(true)}
-                  className="w-full sm:w-auto"
-                >
-                  Заполнить паспортные данные
-                </Button>
-              </div>
-            )}
-          </div>
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+          />
         </div>
 
         <div className="space-y-3 pt-4">
@@ -559,14 +520,6 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <PassportDataDialog
-        open={passportDialogOpen}
-        onOpenChange={setPassportDialogOpen}
-        onSaved={() => {
-          loadExistingBooking();
-        }}
-      />
     </Dialog>
   );
 }

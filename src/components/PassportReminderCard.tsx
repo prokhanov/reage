@@ -18,7 +18,7 @@ export function PassportReminderCard() {
         setShow(false);
         return;
       }
-      const [{ data: sub }, { data: profile }] = await Promise.all([
+      const [{ data: sub }, { data: profile }, { data: booking }] = await Promise.all([
         supabase
           .from("subscriptions")
           .select("status")
@@ -31,8 +31,16 @@ export function PassportReminderCard() {
           .select("first_name, last_name, middle_name, passport_series, passport_number")
           .eq("id", userId)
           .maybeSingle(),
+        supabase
+          .from("analysis_bookings")
+          .select("status")
+          .eq("user_id", userId)
+          .eq("status", "waiting_call")
+          .limit(1)
+          .maybeSingle(),
       ]);
       const hasActive = sub?.status === "active";
+      const isWaitingCall = !!booking;
       const complete = isPassportDataComplete({
         firstName: (profile as any)?.first_name,
         lastName: (profile as any)?.last_name,
@@ -40,7 +48,7 @@ export function PassportReminderCard() {
         series: (profile as any)?.passport_series,
         number: (profile as any)?.passport_number,
       });
-      setShow(hasActive && !complete);
+      setShow(hasActive && isWaitingCall && !complete);
     } catch (e) {
       console.error("Passport reminder check failed", e);
       setShow(false);
