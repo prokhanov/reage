@@ -450,11 +450,12 @@ function injectHeadingBiomarkerAnchors(
   // ── Сортировка/дедуп по коду и позиции.
   const boundaryRegex =
     /^[ \t]*(?:#{1,6}[ \t]+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)[^\n]*$/gim;
-  boundaryRegex.lastIndex = 0;
-  const bm = boundaryRegex.exec(text);
-  const summaryStart = bm ? bm.index ?? text.length : text.length;
-
   hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
+  const biomarkerHeadingEnd = findBiomarkerInterpretationHeadingEnd(text);
+  const boundarySearchFrom = biomarkerHeadingEnd >= 0
+    ? biomarkerHeadingEnd
+    : (hits[0]?.start ?? 0);
+  const summaryStart = findNextSectionBoundary(text, boundaryRegex, boundarySearchFrom);
   const seenCodes = new Set<string>(anchoredCodes);
   const filtered: Hit[] = [];
   let lastEnd = -1;
@@ -523,12 +524,7 @@ function findNarrativeBiomarkerHits(
 ): Array<{ start: number; end: number; code: string; nameLen: number }> {
   if (!/[\u200B\u200C\u200D\uFEFF]/.test(text)) return [];
 
-  const headingRe = /^[ \t]*(?:#{1,6}[ \t]+)?Интерпретация\s+биомаркеров[^\n]*$/gim;
-  let headingEnd = -1;
-  for (const m of text.matchAll(headingRe)) {
-    const end = (m.index ?? 0) + m[0].length;
-    if (end < summaryStart) headingEnd = end;
-  }
+  const headingEnd = findBiomarkerInterpretationHeadingEnd(text, summaryStart);
   if (headingEnd < 0) return [];
 
   const parts = splitByZeroWidthSpacers(text, headingEnd, summaryStart);
@@ -574,6 +570,26 @@ function findNarrativeBiomarkerHits(
   }
 
   return hits;
+}
+
+function findBiomarkerInterpretationHeadingEnd(text: string, before = text.length): number {
+  const headingRe = /^[ \t]*(?:#{1,6}[ \t]+)?Интерпретация\s+биомаркеров[^\n]*$/gim;
+  let headingEnd = -1;
+  for (const m of text.matchAll(headingRe)) {
+    const end = (m.index ?? 0) + m[0].length;
+    if (end < before) headingEnd = end;
+  }
+  return headingEnd;
+}
+
+function findNextSectionBoundary(text: string, boundaryRegex: RegExp, from: number): number {
+  boundaryRegex.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = boundaryRegex.exec(text)) !== null) {
+    const idx = m.index ?? 0;
+    if (idx >= from) return idx;
+  }
+  return text.length;
 }
 
 function splitByZeroWidthSpacers(
