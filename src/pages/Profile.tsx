@@ -252,6 +252,13 @@ export default function Profile() {
   const firstName = profile?.first_name || nameParts[0] || "";
   const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
   const middleName = profile?.middle_name || "";
+  const passportDataFilled = isPassportDataComplete({
+    firstName,
+    lastName,
+    middleName,
+    series: profile?.passport_series,
+    number: profile?.passport_number,
+  });
 
 
 
