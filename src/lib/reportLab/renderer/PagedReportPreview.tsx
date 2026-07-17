@@ -860,8 +860,9 @@ function installEditableOverlay(
   editables.forEach((el) => {
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
-    // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
-    // Save через window.__reportLabCollectDrafts().
+    // Live-reflow: при вводе / вставке проверяем переполнение и, если нужно,
+    // пересобираем страницы, чтобы текст не «улетал» за пределы листа.
+    el.addEventListener("input", () => scheduleReflowCheck(false));
 
     // Для insert-слотов между биомаркерами показываем плейсхолдер
     // «+ добавить текст здесь», пока пользователь не ввёл текст.
