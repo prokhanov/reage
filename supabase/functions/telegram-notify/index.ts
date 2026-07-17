@@ -75,7 +75,7 @@ export function buildMessage(
 
   switch (eventType) {
     case "user_registered": {
-      const name = [payload.first_name, payload.last_name].filter(Boolean).join(" ") || "—";
+      const name = [payload.last_name, payload.first_name, payload.middle_name].filter(Boolean).join(" ") || "—";
       return (
         prefix +
         "🆕 <b>Новая регистрация</b>\n" +
@@ -86,7 +86,7 @@ export function buildMessage(
       );
     }
     case "subscription_paid": {
-      const name = [payload.first_name, payload.last_name].filter(Boolean).join(" ") || payload.email || "—";
+      const name = [payload.last_name, payload.first_name, payload.middle_name].filter(Boolean).join(" ") || payload.email || "—";
       return (
         prefix +
         "💰 <b>Новая оплата</b>\n" +
