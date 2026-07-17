@@ -189,10 +189,10 @@ export function CallbackRequestDialog({
       });
       return;
     }
-    if (!isPassportValid(passportSeries, passportNumber)) {
+    if (!passportComplete) {
       toast({
         title: "Заполните паспортные данные",
-        description: "Серия — 4 цифры, номер — 6 цифр",
+        description: "Нужны ФИО и серия/номер паспорта",
         variant: "destructive",
       });
       return;
