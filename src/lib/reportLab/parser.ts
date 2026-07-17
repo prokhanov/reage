@@ -348,15 +348,6 @@ function injectHeadingBiomarkerAnchors(
   if (!text) return text;
   if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
 
-  // Нормализация фигурных скобок: AI иногда пишет `{DHEA-S}` / `{25-OH D}` / `{FAI}`
-  // вместо `(...)`. Заменяем ТОЛЬКО те, чьё содержимое совпадает с реально
-  // существующим кодом в снапшоте, чтобы не тронуть обычный текст с `{}`.
-  text = text.replace(/\{([^{}\n]{1,40})\}/g, (full, inner) => {
-    const norm = normalizeCode(inner);
-    if (norm && biomarkerIndex.has(norm)) return `(${inner})`;
-    return full;
-  });
-
   // Пер-код дедуп: собираем коды, у которых УЖЕ есть <!-- anchor:biomarker … -->.
   // Раньше здесь был глобальный early-exit — он отключал автопоиск для всех
   // биомаркеров, если хотя бы один якорь стоял вручную. Из-за этого,
