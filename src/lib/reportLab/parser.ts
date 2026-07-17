@@ -466,6 +466,16 @@ function injectHeadingBiomarkerAnchors(
     const usedCodes = new Set<string>(anchoredCodes);
     for (const h of hits) usedCodes.add(normalizeCode(h.code));
 
+    // Собираем «границы» — концы уже найденных блоков и позиции всех значений
+    // Ваш показатель X. Начало блока Pass-3 маркера = сразу после ближайшей
+    // предыдущей границы. Это гарантирует, что весь вводный текст ПЕРЕД фразой
+    // «Ваш показатель …» попадёт в этот же маркер, а не в предыдущий.
+    const priorEnds: number[] = hits.map((h) => h.end);
+    const valuePositions = valueMatches
+      .map((m) => m.index ?? -1)
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b);
+
     for (const vm of valueMatches) {
       const rawVal = (vm[1] || "").replace(/,/g, ".");
       const codes = byValue.get(rawVal);
@@ -474,19 +484,35 @@ function injectHeadingBiomarkerAnchors(
       if (!code) continue;
       const pos = vm.index ?? 0;
       if (hits.some((hh) => pos >= hh.start && pos <= hh.end)) continue;
-      // Начало блока — предыдущий ZWS-разделитель («невидимый» абзац) либо
-      // предыдущий двойной перевод строки.
-      const zwsSepRegex = /\n[ \t]*[\u200B\u200C\u200D\uFEFF][ \t]*\n/g;
-      let blockStart = 0;
-      let z: RegExpExecArray | null;
-      while ((z = zwsSepRegex.exec(text)) !== null) {
-        if (z.index >= pos) break;
-        blockStart = z.index + z[0].length;
+
+      // Ближайшая предыдущая граница (конец прошлого якорного блока
+      // ИЛИ конец предыдущей фразы «Ваш показатель …»).
+      let boundary = 0;
+      for (const e of priorEnds) if (e <= pos && e > boundary) boundary = e;
+      for (const vp of valuePositions) {
+        if (vp >= pos) break;
+        // конец предыдущего значения — сама позиция фразы; сдвинемся вперёд
+        // до ближайшего конца строки, чтобы не отрезать её саму.
+        const nl = text.indexOf("\n", vp);
+        const endOfPrev = nl === -1 ? vp : nl;
+        if (endOfPrev < pos && endOfPrev > boundary) boundary = endOfPrev;
       }
-      if (blockStart === 0) {
+
+      // Пропускаем пустые строки/пробелы после границы, чтобы якорь встал
+      // прямо перед первым непустым абзацем нового биомаркера.
+      let blockStart = boundary;
+      while (
+        blockStart < pos &&
+        /[\s\u200B\u200C\u200D\uFEFF]/.test(text[blockStart])
+      ) {
+        blockStart++;
+      }
+      if (blockStart >= pos) {
+        // fallback — старое поведение, ближайший \n\n перед pos
         const prev = text.lastIndexOf("\n\n", pos);
-        if (prev !== -1) blockStart = prev + 2;
+        blockStart = prev === -1 ? boundary : prev + 2;
       }
+
       hits.push({
         start: blockStart,
         end: pos + vm[0].length,
@@ -494,6 +520,7 @@ function injectHeadingBiomarkerAnchors(
         nameLen: 0,
       });
       usedCodes.add(normalizeCode(code));
+      priorEnds.push(pos + vm[0].length);
     }
   }
 
