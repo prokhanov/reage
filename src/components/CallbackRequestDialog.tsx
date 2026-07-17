@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, Home, Building2, MapPin, X } from "lucide-react";
+import { Phone, Home, Building2, MapPin, Check, X } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
@@ -488,14 +488,6 @@ export function CallbackRequestDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-
-      <PassportDataDialog
-        open={passportDialogOpen}
-        onOpenChange={setPassportDialogOpen}
-        onSaved={() => {
-          loadProfile();
-        }}
-      />
     </Dialog>
   );
 }
