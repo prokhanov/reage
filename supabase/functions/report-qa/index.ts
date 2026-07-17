@@ -619,6 +619,7 @@ async function generateBiomarkerEducation(
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
 <!-- anchor:biomarker ${biomarkerCode} -->
+<!-- qa:generated -->
 ${biomarkerName}
 
 [1–2 коротких абзаца простым языком: что это за показатель и за что он отвечает в организме. Без чисел и без оценок пациента.]
