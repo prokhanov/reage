@@ -15,8 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
-import { isPassportDataComplete } from "./PassportFields";
-import { PassportDataDialog } from "./PassportDataDialog";
+import { PassportFields, isPassportValid } from "./PassportFields";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -37,10 +36,6 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [addressComment, setAddressComment] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [middleName, setMiddleName] = useState("");
-  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -62,12 +57,9 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, middle_name, passport_series, passport_number")
+        .select("passport_series, passport_number")
         .eq("id", userId)
         .maybeSingle();
-      setFirstName((profile as any)?.first_name || "");
-      setLastName((profile as any)?.last_name || "");
-      setMiddleName((profile as any)?.middle_name || "");
       setPassportSeries((profile as any)?.passport_series || "");
       setPassportNumber((profile as any)?.passport_number || "");
 
@@ -101,20 +93,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const passportComplete = isPassportDataComplete({
-    firstName,
-    lastName,
-    middleName,
-    series: passportSeries,
-    number: passportNumber,
-  });
-
   const isValid =
     bookingDate &&
     bookingTime &&
     selectedSlotId &&
     bookingAddress.trim().length > 0 &&
-    passportComplete;
+    isPassportValid(passportSeries, passportNumber);
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
