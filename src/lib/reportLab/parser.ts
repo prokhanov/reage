@@ -638,6 +638,21 @@ function injectHeadingBiomarkerAnchors(
         blockStart = prev === -1 ? boundary : prev + 2;
       }
 
+      // Ограничение: карточка Pass-3 не должна поглощать более 2 абзацев
+      // образовательного текста перед «Ваш показатель …». Иначе, когда
+      // предыдущей границы нет (первый биомаркер категории), в карточку
+      // затягивается всё вступление категории и оно исчезает из отчёта.
+      {
+        const MAX_LEAD_PARAGRAPHS = 2;
+        let capped = pos;
+        for (let p = 0; p < MAX_LEAD_PARAGRAPHS; p++) {
+          const prev = text.lastIndexOf("\n\n", capped - 1);
+          if (prev === -1 || prev < blockStart) break;
+          capped = prev + 2;
+        }
+        if (capped > blockStart) blockStart = capped;
+      }
+
       hits.push({
         start: blockStart,
         end: pos + vm[0].length,
