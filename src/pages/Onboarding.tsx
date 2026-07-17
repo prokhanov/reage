@@ -209,10 +209,7 @@ export default function Onboarding() {
 
     setSubmitting(true);
     try {
-      await saveOnboardingData(userId, formData, {
-        passportSeries: passportSeries || undefined,
-        passportNumber: passportNumber || undefined,
-      });
+      await saveOnboardingData(userId, formData);
       confetti({
         particleCount: 100,
         spread: 70,
