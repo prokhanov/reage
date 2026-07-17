@@ -341,16 +341,44 @@ export function CallbackRequestDialog({
               className="h-12 text-base"
             />
           </div>
-          {!passportPrefilled && (
-            <PassportFields
-              series={passportSeries}
-              number={passportNumber}
-              onSeriesChange={setPassportSeries}
-              onNumberChange={setPassportNumber}
-              showIcon={false}
-              hideHint
-            />
-          )}
+          <div className="space-y-2">
+            <Label>Паспортные данные</Label>
+            {passportComplete ? (
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-start gap-3">
+                <Check className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0 text-sm">
+                  <div className="font-medium truncate">
+                    {[lastName, firstName, middleName].filter(Boolean).join(" ")}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5 tracking-wider">
+                    Серия {passportSeries} · Номер {passportNumber}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPassportDialogOpen(true)}
+                  className="shrink-0 h-8 px-2 text-xs"
+                >
+                  Изменить
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border/70 bg-background/30 p-3 text-sm space-y-2">
+                <p className="text-muted-foreground">
+                  Заполните ФИО (фамилия, имя, отчество) и серию/номер паспорта — они уйдут в лабораторию.
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => setPassportDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  Заполнить паспортные данные
+                </Button>
+              </div>
+            )}
+          </div>
 
 
           <div className="space-y-2">
