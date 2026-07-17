@@ -40,9 +40,7 @@ export function ReportPrescriptions({ report }: Props) {
     return true;
   });
 
-    if (/^\**\s*дополнительные\s+консультации(?:\s+и\s+обследования)?\s*\**\s*[:：]?\s*$/i.test(spec) && !goal && !f.trigger) return false;
-    return true;
-  });
+
   const prescriptions = (report.prescriptions ?? []) as ReportPrescription[];
 
   const sections: Array<{ title: string; items: string[] }> = [];
