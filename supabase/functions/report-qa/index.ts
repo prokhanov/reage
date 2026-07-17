@@ -291,51 +291,84 @@ function extractBiomarkerBlocks(
  * биомаркера — считаем образование достаточным (после недавних правок
  * парсера интро часто живёт над карточкой, а не внутри неё).
  */
-function isBiomarkerMissingEducation(
+/**
+ * Регулярка для «Ваш показатель / уровень / значение / …» — используется
+ * и здесь, и в основном пайплайне.
+ */
+const VALUE_LINE_REGEX =
+  /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат|концентрация|анализ|маркер|значения|параметр|коэффициент)/i;
+
+/**
+ * Структурная проверка карточки биомаркера.
+ *
+ * Идеальная карточка состоит из ДВУХ частей:
+ *   1. Общее образовательное описание (что это за показатель, за что отвечает).
+ *   2. Персональный разбор — начинается с «Ваш показатель …».
+ *
+ * Возвращает какой именно части не хватает — чтобы валидатор мог логировать
+ * причину, а не просто «карточку надо чинить».
+ */
+function diagnoseBiomarkerCard(
   content: string,
   precedingProse: string = "",
   biomarker?: { name?: string; code?: string },
-): boolean {
-  if (!content) return true;
-  if (/<!--\s*qa:generated\s*-->/i.test(content)) return false;
+): { ok: true } | { ok: false; reason: "empty" | "missing_education" | "missing_value_line" | "too_short" } {
+  if (!content) return { ok: false, reason: "empty" };
+  if (/<!--\s*qa:generated\s*-->/i.test(content)) return { ok: true };
 
   const stripped = content
     .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/^\s*#{1,6}\s+.*$/gm, " ")
     .trim();
 
-  // Интро над карточкой — если есть достаточно кириллицы + имя/код маркера.
+  if (stripped.length < 60) return { ok: false, reason: "too_short" };
+
+  const valueMatch = VALUE_LINE_REGEX.exec(stripped);
+  const totalCyr = (stripped.match(/[а-яё]/gi) || []).length;
+
+  // Персональный разбор должен присутствовать.
+  if (!valueMatch) {
+    // Может быть, интро над карточкой достаточно объёмное — но без value-line
+    // это всё равно неполная карточка.
+    return { ok: false, reason: "missing_value_line" };
+  }
+
+  // Образовательная часть — текст ДО value-line (внутри карточки) ИЛИ
+  // развёрнутое интро над карточкой с именем/кодом маркера.
+  const eduInside = stripped.slice(0, valueMatch.index).trim();
+  const eduInsideCyr = (eduInside.match(/[а-яё]/gi) || []).length;
+
+  let eduOutsideCyr = 0;
+  let eduOutsideHit = false;
   if (precedingProse && biomarker) {
     const cleanPre = precedingProse
       .replace(/<!--[\s\S]*?-->/g, " ")
       .replace(/^\s*#{1,6}\s+.*$/gm, " ")
       .trim();
-    const preCyr = (cleanPre.match(/[а-яё]/gi) || []).length;
+    eduOutsideCyr = (cleanPre.match(/[а-яё]/gi) || []).length;
     const nameHit = biomarker.name
       ? cleanPre.toLowerCase().includes(biomarker.name.toLowerCase())
       : false;
     const codeHit = biomarker.code
       ? cleanPre.toLowerCase().includes(biomarker.code.toLowerCase())
       : false;
-    if (preCyr >= 120 && (nameHit || codeHit)) return false;
+    eduOutsideHit = nameHit || codeHit;
   }
 
-  if (stripped.length < 60) return true;
+  const hasEducation =
+    eduInsideCyr >= 120 || (eduOutsideCyr >= 120 && eduOutsideHit);
+  if (!hasEducation) return { ok: false, reason: "missing_education" };
 
-  const valueMatch =
-    /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат|концентрация|анализ|маркер|значения|параметр|коэффициент)/i.exec(
-      stripped,
-    );
+  if (totalCyr < 60) return { ok: false, reason: "too_short" };
+  return { ok: true };
+}
 
-  const totalCyr = (stripped.match(/[а-яё]/gi) || []).length;
-  // Есть value-строка + приличный объём кириллицы — валидная короткая карточка.
-  if (valueMatch && totalCyr >= 60) return false;
-
-  if (!valueMatch) {
-    const sentenceCount = (stripped.match(/[.!?…](?:\s|$)/g) || []).length;
-    return totalCyr < 120 || sentenceCount < 1;
-  }
-  return totalCyr < 60;
+function isBiomarkerMissingEducation(
+  content: string,
+  precedingProse: string = "",
+  biomarker?: { name?: string; code?: string },
+): boolean {
+  return !diagnoseBiomarkerCard(content, precedingProse, biomarker).ok;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
