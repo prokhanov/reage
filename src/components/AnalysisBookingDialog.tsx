@@ -559,6 +559,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PassportDataDialog
+        open={passportDialogOpen}
+        onOpenChange={setPassportDialogOpen}
+        onSaved={() => {
+          loadExistingBooking();
+        }}
+      />
     </Dialog>
   );
 }
