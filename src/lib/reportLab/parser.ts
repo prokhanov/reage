@@ -468,15 +468,18 @@ function injectHeadingBiomarkerAnchors(
     seenCodes.add(norm);
     lastEnd = h.end;
   }
-  if (filtered.length === 0) {
-    const narrativeHits = findNarrativeBiomarkerHits(
-      text,
-      biomarkerIndex,
-      seenCodes,
-      summaryStart,
-    );
-    if (narrativeHits.length === 0) return text;
+  const narrativeHits = findNarrativeBiomarkerHits(
+    text,
+    biomarkerIndex,
+    seenCodes,
+    summaryStart,
+  );
+  if (narrativeHits.length > 0) {
     filtered.push(...narrativeHits);
+    filtered.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
+  }
+  if (filtered.length === 0) {
+    return text;
   }
 
   const findNextBoundary = (from: number): number => {
