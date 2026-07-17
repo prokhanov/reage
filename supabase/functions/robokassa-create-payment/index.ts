@@ -239,9 +239,11 @@ Deno.serve(async (req) => {
     if (userEmail) baseParams.Email = userEmail;
     if (isTest) baseParams.IsTest = "1";
 
+    // В URL Receipt кодируется дважды: сервер Robokassa раскодирует один раз,
+    // получая ту же URL-encoded строку, которой мы подписали запрос.
     const query = Object.entries(baseParams)
       .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-      .concat(`Receipt=${receiptEncoded}`)
+      .concat(`Receipt=${encodeURIComponent(receiptEncoded)}`)
       .join("&");
 
     const paymentUrl = `${ROBOKASSA_URL}?${query}`;
