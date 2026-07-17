@@ -22,7 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { PassportFields, isPassportValid } from "./PassportFields";
+import { PassportFields, isPassportValid, isFullNameFilled } from "./PassportFields";
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
@@ -71,6 +71,9 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,10 +93,13 @@ export function CallbackRequestDialog({
     if (!userId) return;
     const { data } = await supabase
       .from("profiles")
-      .select("phone, passport_series, passport_number")
+      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
       .eq("id", userId)
       .maybeSingle();
     if (data?.phone) setPhone(formatPhone(data.phone));
+    setFirstName((data as any)?.first_name || "");
+    setLastName((data as any)?.last_name || "");
+    setMiddleName((data as any)?.middle_name || "");
     setPassportSeries((data as any)?.passport_series || "");
     setPassportNumber((data as any)?.passport_number || "");
   };
@@ -173,7 +179,8 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
-  const passportComplete = isPassportValid(passportSeries, passportNumber);
+  const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
+  const passportComplete = isPassportValid(passportSeries, passportNumber) && fullNameFilled;
 
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
@@ -338,6 +345,12 @@ export function CallbackRequestDialog({
             onNumberChange={setPassportNumber}
             showIcon={false}
           />
+
+          {!fullNameFilled && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              В профиле не заполнены фамилия, имя или отчество. Заполните ФИО в профиле — они нужны для оформления забора в лаборатории.
+            </div>
+          )}
 
 
           <div className="space-y-2">

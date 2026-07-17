@@ -15,7 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
-import { PassportFields, isPassportValid } from "./PassportFields";
+import { PassportFields, isPassportValid, isFullNameFilled } from "./PassportFields";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -36,6 +36,9 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [addressComment, setAddressComment] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -57,9 +60,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("passport_series, passport_number")
+        .select("first_name, last_name, middle_name, passport_series, passport_number")
         .eq("id", userId)
         .maybeSingle();
+      setFirstName((profile as any)?.first_name || "");
+      setLastName((profile as any)?.last_name || "");
+      setMiddleName((profile as any)?.middle_name || "");
       setPassportSeries((profile as any)?.passport_series || "");
       setPassportNumber((profile as any)?.passport_number || "");
 
@@ -93,15 +99,26 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
+  const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
+
   const isValid =
     bookingDate &&
     bookingTime &&
     selectedSlotId &&
     bookingAddress.trim().length > 0 &&
-    isPassportValid(passportSeries, passportNumber);
+    isPassportValid(passportSeries, passportNumber) &&
+    fullNameFilled;
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
+    if (!fullNameFilled) {
+      toast({
+        title: "Заполните ФИО",
+        description: "Укажите фамилию, имя и отчество в профиле — они нужны лаборатории",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -461,6 +478,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             onSeriesChange={setPassportSeries}
             onNumberChange={setPassportNumber}
           />
+
+          {!fullNameFilled && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              В профиле не заполнены фамилия, имя или отчество. Заполните ФИО в профиле — они нужны для оформления забора в лаборатории.
+            </div>
+          )}
         </div>
 
         <div className="space-y-3 pt-4">
