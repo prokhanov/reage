@@ -109,8 +109,16 @@ const pagedCss = `
 .pagedjs_page { overflow: hidden !important; }
 /* В режиме редактирования снимаем clip: если текст мгновенно вылез за низ
    листа до срабатывания debounced reflow, он должен оставаться видимым,
-   а не «пропадать» под нижней границей страницы. */
-.rl-paged-output[data-editing="1"] .pagedjs_page { overflow: visible !important; }
+    а не «пропадать» под нижней границей страницы. Paged.js клипает не только
+    .pagedjs_page: во время live-editing overflow может резаться на pagebox / area /
+    page_content, поэтому снимаем clip со всей внутренней иерархии. */
+.rl-paged-output[data-editing="1"] .pagedjs_pages,
+.rl-paged-output[data-editing="1"] .pagedjs_page,
+.rl-paged-output[data-editing="1"] .pagedjs_pagebox,
+.rl-paged-output[data-editing="1"] .pagedjs_area,
+.rl-paged-output[data-editing="1"] .pagedjs_page_content {
+  overflow: visible !important;
+}
 
 /* Inline editor markers */
 .reportlab [data-editable-id] {
@@ -309,7 +317,7 @@ export function PagedReportPreview({
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
   // Ссылка на функцию перепагинации — вызывается из DOM-оверлея на overflow.
-  const triggerReflowRef = useRef<() => void>(() => {});
+  const triggerReflowRef = useRef<(force?: boolean) => void>(() => {});
 
   const draftsSnapshot = drafts ?? {};
   const html = useMemo(
@@ -462,11 +470,22 @@ export function PagedReportPreview({
     };
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
-    triggerReflowRef.current = () => {
-      // Cooldown: не даём reflow пойти в цикл сразу после предыдущего.
+    triggerReflowRef.current = (force = false) => {
+      if (output.dataset.rlReflowPending === "1") return;
+      // Cooldown: не даём обычному reflow пойти в цикл сразу после предыдущего.
+      // Force используется при вводе у нижней границы листа — иначе символы
+      // успевают уйти под clip до следующего спокойного debounce.
       const last = Number(output.dataset.rlReflowedAt || 0);
-      if (last && Date.now() - last < 600) return;
-      runQueueRef.current = runQueueRef.current.then(build, build);
+      if (!force && last && Date.now() - last < 600) return;
+      output.dataset.rlReflowPending = "1";
+      const run = async () => {
+        try {
+          await build();
+        } finally {
+          delete output.dataset.rlReflowPending;
+        }
+      };
+      runQueueRef.current = runQueueRef.current.then(run, run);
     };
 
     // Публичный триггер для ручной кнопки «Обновить страницы» —
