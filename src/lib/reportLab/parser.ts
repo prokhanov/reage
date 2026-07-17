@@ -469,6 +469,7 @@ function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
 function injectHeadingBiomarkerAnchors(
   text: string,
   biomarkerIndex?: Map<string, ReportBiomarker>,
+  sectionCategory?: string,
 ): string {
   if (!text) return text;
   if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
