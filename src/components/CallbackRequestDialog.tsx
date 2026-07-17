@@ -179,7 +179,8 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
-  const passportComplete = isPassportValid(passportSeries, passportNumber);
+  const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
+  const passportComplete = isPassportValid(passportSeries, passportNumber) && fullNameFilled;
 
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
