@@ -282,35 +282,60 @@ function extractBiomarkerBlocks(
 
 /**
  * Decide whether a biomarker block lacks educational text.
- * Heuristic: the educational paragraph must come BEFORE the
- * "Ваш показатель/уровень/значение/индекс" sentence and contain at least
- * one full sentence (>= 80 chars of plain prose, excluding the title line).
+ *
+ * Идемпотентность: если блок уже помечен `<!-- qa:generated -->`, считаем
+ * его исправленным ранее и НИКОГДА не переписываем повторно.
+ *
+ * Кроме того, если непосредственно перед `<!-- anchor:biomarker … -->`
+ * (в `precedingProse`) уже есть развёрнутое интро с именем/кодом
+ * биомаркера — считаем образование достаточным (после недавних правок
+ * парсера интро часто живёт над карточкой, а не внутри неё).
  */
-function isBiomarkerMissingEducation(content: string): boolean {
+function isBiomarkerMissingEducation(
+  content: string,
+  precedingProse: string = "",
+  biomarker?: { name?: string; code?: string },
+): boolean {
   if (!content) return true;
+  if (/<!--\s*qa:generated\s*-->/i.test(content)) return false;
+
   const stripped = content
     .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
+    .replace(/^\s*#{1,6}\s+.*$/gm, " ")
     .trim();
-  // Empty / near-empty block — definitely missing.
+
+  // Интро над карточкой — если есть достаточно кириллицы + имя/код маркера.
+  if (precedingProse && biomarker) {
+    const cleanPre = precedingProse
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/^\s*#{1,6}\s+.*$/gm, " ")
+      .trim();
+    const preCyr = (cleanPre.match(/[а-яё]/gi) || []).length;
+    const nameHit = biomarker.name
+      ? cleanPre.toLowerCase().includes(biomarker.name.toLowerCase())
+      : false;
+    const codeHit = biomarker.code
+      ? cleanPre.toLowerCase().includes(biomarker.code.toLowerCase())
+      : false;
+    if (preCyr >= 120 && (nameHit || codeHit)) return false;
+  }
+
   if (stripped.length < 60) return true;
+
   const valueMatch =
     /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат|концентрация|анализ|маркер|значения|параметр|коэффициент)/i.exec(
       stripped,
     );
+
+  const totalCyr = (stripped.match(/[а-яё]/gi) || []).length;
+  // Есть value-строка + приличный объём кириллицы — валидная короткая карточка.
+  if (valueMatch && totalCyr >= 60) return false;
+
   if (!valueMatch) {
-    // Нет value-предложения — но может это просто заглушка без обучения.
-    // Если после предыдущего исправления уже есть нормальный короткий
-    // образовательный абзац, не гоняем AI повторно на каждом QA-прогоне.
-    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
     const sentenceCount = (stripped.match(/[.!?…](?:\s|$)/g) || []).length;
-    return cyr < 120 || sentenceCount < 1;
+    return totalCyr < 120 || sentenceCount < 1;
   }
-  const prefix = stripped.slice(0, valueMatch.index).trim();
-  // Drop the first line (likely the biomarker title) and check what's left
-  const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
-  const educationalCyr = (withoutTitle.match(/[а-яё]/gi) || []).length;
-  return educationalCyr < 60;
+  return totalCyr < 60;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
@@ -594,6 +619,7 @@ async function generateBiomarkerEducation(
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
 <!-- anchor:biomarker ${biomarkerCode} -->
+<!-- qa:generated -->
 ${biomarkerName}
 
 [1–2 коротких абзаца простым языком: что это за показатель и за что он отвечает в организме. Без чисел и без оценок пациента.]
@@ -616,6 +642,7 @@ ${reportContext.slice(0, 2000)}${knowledge}
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
     return `<!-- anchor:biomarker ${biomarkerCode} -->
+<!-- qa:generated -->
 ${biomarkerName}
 
 ${generalDescription.trim()}
@@ -819,9 +846,14 @@ Deno.serve(async (req) => {
           .eq("analysis_id", analysisId);
         if (rErr) throw rErr;
 
-        // Process each markdown section (skip "Назначения" — это JSON)
+        // Process each markdown section:
+        //  - «Назначения» — JSON, не трогаем;
+        //  - «Общее резюме» / «Данные пациента» — обложечные секции без биомаркеров;
+        //    QA работает только с категориями биомаркеров, чтобы не переписывать
+        //    уже готовый нарратив резюме.
+        const SKIP_SECTIONS = new Set(["Назначения", "Общее резюме", "Данные пациента"]);
         const sections = (recs || []).filter(
-          (r: any) => r.type !== "Назначения" && typeof r.text === "string",
+          (r: any) => !SKIP_SECTIONS.has(r.type) && typeof r.text === "string",
         );
         send({
           type: "status",
@@ -924,11 +956,16 @@ Deno.serve(async (req) => {
 
           // 5. AI repair for blocks missing educational text
           const reportContext = text.slice(0, 4000);
-          const blocksToFix = blocks.filter(
-            (b) =>
-              knownCodesNorm.has(normalizeBiomarkerCode(b.code)) &&
-              isBiomarkerMissingEducation(b.content),
-          );
+          const blocksToFix = blocks.filter((b, idx) => {
+            if (!knownCodesNorm.has(normalizeBiomarkerCode(b.code))) return false;
+            const prevEnd = idx > 0 ? blocks[idx - 1].end : 0;
+            const precedingProse = text.slice(prevEnd, b.start);
+            const bm = biomarkers.find(
+              (bb) =>
+                normalizeBiomarkerCode(bb.code) === normalizeBiomarkerCode(b.code),
+            );
+            return isBiomarkerMissingEducation(b.content, precedingProse, bm);
+          });
           if (blocksToFix.length > 0) {
             send({
               type: "status",
@@ -1015,9 +1052,18 @@ Deno.serve(async (req) => {
               .filter((t) => t.result)
               .sort((a, b) => b.blk.start - a.blk.start);
             for (const t of applied) {
+              // Гарантируем метку qa:generated, чтобы следующий прогон не
+              // переписывал этот же блок повторно.
+              let out = t.result as string;
+              if (!/<!--\s*qa:generated\s*-->/i.test(out)) {
+                out = out.replace(
+                  /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)/,
+                  `$1\n<!-- qa:generated -->`,
+                );
+              }
               text =
                 text.slice(0, t.blk.start) +
-                (t.result as string) +
+                out +
                 "\n" +
                 text.slice(t.replaceEnd);
               const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${t.bm.name} (${t.bm.code})`;
@@ -1069,12 +1115,26 @@ Deno.serve(async (req) => {
             const sortedKeys = Object.keys(translations).sort(
               (a, b) => b.length - a.length,
             );
+            // Замену делаем только ВНЕ anchor-тегов и HTML-комментариев,
+            // чтобы точно не задеть коды в `<!-- anchor:biomarker CODE -->`.
+            const applyOutsideComments = (
+              src: string,
+              needle: string,
+              replacement: string,
+            ): string => {
+              const parts = src.split(/(<!--[\s\S]*?-->)/g);
+              const re = new RegExp(escapeRegex(needle), "g");
+              return parts
+                .map((part) =>
+                  part.startsWith("<!--") ? part : part.replace(re, replacement),
+                )
+                .join("");
+            };
             for (const orig of sortedKeys) {
               const ru = translations[orig];
               if (!ru || ru === orig) continue;
-              const re = new RegExp(escapeRegex(orig), "g");
               const before = text;
-              text = text.replace(re, ru);
+              text = applyOutsideComments(text, orig, ru);
               if (before !== text) {
                 replaced++;
                 const msg = `[${sectionLabel}] ✓ Английский → русский: «${orig}» → «${ru}»`;
