@@ -461,7 +461,6 @@ export function CallbackRequestDialog({
             disabled={
               loading ||
               (locationType === "clinic" && !selectedLab) ||
-              (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
             className="h-11 rounded-xl bg-gradient-primary shadow-neon-primary w-full sm:w-auto"
