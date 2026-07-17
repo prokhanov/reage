@@ -146,6 +146,16 @@ export function buildMessage(
         `💬 ${e(payload.message || "—")}`
       );
     }
+    case "callback_requested": {
+      return (
+        prefix +
+        "📞 <b>Запрос на обратный звонок от действующего клиента</b>\n" +
+        `👤 ${e(payload.name || "—")}\n` +
+        `📧 ${e(payload.email || "—")}\n` +
+        `📱 ${e(payload.phone || "—")}\n` +
+        `🕒 ${e(formatDate(payload.requested_at || new Date().toISOString()))}`
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
