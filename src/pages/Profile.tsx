@@ -474,7 +474,7 @@ export default function Profile() {
               )}
             </div>
 
-            {profile?.passport_series && profile?.passport_number ? (
+            {passportDataFilled ? (
               <>
                 {/* Mobile list */}
                 <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
