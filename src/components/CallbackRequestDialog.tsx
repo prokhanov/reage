@@ -22,6 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { PassportFields, isPassportValid, isFullNameFilled } from "./PassportFields";
+
 
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
@@ -71,6 +73,11 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [passportSeries, setPassportSeries] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
@@ -88,10 +95,15 @@ export function CallbackRequestDialog({
     if (!userId) return;
     const { data } = await supabase
       .from("profiles")
-      .select("phone")
+      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
       .eq("id", userId)
       .maybeSingle();
     if (data?.phone) setPhone(formatPhone(data.phone));
+    setFirstName((data as any)?.first_name || "");
+    setLastName((data as any)?.last_name || "");
+    setMiddleName((data as any)?.middle_name || "");
+    setPassportSeries((data as any)?.passport_series || "");
+    setPassportNumber((data as any)?.passport_number || "");
   };
 
   useEffect(() => {
