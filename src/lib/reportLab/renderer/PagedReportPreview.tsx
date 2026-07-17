@@ -755,6 +755,22 @@ function editableSelector(id: string): string {
   return `[data-editable-id="${id.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
 }
 
+function markEditableDirty(container: HTMLElement): HTMLElement | null {
+  const sel = window.getSelection();
+  const node = sel?.rangeCount ? sel.getRangeAt(0).commonAncestorContainer : null;
+  const fromSelection =
+    node?.nodeType === Node.ELEMENT_NODE
+      ? (node as HTMLElement)
+      : (node?.parentElement as HTMLElement | null);
+  const active = document.activeElement as HTMLElement | null;
+  const editable =
+    (fromSelection?.closest?.("[data-editable-id]") as HTMLElement | null) ??
+    (active?.closest?.("[data-editable-id]") as HTMLElement | null);
+  if (!editable || !container.contains(editable)) return null;
+  editable.setAttribute("data-rl-dirty", "1");
+  return editable;
+}
+
 function sanitizeEditableHtml(html: string): string {
   const template = document.createElement("template");
   template.innerHTML = html;
@@ -769,9 +785,15 @@ function sanitizeEditableHtml(html: string): string {
   return template.innerHTML;
 }
 
-function collectEditableHtmlDrafts(output: HTMLElement): Record<string, string> {
+function collectEditableHtmlDrafts(
+  output: HTMLElement,
+  options: { onlyDirty?: boolean } = {},
+): Record<string, string> {
+  const selector = options.onlyDirty
+    ? "[data-editable-id][data-rl-dirty='1']"
+    : "[data-editable-id]";
   const ids = new Set(
-    Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id]"))
+    Array.from(output.querySelectorAll<HTMLElement>(selector))
       .map((el) => el.getAttribute("data-editable-id"))
       .filter((id): id is string => Boolean(id)),
   );
@@ -820,7 +842,7 @@ function installEditableOverlay(
 
   const collectAllMarkdown = (): Record<string, string> => {
     const ids = new Set(
-      Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id]"))
+      Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id][data-rl-dirty='1']"))
         .map((el) => el.getAttribute("data-editable-id"))
         .filter((id): id is string => Boolean(id)),
     );
@@ -859,8 +881,12 @@ function installEditableOverlay(
   editables.forEach((el) => {
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
-    // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
-    // Save через window.__reportLabCollectDrafts().
+    // Помечаем только реально изменённые блоки. Иначе «Сохранить» собирал
+    // весь отрендеренный DOM отчёта, и render-only правки Markdown попадали
+    // обратно в БД поверх исходного текста.
+    el.addEventListener("input", () => {
+      el.setAttribute("data-rl-dirty", "1");
+    });
 
     // Для insert-слотов между биомаркерами показываем плейсхолдер
     // «+ добавить текст здесь», пока пользователь не ввёл текст.
@@ -898,6 +924,7 @@ function installEditableOverlay(
       if (e.key !== "Enter") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
+      el.setAttribute("data-rl-dirty", "1");
       try {
         document.execCommand("insertLineBreak");
       } catch {
