@@ -72,9 +72,12 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
-  const [passportPrefilled, setPassportPrefilled] = useState(false);
+  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
