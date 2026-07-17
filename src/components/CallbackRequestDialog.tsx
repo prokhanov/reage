@@ -221,10 +221,17 @@ export function CallbackRequestDialog({
       const userId = await getUserId();
       if (!userId) throw new Error("Не удалось определить пользователя");
 
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      const mn = middleName.trim();
       await supabase
         .from("profiles")
         .update({
           phone: normalized,
+          first_name: fn,
+          last_name: ln,
+          middle_name: mn || null,
+          name: [ln, fn, mn].filter(Boolean).join(" "),
           passport_series: passportSeries,
           passport_number: passportNumber,
         } as any)
