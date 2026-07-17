@@ -846,9 +846,14 @@ Deno.serve(async (req) => {
           .eq("analysis_id", analysisId);
         if (rErr) throw rErr;
 
-        // Process each markdown section (skip "Назначения" — это JSON)
+        // Process each markdown section:
+        //  - «Назначения» — JSON, не трогаем;
+        //  - «Общее резюме» / «Данные пациента» — обложечные секции без биомаркеров;
+        //    QA работает только с категориями биомаркеров, чтобы не переписывать
+        //    уже готовый нарратив резюме.
+        const SKIP_SECTIONS = new Set(["Назначения", "Общее резюме", "Данные пациента"]);
         const sections = (recs || []).filter(
-          (r: any) => r.type !== "Назначения" && typeof r.text === "string",
+          (r: any) => !SKIP_SECTIONS.has(r.type) && typeof r.text === "string",
         );
         send({
           type: "status",
