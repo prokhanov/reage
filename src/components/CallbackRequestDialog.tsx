@@ -81,6 +81,7 @@ export function CallbackRequestDialog({
   const [labs, setLabs] = useState<LabMapItem[]>([]);
   const [labsLoading, setLabsLoading] = useState(false);
   const [selectedLab, setSelectedLab] = useState<LabMapItem | null>(null);
+  const [mapMountKey, setMapMountKey] = useState(0);
   const { toast } = useToast();
   const { getUserId } = useViewAsUser();
 
@@ -447,6 +448,7 @@ export function CallbackRequestDialog({
                   </div>
                 ) : (
                   <LabLocationsMap
+                    key={`${mapMountKey}-${city}`}
                     items={filteredLabs}
                     center={currentCity.center}
                     zoom={currentCity.zoom}
