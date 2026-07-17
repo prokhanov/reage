@@ -62,9 +62,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("passport_series, passport_number")
+        .select("first_name, last_name, middle_name, passport_series, passport_number")
         .eq("id", userId)
         .maybeSingle();
+      setFirstName((profile as any)?.first_name || "");
+      setLastName((profile as any)?.last_name || "");
+      setMiddleName((profile as any)?.middle_name || "");
       setPassportSeries((profile as any)?.passport_series || "");
       setPassportNumber((profile as any)?.passport_number || "");
 
