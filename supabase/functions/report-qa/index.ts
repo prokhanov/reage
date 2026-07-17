@@ -642,6 +642,7 @@ ${reportContext.slice(0, 2000)}${knowledge}
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
     return `<!-- anchor:biomarker ${biomarkerCode} -->
+<!-- qa:generated -->
 ${biomarkerName}
 
 ${generalDescription.trim()}
