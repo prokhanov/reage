@@ -75,7 +75,7 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
     generatedAt: new Date().toISOString(),
     recommendations: source.recommendations.map((rec) => ({
       ...rec,
-      text: assembleRecommendationText(rec, drafts),
+      text: assembleRecommendationText(rec, drafts, source),
     })),
   };
 }
