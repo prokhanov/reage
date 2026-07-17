@@ -313,6 +313,10 @@ export default function Profile() {
                 <span className="font-medium text-right truncate">{lastName || "—"}</span>
               </div>
               <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Отчество</span>
+                <span className="font-medium text-right truncate">{middleName || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-muted-foreground flex-shrink-0">Email</span>
                 <span className="font-medium text-right truncate">{email}</span>
               </div>
