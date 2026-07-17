@@ -64,10 +64,10 @@ export function PassportReminderCard() {
             </div>
             <div className="space-y-0.5 min-w-0 flex-1">
               <h3 className="font-semibold text-sm text-foreground leading-snug">
-                Нужны паспортные данные
+                Проверьте паспортные данные
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-                Серия и номер нужны лаборатории для оформления забора. Сохраняются один раз.
+                Нужны ФИО и серия/номер для оформления забора в лаборатории. Сохраняются один раз.
               </p>
             </div>
           </div>
