@@ -791,8 +791,20 @@ function needsReflow(output: HTMLElement): boolean {
 function caretNearPageBottom(output: HTMLElement, thresholdPx = 72): boolean {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return false;
-  const range = sel.getRangeAt(0).cloneRange();
+  const activeRange = sel.getRangeAt(0);
+  const range = activeRange.cloneRange();
   range.collapse(false);
+  const rangeRect = range.getClientRects()[0] ?? range.getBoundingClientRect();
+  if (rangeRect && (rangeRect.top || rangeRect.bottom)) {
+    const node = range.endContainer.nodeType === Node.ELEMENT_NODE
+      ? (range.endContainer as Element)
+      : range.endContainer.parentElement;
+    const content = node?.closest(".pagedjs_page")?.querySelector<HTMLElement>(".pagedjs_page_content") ?? null;
+    if (!content) return false;
+    return content.getBoundingClientRect().bottom - rangeRect.bottom <= thresholdPx;
+  }
+
+  const restoreRange = activeRange.cloneRange();
   const marker = document.createElement("span");
   marker.setAttribute("data-rl-caret-probe", "");
   marker.style.cssText = "display:inline-block;width:0;height:1px;overflow:hidden;line-height:1px;";
@@ -808,6 +820,12 @@ function caretNearPageBottom(output: HTMLElement, thresholdPx = 72): boolean {
     return false;
   } finally {
     marker.remove();
+    try {
+      sel.removeAllRanges();
+      sel.addRange(restoreRange);
+    } catch {
+      // selection могла стать невалидной после внешней мутации DOM — это не критично
+    }
   }
 }
 
