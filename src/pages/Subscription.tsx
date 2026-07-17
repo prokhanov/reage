@@ -10,6 +10,7 @@ import { ActiveSubscription } from "@/components/subscription/ActiveSubscription
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { usePaymentGatewayTestMode } from "@/hooks/usePaymentGatewayTestMode";
 import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCodeField";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
