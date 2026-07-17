@@ -61,7 +61,7 @@ interface EditProfileDialogProps {
   phone?: string | null;
 }
 
-export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
+export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess, email, phone }: EditProfileDialogProps) {
   const initialSplit = splitFullName(profile?.name || "");
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || initialSplit.first,
