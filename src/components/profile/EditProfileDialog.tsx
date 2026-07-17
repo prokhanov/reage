@@ -28,6 +28,7 @@ interface Profile {
   name: string;
   first_name?: string | null;
   last_name?: string | null;
+  middle_name?: string | null;
   birth_date: string;
   gender: string;
   height: number | null;
@@ -64,6 +65,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || initialSplit.first,
     last_name: profile?.last_name || initialSplit.last,
+    middle_name: profile?.middle_name || "",
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
@@ -89,6 +91,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       setFormData({
         first_name: profile.first_name || split.first,
         last_name: profile.last_name || split.last,
+        middle_name: profile.middle_name || "",
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
@@ -110,6 +113,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   const handleSave = async () => {
     const firstName = formData.first_name.trim();
     const lastName = formData.last_name.trim();
+    const middleName = formData.middle_name.trim();
     if (!firstName || !formData.birth_date) {
       toast({
         title: "Ошибка",
@@ -124,7 +128,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       if (!userId) throw new Error("Не авторизован");
 
       const weightValue = formData.weight ? parseFloat(formData.weight) : null;
-      const fullName = [firstName, lastName].filter(Boolean).join(" ");
+      const fullName = [lastName, firstName, middleName].filter(Boolean).join(" ");
 
       const { error, data } = await supabase
         .from("profiles")
@@ -132,6 +136,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           name: fullName,
           first_name: firstName,
           last_name: lastName || null,
+          middle_name: middleName || null,
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
@@ -219,15 +224,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="edit-first-name">Имя *</Label>
-              <Input
-                id="edit-first-name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                placeholder="Иван"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="edit-last-name">Фамилия</Label>
               <Input
                 id="edit-last-name"
@@ -236,6 +232,24 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                 placeholder="Иванов"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-first-name">Имя *</Label>
+              <Input
+                id="edit-first-name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Иван"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-middle-name">Отчество</Label>
+            <Input
+              id="edit-middle-name"
+              value={formData.middle_name}
+              onChange={(e) => setFormData({ ...formData, middle_name: e.target.value })}
+              placeholder="Иванович"
+            />
           </div>
 
           {/* Gender */}

@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { PassportDataDialog } from "./PassportDataDialog";
-import { isPassportValid } from "./PassportFields";
+import { isPassportDataComplete } from "./PassportFields";
 
 export function PassportReminderCard() {
   const { getUserId } = useViewAsUser();
@@ -28,16 +28,19 @@ export function PassportReminderCard() {
           .maybeSingle(),
         supabase
           .from("profiles")
-          .select("passport_series, passport_number")
+          .select("first_name, last_name, middle_name, passport_series, passport_number")
           .eq("id", userId)
           .maybeSingle(),
       ]);
       const hasActive = sub?.status === "active";
-      const filled = isPassportValid(
-        (profile as any)?.passport_series,
-        (profile as any)?.passport_number
-      );
-      setShow(hasActive && !filled);
+      const complete = isPassportDataComplete({
+        firstName: (profile as any)?.first_name,
+        lastName: (profile as any)?.last_name,
+        middleName: (profile as any)?.middle_name,
+        series: (profile as any)?.passport_series,
+        number: (profile as any)?.passport_number,
+      });
+      setShow(hasActive && !complete);
     } catch (e) {
       console.error("Passport reminder check failed", e);
       setShow(false);
@@ -61,10 +64,10 @@ export function PassportReminderCard() {
             </div>
             <div className="space-y-0.5 min-w-0 flex-1">
               <h3 className="font-semibold text-sm text-foreground leading-snug">
-                Нужны паспортные данные
+                Проверьте паспортные данные
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-                Серия и номер нужны лаборатории для оформления забора. Сохраняются один раз.
+                Нужны ФИО и серия/номер для оформления забора в лаборатории. Сохраняются один раз.
               </p>
             </div>
           </div>

@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, Heart, FileText, Check, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, User, Heart, Check, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,16 +12,12 @@ import { AuthBackground } from "@/components/AuthBackground";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
-import { PassportFields, isPassportValid } from "@/components/PassportFields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { saveOnboardingData } from "@/lib/onboarding/saveOnboardingData";
 import type { RegisterFormData } from "@/pages/Register";
 
 const steps = [
   { id: 1, slug: "personal", title: "О вас", icon: User },
   { id: 2, slug: "health", title: "Здоровье", icon: Heart },
-  { id: 3, slug: "passport", title: "Паспорт", icon: FileText },
 ] as const;
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(
@@ -51,8 +47,6 @@ export default function Onboarding() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState<RegisterFormData>(EMPTY_FORM);
-  const [passportSeries, setPassportSeries] = useState("");
-  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -121,8 +115,6 @@ export default function Onboarding() {
           : [],
         medicalHistory: historyEntries,
       });
-      setPassportSeries((profile as any)?.passport_series || "");
-      setPassportNumber((profile as any)?.passport_number || "");
       setLoading(false);
     })();
     return () => {
@@ -217,10 +209,7 @@ export default function Onboarding() {
 
     setSubmitting(true);
     try {
-      await saveOnboardingData(userId, formData, {
-        passportSeries: passportSeries || undefined,
-        passportNumber: passportNumber || undefined,
-      });
+      await saveOnboardingData(userId, formData);
       confetti({
         particleCount: 100,
         spread: 70,
@@ -318,98 +307,26 @@ export default function Onboarding() {
             />
           )}
           {step === 2 && (
-            <RegisterStep3
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={() => handleNext(3)}
-              onBack={() => goToStep(1)}
-            />
-          )}
-          {step === 3 && (
-            <div className="space-y-6">
-              <div className="text-center mb-2">
-                <h2 className="text-2xl font-bold mb-2">Паспортные данные</h2>
-                <p className="text-muted-foreground text-sm">
-                  Нужны для оформления забора анализов в лаборатории. Сохраняются
-                  один раз.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-medium">Проверьте ФИО</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Имя</Label>
-                    <Input
-                      value={formData.firstName}
-                      onChange={(e) => updateFormData({ firstName: e.target.value })}
-                      placeholder="Иван"
-                      className="h-12 text-base"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Фамилия</Label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) => updateFormData({ lastName: e.target.value })}
-                      placeholder="Иванов"
-                      className="h-12 text-base"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <PassportFields
-                series={passportSeries}
-                number={passportNumber}
-                onSeriesChange={setPassportSeries}
-                onNumberChange={setPassportNumber}
-                hideHeader
-                hideHint
+            <>
+              <RegisterStep3
+                formData={formData}
+                updateFormData={updateFormData}
+                onNext={() => finalize()}
+                onBack={() => goToStep(1)}
               />
-              <div className="flex gap-3 pt-2">
+              <div className="mt-6 flex justify-center">
                 <Button
-                  variant="outline"
-                  onClick={() => goToStep(2)}
-                  className="flex-1"
-                  size="lg"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Назад
-                </Button>
-                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
                   onClick={finalize}
-                  disabled={
-                    submitting ||
-                    !isPassportValid(passportSeries, passportNumber) ||
-                    !formData.firstName.trim()
-                  }
-
-                  className="flex-1"
-                  size="lg"
+                  disabled={submitting}
                 >
-                  Готово
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  Заполнить позже
+                  <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          )}
-
-          {/* На шагах 1–2 пропуск запрещён (все поля Шага 1 обязательны, Шаг 2
-              можно отправить пустым основной кнопкой). На Шаге 3 — «Заполнить
-              позже», паспорт можно донести. */}
-          {step === steps.length && (
-            <div className="mt-6 flex justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={finalize}
-                disabled={submitting}
-              >
-                Заполнить позже
-              </Button>
-            </div>
+            </>
           )}
 
           {submitting && (

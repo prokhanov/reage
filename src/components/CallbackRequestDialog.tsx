@@ -22,7 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { PassportFields, isPassportValid } from "./PassportFields";
+import { isPassportDataComplete } from "./PassportFields";
+import { PassportDataDialog } from "./PassportDataDialog";
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
@@ -71,9 +72,12 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
-  const [passportPrefilled, setPassportPrefilled] = useState(false);
+  const [passportDialogOpen, setPassportDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
@@ -85,22 +89,26 @@ export function CallbackRequestDialog({
   const { toast } = useToast();
   const { getUserId } = useViewAsUser();
 
+  const loadProfile = async () => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
+      .eq("id", userId)
+      .maybeSingle();
+    if (data?.phone) setPhone(formatPhone(data.phone));
+    setFirstName((data as any)?.first_name || "");
+    setLastName((data as any)?.last_name || "");
+    setMiddleName((data as any)?.middle_name || "");
+    setPassportSeries((data as any)?.passport_series || "");
+    setPassportNumber((data as any)?.passport_number || "");
+  };
+
   useEffect(() => {
     if (!open) return;
     (async () => {
-      const userId = await getUserId();
-      if (!userId) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("phone, passport_series, passport_number")
-        .eq("id", userId)
-        .maybeSingle();
-      if (data?.phone) setPhone(formatPhone(data.phone));
-      const series = (data as any)?.passport_series || "";
-      const number = (data as any)?.passport_number || "";
-      setPassportSeries(series);
-      setPassportNumber(number);
-      setPassportPrefilled(isPassportValid(series, number));
+      await loadProfile();
 
       // Prefill existing booking values when editing
       if (existingBookingId) {
@@ -171,6 +179,14 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
+  const passportComplete = isPassportDataComplete({
+    firstName,
+    lastName,
+    middleName,
+    series: passportSeries,
+    number: passportNumber,
+  });
+
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
     if (!normalized) {
@@ -181,10 +197,10 @@ export function CallbackRequestDialog({
       });
       return;
     }
-    if (!isPassportValid(passportSeries, passportNumber)) {
+    if (!passportComplete) {
       toast({
         title: "Заполните паспортные данные",
-        description: "Серия — 4 цифры, номер — 6 цифр",
+        description: "Нужны ФИО и серия/номер паспорта",
         variant: "destructive",
       });
       return;
@@ -214,8 +230,6 @@ export function CallbackRequestDialog({
         .from("profiles")
         .update({
           phone: normalized,
-          passport_series: passportSeries,
-          passport_number: passportNumber,
         } as any)
         .eq("id", userId);
 
@@ -327,16 +341,44 @@ export function CallbackRequestDialog({
               className="h-12 text-base"
             />
           </div>
-          {!passportPrefilled && (
-            <PassportFields
-              series={passportSeries}
-              number={passportNumber}
-              onSeriesChange={setPassportSeries}
-              onNumberChange={setPassportNumber}
-              showIcon={false}
-              hideHint
-            />
-          )}
+          <div className="space-y-2">
+            <Label>Паспортные данные</Label>
+            {passportComplete ? (
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-start gap-3">
+                <Check className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0 text-sm">
+                  <div className="font-medium truncate">
+                    {[lastName, firstName, middleName].filter(Boolean).join(" ")}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5 tracking-wider">
+                    Серия {passportSeries} · Номер {passportNumber}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPassportDialogOpen(true)}
+                  className="shrink-0 h-8 px-2 text-xs"
+                >
+                  Изменить
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border/70 bg-background/30 p-3 text-sm space-y-2">
+                <p className="text-muted-foreground">
+                  Заполните ФИО (фамилия, имя, отчество) и серию/номер паспорта — они уйдут в лабораторию.
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => setPassportDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  Заполнить паспортные данные
+                </Button>
+              </div>
+            )}
+          </div>
 
 
           <div className="space-y-2">
@@ -481,7 +523,7 @@ export function CallbackRequestDialog({
             onClick={handleSubmit}
             disabled={
               loading ||
-              !isPassportValid(passportSeries, passportNumber) ||
+              !passportComplete ||
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
@@ -491,6 +533,14 @@ export function CallbackRequestDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <PassportDataDialog
+        open={passportDialogOpen}
+        onOpenChange={setPassportDialogOpen}
+        onSaved={() => {
+          loadProfile();
+        }}
+      />
     </Dialog>
   );
 }

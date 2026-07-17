@@ -17,6 +17,7 @@ import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { PassportDataDialog } from "@/components/PassportDataDialog";
+import { isPassportDataComplete } from "@/components/PassportFields";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { MedicalAnketaCard } from "@/components/profile/MedicalAnketaCard";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
@@ -30,6 +31,7 @@ interface Profile {
   name: string;
   first_name?: string | null;
   last_name?: string | null;
+  middle_name?: string | null;
   email?: string | null;
   birth_date: string;
   gender: string;
@@ -249,6 +251,14 @@ export default function Profile() {
   const nameParts = (profile?.name || "").trim().split(/\s+/).filter(Boolean);
   const firstName = profile?.first_name || nameParts[0] || "";
   const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
+  const middleName = profile?.middle_name || "";
+  const passportDataFilled = isPassportDataComplete({
+    firstName,
+    lastName,
+    middleName,
+    series: profile?.passport_series,
+    number: profile?.passport_number,
+  });
 
 
 
@@ -310,6 +320,10 @@ export default function Profile() {
                 <span className="font-medium text-right truncate">{lastName || "—"}</span>
               </div>
               <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Отчество</span>
+                <span className="font-medium text-right truncate">{middleName || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-muted-foreground flex-shrink-0">Email</span>
                 <span className="font-medium text-right truncate">{email}</span>
               </div>
@@ -353,6 +367,16 @@ export default function Profile() {
                 </div>
                 <p className="text-lg font-medium">{lastName || "—"}</p>
               </div>
+
+              {/* Middle name */}
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm text-muted-foreground">Отчество</label>
+                </div>
+                <p className="text-lg font-medium">{middleName || "—"}</p>
+              </div>
+
 
               {/* Email */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
@@ -426,7 +450,7 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
-              {profile?.passport_series && profile?.passport_number && (
+              {passportDataFilled && (
                 <>
                   <Button
                     variant="outline"
@@ -450,7 +474,7 @@ export default function Profile() {
               )}
             </div>
 
-            {profile?.passport_series && profile?.passport_number ? (
+            {passportDataFilled ? (
               <>
                 {/* Mobile list */}
                 <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
@@ -486,10 +510,10 @@ export default function Profile() {
             ) : (
               <div className="p-4 rounded-lg border border-dashed border-border/70 bg-background/30 text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Паспортные данные не заполнены. Без них невозможно оформить выезд медсестры или визит в клинику.
+                  Проверьте ФИО и серию/номер паспорта. Без них невозможно оформить выезд медсестры или визит в клинику.
                 </p>
                 <Button onClick={() => setEditPassportOpen(true)} className="w-full sm:w-auto">
-                  Заполнить
+                  {profile?.passport_series && profile?.passport_number ? "Проверить" : "Заполнить"}
                 </Button>
               </div>
             )}

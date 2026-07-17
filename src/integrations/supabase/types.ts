@@ -1940,6 +1940,7 @@ export type Database = {
           medical_anketa_filled: boolean
           medications: string[] | null
           menopause_date: string | null
+          middle_name: string | null
           name: string
           needs_risk_refresh: boolean | null
           onboarding_completed: boolean
@@ -1977,6 +1978,7 @@ export type Database = {
           medical_anketa_filled?: boolean
           medications?: string[] | null
           menopause_date?: string | null
+          middle_name?: string | null
           name: string
           needs_risk_refresh?: boolean | null
           onboarding_completed?: boolean
@@ -2014,6 +2016,7 @@ export type Database = {
           medical_anketa_filled?: boolean
           medications?: string[] | null
           menopause_date?: string | null
+          middle_name?: string | null
           name?: string
           needs_risk_refresh?: boolean | null
           onboarding_completed?: boolean
