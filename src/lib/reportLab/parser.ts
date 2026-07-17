@@ -444,13 +444,14 @@ function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
       `(?:^|\\n\\s*\\n|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*\\*)?${escapeRegex(lead)}(?:\\*\\*)?(?=[\\s(—–-]|$)`,
       "giu",
     );
-    const m = re.exec(chunk);
-    if (m) {
+    let bestIndex = -1;
+    for (const m of chunk.matchAll(re)) {
       const rawIndex = m.index + (m[0].match(/^[\s\S]*?(?=\S)/)?.[0].length ?? 0);
       // Не забираем большой общий intro: маркер должен быть в хвосте перед
       // якорем, а не в середине длинного раздела.
-      if (chunk.length - rawIndex <= 1_200) return rawIndex;
+      if (chunk.length - rawIndex <= 1_200) bestIndex = rawIndex;
     }
+    if (bestIndex !== -1) return bestIndex;
   }
 
   return -1;
