@@ -23,18 +23,36 @@ export function ReportPrescriptions({ report }: Props) {
   const row = getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
   const lifestyle = (contentJson.lifestyle ?? {}) as LifestyleData;
-  const followUps = (contentJson.follow_ups ?? []) as FollowUp[];
+  const rawFollowUps = (contentJson.follow_ups ?? []) as FollowUp[];
+  const followUps = rawFollowUps.filter((f) => {
+    const spec = (f.specialist || "").trim();
+    const goal = (f.goal || "").trim();
+    // Пустые или служебные записи-заголовки не показываем
+    if (!spec && !goal) return false;
+    if (/^\**\s*дополнительные\s+консультации(?:\s+и\s+обследования)?\s*\**\s*[:：]?\s*$/i.test(spec) && !goal && !f.trigger) return false;
+    return true;
+  });
   const prescriptions = (report.prescriptions ?? []) as ReportPrescription[];
 
   const sections: Array<{ title: string; items: string[] }> = [];
+  const HEADING_LIKE =
+    /^\**\s*(?:питание|сон(?:\s+и\s+восстановлени[ея])?|физическая\s+активность|дополнительные\s+консультации(?:\s+и\s+обследования)?|нутрицевтики|витамины|добавки|препараты|минералы|бады|образ\s+жизни)\s*\**\s*[:：]?\s*$/i;
   const push = (title: string, items?: string[]) => {
     if (!items || items.length === 0) return;
-    // Первая строка часто «Питание:», «Сон и режим:» — заголовок дублирует title.
-    const cleaned = items.filter(
-      (i) => !/^(?:питание|сон|физическая\s+активность)/i.test(i.trim()),
-    );
-    sections.push({ title, items: cleaned.length ? cleaned : items });
+    // Отфильтровываем строки, которые сами являются заголовком раздела
+    // (AI иногда возвращает первый элемент как "Дополнительные консультации и обследования").
+    const cleaned = items.filter((i) => {
+      const t = i.trim();
+      if (!t) return false;
+      if (HEADING_LIKE.test(t)) return false;
+      // Старое правило — префиксы «Питание:», «Сон и режим:»
+      if (/^(?:питание|сон|физическая\s+активность)\b[^а-яё]*[:：]?\s*$/i.test(t)) return false;
+      return true;
+    });
+    if (cleaned.length === 0) return;
+    sections.push({ title, items: cleaned });
   };
+
   push("Питание", lifestyle.nutrition);
   push("Физическая активность", lifestyle.activity);
   push("Сон и восстановление", lifestyle.sleep);
