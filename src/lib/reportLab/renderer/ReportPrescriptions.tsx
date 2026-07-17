@@ -23,7 +23,15 @@ export function ReportPrescriptions({ report }: Props) {
   const row = getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
   const lifestyle = (contentJson.lifestyle ?? {}) as LifestyleData;
-  const followUps = (contentJson.follow_ups ?? []) as FollowUp[];
+  const rawFollowUps = (contentJson.follow_ups ?? []) as FollowUp[];
+  const followUps = rawFollowUps.filter((f) => {
+    const spec = (f.specialist || "").trim();
+    const goal = (f.goal || "").trim();
+    // Пустые или служебные записи-заголовки не показываем
+    if (!spec && !goal) return false;
+    if (/^\**\s*дополнительные\s+консультации(?:\s+и\s+обследования)?\s*\**\s*[:：]?\s*$/i.test(spec) && !goal && !f.trigger) return false;
+    return true;
+  });
   const prescriptions = (report.prescriptions ?? []) as ReportPrescription[];
 
   const sections: Array<{ title: string; items: string[] }> = [];
