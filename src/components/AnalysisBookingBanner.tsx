@@ -348,7 +348,7 @@ export function AnalysisBookingBanner() {
             <div className="space-y-0.5 min-w-0 flex-1">
               <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
-              {bookingInfo?.labquest_request_number && (
+              {bookingInfo?.labquest_request_number && statusKey === "application_submitted" && (
                 <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                   Номер заявки: {bookingInfo.labquest_request_number}
                 </p>
