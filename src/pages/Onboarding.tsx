@@ -307,98 +307,26 @@ export default function Onboarding() {
             />
           )}
           {step === 2 && (
-            <RegisterStep3
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={() => handleNext(3)}
-              onBack={() => goToStep(1)}
-            />
-          )}
-          {step === 3 && (
-            <div className="space-y-6">
-              <div className="text-center mb-2">
-                <h2 className="text-2xl font-bold mb-2">Паспортные данные</h2>
-                <p className="text-muted-foreground text-sm">
-                  Нужны для оформления забора анализов в лаборатории. Сохраняются
-                  один раз.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-medium">Проверьте ФИО</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Имя</Label>
-                    <Input
-                      value={formData.firstName}
-                      onChange={(e) => updateFormData({ firstName: e.target.value })}
-                      placeholder="Иван"
-                      className="h-12 text-base"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Фамилия</Label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) => updateFormData({ lastName: e.target.value })}
-                      placeholder="Иванов"
-                      className="h-12 text-base"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <PassportFields
-                series={passportSeries}
-                number={passportNumber}
-                onSeriesChange={setPassportSeries}
-                onNumberChange={setPassportNumber}
-                hideHeader
-                hideHint
+            <>
+              <RegisterStep3
+                formData={formData}
+                updateFormData={updateFormData}
+                onNext={() => finalize()}
+                onBack={() => goToStep(1)}
               />
-              <div className="flex gap-3 pt-2">
+              <div className="mt-6 flex justify-center">
                 <Button
-                  variant="outline"
-                  onClick={() => goToStep(2)}
-                  className="flex-1"
-                  size="lg"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Назад
-                </Button>
-                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
                   onClick={finalize}
-                  disabled={
-                    submitting ||
-                    !isPassportValid(passportSeries, passportNumber) ||
-                    !formData.firstName.trim()
-                  }
-
-                  className="flex-1"
-                  size="lg"
+                  disabled={submitting}
                 >
-                  Готово
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  Заполнить позже
+                  <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          )}
-
-          {/* На шагах 1–2 пропуск запрещён (все поля Шага 1 обязательны, Шаг 2
-              можно отправить пустым основной кнопкой). На Шаге 3 — «Заполнить
-              позже», паспорт можно донести. */}
-          {step === steps.length && (
-            <div className="mt-6 flex justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={finalize}
-                disabled={submitting}
-              >
-                Заполнить позже
-              </Button>
-            </div>
+            </>
           )}
 
           {submitting && (
