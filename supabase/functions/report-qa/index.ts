@@ -1052,9 +1052,18 @@ Deno.serve(async (req) => {
               .filter((t) => t.result)
               .sort((a, b) => b.blk.start - a.blk.start);
             for (const t of applied) {
+              // Гарантируем метку qa:generated, чтобы следующий прогон не
+              // переписывал этот же блок повторно.
+              let out = t.result as string;
+              if (!/<!--\s*qa:generated\s*-->/i.test(out)) {
+                out = out.replace(
+                  /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)/,
+                  `$1\n<!-- qa:generated -->`,
+                );
+              }
               text =
                 text.slice(0, t.blk.start) +
-                (t.result as string) +
+                out +
                 "\n" +
                 text.slice(t.replaceEnd);
               const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${t.bm.name} (${t.bm.code})`;
