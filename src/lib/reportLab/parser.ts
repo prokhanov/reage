@@ -447,8 +447,6 @@ function injectHeadingBiomarkerAnchors(
     }
   }
 
-  if (hits.length === 0) return text;
-
   // ── Сортировка/дедуп по коду и позиции.
   const boundaryRegex =
     /^[ \t]*(?:#{1,6}[ \t]+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)[^\n]*$/gim;
