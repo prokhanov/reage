@@ -17,7 +17,7 @@ import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { PassportDataDialog } from "@/components/PassportDataDialog";
-import { isPassportDataComplete } from "@/components/PassportFields";
+import { isPassportValid } from "@/components/PassportFields";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { MedicalAnketaCard } from "@/components/profile/MedicalAnketaCard";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
@@ -252,13 +252,7 @@ export default function Profile() {
   const firstName = profile?.first_name || nameParts[0] || "";
   const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
   const middleName = profile?.middle_name || "";
-  const passportDataFilled = isPassportDataComplete({
-    firstName,
-    lastName,
-    middleName,
-    series: profile?.passport_series,
-    number: profile?.passport_number,
-  });
+  const passportDataFilled = isPassportValid(profile?.passport_series, profile?.passport_number);
 
 
 
