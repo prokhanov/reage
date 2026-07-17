@@ -9,6 +9,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
 import { CallbackRequestDialog } from "./CallbackRequestDialog";
+import { NoAnswerCallbackDialog } from "./NoAnswerCallbackDialog";
 import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
 import { AnalysisInstructionsDialog } from "./AnalysisInstructionsDialog";
 import {
@@ -31,6 +32,7 @@ export function AnalysisBookingBanner() {
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
+  const [noAnswerDialogOpen, setNoAnswerDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
@@ -200,6 +202,11 @@ export function AnalysisBookingBanner() {
       return;
     }
 
+    if (statusKey === "no_answer") {
+      setNoAnswerDialogOpen(true);
+      return;
+    }
+
     if (mode === "phone") {
       setCallbackDialogOpen(true);
     } else {
@@ -211,7 +218,8 @@ export function AnalysisBookingBanner() {
   const handleSubscriptionSuccess = () => {
     checkSubscriptionStatus();
     setTimeout(() => {
-      if (mode === "phone") setCallbackDialogOpen(true);
+      if (statusKey === "no_answer") setNoAnswerDialogOpen(true);
+      else if (mode === "phone") setCallbackDialogOpen(true);
       else setDialogOpen(true);
     }, 300);
   };
@@ -329,6 +337,12 @@ export function AnalysisBookingBanner() {
       <CallbackRequestDialog
         open={callbackDialogOpen}
         onOpenChange={setCallbackDialogOpen}
+        existingBookingId={bookingInfo?.id ?? null}
+        onSuccess={checkBookingStatus}
+      />
+      <NoAnswerCallbackDialog
+        open={noAnswerDialogOpen}
+        onOpenChange={setNoAnswerDialogOpen}
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
