@@ -47,8 +47,6 @@ export default function Onboarding() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState<RegisterFormData>(EMPTY_FORM);
-  const [passportSeries, setPassportSeries] = useState("");
-  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
