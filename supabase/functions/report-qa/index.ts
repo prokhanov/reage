@@ -282,35 +282,60 @@ function extractBiomarkerBlocks(
 
 /**
  * Decide whether a biomarker block lacks educational text.
- * Heuristic: the educational paragraph must come BEFORE the
- * "Ваш показатель/уровень/значение/индекс" sentence and contain at least
- * one full sentence (>= 80 chars of plain prose, excluding the title line).
+ *
+ * Идемпотентность: если блок уже помечен `<!-- qa:generated -->`, считаем
+ * его исправленным ранее и НИКОГДА не переписываем повторно.
+ *
+ * Кроме того, если непосредственно перед `<!-- anchor:biomarker … -->`
+ * (в `precedingProse`) уже есть развёрнутое интро с именем/кодом
+ * биомаркера — считаем образование достаточным (после недавних правок
+ * парсера интро часто живёт над карточкой, а не внутри неё).
  */
-function isBiomarkerMissingEducation(content: string): boolean {
+function isBiomarkerMissingEducation(
+  content: string,
+  precedingProse: string = "",
+  biomarker?: { name?: string; code?: string },
+): boolean {
   if (!content) return true;
+  if (/<!--\s*qa:generated\s*-->/i.test(content)) return false;
+
   const stripped = content
     .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
+    .replace(/^\s*#{1,6}\s+.*$/gm, " ")
     .trim();
-  // Empty / near-empty block — definitely missing.
+
+  // Интро над карточкой — если есть достаточно кириллицы + имя/код маркера.
+  if (precedingProse && biomarker) {
+    const cleanPre = precedingProse
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/^\s*#{1,6}\s+.*$/gm, " ")
+      .trim();
+    const preCyr = (cleanPre.match(/[а-яё]/gi) || []).length;
+    const nameHit = biomarker.name
+      ? cleanPre.toLowerCase().includes(biomarker.name.toLowerCase())
+      : false;
+    const codeHit = biomarker.code
+      ? cleanPre.toLowerCase().includes(biomarker.code.toLowerCase())
+      : false;
+    if (preCyr >= 120 && (nameHit || codeHit)) return false;
+  }
+
   if (stripped.length < 60) return true;
+
   const valueMatch =
     /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат|концентрация|анализ|маркер|значения|параметр|коэффициент)/i.exec(
       stripped,
     );
+
+  const totalCyr = (stripped.match(/[а-яё]/gi) || []).length;
+  // Есть value-строка + приличный объём кириллицы — валидная короткая карточка.
+  if (valueMatch && totalCyr >= 60) return false;
+
   if (!valueMatch) {
-    // Нет value-предложения — но может это просто заглушка без обучения.
-    // Если после предыдущего исправления уже есть нормальный короткий
-    // образовательный абзац, не гоняем AI повторно на каждом QA-прогоне.
-    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
     const sentenceCount = (stripped.match(/[.!?…](?:\s|$)/g) || []).length;
-    return cyr < 120 || sentenceCount < 1;
+    return totalCyr < 120 || sentenceCount < 1;
   }
-  const prefix = stripped.slice(0, valueMatch.index).trim();
-  // Drop the first line (likely the biomarker title) and check what's left
-  const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
-  const educationalCyr = (withoutTitle.match(/[а-яё]/gi) || []).length;
-  return educationalCyr < 60;
+  return totalCyr < 60;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
