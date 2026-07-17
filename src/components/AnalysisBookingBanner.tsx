@@ -202,6 +202,11 @@ export function AnalysisBookingBanner() {
       return;
     }
 
+    if (statusKey === "no_answer") {
+      setNoAnswerDialogOpen(true);
+      return;
+    }
+
     if (mode === "phone") {
       setCallbackDialogOpen(true);
     } else {
@@ -213,7 +218,8 @@ export function AnalysisBookingBanner() {
   const handleSubscriptionSuccess = () => {
     checkSubscriptionStatus();
     setTimeout(() => {
-      if (mode === "phone") setCallbackDialogOpen(true);
+      if (statusKey === "no_answer") setNoAnswerDialogOpen(true);
+      else if (mode === "phone") setCallbackDialogOpen(true);
       else setDialogOpen(true);
     }, 300);
   };
