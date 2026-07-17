@@ -107,18 +107,6 @@ const pagedCss = `
    contentEditable во время редактирования не «улетает» в середину следующего
    листа, а сам чанкер продолжает корректно считать разбиение страниц. */
 .pagedjs_page { overflow: hidden !important; }
-/* В режиме редактирования снимаем clip: если текст мгновенно вылез за низ
-   листа до срабатывания debounced reflow, он должен оставаться видимым,
-    а не «пропадать» под нижней границей страницы. Paged.js клипает не только
-    .pagedjs_page: во время live-editing overflow может резаться на pagebox / area /
-    page_content, поэтому снимаем clip со всей внутренней иерархии. */
-.rl-paged-output[data-editing="1"] .pagedjs_pages,
-.rl-paged-output[data-editing="1"] .pagedjs_page,
-.rl-paged-output[data-editing="1"] .pagedjs_pagebox,
-.rl-paged-output[data-editing="1"] .pagedjs_area,
-.rl-paged-output[data-editing="1"] .pagedjs_page_content {
-  overflow: visible !important;
-}
 
 /* Inline editor markers */
 .reportlab [data-editable-id] {
@@ -317,7 +305,7 @@ export function PagedReportPreview({
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
   // Ссылка на функцию перепагинации — вызывается из DOM-оверлея на overflow.
-  const triggerReflowRef = useRef<(force?: boolean) => void>(() => {});
+  const triggerReflowRef = useRef<() => void>(() => {});
 
   const draftsSnapshot = drafts ?? {};
   const html = useMemo(
@@ -426,7 +414,7 @@ export function PagedReportPreview({
               onEditBlurRef.current?.(id, md);
               onEditChangeRef.current?.(id, md);
             },
-            (force) => triggerReflowRef.current(force),
+            () => triggerReflowRef.current(),
           );
           installCoverInlineEditor(
             output,
@@ -470,22 +458,11 @@ export function PagedReportPreview({
     };
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
-    triggerReflowRef.current = (force = false) => {
-      if (output.dataset.rlReflowPending === "1") return;
-      // Cooldown: не даём обычному reflow пойти в цикл сразу после предыдущего.
-      // Force используется при вводе у нижней границы листа — иначе символы
-      // успевают уйти под clip до следующего спокойного debounce.
+    triggerReflowRef.current = () => {
+      // Cooldown: не даём reflow пойти в цикл сразу после предыдущего.
       const last = Number(output.dataset.rlReflowedAt || 0);
-      if (!force && last && Date.now() - last < 600) return;
-      output.dataset.rlReflowPending = "1";
-      const run = async () => {
-        try {
-          await build();
-        } finally {
-          delete output.dataset.rlReflowPending;
-        }
-      };
-      runQueueRef.current = runQueueRef.current.then(run, run);
+      if (last && Date.now() - last < 600) return;
+      runQueueRef.current = runQueueRef.current.then(build, build);
     };
 
     // Публичный триггер для ручной кнопки «Обновить страницы» —
@@ -613,7 +590,6 @@ export function PagedReportPreview({
       <div
         ref={outputRef}
         className="rl-paged-output"
-        data-editing={editable ? "1" : undefined}
         style={{ position: "relative" }}
       />
     </div>
@@ -753,27 +729,14 @@ function restoreCaret(
  *               массовом удалении), и первый блок следующей мог бы подтянуться.
  */
 function needsReflow(output: HTMLElement): boolean {
-  const pages = Array.from(output.querySelectorAll<HTMLElement>(".pagedjs_page"));
-  if (!pages.length) return false;
-
-  for (const page of pages) {
-    const box =
-      page.querySelector<HTMLElement>(".pagedjs_page_content") ??
-      page.querySelector<HTMLElement>(".pagedjs_area") ??
-      page;
-    const pageBottom = box.getBoundingClientRect().bottom;
-    const descendants = Array.from(
-      box.querySelectorAll<HTMLElement>(".reportlab [data-editable-id], .reportlab .rl-biomarker, .reportlab .rl-prose, .reportlab p, .reportlab li"),
-    );
-    for (const node of descendants) {
-      const rects = Array.from(node.getClientRects());
-      if (rects.some((rect) => rect.bottom - pageBottom > 1)) return true;
-    }
-    // scrollHeight больше не надёжен после overflow:visible на Paged.js-обёртках,
-    // но оставляем как быстрый fallback для не-editable элементов.
-    if (box.scrollHeight - box.clientHeight > 1) return true;
+  const contents = Array.from(
+    output.querySelectorAll<HTMLElement>(".pagedjs_page_content"),
+  );
+  if (!contents.length) return false;
+  for (const c of contents) {
+    if (c.scrollHeight - c.clientHeight > 1) return true;
   }
-
+  const pages = Array.from(output.querySelectorAll<HTMLElement>(".pagedjs_page"));
   for (let i = 0; i < pages.length - 1; i++) {
     const content = pages[i].querySelector<HTMLElement>(".pagedjs_page_content");
     if (!content) continue;
@@ -786,47 +749,6 @@ function needsReflow(output: HTMLElement): boolean {
     if (firstBlock.offsetHeight + 8 <= free) return true;
   }
   return false;
-}
-
-function caretNearPageBottom(output: HTMLElement, thresholdPx = 72): boolean {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0) return false;
-  const activeRange = sel.getRangeAt(0);
-  const range = activeRange.cloneRange();
-  range.collapse(false);
-  const rangeRect = range.getClientRects()[0] ?? range.getBoundingClientRect();
-  if (rangeRect && (rangeRect.top || rangeRect.bottom)) {
-    const node = range.endContainer.nodeType === Node.ELEMENT_NODE
-      ? (range.endContainer as Element)
-      : range.endContainer.parentElement;
-    const content = node?.closest(".pagedjs_page")?.querySelector<HTMLElement>(".pagedjs_page_content") ?? null;
-    if (!content) return false;
-    return content.getBoundingClientRect().bottom - rangeRect.bottom <= thresholdPx;
-  }
-
-  const restoreRange = activeRange.cloneRange();
-  const marker = document.createElement("span");
-  marker.setAttribute("data-rl-caret-probe", "");
-  marker.style.cssText = "display:inline-block;width:0;height:1px;overflow:hidden;line-height:1px;";
-  try {
-    range.insertNode(marker);
-    const page = marker.closest(".pagedjs_page");
-    const content = page?.querySelector<HTMLElement>(".pagedjs_page_content") ?? null;
-    if (!content) return false;
-    const caretBottom = marker.getBoundingClientRect().bottom;
-    const pageBottom = content.getBoundingClientRect().bottom;
-    return pageBottom - caretBottom <= thresholdPx;
-  } catch {
-    return false;
-  } finally {
-    marker.remove();
-    try {
-      sel.removeAllRanges();
-      sel.addRange(restoreRange);
-    } catch {
-      // selection могла стать невалидной после внешней мутации DOM — это не критично
-    }
-  }
 }
 
 function editableSelector(id: string): string {
@@ -887,7 +809,7 @@ function installEditableOverlay(
   output: HTMLElement,
   onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
-  triggerReflow: (force?: boolean) => void,
+  triggerReflow: () => void,
 ) {
   const toolbar = ensureToolbar(output);
 
@@ -914,19 +836,18 @@ function installEditableOverlay(
   };
   w.__reportLabCollectDrafts = collectAllMarkdown;
 
-  // ─── Live-reflow: debounced авто-перепагинация при переполнении ─────────
-  // Во время набора текста периодически проверяем, вылез ли контент за низ
-  // страницы (или, наоборот, освободилось место сверху). Если да — запускаем
-  // полный Paged.js reflow. Роунтдрип HTML→MD больше не теряет текст: build()
-  // берёт live-HTML из contentEditable фрагментов и подставляет его напрямую
-  // в исходный html до Paged.js (см. collectEditableHtmlDrafts выше).
-  let reflowTimer: number | null = null;
-  const scheduleReflowCheck = (force = false) => {
-    if (reflowTimer != null) window.clearTimeout(reflowTimer);
-    reflowTimer = window.setTimeout(() => {
-      reflowTimer = null;
-        if (force || needsReflow(output)) triggerReflow(force);
-      }, force ? 80 : 180);
+  // ─── Live-reflow отключён ───────────────────────────────────────────────
+  // Попытка автоматической перепагинации во время набора приводила к потере
+  // текста: htmlToMarkdown-roundtrip после Enter/split мог дропнуть куски
+  // блока, и Paged.js рендерил уже без них. До появления инкрементального
+  // layout'а держим правки полностью в contentEditable DOM, а Paged.js
+  // пересобирает страницы ОДИН раз — при «Сохранить» (см. handleReportUpdate
+  // в ReportV2Editor). Если во время набора текст переполнит границу
+  // страницы — он визуально клипнется, но не будет утерян.
+  const scheduleReflowCheck = (_force = false) => {
+    void _force;
+    // no-op: пересчёт страниц происходит только при явном сохранении.
+    void triggerReflow;
   };
   // Экспонируем для совместимости с bubble-toolbar (Bold/Italic/H2/H3).
   (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
@@ -938,9 +859,8 @@ function installEditableOverlay(
   editables.forEach((el) => {
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
-    // Live-reflow: при вводе / вставке проверяем переполнение и, если нужно,
-    // пересобираем страницы, чтобы текст не «улетал» за пределы листа.
-    el.addEventListener("input", () => scheduleReflowCheck(caretNearPageBottom(output)));
+    // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
+    // Save через window.__reportLabCollectDrafts().
 
     // Для insert-слотов между биомаркерами показываем плейсхолдер
     // «+ добавить текст здесь», пока пользователь не ввёл текст.
