@@ -510,10 +510,10 @@ export default function Profile() {
             ) : (
               <div className="p-4 rounded-lg border border-dashed border-border/70 bg-background/30 text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Паспортные данные не заполнены. Без них невозможно оформить выезд медсестры или визит в клинику.
+                  Проверьте ФИО и серию/номер паспорта. Без них невозможно оформить выезд медсестры или визит в клинику.
                 </p>
                 <Button onClick={() => setEditPassportOpen(true)} className="w-full sm:w-auto">
-                  Заполнить
+                  {profile?.passport_series && profile?.passport_number ? "Проверить" : "Заполнить"}
                 </Button>
               </div>
             )}
