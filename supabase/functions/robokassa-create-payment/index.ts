@@ -21,15 +21,26 @@ function buildCreateSignature(
   outSum: string,
   invId: number,
   password1: string,
+  receiptEncoded: string = "",
   shp: Record<string, string> = {},
 ): string {
   const keys = Object.keys(shp).sort();
   const shpStr = keys.map((k) => `${k}=${shp[k]}`).join(":");
-  const base = [login, outSum, String(invId), password1, shpStr]
-    .filter(Boolean)
-    .join(":");
-  return md5(base);
+  // Robokassa: MerchantLogin:OutSum:InvId[:Receipt]:Password1[:Shp_...]
+  // Receipt в подпись идёт в том же URL-encoded виде, в котором уходит в URL.
+  const parts = [login, outSum, String(invId)];
+  if (receiptEncoded) parts.push(receiptEncoded);
+  parts.push(password1);
+  if (shpStr) parts.push(shpStr);
+  return md5(parts.join(":"));
 }
+
+const PERIOD_LABELS: Record<string, string> = {
+  monthly: "Месяц",
+  quarterly: "Квартал",
+  semiannual: "Полгода",
+  annual: "Год",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
