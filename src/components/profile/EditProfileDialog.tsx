@@ -224,15 +224,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="edit-first-name">Имя *</Label>
-              <Input
-                id="edit-first-name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                placeholder="Иван"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="edit-last-name">Фамилия</Label>
               <Input
                 id="edit-last-name"
@@ -241,6 +232,24 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                 placeholder="Иванов"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-first-name">Имя *</Label>
+              <Input
+                id="edit-first-name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Иван"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-middle-name">Отчество</Label>
+            <Input
+              id="edit-middle-name"
+              value={formData.middle_name}
+              onChange={(e) => setFormData({ ...formData, middle_name: e.target.value })}
+              placeholder="Иванович"
+            />
           </div>
 
           {/* Gender */}
