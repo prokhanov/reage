@@ -22,9 +22,16 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 60_000;
-const QA_TIME_BUDGET_MS = 140_000;
-const MAX_AI_REPAIRS_PER_RUN = 8;
+const AI_CALL_TIMEOUT_MS = 45_000;
+// Edge Function hard-limit ≈ 150s wall-clock. Оставляем запас на финальную
+// запись в БД и отправку SSE-«done», не упираемся в жёсткий cap.
+const QA_TIME_BUDGET_MS = 135_000;
+// Раньше было 8 → одному отчёту требовалось 8–10 повторных проверок.
+// Теперь одним прогоном можно чинить целую категорию.
+const MAX_AI_REPAIRS_PER_RUN = 80;
+// Параллельная догенерация коротких образовательных абзацев внутри одной
+// секции: несколько маркеров чинятся одновременно. 6 — комфортно для gateway.
+const REPAIR_CONCURRENCY = 6;
 // Для догенерации коротких образовательных абзацев не нужен pro:
 // flash отвечает в 3–5 раз быстрее и стабильнее не упирается в таймаут.
 const REPAIR_MODEL = "google/gemini-2.5-flash";
