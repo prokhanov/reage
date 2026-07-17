@@ -125,10 +125,17 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       const userId = await getUserId();
       if (!userId) throw new Error("User not authenticated");
 
-      // Save passport data to profile
+      // Save name & passport data to profile
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      const mn = middleName.trim();
       await supabase
         .from("profiles")
         .update({
+          first_name: fn,
+          last_name: ln,
+          middle_name: mn || null,
+          name: [ln, fn, mn].filter(Boolean).join(" "),
           passport_series: passportSeries,
           passport_number: passportNumber,
         } as any)
