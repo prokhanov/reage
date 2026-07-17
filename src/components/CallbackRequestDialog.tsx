@@ -460,7 +460,7 @@ export function CallbackRequestDialog({
             onClick={handleSubmit}
             disabled={
               loading ||
-              !passportComplete ||
+              (locationType === "clinic" && !selectedLab) ||
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
