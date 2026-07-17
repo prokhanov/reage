@@ -450,7 +450,7 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
-              {profile?.passport_series && profile?.passport_number && (
+              {passportDataFilled && (
                 <>
                   <Button
                     variant="outline"
