@@ -230,8 +230,6 @@ export function CallbackRequestDialog({
         .from("profiles")
         .update({
           phone: normalized,
-          passport_series: passportSeries,
-          passport_number: passportNumber,
         } as any)
         .eq("id", userId);
 
