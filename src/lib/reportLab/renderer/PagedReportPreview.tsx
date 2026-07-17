@@ -426,7 +426,7 @@ export function PagedReportPreview({
               onEditBlurRef.current?.(id, md);
               onEditChangeRef.current?.(id, md);
             },
-            () => triggerReflowRef.current(),
+            (force) => triggerReflowRef.current(force),
           );
           installCoverInlineEditor(
             output,
