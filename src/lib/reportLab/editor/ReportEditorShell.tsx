@@ -86,10 +86,7 @@ export function ReportEditorToolbar({
     try {
       if (persist) {
         for (const c of changed) {
-          const shouldInvalidateStructuredSnapshot = c.type !== "Назначения";
-          const patch = shouldInvalidateStructuredSnapshot
-            ? { text: c.text, content_json: null }
-            : { text: c.text };
+          const patch = { text: c.text, content_json: null };
           const { error } = await supabase
             .from("recommendations")
             // content_json — структурный snapshot. Если оставить старый snapshot
@@ -115,7 +112,7 @@ export function ReportEditorToolbar({
         return {
           ...r,
           text: hit.text,
-          content_json: hit.type !== "Назначения" ? null : r.content_json,
+          content_json: null,
         };
       });
       onReportUpdate({

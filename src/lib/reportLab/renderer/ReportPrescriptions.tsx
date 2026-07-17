@@ -28,6 +28,25 @@ interface FollowUp {
 export function ReportPrescriptions({ report }: Props) {
   const row = getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
+  const hasStructuredContent = Boolean(
+    contentJson &&
+      Object.keys(contentJson).length > 0 &&
+      (contentJson.lifestyle || contentJson.follow_ups),
+  );
+  const plainText = (row?.text || "")
+    .replace(/^\s*#{1,3}\s*Назначения\s*/i, "")
+    .replace(/^\s*Назначения\s*/i, "")
+    .trim();
+
+  if (!hasStructuredContent && plainText) {
+    return (
+      <section className="rl-page" data-section-id="prescriptions">
+        <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
+        <ProseMarkdown markdown={plainText} editableId={row ? `rec:${row.id}#body` : undefined} />
+      </section>
+    );
+  }
+
   const rawLifestyle = (contentJson.lifestyle ?? {}) as LifestyleData;
   const rawFollowUps = (contentJson.follow_ups ?? []) as FollowUp[];
   const extractedFollowUps = extractFollowUpsFromLifestyle(rawLifestyle);

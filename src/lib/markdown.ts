@@ -11,6 +11,8 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Also strip any other HTML comment that survives.
   let preprocessed = text
     .replace(/\r\n/g, "\n")
+    .replace(/\u200B/g, "")
+    .replace(/\u00A0/g, " ")
     // Strip internal prompt/instruction blocks if AI echoed them into report text.
     .replace(/^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
     .replace(/^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
@@ -144,11 +146,9 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Remove lone asterisks at end of lines
   result = result.replace(/\s+\*\s*$/gm, '');
   
-  // Preserve extra blank lines as spacer paragraphs (unicode NBSP)
-  result = result.replace(/\n{3,}/g, (match) => {
-    const extraLines = match.split('\n').length - 3;
-    return '\n\n' + '\u00A0\n\n'.repeat(Math.max(extraLines, 0));
-  });
+  // Collapse excessive empty lines. Do not inject NBSP spacer paragraphs:
+  // they can be re-saved from the report editor as visible artifacts.
+  result = result.replace(/\n{3,}/g, '\n\n');
   
   return result;
 }
@@ -186,11 +186,8 @@ export function normalizeMarkdown(text: string): string {
     processed = processed.replace(`___CODE_BLOCK_${index}___`, block);
   });
 
-  // Step 4: Collapse triple+ newlines but preserve NBSP spacers
-  processed = processed.replace(/\n{3,}/g, (match) => {
-    const extraLines = match.split('\n').length - 3;
-    return '\n\n' + '\u00A0\n\n'.repeat(Math.max(extraLines, 0));
-  });
+  // Step 4: Collapse triple+ newlines without NBSP spacer paragraphs.
+  processed = processed.replace(/\n{3,}/g, '\n\n');
 
   return processed;
 }
