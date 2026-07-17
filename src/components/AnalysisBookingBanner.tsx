@@ -145,11 +145,10 @@ export function AnalysisBookingBanner() {
       // Priority order: active statuses that need user attention.
       // Дополнительно отсекаем брони, созданные ДО завершения последнего цикла —
       // они уже неактуальны, даже если статус в БД не обновили вручную.
-      const find = (status: string, requireFuture = false) =>
+      const find = (status: string) =>
         bookings.find(
           (b) =>
             b.status === status &&
-            (!requireFuture || !isBookingExpired(b)) &&
             !(hasCompleted && new Date(b.created_at).getTime() <= lastCompletedAt) &&
             // skip the next-cycle "not_scheduled" placeholder created right after the report was ready
             !(status === "not_scheduled" && hasCompleted && new Date(b.created_at).getTime() >= lastCompletedAt)
@@ -159,7 +158,7 @@ export function AnalysisBookingBanner() {
         find("report_pending") ||
         find("collected") ||
         find("application_submitted") ||
-        find("scheduled", true) ||
+        find("scheduled") ||
         find("no_answer") ||
         find("waiting_call") ||
         find("not_scheduled");
