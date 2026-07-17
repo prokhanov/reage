@@ -30,6 +30,7 @@ interface Profile {
   name: string;
   first_name?: string | null;
   last_name?: string | null;
+  middle_name?: string | null;
   email?: string | null;
   birth_date: string;
   gender: string;
