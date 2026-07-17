@@ -181,12 +181,31 @@ export function CallbackRequestDialog({
     setHomeAddress("");
   };
 
+  const fullNameFilled = isFullNameFilled(firstName, lastName, middleName);
+  const passportValid = isPassportValid(passportSeries, passportNumber);
+
   const handleSubmit = async () => {
     const normalized = normalizePhone(phone);
     if (!normalized) {
       toast({
         title: "Введите телефон",
         description: "Укажите корректный номер для связи",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!fullNameFilled) {
+      toast({
+        title: "Заполните ФИО",
+        description: "Укажите фамилию, имя и отчество",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!passportValid) {
+      toast({
+        title: "Заполните паспортные данные",
+        description: "Укажите серию и номер паспорта",
         variant: "destructive",
       });
       return;
@@ -212,9 +231,20 @@ export function CallbackRequestDialog({
       const userId = await getUserId();
       if (!userId) throw new Error("Не удалось определить пользователя");
 
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      const mn = middleName.trim();
       await supabase
         .from("profiles")
-        .update({ phone: normalized } as any)
+        .update({
+          phone: normalized,
+          first_name: fn,
+          last_name: ln,
+          middle_name: mn || null,
+          name: [ln, fn, mn].filter(Boolean).join(" "),
+          passport_series: passportSeries,
+          passport_number: passportNumber,
+        } as any)
         .eq("id", userId);
 
       const homeCityLabel = HOME_CITIES.find((c) => c.key === homeCity)?.label ?? "";
