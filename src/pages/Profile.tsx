@@ -629,8 +629,6 @@ export default function Profile() {
           onOpenChange={setEditProfileOpen}
           profile={profile}
           userId={userId}
-          email={email}
-          phone={profile?.phone || null}
           onSuccess={() => {
             loadProfile();
             setEditProfileOpen(false);

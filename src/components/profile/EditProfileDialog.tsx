@@ -57,11 +57,9 @@ interface EditProfileDialogProps {
   profile: Profile | null;
   userId: string | null;
   onSuccess: () => void;
-  email?: string | null;
-  phone?: string | null;
 }
 
-export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess, email, phone }: EditProfileDialogProps) {
+export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
   const initialSplit = splitFullName(profile?.name || "");
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || initialSplit.first,
@@ -239,28 +237,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
               />
             </div>
           </div>
-
-          {/* Email (read-only) */}
-          {email && (
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" value={email} readOnly disabled />
-              <p className="text-xs text-muted-foreground">
-                Email нельзя изменить здесь
-              </p>
-            </div>
-          )}
-
-          {/* Phone (read-only info) */}
-          {phone && (
-            <div className="space-y-2">
-              <Label htmlFor="edit-phone">Телефон</Label>
-              <Input id="edit-phone" value={phone} readOnly disabled />
-              <p className="text-xs text-muted-foreground">
-                Телефон меняется в разделе профиля с подтверждением по SMS
-              </p>
-            </div>
-          )}
 
           {/* Gender */}
           <div className="space-y-3">
