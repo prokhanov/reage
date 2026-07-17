@@ -513,6 +513,3 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     </Dialog>
   );
 }
-    </Dialog>
-  );
-}
