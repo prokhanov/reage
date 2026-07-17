@@ -89,22 +89,26 @@ export function CallbackRequestDialog({
   const { toast } = useToast();
   const { getUserId } = useViewAsUser();
 
+  const loadProfile = async () => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("phone, first_name, last_name, middle_name, passport_series, passport_number")
+      .eq("id", userId)
+      .maybeSingle();
+    if (data?.phone) setPhone(formatPhone(data.phone));
+    setFirstName((data as any)?.first_name || "");
+    setLastName((data as any)?.last_name || "");
+    setMiddleName((data as any)?.middle_name || "");
+    setPassportSeries((data as any)?.passport_series || "");
+    setPassportNumber((data as any)?.passport_number || "");
+  };
+
   useEffect(() => {
     if (!open) return;
     (async () => {
-      const userId = await getUserId();
-      if (!userId) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("phone, passport_series, passport_number")
-        .eq("id", userId)
-        .maybeSingle();
-      if (data?.phone) setPhone(formatPhone(data.phone));
-      const series = (data as any)?.passport_series || "";
-      const number = (data as any)?.passport_number || "";
-      setPassportSeries(series);
-      setPassportNumber(number);
-      setPassportPrefilled(isPassportValid(series, number));
+      await loadProfile();
 
       // Prefill existing booking values when editing
       if (existingBookingId) {
