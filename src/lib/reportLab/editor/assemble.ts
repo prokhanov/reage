@@ -122,11 +122,9 @@ export function assembleRecommendationText(
     return bodyDraft;
   }
 
-  // Есть ли новые «insert»-блоки (текст, добавленный между биомаркерами)?
-  const hasInsertDrafts = Object.keys(drafts).some(
-    (k) => k.startsWith(idPrefix) && /#insert:\d+$/.test(k),
-  );
-  if (hasInsertDrafts && report) {
+  // Если доступен LabReport, пересобираем через parseCategory: он чинит старые
+  // сдвинутые границы biomarker-анкеров и корректно сохраняет insert-слоты.
+  if (report) {
     const rebuilt = assembleFromParsedBlocks(rec, drafts, report, idPrefix);
     if (rebuilt !== null) return rebuilt;
   }

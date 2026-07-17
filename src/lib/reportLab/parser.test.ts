@@ -164,3 +164,59 @@ describe("reportLab parser — валидация покрытия", () => {
     expect(missing, `не обёрнуты: ${missing.join(", ")}`).toEqual([]);
   });
 });
+
+describe("reportLab parser — восстановление сдвинутых интро", () => {
+  it("переносит intro следующего биомаркера из хвоста предыдущей карточки", () => {
+    const bios = [
+      { ...mkBio("TP", "Общий белок"), value: 63.2 },
+      { ...mkBio("ALT", "Аланинаминотрансфераза"), value: 10 },
+      { ...mkBio("AST", "Аспартатаминотрансфераза"), value: 14.9 },
+      { ...mkBio("GGT", "Гамма-глутамилтрансфераза"), value: 14 },
+    ];
+    const index = buildBiomarkerIndex(mkReport(bios));
+    const text = `
+Метаболизм и Детоксикация
+
+### Интерпретация биомаркеров
+Общий белок Это суммарное количество всех белков, циркулирующих в плазме крови.
+
+<!-- anchor:biomarker TP -->
+Ваш показатель 63.2 г/л находится ниже нормы.
+
+Аланинаминотрансфераза (АЛТ) Это внутриклеточный фермент, который в основном содержится в клетках печени.
+<!-- anchor:biomarker_end -->
+
+<!-- anchor:biomarker ALT -->
+Ваш уровень 10 Ед/л находится в оптимальном диапазоне.
+
+Аспартатаминотрансфераза (АСТ) Этот фермент также участвует в обмене аминокислот.
+<!-- anchor:biomarker_end -->
+
+<!-- anchor:biomarker AST -->
+Ваш показатель 14.9 Ед/л находится в оптимальном диапазоне.
+
+Гамма-глутамилтрансфераза (ГГТ) Этот фермент находится в клетках печени и желчевыводящих путей.
+<!-- anchor:biomarker_end -->
+
+<!-- anchor:biomarker GGT -->
+Ваш уровень 14 Ед/л находится в оптимальном диапазоне.
+<!-- anchor:biomarker_end -->
+`;
+
+    const parsed = parseCategory("Метаболизм и Детоксикация", text, index);
+    const cards = parsed.blocks.filter(
+      (b): b is { kind: "biomarker"; code: string; commentary: string } =>
+        b.kind === "biomarker",
+    );
+
+    const byCode = new Map(cards.map((b) => [normalizeCode(b.code), b.commentary]));
+
+    expect(byCode.get("tp")).toContain("Общий белок Это суммарное количество");
+    expect(byCode.get("tp")).not.toContain("Аланинаминотрансфераза");
+    expect(byCode.get("alt")).toContain("Аланинаминотрансфераза (АЛТ)");
+    expect(byCode.get("alt")).not.toContain("Аспартатаминотрансфераза");
+    expect(byCode.get("ast")).toContain("Аспартатаминотрансфераза (АСТ)");
+    expect(byCode.get("ast")).not.toContain("Гамма-глутамилтрансфераза");
+    expect(byCode.get("ggt")).toContain("Гамма-глутамилтрансфераза (ГГТ)");
+  });
+});

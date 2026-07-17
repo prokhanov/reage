@@ -106,11 +106,37 @@ export function parseCategory(
   }
 
   let cursor = 0;
+  const pendingIntroByCode = new Map<string, string>();
 
   const pushProse = (from: number, to: number) => {
     const chunk = text.slice(from, to);
     const clean = cleanProse(chunk);
     if (clean) blocks.push({ kind: "prose", markdown: clean });
+  };
+
+  const takePendingIntro = (code: string): string => {
+    const norm = normalizeCode(code);
+    const intro = pendingIntroByCode.get(norm) || "";
+    pendingIntroByCode.delete(norm);
+    return intro;
+  };
+
+  const appendPendingIntro = (code: string, intro: string) => {
+    const clean = cleanProse(intro);
+    if (!clean) return;
+    const norm = normalizeCode(code);
+    const previous = pendingIntroByCode.get(norm);
+    pendingIntroByCode.set(norm, previous ? `${previous}\n\n${clean}` : clean);
+  };
+
+  const findNextBiomarkerCode = (fromMatchIndex: number): string | null => {
+    for (let j = fromMatchIndex + 1; j < matches.length; j++) {
+      const t = matches[j][1].trim();
+      if (t.startsWith("biomarker ")) {
+        return t.slice("biomarker ".length).trim();
+      }
+    }
+    return null;
   };
 
   for (let i = 0; i < matches.length; i++) {
@@ -133,11 +159,13 @@ export function parseCategory(
 
       // Ищем следующую границу: biomarker_end ИЛИ следующий biomarker
       let nextBoundary = text.length;
+      let boundaryMatchIndex = i;
       for (let j = i + 1; j < matches.length; j++) {
         const m = matches[j];
         const t = m[1].trim();
         if (t === "biomarker_end" || t.startsWith("biomarker ")) {
           nextBoundary = m.index ?? text.length;
+          boundaryMatchIndex = j;
           // Если это end — потребляем его; если следующий biomarker — оставляем.
           if (t === "biomarker_end") {
             cursor = nextBoundary + m[0].length;
@@ -151,9 +179,22 @@ export function parseCategory(
         cursor = text.length;
       }
 
-      const rawCommentary = before.intro
-        ? `${before.intro}\n\n${text.slice(end, nextBoundary)}`
-        : text.slice(end, nextBoundary);
+      let currentRawCommentary = text.slice(end, nextBoundary);
+      const nextCode = findNextBiomarkerCode(boundaryMatchIndex);
+      if (nextCode) {
+        const split = splitTailForNextBiomarker(
+          currentRawCommentary,
+          nextCode,
+          biomarkerIndex,
+        );
+        currentRawCommentary = split.current;
+        if (split.nextIntro) appendPendingIntro(nextCode, split.nextIntro);
+      }
+
+      const introParts = [takePendingIntro(code), before.intro].filter(Boolean);
+      const rawCommentary = introParts.length
+        ? `${introParts.join("\n\n")}\n\n${currentRawCommentary}`
+        : currentRawCommentary;
       const commentary = cleanProse(stripLeadingBiomarkerName(rawCommentary));
       blocks.push({ kind: "biomarker", code, commentary });
     } else {
@@ -368,6 +409,25 @@ function splitTrailingBiomarkerIntro(
   };
 }
 
+function splitTailForNextBiomarker(
+  chunk: string,
+  nextCode: string,
+  biomarkerIndex?: Map<string, ReportBiomarker>,
+): { current: string; nextIntro: string } {
+  if (!chunk.trim() || !biomarkerIndex) return { current: chunk, nextIntro: "" };
+
+  const nextBio = biomarkerIndex.get(normalizeCode(nextCode));
+  if (!nextBio) return { current: chunk, nextIntro: "" };
+
+  const marker = findBiomarkerLeadStart(chunk, nextBio);
+  if (marker === -1) return { current: chunk, nextIntro: "" };
+
+  return {
+    current: chunk.slice(0, marker),
+    nextIntro: cleanProse(chunk.slice(marker)),
+  };
+}
+
 function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
   const starts: string[] = [];
   const fullName = bio.name.trim();
@@ -382,15 +442,16 @@ function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
   for (const lead of starts) {
     const re = new RegExp(
       `(?:^|\\n\\s*\\n|\\n)[ \\t]*(?:#{1,6}[ \\t]+|\\*\\*)?${escapeRegex(lead)}(?:\\*\\*)?(?=[\\s(—–-]|$)`,
-      "iu",
+      "giu",
     );
-    const m = re.exec(chunk);
-    if (m) {
+    let bestIndex = -1;
+    for (const m of chunk.matchAll(re)) {
       const rawIndex = m.index + (m[0].match(/^[\s\S]*?(?=\S)/)?.[0].length ?? 0);
       // Не забираем большой общий intro: маркер должен быть в хвосте перед
       // якорем, а не в середине длинного раздела.
-      if (chunk.length - rawIndex <= 1_200) return rawIndex;
+      if (chunk.length - rawIndex <= 1_200) bestIndex = rawIndex;
     }
+    if (bestIndex !== -1) return bestIndex;
   }
 
   return -1;
