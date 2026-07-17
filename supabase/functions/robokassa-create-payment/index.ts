@@ -21,15 +21,26 @@ function buildCreateSignature(
   outSum: string,
   invId: number,
   password1: string,
+  receiptEncoded: string = "",
   shp: Record<string, string> = {},
 ): string {
   const keys = Object.keys(shp).sort();
   const shpStr = keys.map((k) => `${k}=${shp[k]}`).join(":");
-  const base = [login, outSum, String(invId), password1, shpStr]
-    .filter(Boolean)
-    .join(":");
-  return md5(base);
+  // Robokassa: MerchantLogin:OutSum:InvId[:Receipt]:Password1[:Shp_...]
+  // Receipt в подпись идёт в том же URL-encoded виде, в котором уходит в URL.
+  const parts = [login, outSum, String(invId)];
+  if (receiptEncoded) parts.push(receiptEncoded);
+  parts.push(password1);
+  if (shpStr) parts.push(shpStr);
+  return md5(parts.join(":"));
 }
+
+const PERIOD_LABELS: Record<string, string> = {
+  monthly: "Месяц",
+  quarterly: "Квартал",
+  semiannual: "Полгода",
+  annual: "Год",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -179,9 +190,44 @@ Deno.serve(async (req) => {
     }
 
     const invId = Number(order.inv_id);
-    const signature = buildCreateSignature(merchantLogin, outSum, invId, password1);
 
-    const params = new URLSearchParams({
+    // Fetch plan display name for receipt item
+    const { data: plan } = await admin
+      .from("subscription_plans")
+      .select("display_name, name")
+      .eq("id", planId)
+      .maybeSingle();
+    const planTitle = plan?.display_name || plan?.name || "тариф";
+    const periodLabel = PERIOD_LABELS[pricing.period] || pricing.period || "";
+    const itemName = `Подписка ReAge: ${planTitle}${periodLabel ? `, ${periodLabel}` : ""}`;
+
+    const receipt = {
+      sno: "usn_income_outcome",
+      items: [
+        {
+          name: itemName.slice(0, 128),
+          quantity: 1,
+          sum: Number(finalAmount.toFixed(2)),
+          payment_method: "full_payment",
+          payment_object: "service",
+          tax: "none",
+        },
+      ],
+    };
+    const receiptJson = JSON.stringify(receipt);
+    const receiptEncoded = encodeURIComponent(receiptJson);
+
+    const signature = buildCreateSignature(
+      merchantLogin,
+      outSum,
+      invId,
+      password1,
+      receiptEncoded,
+    );
+
+    // Собираем URL вручную, чтобы Receipt был закодирован ровно тем же
+    // encodeURIComponent, что и в подписи (URLSearchParams кодирует пробелы как '+').
+    const baseParams: Record<string, string> = {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
@@ -189,11 +235,16 @@ Deno.serve(async (req) => {
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",
-    });
-    if (userEmail) params.set("Email", userEmail);
-    if (isTest) params.set("IsTest", "1");
+    };
+    if (userEmail) baseParams.Email = userEmail;
+    if (isTest) baseParams.IsTest = "1";
 
-    const paymentUrl = `${ROBOKASSA_URL}?${params.toString()}`;
+    const query = Object.entries(baseParams)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .concat(`Receipt=${receiptEncoded}`)
+      .join("&");
+
+    const paymentUrl = `${ROBOKASSA_URL}?${query}`;
 
     return json({ url: paymentUrl, invId, isTest });
   } catch (e) {
