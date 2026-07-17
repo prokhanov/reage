@@ -32,6 +32,7 @@ export function AnalysisBookingBanner() {
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
+  const [noAnswerDialogOpen, setNoAnswerDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
