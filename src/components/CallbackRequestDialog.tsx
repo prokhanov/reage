@@ -100,6 +100,7 @@ export function CallbackRequestDialog({
 
   useEffect(() => {
     if (!open) return;
+    setMapMountKey((k) => k + 1);
     (async () => {
       await loadProfile();
 
