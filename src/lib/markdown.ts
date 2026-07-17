@@ -11,6 +11,8 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Also strip any other HTML comment that survives.
   let preprocessed = text
     .replace(/\r\n/g, "\n")
+    .replace(/\u200B/g, "")
+    .replace(/\u00A0/g, " ")
     // Strip internal prompt/instruction blocks if AI echoed them into report text.
     .replace(/^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
     .replace(/^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
