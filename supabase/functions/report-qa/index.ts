@@ -926,66 +926,108 @@ Deno.serve(async (req) => {
               type: "status",
               message: `[${sectionLabel}] Догенерация описаний для ${blocksToFix.length} биомаркеров…`,
             });
-            // process from last to first to keep indices stable on `text`
-            for (let i = blocksToFix.length - 1; i >= 0; i--) {
-              if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
-                const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
-                fixes.push(msg);
-                send({ type: "warn", message: msg });
-                break;
-              }
-              const blk = blocksToFix[i];
+
+            // Сколько маркеров реально успеем починить в этом прогоне
+            const remainingBudget = Math.max(
+              0,
+              MAX_AI_REPAIRS_PER_RUN - aiRepairsDone,
+            );
+            const toProcess = blocksToFix.slice(0, remainingBudget);
+            const skippedByLimit = blocksToFix.length - toProcess.length;
+
+            // Задача на догенерацию — фиксируем позиции ДО параллельного
+            // выполнения, т.к. text мы будем мутировать после.
+            type RepairTask = {
+              blk: { code: string; content: string; start: number; end: number };
+              bm: { code: string; name: string; general_description?: string | null };
+              valueLine: string;
+              replaceEnd: number;
+              result?: string | null;
+            };
+            const tasks: RepairTask[] = [];
+            for (const blk of toProcess) {
               const bm = biomarkers.find(
                 (b) =>
                   normalizeBiomarkerCode(b.code) ===
                   normalizeBiomarkerCode(blk.code),
               );
               if (!bm) continue;
-              // Extract value sentence from existing content (if present)
               const valueMatch =
                 /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
               const valueLine = valueMatch
                 ? valueMatch[0].trim()
                 : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              // Поиск конца блока в текущем text
+              const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
+              endRegex.lastIndex = blk.end;
+              const endMatch = endRegex.exec(text);
+              const replaceEnd = endMatch
+                ? endMatch.index + endMatch[0].length
+                : blk.end;
+              tasks.push({ blk, bm, valueLine, replaceEnd });
+            }
 
-              send({
-                type: "status",
-                message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
-              });
-              const generalDesc =
-                (bm as any).general_description ??
-                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
-                null;
-              const generated = await generateBiomarkerEducation(
-                bm.name,
-                bm.code,
-                valueLine,
-                REPAIR_MODEL,
-                reportContext,
-                generalDesc,
-              );
-              aiRepairsDone++;
-              if (generated) {
-                // Find end-of-block (anchor:biomarker_end) — replace whole block
-                const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                endRegex.lastIndex = blk.end;
-                const endMatch = endRegex.exec(text);
-                const replaceEnd = endMatch
-                  ? endMatch.index + endMatch[0].length
-                  : blk.end;
-                text =
-                  text.slice(0, blk.start) +
-                  generated +
-                  "\n" +
-                  text.slice(replaceEnd);
-                const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
-                fixes.push(msg);
-                send({ type: "fix", message: msg });
-              } else {
-                const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${bm.name} (${bm.code})`;
-                fixes.push(msg);
-                send({ type: "warn", message: msg });
+            // Параллельно, но с ограничением concurrency и глобальным таймаутом
+            let cursor = 0;
+            const runWorker = async () => {
+              while (cursor < tasks.length) {
+                if (isTimeBudgetLow()) return;
+                const idx = cursor++;
+                const t = tasks[idx];
+                send({
+                  type: "status",
+                  message: `→ AI догенерирует описание: ${t.bm.name} (${t.bm.code})`,
+                });
+                const generalDesc =
+                  (t.bm as any).general_description ??
+                  generalDescByCode.get(normalizeBiomarkerCode(t.bm.code)) ??
+                  null;
+                try {
+                  t.result = await generateBiomarkerEducation(
+                    t.bm.name,
+                    t.bm.code,
+                    t.valueLine,
+                    REPAIR_MODEL,
+                    reportContext,
+                    generalDesc,
+                  );
+                } catch (_e) {
+                  t.result = null;
+                }
+                aiRepairsDone++;
               }
+            };
+            const workers: Promise<void>[] = [];
+            const workerCount = Math.min(REPAIR_CONCURRENCY, tasks.length);
+            for (let w = 0; w < workerCount; w++) workers.push(runWorker());
+            await Promise.all(workers);
+
+            // Применяем результаты СПРАВА НАЛЕВО, чтобы индексы оставались валидны.
+            const applied = tasks
+              .filter((t) => t.result)
+              .sort((a, b) => b.blk.start - a.blk.start);
+            for (const t of applied) {
+              text =
+                text.slice(0, t.blk.start) +
+                (t.result as string) +
+                "\n" +
+                text.slice(t.replaceEnd);
+              const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${t.bm.name} (${t.bm.code})`;
+              fixes.push(msg);
+              send({ type: "fix", message: msg });
+            }
+            const failed = tasks.filter((t) => t.result === null);
+            for (const t of failed) {
+              const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${t.bm.name} (${t.bm.code})`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
+            if (skippedByLimit > 0 || (tasks.length > 0 && applied.length + failed.length < tasks.length)) {
+              const skippedTotal =
+                skippedByLimit + (tasks.length - applied.length - failed.length);
+              const msg = `[${sectionLabel}] Часть AI-догенерации пропущена (${skippedTotal}) — исчерпан бюджет времени/лимит на прогон. Запустите проверку ещё раз после сохранения текущих правок.`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
             }
           }
 
