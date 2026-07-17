@@ -250,6 +250,7 @@ export default function Profile() {
   const nameParts = (profile?.name || "").trim().split(/\s+/).filter(Boolean);
   const firstName = profile?.first_name || nameParts[0] || "";
   const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
+  const middleName = profile?.middle_name || "";
 
 
 
