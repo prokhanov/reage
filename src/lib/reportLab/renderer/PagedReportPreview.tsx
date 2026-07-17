@@ -348,7 +348,13 @@ export function PagedReportPreview({
       // live HTML из текущих editable-фрагментов и подставляем его в чистый
       // исходный HTML отчёта перед Paged.js.
       let currentHtml = htmlRef.current;
+      let dirtyEditableIds = new Set<string>();
       if (isEditable && output.querySelector("[data-editable-id]")) {
+        dirtyEditableIds = new Set(
+          Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id][data-rl-dirty='1']"))
+            .map((el) => el.getAttribute("data-editable-id"))
+            .filter((id): id is string => Boolean(id)),
+        );
         const liveHtmlDrafts = collectEditableHtmlDrafts(output);
         if (Object.keys(liveHtmlDrafts).length > 0) {
           currentHtml = applyEditableHtmlDrafts(currentHtml, liveHtmlDrafts);
@@ -416,6 +422,7 @@ export function PagedReportPreview({
               onEditChangeRef.current?.(id, md);
             },
             () => triggerReflowRef.current(),
+            dirtyEditableIds,
           );
           installCoverInlineEditor(
             output,
@@ -833,6 +840,7 @@ function installEditableOverlay(
   onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
   triggerReflow: () => void,
+  initialDirtyIds = new Set<string>(),
 ) {
   const toolbar = ensureToolbar(output);
 
@@ -882,6 +890,10 @@ function installEditableOverlay(
   editables.forEach((el) => {
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
+    const editableId = el.getAttribute("data-editable-id");
+    if (editableId && initialDirtyIds.has(editableId)) {
+      el.setAttribute("data-rl-dirty", "1");
+    }
     // Помечаем только реально изменённые блоки. Иначе «Сохранить» собирал
     // весь отрендеренный DOM отчёта, и render-only правки Markdown попадали
     // обратно в БД поверх исходного текста.
