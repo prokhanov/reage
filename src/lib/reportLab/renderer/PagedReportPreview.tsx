@@ -836,18 +836,19 @@ function installEditableOverlay(
   };
   w.__reportLabCollectDrafts = collectAllMarkdown;
 
-  // ─── Live-reflow отключён ───────────────────────────────────────────────
-  // Попытка автоматической перепагинации во время набора приводила к потере
-  // текста: htmlToMarkdown-roundtrip после Enter/split мог дропнуть куски
-  // блока, и Paged.js рендерил уже без них. До появления инкрементального
-  // layout'а держим правки полностью в contentEditable DOM, а Paged.js
-  // пересобирает страницы ОДИН раз — при «Сохранить» (см. handleReportUpdate
-  // в ReportV2Editor). Если во время набора текст переполнит границу
-  // страницы — он визуально клипнется, но не будет утерян.
-  const scheduleReflowCheck = (_force = false) => {
-    void _force;
-    // no-op: пересчёт страниц происходит только при явном сохранении.
-    void triggerReflow;
+  // ─── Live-reflow: debounced авто-перепагинация при переполнении ─────────
+  // Во время набора текста периодически проверяем, вылез ли контент за низ
+  // страницы (или, наоборот, освободилось место сверху). Если да — запускаем
+  // полный Paged.js reflow. Роунтдрип HTML→MD больше не теряет текст: build()
+  // берёт live-HTML из contentEditable фрагментов и подставляет его напрямую
+  // в исходный html до Paged.js (см. collectEditableHtmlDrafts выше).
+  let reflowTimer: number | null = null;
+  const scheduleReflowCheck = (force = false) => {
+    if (reflowTimer != null) window.clearTimeout(reflowTimer);
+    reflowTimer = window.setTimeout(() => {
+      reflowTimer = null;
+      if (force || needsReflow(output)) triggerReflow();
+    }, force ? 60 : 350);
   };
   // Экспонируем для совместимости с bubble-toolbar (Bold/Italic/H2/H3).
   (output as HTMLElement & { __rlScheduleReflow?: (force?: boolean) => void }).
