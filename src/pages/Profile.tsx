@@ -361,6 +361,16 @@ export default function Profile() {
                 <p className="text-lg font-medium">{lastName || "—"}</p>
               </div>
 
+              {/* Middle name */}
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm text-muted-foreground">Отчество</label>
+                </div>
+                <p className="text-lg font-medium">{middleName || "—"}</p>
+              </div>
+
+
               {/* Email */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
