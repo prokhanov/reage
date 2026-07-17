@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, Heart, FileText, Check, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, User, Heart, Check, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,16 +12,12 @@ import { AuthBackground } from "@/components/AuthBackground";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
-import { PassportFields, isPassportValid } from "@/components/PassportFields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { saveOnboardingData } from "@/lib/onboarding/saveOnboardingData";
 import type { RegisterFormData } from "@/pages/Register";
 
 const steps = [
   { id: 1, slug: "personal", title: "О вас", icon: User },
   { id: 2, slug: "health", title: "Здоровье", icon: Heart },
-  { id: 3, slug: "passport", title: "Паспорт", icon: FileText },
 ] as const;
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(
