@@ -22,7 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { PassportFields, isPassportValid } from "./PassportFields";
+import { isPassportDataComplete } from "./PassportFields";
+import { PassportDataDialog } from "./PassportDataDialog";
 import LabLocationsMap, { type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 interface CallbackRequestDialogProps {
