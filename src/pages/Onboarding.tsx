@@ -115,8 +115,6 @@ export default function Onboarding() {
           : [],
         medicalHistory: historyEntries,
       });
-      setPassportSeries((profile as any)?.passport_series || "");
-      setPassportNumber((profile as any)?.passport_number || "");
       setLoading(false);
     })();
     return () => {
