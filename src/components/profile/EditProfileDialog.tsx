@@ -91,6 +91,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       setFormData({
         first_name: profile.first_name || split.first,
         last_name: profile.last_name || split.last,
+        middle_name: profile.middle_name || "",
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
