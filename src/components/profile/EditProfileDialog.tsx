@@ -57,6 +57,8 @@ interface EditProfileDialogProps {
   profile: Profile | null;
   userId: string | null;
   onSuccess: () => void;
+  email?: string | null;
+  phone?: string | null;
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
