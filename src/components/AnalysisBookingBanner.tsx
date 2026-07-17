@@ -340,6 +340,12 @@ export function AnalysisBookingBanner() {
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
+      <NoAnswerCallbackDialog
+        open={noAnswerDialogOpen}
+        onOpenChange={setNoAnswerDialogOpen}
+        existingBookingId={bookingInfo?.id ?? null}
+        onSuccess={checkBookingStatus}
+      />
       <AnalysisInstructionsDialog
         open={instructionsOpen}
         onOpenChange={setInstructionsOpen}
