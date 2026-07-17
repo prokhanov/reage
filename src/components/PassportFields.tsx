@@ -25,6 +25,31 @@ export const isPassportValid = (series: string | null | undefined, number: strin
   );
 };
 
+export const isFullNameFilled = (
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+  middleName: string | null | undefined,
+) => {
+  return (
+    !!firstName && firstName.trim().length >= 1 &&
+    !!lastName && lastName.trim().length >= 1 &&
+    !!middleName && middleName.trim().length >= 2
+  );
+};
+
+export const isPassportDataComplete = (params: {
+  firstName?: string | null;
+  lastName?: string | null;
+  middleName?: string | null;
+  series?: string | null;
+  number?: string | null;
+}) => {
+  return (
+    isFullNameFilled(params.firstName, params.lastName, params.middleName) &&
+    isPassportValid(params.series, params.number)
+  );
+};
+
 export function PassportFields({
   series,
   number,
