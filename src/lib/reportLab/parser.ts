@@ -422,10 +422,27 @@ function splitTailForNextBiomarker(
   const marker = findBiomarkerLeadStart(chunk, nextBio);
   if (marker === -1) return { current: chunk, nextIntro: "" };
 
+  // ВАЖНО: этот автоперенос — только ремонт старых сдвинутых якорей, где
+  // после анализа текущего маркера случайно прилипло intro следующего.
+  // Если пользователь вручную вставил текст в пустую карточку, а имя следующего
+  // маркера является расширением текущего (например MONO → MONO-ABS,
+  // «Моноциты» → «Моноциты (абс.)»), широкий stripped-name матч иначе снова
+  // перетаскивает правку в следующую карточку при каждом сохранении.
+  const beforeMarker = chunk.slice(0, marker);
+  if (!hasPatientValueContext(beforeMarker)) {
+    return { current: chunk, nextIntro: "" };
+  }
+
   return {
     current: chunk.slice(0, marker),
     nextIntro: cleanProse(chunk.slice(marker)),
   };
+}
+
+function hasPatientValueContext(text: string): boolean {
+  return /Ваш(?:и|е|его)?\s+(?:текущ(?:ий|ее|ая)\s+)?(?:показател[ьия]|уровень|значение|индекс|результат)\s+[-]?\d+(?:[.,]\d+)?/iu.test(
+    text,
+  );
 }
 
 function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
