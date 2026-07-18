@@ -88,6 +88,7 @@ export function PhoneLoginForm() {
         return;
       }
       toast({ title: "Добро пожаловать!", description: "Вы успешно вошли" });
+      navigate("/dashboard", { replace: true });
     } catch (e: any) {
       toast({ title: "Ошибка", description: e?.message || "Не удалось проверить код", variant: "destructive" });
     } finally {
