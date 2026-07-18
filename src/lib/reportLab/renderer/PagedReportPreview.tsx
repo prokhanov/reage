@@ -253,12 +253,30 @@ function ensureToolbar(container: HTMLElement): HTMLDivElement {
     }).__rlScheduleReflow;
     if (sched) sched(cmd !== "bold" && cmd !== "italic");
   };
+
+  const setNormalText = () => {
+    const editable = markEditableDirty(container);
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+    } catch {
+      /* ignore */
+    }
+    // `formatBlock: P` is unreliable in Chrome when the selection sits inside
+    // a paged.js-cloned H2/H3. Run the browser command first, then explicitly
+    // unwrap any selected headings so saving writes `**text**`, not `### text`.
+    document.execCommand("formatBlock", false, "p");
+    if (editable) replaceSelectedHeadingsWithParagraphs(editable);
+    const sched = (container as HTMLElement & {
+      __rlScheduleReflow?: (force?: boolean) => void;
+    }).__rlScheduleReflow;
+    if (sched) sched(true);
+  };
   bar.append(
     mkBtn("<b>B</b>", "Полужирный", () => exec("bold")),
     mkBtn("<i>I</i>", "Курсив", () => exec("italic")),
     mkBtn("H2", "Заголовок H2", () => exec("formatBlock", "H2")),
     mkBtn("H3", "Заголовок H3", () => exec("formatBlock", "H3")),
-    mkBtn("¶", "Обычный текст", () => exec("formatBlock", "P")),
+    mkBtn("¶", "Обычный текст", setNormalText),
     mkBtn("•", "Маркированный список", () => exec("insertUnorderedList")),
     mkBtn("1.", "Нумерованный список", () => exec("insertOrderedList")),
   );
@@ -777,6 +795,38 @@ function markEditableDirty(container: HTMLElement): HTMLElement | null {
   if (!editable || !container.contains(editable)) return null;
   editable.setAttribute("data-rl-dirty", "1");
   return editable;
+}
+
+function replaceSelectedHeadingsWithParagraphs(root: HTMLElement) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const headings = new Set<HTMLElement>();
+
+  const selectedNode = (node: Node | null) => {
+    if (!node) return;
+    const el = node.nodeType === Node.ELEMENT_NODE
+      ? (node as HTMLElement)
+      : (node.parentElement as HTMLElement | null);
+    const heading = el?.closest?.("h1,h2,h3,h4,h5,h6") as HTMLElement | null;
+    if (heading && root.contains(heading)) headings.add(heading);
+  };
+
+  selectedNode(range.startContainer);
+  selectedNode(range.endContainer);
+  root.querySelectorAll<HTMLElement>("h1,h2,h3,h4,h5,h6").forEach((heading) => {
+    try {
+      if (range.intersectsNode(heading)) headings.add(heading);
+    } catch {
+      /* ignore detached/split nodes */
+    }
+  });
+
+  headings.forEach((heading) => {
+    const p = document.createElement("p");
+    while (heading.firstChild) p.appendChild(heading.firstChild);
+    heading.replaceWith(p);
+  });
 }
 
 function sanitizeEditableHtml(html: string): string {
