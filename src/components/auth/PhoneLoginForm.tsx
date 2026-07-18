@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PhoneIcon, KeyRound, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ export function PhoneLoginForm() {
   const [resendIn, setResendIn] = useState(0);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -86,6 +88,7 @@ export function PhoneLoginForm() {
         return;
       }
       toast({ title: "Добро пожаловать!", description: "Вы успешно вошли" });
+      navigate("/dashboard", { replace: true });
     } catch (e: any) {
       toast({ title: "Ошибка", description: e?.message || "Не удалось проверить код", variant: "destructive" });
     } finally {
