@@ -128,7 +128,27 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
         <ReactMarkdown
           remarkPlugins={[remarkBreaks]}
           components={{
-            h1: ({ children }) => <h2>{children}</h2>,
+            h1: ({ children }) => {
+              const text = extractText(children).trim();
+              if (isCategoryAssessmentTitle(text)) {
+                return <p><strong>{children}</strong></p>;
+              }
+              return <h2>{children}</h2>;
+            },
+            h2: ({ children }) => {
+              const text = extractText(children).trim();
+              if (isCategoryAssessmentTitle(text)) {
+                return <p><strong>{children}</strong></p>;
+              }
+              return <h2>{children}</h2>;
+            },
+            h3: ({ children }) => {
+              const text = extractText(children).trim();
+              if (isCategoryAssessmentTitle(text)) {
+                return <p><strong>{children}</strong></p>;
+              }
+              return <h3>{children}</h3>;
+            },
             p: ({ children, ...props }) => {
               const text = extractText(children).trim();
               if (text === "Интерпретация биомаркеров") {
@@ -151,6 +171,10 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
       )}
     </div>
   );
+}
+
+function isCategoryAssessmentTitle(text: string): boolean {
+  return /^Общая\s+оценка\s+системы\s+организма\s+["«].+["»]$/iu.test(text);
 }
 
 function extractText(node: React.ReactNode): string {
