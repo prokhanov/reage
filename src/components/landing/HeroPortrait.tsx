@@ -444,7 +444,7 @@ export function HeroPortrait() {
               )}
             </button>
 
-            <div className="flex flex-row items-center gap-2 shrink-0">
+            <div className="flex flex-row-reverse sm:flex-row items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => navigate("/auth")}
