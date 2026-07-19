@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun } from "lucide-react";
+import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun, LogIn } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
@@ -444,13 +444,15 @@ export function HeroPortrait() {
               )}
             </button>
 
-            <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-2 shrink-0">
+            <div className="flex flex-row items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => navigate("/auth")}
-                className="pointer-events-auto h-10 inline-flex items-center px-3 sm:px-4 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm text-foreground text-xs sm:text-sm font-semibold hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
+                className="pointer-events-auto h-10 w-10 sm:w-auto sm:px-4 inline-flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm text-foreground hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
+                aria-label="Войти"
               >
-                Войти
+                <LogIn className="h-5 w-5 sm:hidden" />
+                <span className="hidden sm:inline text-sm font-semibold">Войти</span>
               </button>
               <button
                 type="button"
@@ -458,7 +460,7 @@ export function HeroPortrait() {
                 className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
               >
                 Оставить заявку
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <ArrowRight className="hidden sm:inline w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
