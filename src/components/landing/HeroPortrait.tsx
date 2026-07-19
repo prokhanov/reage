@@ -451,8 +451,8 @@ export function HeroPortrait() {
                 className="pointer-events-auto h-10 w-10 sm:w-auto sm:px-4 inline-flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm text-foreground hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
                 aria-label="Войти"
               >
-                <LogIn className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline ml-1.5 text-sm font-semibold">Войти</span>
+                <LogIn className="h-5 w-5 sm:hidden" />
+                <span className="hidden sm:inline text-sm font-semibold">Войти</span>
               </button>
               <button
                 type="button"
