@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { reachGoal } from "@/lib/yandexMetrika";
 
 interface FormErrors {
   name?: string;
