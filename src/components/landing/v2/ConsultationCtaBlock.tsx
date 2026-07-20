@@ -63,8 +63,8 @@ export function ConsultationCtaBlock() {
         return;
       }
 
-      setStatus("success");
       reachGoal("form2");
+      setStatus("success");
     } catch (err) {
       console.error("Consultation submit exception", err);
       setStatus("error");
