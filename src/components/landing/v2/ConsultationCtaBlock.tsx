@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { reachGoal } from "@/lib/yandexMetrika";
+import { reachGoal, tgpEvent } from "@/lib/yandexMetrika";
 
 interface FormErrors {
   name?: string;
@@ -64,6 +64,7 @@ export function ConsultationCtaBlock() {
       }
 
       reachGoal("form2");
+      tgpEvent("U8ii6Wnr-hQcIMd0O");
       setStatus("success");
     } catch (err) {
       console.error("Consultation submit exception", err);

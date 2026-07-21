@@ -15,7 +15,9 @@ declare module "pagedjs" {
 declare global {
   interface Window {
     ym?: (counterId: number, action: string, ...args: unknown[]) => void;
+    tgp?: (...args: unknown[]) => void;
   }
 }
+
 
 export {};

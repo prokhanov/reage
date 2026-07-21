@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { reachGoal } from "@/lib/yandexMetrika";
+import { reachGoal, tgpEvent } from "@/lib/yandexMetrika";
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -79,6 +79,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       }
 
       reachGoal("form1");
+      tgpEvent("U8ii6Wnr-hQcIMd0O");
       setStatus("success");
       setTimeout(() => {
         onOpenChange(false);

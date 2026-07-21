@@ -19,3 +19,18 @@ export function reachGoal(goal: string, params?: Record<string, unknown>) {
     console.debug("[ym] reachGoal threw", { goal, err });
   }
 }
+
+export function tgpEvent(eventId: string) {
+  if (typeof window === "undefined") return;
+  const tgp = window.tgp;
+  if (typeof tgp !== "function") {
+    console.debug("[tgp] event skipped, window.tgp is not available", { eventId });
+    return;
+  }
+  try {
+    tgp("event", eventId);
+  } catch (err) {
+    console.debug("[tgp] event threw", { eventId, err });
+  }
+}
+
