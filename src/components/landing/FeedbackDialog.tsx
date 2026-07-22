@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { reachGoal, tgpEvent } from "@/lib/yandexMetrika";
+import { reachGoal, tgpEvent, tmrEvent } from "@/lib/yandexMetrika";
 
 interface FeedbackDialogProps {
   open: boolean;
