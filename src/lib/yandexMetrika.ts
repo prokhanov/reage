@@ -34,3 +34,17 @@ export function tgpEvent(eventId: string) {
   }
 }
 
+export function tmrEvent(goal: string) {
+  if (typeof window === "undefined") return;
+  const tmr = window._tmr;
+  if (typeof tmr !== "object" || typeof tmr.push !== "function") {
+    console.debug("[tmr] reachGoal skipped, window._tmr is not available", { goal });
+    return;
+  }
+  try {
+    tmr.push({ type: "reachGoal", id: 3780512, goal });
+  } catch (err) {
+    console.debug("[tmr] reachGoal threw", { goal, err });
+  }
+}
+
