@@ -65,6 +65,7 @@ export function ConsultationCtaBlock() {
 
       reachGoal("form2");
       tgpEvent("U8ii6Wnr-hQcIMd0O");
+      tmrEvent("form2");
       setStatus("success");
     } catch (err) {
       console.error("Consultation submit exception", err);

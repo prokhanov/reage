@@ -80,6 +80,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
 
       reachGoal("form1");
       tgpEvent("U8ii6Wnr-hQcIMd0O");
+      tmrEvent("form1");
       setStatus("success");
       setTimeout(() => {
         onOpenChange(false);
