@@ -1,4 +1,4 @@
-// Public endpoint invoked from the landing page Lifestyle-6 quiz.
+// Public endpoint invoked from the landing page hidden-risk test.
 // Stores the submission, sends a Telegram lead notification, and enqueues
 // the "welcome" transactional email (if the template is active).
 
