@@ -519,63 +519,40 @@ function DomainStep({
   const qs = QUESTIONS.filter((q) => q.domain === domain);
 
   return (
-    <div className="space-y-7">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-primary" />
+    <div className="space-y-8">
+      <div>
+        <div className="inline-flex items-center gap-2 text-primary text-[12.5px] font-semibold mb-3">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12">
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          Образ жизни · {DOMAIN_LABELS[domain]}
         </div>
-        <div>
-          <h3 className="text-[22px] md:text-[26px] font-bold tracking-tight text-foreground leading-tight">
-            {DOMAIN_LABELS[domain]}
-          </h3>
-          <p className="text-[13px] text-muted-foreground">3 вопроса</p>
-        </div>
+        <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
+          {DOMAIN_LABELS[domain]}
+        </h2>
+        <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
+          3 коротких вопроса. Отвечайте так, как чаще всего происходит в обычную неделю.
+        </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-7">
         {qs.map((q, idx) => (
-          <div key={q.id} className="space-y-3">
-            <div className="text-[15px] font-medium leading-relaxed text-foreground">
-              <span className="text-primary mr-1.5 font-semibold">{idx + 1}.</span>
-              {q.text}
+          <FieldBlock key={q.id} label={`${idx + 1}. ${q.text}`}>
+            <div className="space-y-2.5">
+              {q.options.map((opt, i) => (
+                <RadioChip
+                  key={i}
+                  active={answers[q.id] === i}
+                  onClick={() =>
+                    setAnswers({ ...answers, [q.id]: i as 0 | 1 | 2 })
+                  }
+                  full
+                >
+                  {opt.label}
+                </RadioChip>
+              ))}
             </div>
-            <RadioGroup
-              value={answers[q.id] !== undefined ? String(answers[q.id]) : undefined}
-              onValueChange={(v) =>
-                setAnswers({ ...answers, [q.id]: Number(v) as 0 | 1 | 2 })
-              }
-              className="space-y-2"
-            >
-              {q.options.map((opt, i) => {
-                const active = answers[q.id] === i;
-                return (
-                  <label
-                    key={i}
-                    className={cn(
-                      "group relative flex items-center gap-3 rounded-2xl px-4 py-3.5 cursor-pointer transition-all text-[15px]",
-                      "focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/50 focus-within:ring-offset-2 focus-within:ring-offset-card",
-                      active
-                        ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_6px_24px_-10px_hsl(var(--primary)/0.55)]"
-                        : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40 hover:text-foreground",
-                    )}
-                  >
-                    <RadioGroupItem value={String(i)} id={`${q.id}-${i}`} className="sr-only" />
-                    <span className="flex-1 leading-snug">{opt.label}</span>
-                    <span
-                      className={cn(
-                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all",
-                        active
-                          ? "bg-primary text-primary-foreground scale-100 opacity-100"
-                          : "bg-transparent scale-75 opacity-0",
-                      )}
-                    >
-                      <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
-                    </span>
-                  </label>
-                );
-              })}
-            </RadioGroup>
-          </div>
+          </FieldBlock>
         ))}
       </div>
     </div>
