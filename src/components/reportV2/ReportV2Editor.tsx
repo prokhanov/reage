@@ -147,6 +147,114 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [onSaved],
   );
 
+  const [regenCategory, setRegenCategory] = useState<string | null>(null);
+
+  const reloadReport = useCallback(async () => {
+    try {
+      const fresh = await buildLabReportFromDb(analysisId, userId);
+      setReport(fresh);
+      onSaved?.();
+    } catch (e) {
+      console.error("[ReportV2Editor] reload after regenerate failed", e);
+    }
+  }, [analysisId, userId, onSaved]);
+
+  const regenerateCategory = useCallback(
+    async (category: string) => {
+      if (regenCategory) {
+        toast.info("Уже идёт перегенерация", `Раздел «${regenCategory}»`);
+        return;
+      }
+      // Мягкое подтверждение: несохранённые правки в этом разделе будут потеряны.
+      const w = window as typeof window & { __reportV2HasEdits?: () => boolean };
+      if (w.__reportV2HasEdits?.()) {
+        const ok = window.confirm(
+          "В отчёте есть несохранённые правки. Перегенерация раздела «" +
+            category +
+            "» перезапишет его текст. Продолжить?",
+        );
+        if (!ok) return;
+      } else if (
+        !window.confirm(`Перегенерировать раздел «${category}»? Текст будет полностью пересобран ИИ.`)
+      ) {
+        return;
+      }
+      setRegenCategory(category);
+      try {
+        const endpoint = edgeFunctionUrl("report-orchestrator");
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const startRes = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            action: "regenerate_category",
+            analysisId,
+            userId,
+            category,
+          }),
+        });
+        const startJson = await startRes.json().catch(() => ({}));
+        if (!startRes.ok || !startJson?.success) {
+          throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+        }
+        const jobId = startJson.jobId as string;
+        // Polling до завершения / ошибки. Таймаут — 4 минуты.
+        const deadline = Date.now() + 4 * 60_000;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          if (Date.now() > deadline) throw new Error("Таймаут ожидания генерации");
+          await new Promise((r) => setTimeout(r, 3000));
+          const statusRes = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ action: "status", jobId }),
+          });
+          const statusJson = await statusRes.json().catch(() => ({}));
+          const s = statusJson?.job?.status;
+          if (s === "completed" || s === "success" || s === "done") break;
+          if (s === "failed" || s === "error") {
+            throw new Error(statusJson?.job?.error || "Ошибка генерации");
+          }
+        }
+        await reloadReport();
+        toast.success("Раздел перегенерирован", category);
+      } catch (e) {
+        console.error("[ReportV2Editor] regenerateCategory failed", e);
+        toast.error("Не удалось перегенерировать", e instanceof Error ? e.message : String(e));
+      } finally {
+        setRegenCategory(null);
+      }
+    },
+    [analysisId, userId, regenCategory, reloadReport],
+  );
+
+  // Клики по кнопкам [data-rl-regenerate-category] внутри рендер-контейнера.
+  useEffect(() => {
+    const el = previewContainerRef.current;
+    if (!el) return;
+    const handler = (ev: MouseEvent) => {
+      const target = ev.target as HTMLElement | null;
+      const btn = target?.closest("[data-rl-regenerate-category]") as HTMLElement | null;
+      if (!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const cat = btn.getAttribute("data-rl-regenerate-category");
+      if (cat) void regenerateCategory(cat);
+    };
+    el.addEventListener("click", handler, true);
+    return () => el.removeEventListener("click", handler, true);
+  }, [regenerateCategory]);
+
+
   const navSections = useMemo<ReportNavSection[]>(() => {
     if (!report) return [];
     // Обложку в содержание не выносим — на неё юзер и так попадает первой.
@@ -391,6 +499,15 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       )}
       <div ref={previewContainerRef} className={cn("relative flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
+        {regenCategory && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2 rounded-lg border bg-card px-6 py-4 shadow-lg">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="text-sm font-medium">Перегенерирую раздел…</div>
+              <div className="text-xs text-muted-foreground">«{regenCategory}»</div>
+            </div>
+          </div>
+        )}
         {bottomAction && (
           <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
             <div className="pointer-events-auto">{bottomAction}</div>
@@ -400,6 +517,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       </div>
     </div>
   );
+
 
 
   if (mode === "view") {
