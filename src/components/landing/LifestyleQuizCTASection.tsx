@@ -95,20 +95,15 @@ export function LifestyleQuizCTASection() {
               <div className="relative p-8 md:p-12 lg:p-16">
                 <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 lg:gap-16 items-center">
                   <div className="text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold uppercase tracking-wider mb-6">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Второй взгляд — на образ жизни
-                    </div>
-
                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
-                      Насколько твой образ жизни{" "}
+                      Оценка образа жизни{" "}
                       <span className="bg-gradient-hero bg-clip-text text-transparent">
-                        работает на долголетие
+                        по методике Lifestyle-6
                       </span>
                     </h2>
 
                     <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8">
-                      Не оценка риска и не «биологический возраст». Мы покажем, за какими сигналами тела могут прятаться{" "}
+                      Короткая анкета по 6 сферам жизни покажет, за какими сигналами тела могут прятаться{" "}
                       <span className="text-foreground font-medium">скрытые системы</span>{" "}
                       — и какие маркеры это проверят.
                     </p>
@@ -125,7 +120,7 @@ export function LifestyleQuizCTASection() {
                     </div>
 
                     <p className="mt-4 text-xs md:text-sm text-muted-foreground/80">
-                      Результат — гипотезы и маркеры, а не диагноз. Анкета не сохраняется.
+                      Результат — гипотезы и маркеры для проверки. Анкета не сохраняется.
                     </p>
                   </div>
 
@@ -134,29 +129,29 @@ export function LifestyleQuizCTASection() {
                     <div className="relative rounded-2xl bg-gradient-to-br from-card to-muted/40 border border-border/60 p-6 shadow-xl">
                       <div className="flex items-center justify-between mb-5">
                         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                          6 доменов
+                          6 сфер жизни
                         </span>
                         <span className="text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent font-medium">
                           3 мин
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <div className="flex flex-col gap-2.5">
                         {domainCards.map(({ icon: Icon, label, desc, colors }) => (
                           <div
                             key={label}
-                            className="flex items-start gap-2.5 p-2.5 rounded-xl"
+                            className="flex items-start gap-3 p-3 rounded-xl"
                             style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
                           >
                             <div
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
                               style={{ backgroundColor: colors.border }}
                             >
                               <Icon className="w-4 h-4" style={{ color: colors.fg }} />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-semibold text-foreground truncate">{label}</div>
-                              <div className="text-[10px] text-muted-foreground leading-tight">{desc}</div>
+                              <div className="text-sm font-semibold text-foreground">{label}</div>
+                              <div className="text-xs text-muted-foreground leading-tight">{desc}</div>
                             </div>
                           </div>
                         ))}
