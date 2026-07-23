@@ -96,16 +96,14 @@ export function LifestyleQuizCTASection() {
                 <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 lg:gap-16 items-center">
                   <div className="text-center lg:text-left">
                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
-                      Оценка образа жизни{" "}
+                      Узнай свои скрытые риски{" "}
                       <span className="bg-gradient-hero bg-clip-text text-transparent">
-                        по методике Lifestyle-6
+                        за 3 минуты
                       </span>
                     </h2>
 
                     <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8">
-                      Короткая анкета по 6 сферам жизни покажет, за какими сигналами тела могут прятаться{" "}
-                      <span className="text-foreground font-medium">скрытые системы</span>{" "}
-                      — и какие маркеры это проверят.
+                      Короткая анкета по 6 сферам жизни покажет, за какими сигналами тела могут прятаться настоящие проблемы — и какие маркеры это проверят.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
