@@ -95,12 +95,6 @@ export function LifestyleQuizCTASection() {
               <div className="relative p-8 md:p-12 lg:p-16">
                 <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 lg:gap-16 items-center">
                   <div className="text-center lg:text-left">
-                    {/* Badge */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold uppercase tracking-wider mb-6">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      Бесплатно и без регистрации
-                    </div>
-
                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
                       Узнай свои скрытые риски{" "}
                       <span className="bg-gradient-hero bg-clip-text text-transparent">
@@ -140,29 +134,28 @@ export function LifestyleQuizCTASection() {
                         </span>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="flex flex-col gap-2.5">
                         {domainCards.map(({ icon: Icon, label, desc, colors }) => (
                           <div
                             key={label}
-                            className="flex items-center gap-3.5 p-3 rounded-xl"
+                            className="flex items-start gap-3 p-3 rounded-xl"
                             style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
                           >
                             <div
-                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
                               style={{ backgroundColor: colors.border }}
                             >
-                              <Icon className="w-5 h-5" style={{ color: colors.fg }} />
+                              <Icon className="w-4 h-4" style={{ color: colors.fg }} />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <div className="text-sm font-semibold text-foreground">{label}</div>
-                              <div className="text-xs text-muted-foreground">{desc}</div>
+                              <div className="text-xs text-muted-foreground leading-tight">{desc}</div>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
