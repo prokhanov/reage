@@ -159,7 +159,7 @@ export function buildMessage(
     case "lifestyle_quiz_lead": {
       return (
         prefix +
-        "🧭 <b>Новая заявка с квиза Lifestyle-6</b>\n" +
+        "🧭 <b>Новая заявка с теста скрытых рисков</b>\n" +
         `👤 ${e(payload.name || "—")}\n` +
         `📧 ${e(payload.email || "—")}\n` +
         `📱 ${e(payload.phone || "—")}\n` +
