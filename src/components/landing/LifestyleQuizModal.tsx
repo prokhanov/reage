@@ -239,7 +239,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
                 "disabled:shadow-none disabled:hover:translate-y-0",
               )}
             >
-              {step === 7 ? "К контактам" : "Далее"}
+              {step === 7 ? "Завершить" : "Далее"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
