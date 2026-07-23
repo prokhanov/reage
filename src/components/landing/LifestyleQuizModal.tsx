@@ -138,7 +138,13 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     return computeResult(answers, demo as Demography);
   }, [step, answers, demo, demoComplete]);
 
-  const goNext = () => setStep((s) => Math.min(9, s + 1));
+  const goNext = () => {
+    if (step === 1) {
+      setDemoValidated(true);
+      if (!demoComplete) return;
+    }
+    setStep((s) => Math.min(9, s + 1));
+  };
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
   // Scroll to top of the modal body on every step change.
