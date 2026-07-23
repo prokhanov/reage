@@ -707,22 +707,22 @@ function ContactFooter({
 
 
   return (
-    <div className="relative px-6 md:px-10 py-4 border-t border-border/40 flex items-center justify-between gap-3 bg-muted/10">
+    <div className="relative px-4 sm:px-6 md:px-10 py-3 sm:py-4 border-t border-border/40 flex items-center justify-between gap-3 bg-muted/10 shrink-0 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:pb-4">
       <Button
         variant="ghost"
         onClick={onBack}
         disabled={submitting}
-        className="text-muted-foreground hover:text-foreground -ml-2"
+        className="text-muted-foreground hover:text-foreground -ml-2 px-3 sm:px-4"
       >
-        <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Назад
+        <ArrowLeft className="sm:mr-1.5 h-4 w-4" />
+        <span className="hidden sm:inline">Назад</span>
       </Button>
       <Button
         onClick={handleSubmit}
         disabled={!canSubmit}
         size="lg"
         className={cn(
-          "min-w-[220px] h-12 rounded-2xl font-semibold text-[15px]",
+          "flex-1 sm:flex-none sm:min-w-[220px] h-12 rounded-2xl font-semibold text-[15px]",
           "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35",
           "transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
           "disabled:shadow-none disabled:hover:translate-y-0",
@@ -735,8 +735,8 @@ function ContactFooter({
           </>
         ) : (
           <>
-            Показать результат
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <span className="truncate">Показать результат</span>
+            <ArrowRight className="ml-2 h-4 w-4 shrink-0" />
           </>
         )}
       </Button>
