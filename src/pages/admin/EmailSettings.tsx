@@ -156,10 +156,13 @@ export default function EmailSettings() {
         button_label: template.button_label,
         footer_text: template.footer_text,
         signature_text: template.signature_text,
+        secondary_button_label: template.secondary_button_label,
+        secondary_button_url: template.secondary_button_url,
         is_active: template.is_active ?? true,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
+
 
     if (error) {
       toast({ title: "Ошибка", description: "Не удалось сохранить шаблон", variant: "destructive" });
