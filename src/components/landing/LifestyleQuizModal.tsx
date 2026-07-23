@@ -94,6 +94,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [demo, setDemo] = useState<Partial<Demography>>({});
   const [answers, setAnswers] = useState<Answers>({});
   const [contact, setContact] = useState<{ email?: string; name?: string; phone?: string }>({});
+  const [demoValidated, setDemoValidated] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
@@ -101,6 +102,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     setDemo({});
     setAnswers({});
     setContact({});
+    setDemoValidated(false);
   };
 
   const handleOpenChange = (v: boolean) => {
