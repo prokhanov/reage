@@ -82,6 +82,9 @@ serve(async (req) => {
     if (action === "cancel") {
       return await handleCancel(supabase, body);
     }
+    if (action === "regenerate_category") {
+      return await handleRegenerateCategory(supabase, body);
+    }
     return json({ success: false, error: `Unknown action: ${action}` }, 400);
   } catch (e: any) {
     console.error("orchestrator error:", e);
