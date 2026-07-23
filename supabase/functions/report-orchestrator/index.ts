@@ -470,3 +470,73 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
     clearTimeout(t);
   }
 }
+
+async function handleRegenerateCategory(supabase: any, body: any) {
+  const { analysisId, userId, category } = body;
+  const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  if (!analysisId || !userId || !category) {
+    return json({ success: false, error: "analysisId, userId, category обязательны" }, 400);
+  }
+
+  // Убеждаемся, что такая категория существует.
+  const { data: cat } = await supabase
+    .from("biomarker_categories")
+    .select("name")
+    .eq("name", category)
+    .maybeSingle();
+  if (!cat) return json({ success: false, error: `Категория «${category}» не найдена` }, 400);
+
+  // Не запускаем поверх активной джобы.
+  const { data: existing } = await supabase
+    .from("report_jobs")
+    .select("id, updated_at")
+    .eq("analysis_id", analysisId)
+    .in("status", ["queued", "running"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    const ageMs = Date.now() - new Date(existing.updated_at).getTime();
+    if (ageMs < STALE_RUNNING_THRESHOLD_MS) {
+      return json({ success: false, error: "Уже идёт генерация отчёта, дождитесь завершения" }, 409);
+    }
+    await supabase.from("report_jobs")
+      .update({ status: "failed", error: "stalled", finished_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  }
+
+  // Один шаг — только эта категория. Prescriptions/finalize пропускаем:
+  // назначения и общее резюме остаются от предыдущей генерации.
+  const steps: StepDef[] = [{
+    id: `category:${category}`,
+    label: `Перегенерация: ${category}`,
+    kind: "category",
+    payload: {
+      categoryFilter: [category],
+      skipDelete: true,
+      skipPrescriptions: true,
+      skipFinalize: true,
+    },
+  }];
+
+  const { data: job, error: insErr } = await supabase
+    .from("report_jobs")
+    .insert({
+      analysis_id: analysisId,
+      user_id: userId,
+      mode,
+      status: "running",
+      steps,
+      steps_total: 1,
+      steps_done: 0,
+      current_step: steps[0].id,
+      metadata: { started_via: "orchestrator", regenerate_category: category },
+    })
+    .select("*")
+    .single();
+  if (insErr) throw insErr;
+
+  scheduleTick(job.id);
+  return json({ success: true, jobId: job.id, steps_total: 1 });
+}
+
