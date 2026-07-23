@@ -1,6 +1,8 @@
 import type { LabReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
+import { useReportEditor } from "../editor/ReportEditorContext";
+
 
 
 interface Props {
