@@ -232,6 +232,8 @@ const QUALITATIVE_URINE_CODES = new Set([
 function parseQualitative(raw: string): number | null {
   const s = (raw || "").toLowerCase().replace(/\s+/g, "").replace(".", "");
   if (!s) return null;
+  // "в пределах нормы", "в норме", "норма", "нормально", "впределах"
+  if (/(впределахнорм|внорме|^норма|нормальн|withinnorm|withinrange|normal)/.test(s)) return 0;
   if (/^(neg|отриц|необнаруж|нет|нея|0|—|-|none|negative)/.test(s)) return 0;
   if (/^(след|trace|±)/.test(s)) return 0.5;
   const plus = s.match(/^\++$/);
@@ -239,6 +241,7 @@ function parseQualitative(raw: string): number | null {
   if (/^(pos|положит)/.test(s)) return 1;
   return null;
 }
+
 
 function parseValue(raw: string): { value: number | null; cleaned: string } {
   if (!raw) return { value: null, cleaned: "" };
