@@ -94,6 +94,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [demo, setDemo] = useState<Partial<Demography>>({});
   const [answers, setAnswers] = useState<Answers>({});
   const [contact, setContact] = useState<{ email?: string; name?: string; phone?: string }>({});
+  const [demoValidated, setDemoValidated] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
@@ -101,6 +102,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     setDemo({});
     setAnswers({});
     setContact({});
+    setDemoValidated(false);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -136,7 +138,13 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     return computeResult(answers, demo as Demography);
   }, [step, answers, demo, demoComplete]);
 
-  const goNext = () => setStep((s) => Math.min(9, s + 1));
+  const goNext = () => {
+    if (step === 1) {
+      setDemoValidated(true);
+      if (!demoComplete) return;
+    }
+    setStep((s) => Math.min(9, s + 1));
+  };
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
   // Scroll to top of the modal body on every step change.
@@ -205,7 +213,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
           <div key={step} className="animate-fade-in">
             {step === 0 && <IntroStep onNext={goNext} />}
             {step === 1 && (
-              <DemographyStep demo={demo} setDemo={setDemo} />
+              <DemographyStep demo={demo} setDemo={setDemo} validated={demoValidated} />
             )}
             {step >= 2 && step <= 7 && currentDomain && (
               <DomainStep
@@ -336,9 +344,11 @@ function IntroStep({ onNext }: { onNext: () => void }) {
 function DemographyStep({
   demo,
   setDemo,
+  validated,
 }: {
   demo: Partial<Demography>;
   setDemo: (d: Partial<Demography>) => void;
+  validated?: boolean;
 }) {
   return (
     <div className="space-y-7">
@@ -395,7 +405,7 @@ function DemographyStep({
           {(() => {
             const raw = demo.heightCm;
             const invalid =
-              typeof raw === "number" && (raw < 120 || raw > 230);
+              validated && typeof raw === "number" && (raw < 120 || raw > 230);
             return (
               <>
                 <div className="relative">
@@ -435,7 +445,7 @@ function DemographyStep({
           {(() => {
             const raw = demo.weightKg;
             const invalid =
-              typeof raw === "number" && (raw < 30 || raw > 250);
+              validated && typeof raw === "number" && (raw < 30 || raw > 250);
             return (
               <>
                 <div className="relative">
