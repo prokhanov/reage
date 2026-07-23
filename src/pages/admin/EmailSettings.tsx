@@ -379,14 +379,6 @@ export default function EmailSettings() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Заголовок</Label>
-                        <Input
-                          value={t.heading}
-                          onChange={(e) => updateTemplateField(tab.type, "heading", e.target.value)}
-                          placeholder="Заголовок в теле письма"
-                        />
-                      </div>
-                      <div className="space-y-2">
                         <Label>Основной текст</Label>
                         <Textarea
                           value={t.body_text}
@@ -397,7 +389,7 @@ export default function EmailSettings() {
                       </div>
                       {hasButton(tab.type) && (
                         <div className="space-y-2">
-                          <Label>Текст кнопки</Label>
+                          <Label>Текст основной кнопки</Label>
                           <Input
                             value={t.button_label || ""}
                             onChange={(e) => updateTemplateField(tab.type, "button_label", e.target.value)}
@@ -405,6 +397,30 @@ export default function EmailSettings() {
                           />
                         </div>
                       )}
+                      {SUPPORTS_SECONDARY_BUTTON.has(tab.type) && (
+                        <div className="grid sm:grid-cols-2 gap-4 p-3 rounded-lg border border-dashed border-border">
+                          <div className="space-y-2">
+                            <Label>Вторая кнопка — текст (необязательно)</Label>
+                            <Input
+                              value={t.secondary_button_label || ""}
+                              onChange={(e) => updateTemplateField(tab.type, "secondary_button_label", e.target.value)}
+                              placeholder="Например, Посмотреть демо-кабинет"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Вторая кнопка — ссылка</Label>
+                            <Input
+                              value={t.secondary_button_url || ""}
+                              onChange={(e) => updateTemplateField(tab.type, "secondary_button_url", e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </div>
+                          <p className="sm:col-span-2 text-xs text-muted-foreground">
+                            Показывается, только если заполнены оба поля.
+                          </p>
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <Label>Подпись / футер</Label>
                         <Textarea
