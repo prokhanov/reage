@@ -213,7 +213,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
           <div key={step} className="animate-fade-in">
             {step === 0 && <IntroStep onNext={goNext} />}
             {step === 1 && (
-              <DemographyStep demo={demo} setDemo={setDemo} />
+              <DemographyStep demo={demo} setDemo={setDemo} validated={demoValidated} />
             )}
             {step >= 2 && step <= 7 && currentDomain && (
               <DomainStep
