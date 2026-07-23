@@ -917,13 +917,27 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <Button asChild size="lg" className="flex-1">
-          <Link to="/prep">Записаться на анализы</Link>
+        <Button size="lg" className="flex-1" onClick={() => setFeedbackOpen(true)}>
+          Записаться на бесплатную консультацию
         </Button>
         <Button asChild size="lg" variant="outline" className="flex-1">
           <Link to="/register">Оформить годовое наблюдение</Link>
         </Button>
       </div>
+
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        title="Бесплатная консультация"
+        description="Обсудим ваши результаты и подберём программу"
+        initialValues={{
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+          message: "Запрос на бесплатную консультацию после прохождения теста «Оценка образа жизни и скрытых рисков».",
+        }}
+      />
+
 
       <div className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
