@@ -583,20 +583,18 @@ function ContactStep({
       </div>
 
       <div className="space-y-5 max-w-md mx-auto">
-        <div className="space-y-2">
-          <Label className="text-[15px] font-semibold text-foreground">Как к вам обращаться</Label>
+        <FieldBlock label="Как к вам обращаться">
           <Input
             type="text"
             autoComplete="given-name"
             placeholder="Ваше имя"
             value={contact.name ?? ""}
             onChange={(e) => setContact({ ...contact, name: e.target.value })}
-            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60"
           />
-        </div>
+        </FieldBlock>
 
-        <div className="space-y-2">
-          <Label className="text-[15px] font-semibold text-foreground">Email</Label>
+        <FieldBlock label="Email">
           <Input
             type="email"
             inputMode="email"
@@ -604,9 +602,9 @@ function ContactStep({
             placeholder="you@example.com"
             value={contact.email ?? ""}
             onChange={(e) => setContact({ ...contact, email: e.target.value })}
-            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60"
           />
-        </div>
+        </FieldBlock>
 
         <label
           className={cn(
