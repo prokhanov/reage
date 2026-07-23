@@ -41,6 +41,20 @@ export function FeedbackDialog({ open, onOpenChange, title, description, default
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: initialValues?.name ?? "",
+        email: initialValues?.email ?? "",
+        phone: initialValues?.phone ?? "",
+        message: initialValues?.message ?? defaultMessage ?? "",
+      });
+      setErrors({});
+      setStatus("idle");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const validate = (): boolean => {
     const next: FormErrors = {};
     const trimmedName = form.name.trim();
