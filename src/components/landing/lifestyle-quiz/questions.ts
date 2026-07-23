@@ -97,7 +97,7 @@ export const QUESTIONS: Question[] = [
     text: "Бывают ли эпизоды дневной сонливости, мешающие концентрации?",
     options: [
       { label: "Нет", score: 0 },
-      { label: "Изредка", score: 1 },
+      { label: "Иногда", score: 1 },
       { label: "Регулярно", score: 2 },
     ],
     observationOnMax: "регулярная дневная сонливость",
@@ -132,7 +132,7 @@ export const QUESTIONS: Question[] = [
     options: [
       { label: "Нет", score: 0 },
       { label: "Иногда", score: 1 },
-      { label: "Часто", score: 2 },
+      { label: "Регулярно", score: 2 },
     ],
     observationOnMax: "одышка при обычных нагрузках",
   },
