@@ -279,8 +279,8 @@ function IntroStep({ onNext }: { onNext: () => void }) {
             <Sparkles className="h-10 w-10 text-primary-foreground" />
           </div>
         </div>
-        <h2 className="text-[28px] md:text-[36px] font-bold tracking-tight text-foreground leading-[1.1] mb-3 max-w-xl">
-          Оценка образа жизни по методике Lifestyle-6
+        <h2 className="text-[28px] md:text-[36px] font-bold tracking-tight text-foreground leading-[1.1] mb-3 max-w-xl whitespace-pre-line">
+          {"Оценка образа жизни\u00a0\nи скрытых рисков\n"}
         </h2>
         <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed max-w-md">
           Короткая анкета по 6 сферам жизни покажет, за какими сигналами тела могут прятаться настоящие проблемы. Займёт около 3 минут.
