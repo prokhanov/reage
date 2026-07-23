@@ -284,6 +284,12 @@ serve(async (req) => {
         ? symptoms.slice(0, 10).map((s: any) => "- " + s.symptom + " (" + s.category + "): степень " + s.severity).join("\n")
         : "";
 
+      const genderHardRule = patientGender === 'female'
+        ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — женщина. Никогда не упоминай мужские референсы, мужские нормы или формулировки вроде «для мужчин». Все объяснения и сравнения должны быть применимы к женщине.\n\n"
+        : patientGender === 'male'
+          ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — мужчина. Никогда не упоминай женские референсы, женские нормы или формулировки вроде «для женщин». Все объяснения и сравнения должны быть применимы к мужчине.\n\n"
+          : "";
+
       const prescriptionLines = prescriptions && prescriptions.length > 0
         ? prescriptions.map((p: any) => "- " + p.prescription + (p.effect ? " (" + p.effect + ")" : "")).join("\n")
         : "";
