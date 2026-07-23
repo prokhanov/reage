@@ -20,6 +20,7 @@ const EVENTS: EventDef[] = [
   { key: "user_registered", label: "Новая регистрация", description: "Когда пациент создаёт аккаунт" },
   { key: "subscription_paid", label: "Новая оплата", description: "Когда подписка переходит в статус «активна»" },
   { key: "booking_status_changed", label: "Заявки и запись на анализы", description: "Заявка «Перезвоните мне», изменение статуса записи на анализы" },
+  { key: "lifestyle_quiz_lead", label: "Квиз Lifestyle-6", description: "Когда посетитель лендинга проходит квиз и оставляет контакты" },
 ];
 
 const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
