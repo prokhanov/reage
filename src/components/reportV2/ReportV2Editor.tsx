@@ -306,16 +306,18 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [analysisId, userId, regenCategory, reloadReport],
   );
 
-  // Клики по кнопкам [data-rl-regenerate-category] / [data-rl-regenerate-summary] внутри рендер-контейнера.
+  // Клики по кнопкам [data-rl-regenerate-category] / [data-rl-regenerate-summary].
+  // Слушаем и на контейнере (capture), и на document (fallback на случай, когда
+  // paged.js кладёт контент так, что событие не поднимается до контейнера).
   useEffect(() => {
     const el = previewContainerRef.current;
-    if (!el) return;
     const handler = (ev: MouseEvent) => {
       const target = ev.target as HTMLElement | null;
       const summaryBtn = target?.closest("[data-rl-regenerate-summary]") as HTMLElement | null;
       if (summaryBtn) {
         ev.preventDefault();
         ev.stopPropagation();
+        console.log("[ReportV2Editor] regenerate summary click");
         void regenerateSummary();
         return;
       }
@@ -326,9 +328,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       const cat = btn.getAttribute("data-rl-regenerate-category");
       if (cat) void regenerateCategory(cat);
     };
-    el.addEventListener("click", handler, true);
-    return () => el.removeEventListener("click", handler, true);
+    el?.addEventListener("click", handler, true);
+    document.addEventListener("click", handler, true);
+    return () => {
+      el?.removeEventListener("click", handler, true);
+      document.removeEventListener("click", handler, true);
+    };
   }, [regenerateCategory, regenerateSummary]);
+
 
 
 

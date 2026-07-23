@@ -23,28 +23,33 @@ export function ReportOverview({ report }: Props) {
 
   return (
     <section className="rl-page" data-section-id="overview">
-      <h1 className="rl-h1" data-section-title="Общее резюме" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span>Общее резюме</span>
-        {isEdit && (
+      {isEdit && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
           <button
             type="button"
             data-rl-regenerate-summary="true"
             title="Пересобрать общее резюме через ИИ"
             style={{
-              marginLeft: "auto",
-              padding: "4px 10px",
+              padding: "6px 12px",
               fontSize: "10pt",
               border: "1px solid #6366f1",
               background: "#eef2ff",
               color: "#4338ca",
               borderRadius: "6px",
               cursor: "pointer",
+              pointerEvents: "auto",
+              position: "relative",
+              zIndex: 5,
             }}
           >
-            ↻ Перегенерировать
+            ↻ Перегенерировать резюме
           </button>
-        )}
+        </div>
+      )}
+      <h1 className="rl-h1" data-section-title="Общее резюме">
+        Общее резюме
       </h1>
+
 
 
       <div className="rl-stats">
