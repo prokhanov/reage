@@ -312,102 +312,195 @@ function DemographyStep({
 }) {
   return (
     <div className="space-y-7">
-      <div>
-        <h3 className="text-[24px] md:text-[28px] font-bold tracking-tight text-foreground leading-tight mb-2 flex items-center gap-2">
-          <User className="w-5 h-5 text-primary" />
+      <div className="mb-2">
+        <div className="inline-flex items-center gap-2 text-primary text-[12.5px] font-semibold mb-3">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12">
+            <User className="h-3.5 w-3.5" />
+          </span>
+          О вас
+        </div>
+        <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
           Немного о вас
-        </h3>
+        </h2>
         <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
           Эти данные не оцениваются баллами — они нужны только чтобы точнее подобрать маркеры под ваш профиль.
         </p>
       </div>
 
-      <div className="space-y-3">
-        <Label className="text-[16px] font-semibold text-foreground">Пол</Label>
-        <RadioGroup
-          value={demo.sex}
-          onValueChange={(v) => setDemo({ ...demo, sex: v as Sex })}
-          className="grid grid-cols-2 gap-3"
-        >
+      <FieldBlock label="Пол">
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { v: "male", l: "Мужской" },
-            { v: "female", l: "Женский" },
+            { v: "male" as Sex, l: "Мужской", letter: "М" },
+            { v: "female" as Sex, l: "Женский", letter: "Ж" },
           ].map((o) => (
-            <label
+            <BigChoice
               key={o.v}
-              className={cn(
-                "flex items-center gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-all",
-                demo.sex === o.v
-                  ? "border-primary/50 bg-primary/[0.08]"
-                  : "border-border/60 bg-muted/20 hover:border-primary/30",
-              )}
+              active={demo.sex === o.v}
+              onClick={() => setDemo({ ...demo, sex: o.v })}
+              letter={o.letter}
             >
-              <RadioGroupItem value={o.v} id={`sex-${o.v}`} />
-              <span className="text-[15px] font-medium">{o.l}</span>
-            </label>
+              {o.l}
+            </BigChoice>
           ))}
-        </RadioGroup>
-      </div>
+        </div>
+      </FieldBlock>
 
-      <div className="space-y-3">
-        <Label className="text-[16px] font-semibold text-foreground">Возраст</Label>
-        <RadioGroup
-          value={demo.ageBand}
-          onValueChange={(v) => setDemo({ ...demo, ageBand: v as AgeBand })}
-          className="grid grid-cols-3 sm:grid-cols-5 gap-2"
-        >
+      <FieldBlock label="Возраст">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
           {AGE_BANDS.map((b) => (
-            <label
+            <RadioChip
               key={b.value}
-              className={cn(
-                "flex items-center justify-center gap-2 rounded-xl border-2 p-3 cursor-pointer text-[14px] transition-all",
-                demo.ageBand === b.value
-                  ? "border-primary/50 bg-primary/[0.08] font-semibold"
-                  : "border-border/60 bg-muted/20 hover:border-primary/30",
-              )}
+              active={demo.ageBand === b.value}
+              onClick={() => setDemo({ ...demo, ageBand: b.value })}
+              full
             >
-              <RadioGroupItem value={b.value} id={`age-${b.value}`} className="sr-only" />
-              {b.label}
-            </label>
+              <span className="w-full text-center block">{b.label}</span>
+            </RadioChip>
           ))}
-        </RadioGroup>
-      </div>
+        </div>
+      </FieldBlock>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="height" className="text-[16px] font-semibold text-foreground">Рост, см</Label>
-          <Input
-            id="height"
-            type="number"
-            inputMode="numeric"
-            min={120}
-            max={230}
-            value={demo.heightCm ?? ""}
-            onChange={(e) =>
-              setDemo({ ...demo, heightCm: e.target.value ? Number(e.target.value) : undefined })
-            }
-            placeholder="175"
-            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="weight" className="text-[16px] font-semibold text-foreground">Вес, кг</Label>
-          <Input
-            id="weight"
-            type="number"
-            inputMode="numeric"
-            min={30}
-            max={250}
-            value={demo.weightKg ?? ""}
-            onChange={(e) =>
-              setDemo({ ...demo, weightKg: e.target.value ? Number(e.target.value) : undefined })
-            }
-            placeholder="70"
-            className="h-12 text-[15px] rounded-xl bg-background border-2 border-border/60 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-        </div>
+        <FieldBlock label="Рост, см">
+          <div className="relative">
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={demo.heightCm ?? ""}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/[^\d]/g, "");
+                setDemo({
+                  ...demo,
+                  heightCm: cleaned ? Number(cleaned) : undefined,
+                });
+              }}
+              placeholder="175"
+              aria-label="Рост"
+              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
+            />
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">см</span>
+          </div>
+        </FieldBlock>
+        <FieldBlock label="Вес, кг">
+          <div className="relative">
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={demo.weightKg ?? ""}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/[^\d]/g, "");
+                setDemo({
+                  ...demo,
+                  weightKg: cleaned ? Number(cleaned) : undefined,
+                });
+              }}
+              placeholder="70"
+              aria-label="Вес"
+              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
+            />
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">кг</span>
+          </div>
+        </FieldBlock>
       </div>
     </div>
+  );
+}
+
+// ---------- Shared UI primitives (mirror block 6) ----------
+
+function FieldBlock({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <Label className="text-[16px] md:text-[17px] font-semibold text-foreground leading-snug block">
+        {label}
+      </Label>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+function RadioChip({
+  active,
+  onClick,
+  children,
+  full,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "group relative px-5 py-4 rounded-2xl text-[15px] font-medium text-left",
+        "transition-all duration-200 flex items-center gap-3",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
+        full ? "w-full" : "",
+        active
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_6px_24px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40 hover:text-foreground",
+      )}
+    >
+      <span className="flex-1 leading-snug">{children}</span>
+      <span
+        className={cn(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all",
+          active
+            ? "bg-primary text-primary-foreground scale-100 opacity-100"
+            : "bg-transparent scale-75 opacity-0",
+        )}
+      >
+        <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+      </span>
+    </button>
+  );
+}
+
+function BigChoice({
+  active,
+  onClick,
+  letter,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  letter?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "group relative h-20 px-5 rounded-2xl text-[16px] font-semibold",
+        "transition-all duration-200 flex items-center gap-4 w-full",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "active:scale-[0.985]",
+        active
+          ? "bg-primary/[0.09] text-foreground ring-2 ring-primary shadow-[0_10px_28px_-10px_hsl(var(--primary)/0.55)]"
+          : "bg-muted/25 text-foreground/85 ring-1 ring-border/50 hover:bg-primary/[0.04] hover:ring-primary/40",
+      )}
+    >
+      {letter && (
+        <span
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-bold transition-all",
+            active
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+              : "bg-background text-foreground/70 ring-1 ring-border/60 group-hover:ring-primary/40",
+          )}
+        >
+          {letter}
+        </span>
+      )}
+      <span className="flex-1 text-left leading-tight">{children}</span>
+    </button>
   );
 }
 
