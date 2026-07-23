@@ -24,6 +24,7 @@ interface EmailTemplate {
   button_label: string | null;
   footer_text: string;
   signature_text: string;
+  is_active?: boolean;
 }
 
 const TEMPLATE_TABS = [
