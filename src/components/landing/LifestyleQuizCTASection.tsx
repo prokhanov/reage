@@ -112,7 +112,7 @@ export function LifestyleQuizCTASection() {
                         size="lg"
                         className="w-full sm:w-auto text-lg px-10 py-7 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
                       >
-                        Пройти квиз
+                        Пройти тест
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
