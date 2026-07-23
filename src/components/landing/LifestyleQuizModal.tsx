@@ -392,44 +392,84 @@ function DemographyStep({
 
       <div className="grid grid-cols-2 gap-4">
         <FieldBlock label="Рост, см">
-          <div className="relative">
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={demo.heightCm ?? ""}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^\d]/g, "");
-                setDemo({
-                  ...demo,
-                  heightCm: cleaned ? Number(cleaned) : undefined,
-                });
-              }}
-              placeholder="175"
-              aria-label="Рост"
-              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
-            />
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">см</span>
-          </div>
+          {(() => {
+            const raw = demo.heightCm;
+            const invalid =
+              typeof raw === "number" && (raw < 120 || raw > 230);
+            return (
+              <>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={raw ?? ""}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^\d]/g, "");
+                      setDemo({
+                        ...demo,
+                        heightCm: cleaned ? Number(cleaned) : undefined,
+                      });
+                    }}
+                    placeholder="175"
+                    aria-label="Рост"
+                    aria-invalid={invalid || undefined}
+                    className={cn(
+                      "h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16",
+                      invalid
+                        ? "ring-destructive/70 focus-visible:ring-destructive"
+                        : "ring-border/60 hover:ring-primary/40 focus-visible:ring-primary",
+                    )}
+                  />
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">см</span>
+                </div>
+                {invalid && (
+                  <p className="mt-2 text-[12.5px] text-destructive font-medium">
+                    Введите рост от 120 до 230 см
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </FieldBlock>
         <FieldBlock label="Вес, кг">
-          <div className="relative">
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={demo.weightKg ?? ""}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^\d]/g, "");
-                setDemo({
-                  ...demo,
-                  weightKg: cleaned ? Number(cleaned) : undefined,
-                });
-              }}
-              placeholder="70"
-              aria-label="Вес"
-              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
-            />
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">кг</span>
-          </div>
+          {(() => {
+            const raw = demo.weightKg;
+            const invalid =
+              typeof raw === "number" && (raw < 30 || raw > 250);
+            return (
+              <>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={raw ?? ""}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^\d]/g, "");
+                      setDemo({
+                        ...demo,
+                        weightKg: cleaned ? Number(cleaned) : undefined,
+                      });
+                    }}
+                    placeholder="70"
+                    aria-label="Вес"
+                    aria-invalid={invalid || undefined}
+                    className={cn(
+                      "h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16",
+                      invalid
+                        ? "ring-destructive/70 focus-visible:ring-destructive"
+                        : "ring-border/60 hover:ring-primary/40 focus-visible:ring-primary",
+                    )}
+                  />
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">кг</span>
+                </div>
+                {invalid && (
+                  <p className="mt-2 text-[12.5px] text-destructive font-medium">
+                    Введите вес от 30 до 250 кг
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </FieldBlock>
       </div>
     </div>
