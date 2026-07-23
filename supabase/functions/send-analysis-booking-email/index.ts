@@ -226,6 +226,7 @@ Deno.serve(async (req) => {
     if (!body.cta_url && template.button_url && String(template.button_url).trim()) {
       ctaUrl = applyVars(String(template.button_url).trim(), vars)
     }
+    if (templateType === 'booking_application_submitted' && !isTest && !String(vars.request_number || '').trim()) {
       return new Response(JSON.stringify({ error: 'Не заполнен номер заявки ЛабКвест' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
