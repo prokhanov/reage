@@ -43,6 +43,7 @@ interface Template {
   heading: string
   body_text: string
   button_label: string | null
+  button_url?: string | null
   footer_text: string
   secondary_button_label?: string | null
   secondary_button_url?: string | null
@@ -183,7 +184,9 @@ Deno.serve(async (req) => {
       : (body.vars || {})
 
     const defaultCta = isExampleReport ? `${APP_URL}/demo-report` : `${APP_URL}/profile`
-    const ctaUrl: string = body.cta_url || defaultCta
+    // ctaUrl priority: explicit body.cta_url > template.button_url (from admin) > defaultCta.
+    // Resolved after template load below.
+    let ctaUrl: string = body.cta_url || defaultCta
 
     // Resolve template type: explicit > by booking status > default
     const requestedType: string | undefined =
@@ -220,6 +223,9 @@ Deno.serve(async (req) => {
     }
 
     const template = tpl as Template
+    if (!body.cta_url && template.button_url && String(template.button_url).trim()) {
+      ctaUrl = applyVars(String(template.button_url).trim(), vars)
+    }
     if (templateType === 'booking_application_submitted' && !isTest && !String(vars.request_number || '').trim()) {
       return new Response(JSON.stringify({ error: 'Не заполнен номер заявки ЛабКвест' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
