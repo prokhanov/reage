@@ -45,3 +45,5 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = false
   [functions.send-feedback]
     verify_jwt = false
+  [functions.submit-lifestyle-quiz]
+    verify_jwt = false

@@ -82,11 +82,17 @@ function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 }
 
+function capitalize(s: string): string {
+  if (!s) return s;
+  const t = s.trim();
+  return t.charAt(0).toLocaleUpperCase("ru-RU") + t.slice(1);
+}
+
 export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [step, setStep] = useState(0);
   const [demo, setDemo] = useState<Partial<Demography>>({});
   const [answers, setAnswers] = useState<Answers>({});
-  const [contact, setContact] = useState<{ email?: string; name?: string; consent?: boolean }>({});
+  const [contact, setContact] = useState<{ email?: string; name?: string; phone?: string }>({});
 
   const reset = () => {
     setStep(0);
@@ -565,8 +571,8 @@ function ContactStep({
   contact,
   setContact,
 }: {
-  contact: { email?: string; name?: string; consent?: boolean };
-  setContact: (c: { email?: string; name?: string; consent?: boolean }) => void;
+  contact: { email?: string; name?: string; phone?: string };
+  setContact: (c: { email?: string; name?: string; phone?: string }) => void;
 }) {
   return (
     <div>
@@ -606,34 +612,21 @@ function ContactStep({
           />
         </FieldBlock>
 
-        <label
-          className={cn(
-            "flex gap-3 items-start cursor-pointer select-none rounded-xl border-2 px-4 py-3.5 transition-all",
-            contact.consent
-              ? "border-primary/50 bg-primary/[0.06]"
-              : "border-border/60 bg-muted/20 hover:border-primary/30",
-          )}
-        >
-          <span
-            className={cn(
-              "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
-              contact.consent ? "border-primary bg-primary" : "border-border/70 bg-background",
-            )}
-          >
-            {contact.consent && (
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
-            )}
-          </span>
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={!!contact.consent}
-            onChange={(e) => setContact({ ...contact, consent: e.target.checked })}
+        <FieldBlock label="Телефон">
+          <Input
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="+7 999 000 00 00"
+            value={contact.phone ?? ""}
+            onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+            className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60"
           />
-          <span className="text-[13px] text-foreground/85 leading-relaxed">
-            Я соглашаюсь на обработку персональных данных и принимаю Политику конфиденциальности.
-          </span>
-        </label>
+        </FieldBlock>
+
+        <p className="text-[12px] text-muted-foreground/80 leading-relaxed text-center">
+          Отправляя форму, вы соглашаетесь с обработкой персональных данных и Политикой конфиденциальности.
+        </p>
       </div>
     </div>
   );
@@ -646,7 +639,7 @@ function ContactFooter({
   onBack,
   onDone,
 }: {
-  contact: { email?: string; name?: string; consent?: boolean };
+  contact: { email?: string; name?: string; phone?: string };
   demo: Partial<Demography>;
   answers: Answers;
   onBack: () => void;
@@ -654,7 +647,7 @@ function ContactFooter({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const emailOk = !!contact.email && isValidEmail(contact.email);
-  const canSubmit = emailOk && !!contact.consent && !submitting;
+  const canSubmit = emailOk && !submitting;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -667,7 +660,7 @@ function ContactFooter({
       const payload = {
         email: contact.email!.trim(),
         name: contact.name?.trim() || null,
-        consent: !!contact.consent,
+        phone: contact.phone?.trim() || null,
         quiz_version: QUIZ_VERSION,
         sex: demo.sex ?? null,
         age_band: demo.ageBand ?? null,
@@ -678,10 +671,12 @@ function ContactFooter({
         user_agent:
           typeof navigator !== "undefined" ? navigator.userAgent : null,
       };
-      const { error } = await supabase
-        .from("lifestyle_quiz_submissions")
-        .insert([payload as never]);
+      const { data, error } = await supabase.functions.invoke(
+        "submit-lifestyle-quiz",
+        { body: payload },
+      );
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
       onDone();
     } catch (e) {
       console.error("Lifestyle quiz submit failed:", e);
@@ -693,6 +688,7 @@ function ContactFooter({
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative px-6 md:px-10 py-4 border-t border-border/40 flex items-center justify-between gap-3 bg-muted/10">
@@ -827,7 +823,7 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
                       Отметили
                     </div>
                     <div className="text-sm font-medium leading-snug">
-                      {item.observation}
+                      {capitalize(item.observation)}
                     </div>
                   </div>
                   <div className="hidden sm:flex items-center justify-center text-muted-foreground">
@@ -838,7 +834,7 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
                       За этим может стоять
                     </div>
                     <div className="text-sm font-medium leading-snug text-foreground">
-                      {item.cause || "измеримая причина"}
+                      {capitalize(item.cause || "измеримая причина")}
                     </div>
                   </div>
                 </div>

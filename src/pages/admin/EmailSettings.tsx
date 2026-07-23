@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface EmailTemplate {
   button_label: string | null;
   footer_text: string;
   signature_text: string;
+  is_active?: boolean;
 }
 
 const TEMPLATE_TABS = [
@@ -36,6 +38,7 @@ const TEMPLATE_TABS = [
   { type: "booking_report_pending", label: "Отчёт в работе" },
   { type: "booking_report_ready", label: "Отчёт загружен" },
   { type: "example_report_landing", label: "Пример отчёта (лендинг)" },
+  { type: "lifestyle_quiz_lead", label: "Квиз Lifestyle-6" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -48,7 +51,9 @@ const TEST_NOTES: Record<string, string> = {
   booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
   booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
   example_report_landing: "Письмо клиенту, оставившему заявку «Прислать пример отчёта» на лендинге — со ссылкой на демо-отчёт",
+  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения квиза Lifestyle-6",
 };
+
 
 
 
@@ -117,10 +122,10 @@ export default function EmailSettings() {
     setIsLoading(false);
   };
 
-  const updateTemplateField = (type: string, field: keyof EmailTemplate, value: string) => {
+  const updateTemplateField = (type: string, field: keyof EmailTemplate, value: string | boolean) => {
     setTemplates((prev) => ({
       ...prev,
-      [type]: { ...prev[type], [field]: value },
+      [type]: { ...prev[type], [field]: value } as EmailTemplate,
     }));
   };
 
@@ -138,6 +143,7 @@ export default function EmailSettings() {
         button_label: template.button_label,
         footer_text: template.footer_text,
         signature_text: template.signature_text,
+        is_active: template.is_active ?? true,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
@@ -183,10 +189,10 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const isDbTemplate = activeTab.startsWith("booking_") || activeTab === "example_report_landing";
+      const isDbTemplate = activeTab.startsWith("booking_") || activeTab === "example_report_landing" || activeTab === "lifestyle_quiz_lead";
       const { data, error } = isDbTemplate
         ? await supabase.functions.invoke("send-analysis-booking-email", {
-            body: { test: true, recipient_email: testEmail, template_type: activeTab },
+            body: { test: true, recipient_email: testEmail, template_type: activeTab, vars: activeTab === "lifestyle_quiz_lead" ? { name: "Елена" } : undefined },
           })
         : await supabase.functions.invoke("send-test-email", {
             body: { email: testEmail, template_type: activeTab },
@@ -330,12 +336,30 @@ export default function EmailSettings() {
 
                   return (
                     <TabsContent key={tab.type} value={tab.type} className="space-y-4 mt-4">
+                      <div className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border bg-muted/30">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Отправка писем</p>
+                          <p className="text-xs text-muted-foreground">Если выключено, письма этого типа не будут отправляться пользователям.</p>
+                        </div>
+                        <Switch
+                          checked={t.is_active ?? true}
+                          onCheckedChange={(v) => updateTemplateField(tab.type, "is_active", v)}
+                        />
+                      </div>
                       <div className="space-y-2">
                         <Label>Тема письма</Label>
                         <Input
                           value={t.subject}
                           onChange={(e) => updateTemplateField(tab.type, "subject", e.target.value)}
                           placeholder="Тема письма"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Заголовок</Label>
+                        <Input
+                          value={t.heading}
+                          onChange={(e) => updateTemplateField(tab.type, "heading", e.target.value)}
+                          placeholder="Заголовок в теле письма"
                         />
                       </div>
                       <div className="space-y-2">

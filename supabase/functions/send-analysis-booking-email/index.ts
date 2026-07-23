@@ -32,6 +32,7 @@ const ALLOWED_TEMPLATES = new Set([
   'booking_report_pending',
   'booking_report_ready',
   'example_report_landing',
+  'lifestyle_quiz_lead',
 ])
 
 

@@ -986,6 +986,7 @@ export type Database = {
           footer_text: string
           heading: string
           id: string
+          is_active: boolean
           signature_text: string
           subject: string
           template_type: string
@@ -998,6 +999,7 @@ export type Database = {
           footer_text: string
           heading: string
           id?: string
+          is_active?: boolean
           signature_text?: string
           subject: string
           template_type: string
@@ -1010,6 +1012,7 @@ export type Database = {
           footer_text?: string
           heading?: string
           id?: string
+          is_active?: boolean
           signature_text?: string
           subject?: string
           template_type?: string
@@ -1418,6 +1421,7 @@ export type Database = {
           height_cm: number | null
           id: string
           name: string | null
+          phone: string | null
           quiz_version: string
           result: Json | null
           sex: string | null
@@ -1433,6 +1437,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           name?: string | null
+          phone?: string | null
           quiz_version?: string
           result?: Json | null
           sex?: string | null
@@ -1448,6 +1453,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           name?: string | null
+          phone?: string | null
           quiz_version?: string
           result?: Json | null
           sex?: string | null
