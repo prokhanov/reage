@@ -252,7 +252,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
         )}
 
         {step === 9 && (
-          <div className="relative px-6 md:px-10 py-4 border-t border-border/40 flex items-center justify-end bg-muted/10">
+          <div className="relative px-4 sm:px-6 md:px-10 py-3 sm:py-4 border-t border-border/40 flex items-center justify-end bg-muted/10 shrink-0 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:pb-4">
             <Button variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
               Пройти ещё раз
             </Button>
