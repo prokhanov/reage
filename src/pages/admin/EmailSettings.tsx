@@ -155,6 +155,7 @@ export default function EmailSettings() {
         heading: template.heading,
         body_text: template.body_text,
         button_label: template.button_label,
+        button_url: template.button_url,
         footer_text: template.footer_text,
         signature_text: template.signature_text,
         secondary_button_label: template.secondary_button_label,
