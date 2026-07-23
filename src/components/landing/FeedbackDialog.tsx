@@ -134,10 +134,10 @@ export function FeedbackDialog({ open, onOpenChange, title, description, default
             <div>
               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" />
-                Напишите нам
+                {title ?? "Напишите нам"}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1.5">
-                Ответим в течение часа в рабочее время
+                {description ?? "Ответим в течение часа в рабочее время"}
               </DialogDescription>
             </div>
             <Button
