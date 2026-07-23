@@ -51,6 +51,9 @@ export function ReportSection({
   const blocks = category.blocks;
   const hasBiomarker = blocks.some((b) => b.kind === "biomarker");
 
+  const ctx = useReportEditor();
+  const isEdit = ctx?.mode === "edit";
+
   return (
     <section className="rl-page" data-section-id={`category-${index}`}>
       <header className="rl-section-header">
@@ -59,6 +62,26 @@ export function ReportSection({
           {category.title}
         </div>
         <div className="kicker">Раздел {index} из 5</div>
+        {isEdit && (
+          <button
+            type="button"
+            className="rl-regenerate-btn"
+            data-rl-regenerate-category={category.title}
+            title="Пересобрать этот раздел через ИИ"
+            style={{
+              marginLeft: "auto",
+              padding: "4px 10px",
+              fontSize: "10pt",
+              border: "1px solid #6366f1",
+              background: "#eef2ff",
+              color: "#4338ca",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            ↻ Перегенерировать
+          </button>
+        )}
       </header>
 
       {blocks.map((b, i) => {
