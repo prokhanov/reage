@@ -39,18 +39,13 @@ export function ReportEditorToolbar({
 }) {
   const ctx = useReportEditor();
   const [saving, setSaving] = useState(false);
-  if (!ctx) return null;
 
-  const { mode, setMode, drafts, resetDrafts, coverOverrides } = ctx;
+  const mode = ctx?.mode ?? "view";
+  const drafts = ctx?.drafts ?? {};
+  const coverOverrides = ctx?.coverOverrides ?? null;
+  const resetDrafts = ctx?.resetDrafts ?? (() => {});
+  const setMode = ctx?.setMode ?? (() => {});
 
-  if (mode === "view") {
-    return (
-      <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
-        <Pencil className="mr-2 h-4 w-4" />
-        Редактировать
-      </Button>
-    );
-  }
 
   const cancel = () => {
     resetDrafts();
