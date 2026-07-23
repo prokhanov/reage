@@ -74,8 +74,14 @@ function renderHtml(t: Template, vars: Vars, ctaUrl: string): string {
     .split(/\n{2,}/)
     .map((p) => `<p style="margin:0 0 14px;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
     .join('')
-  const cta = t.button_label
-    ? `<p style="margin:24px 0;"><a href="${ctaUrl}" style="display:inline-block;background:#7c3aed;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">${escapeHtml(applyVars(t.button_label, vars))}</a></p>`
+  const primaryCta = t.button_label
+    ? `<a href="${ctaUrl}" style="display:inline-block;background:#7c3aed;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:0 8px 8px 0;">${escapeHtml(applyVars(t.button_label, vars))}</a>`
+    : ''
+  const secondaryCta = t.secondary_button_label && t.secondary_button_url
+    ? `<a href="${applyVars(t.secondary_button_url, vars)}" style="display:inline-block;background:#ffffff;color:#7c3aed;border:1px solid #7c3aed;padding:11px 23px;border-radius:8px;text-decoration:none;font-weight:600;margin:0 8px 8px 0;">${escapeHtml(applyVars(t.secondary_button_label, vars))}</a>`
+    : ''
+  const ctaBlock = (primaryCta || secondaryCta)
+    ? `<p style="margin:24px 0;">${primaryCta}${secondaryCta}</p>`
     : ''
   return `<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
@@ -83,7 +89,7 @@ function renderHtml(t: Template, vars: Vars, ctaUrl: string): string {
 <div style="max-width:560px;margin:0 auto;">
 <h1 style="margin:0 0 16px;font-size:22px;color:#2d1a4e;">${escapeHtml(heading)}</h1>
 ${paragraphs}
-${cta}
+${ctaBlock}
 <p style="margin-top:28px;color:#6b7280;font-size:12px;line-height:1.6;">
 ${escapeHtml(footer)}<br>
 ${SITE_NAME}, ${ROOT_DOMAIN}<br>
@@ -94,8 +100,12 @@ ${COMPANY_LEGAL}
 }
 
 function renderText(t: Template, vars: Vars, ctaUrl: string): string {
-  return `${applyVars(t.heading, vars)}\n\n${applyVars(t.body_text, vars)}${t.button_label ? `\n\n${applyVars(t.button_label, vars)}: ${ctaUrl}` : ''}\n\n—\n${applyVars(t.footer_text, vars)}\n${SITE_NAME} · ${ROOT_DOMAIN}\n${COMPANY_LEGAL}`
+  const secondary = t.secondary_button_label && t.secondary_button_url
+    ? `\n\n${applyVars(t.secondary_button_label, vars)}: ${applyVars(t.secondary_button_url, vars)}`
+    : ''
+  return `${applyVars(t.heading, vars)}\n\n${applyVars(t.body_text, vars)}${t.button_label ? `\n\n${applyVars(t.button_label, vars)}: ${ctaUrl}` : ''}${secondary}\n\n—\n${applyVars(t.footer_text, vars)}\n${SITE_NAME} · ${ROOT_DOMAIN}\n${COMPANY_LEGAL}`
 }
+
 
 async function getOrCreateUnsubscribeToken(supabase: any, email: string): Promise<string> {
   const normalizedEmail = email.trim().toLowerCase()
