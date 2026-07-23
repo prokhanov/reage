@@ -1,0 +1,1 @@
+UPDATE public.biomarkers SET optimal_max = 130 WHERE code = 'SE' AND optimal_max IS NULL;
