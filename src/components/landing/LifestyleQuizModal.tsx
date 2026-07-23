@@ -194,7 +194,10 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
         </div>
 
         {/* Body */}
-        <div className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 flex-1 overflow-y-auto">
+        <div
+          ref={bodyRef}
+          className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 flex-1 overflow-y-auto"
+        >
           <div key={step} className="animate-fade-in">
             {step === 0 && <IntroStep onNext={goNext} />}
             {step === 1 && (
