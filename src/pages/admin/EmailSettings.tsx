@@ -36,6 +36,7 @@ const TEMPLATE_TABS = [
   { type: "booking_report_pending", label: "Отчёт в работе" },
   { type: "booking_report_ready", label: "Отчёт загружен" },
   { type: "example_report_landing", label: "Пример отчёта (лендинг)" },
+  { type: "lifestyle_quiz_lead", label: "Квиз Lifestyle-6" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -48,7 +49,9 @@ const TEST_NOTES: Record<string, string> = {
   booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
   booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
   example_report_landing: "Письмо клиенту, оставившему заявку «Прислать пример отчёта» на лендинге — со ссылкой на демо-отчёт",
+  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения квиза Lifestyle-6",
 };
+
 
 
 
