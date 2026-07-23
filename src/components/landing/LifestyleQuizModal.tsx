@@ -828,7 +828,7 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
                       За этим может стоять
                     </div>
                     <div className="text-sm font-medium leading-snug text-foreground">
-                      {item.cause || "измеримая причина"}
+                      {capitalize(item.cause || "измеримая причина")}
                     </div>
                   </div>
                 </div>
