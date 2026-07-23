@@ -400,6 +400,19 @@ export default function EmailSettings() {
                         </div>
                       )}
                       {SUPPORTS_SECONDARY_BUTTON.has(tab.type) && (
+                        <div className="space-y-2">
+                          <Label>Ссылка основной кнопки</Label>
+                          <Input
+                            value={t.button_url || ""}
+                            onChange={(e) => updateTemplateField(tab.type, "button_url", e.target.value)}
+                            placeholder="https://reage.life/profile"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Если пусто — используется стандартная ссылка (личный кабинет / демо-отчёт).
+                          </p>
+                        </div>
+                      )}
+                      {SUPPORTS_SECONDARY_BUTTON.has(tab.type) && (
                         <div className="grid sm:grid-cols-2 gap-4 p-3 rounded-lg border border-dashed border-border">
                           <div className="space-y-2">
                             <Label>Вторая кнопка — текст (необязательно)</Label>
