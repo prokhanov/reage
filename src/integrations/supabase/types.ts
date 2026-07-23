@@ -983,6 +983,7 @@ export type Database = {
         Row: {
           body_text: string
           button_label: string | null
+          button_url: string | null
           footer_text: string
           heading: string
           id: string
@@ -998,6 +999,7 @@ export type Database = {
         Insert: {
           body_text: string
           button_label?: string | null
+          button_url?: string | null
           footer_text: string
           heading: string
           id?: string
@@ -1013,6 +1015,7 @@ export type Database = {
         Update: {
           body_text?: string
           button_label?: string | null
+          button_url?: string | null
           footer_text?: string
           heading?: string
           id?: string
