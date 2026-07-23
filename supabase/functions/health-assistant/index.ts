@@ -204,6 +204,23 @@ serve(async (req) => {
         .eq("status", "confirmed")
         .eq("is_archived", false);
 
+      // Get recommendations for latest analysis (report sections)
+      const { data: recommendations } = latestAnalysis?.id ? await supabase
+        .from("recommendations")
+        .select("type, text, content_json")
+        .eq("user_id", targetUserId)
+        .eq("analysis_id", latestAnalysis.id)
+        .order("created_at", { ascending: true }) : { data: [] as any[] };
+
+      // Get latest health strategy snapshot
+      const { data: strategy } = await supabase
+        .from("health_strategy_snapshots")
+        .select("current_bio_age, chronological_age, target_bio_age, health_index, cohort_percentile, cohort_label, system_goals, action_map, roadmap, key_biomarkers, trajectory, expectations, rationale, created_at")
+        .eq("user_id", targetUserId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       // Build context
       const biomarkerLines = biomarkers && biomarkers.length > 0
         ? biomarkers.map((b: any) => {
