@@ -18,6 +18,10 @@ import { reachGoal, tgpEvent, tmrEvent } from "@/lib/yandexMetrika";
 interface FeedbackDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  defaultMessage?: string;
+  initialValues?: { name?: string; email?: string; phone?: string; message?: string };
 }
 
 interface FormErrors {
@@ -27,8 +31,13 @@ interface FormErrors {
   message?: string;
 }
 
-export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+export function FeedbackDialog({ open, onOpenChange, title, description, defaultMessage, initialValues }: FeedbackDialogProps) {
+  const [form, setForm] = useState({
+    name: initialValues?.name ?? "",
+    email: initialValues?.email ?? "",
+    phone: initialValues?.phone ?? "",
+    message: initialValues?.message ?? defaultMessage ?? "",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
