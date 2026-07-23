@@ -1408,6 +1408,54 @@ export type Database = {
         }
         Relationships: []
       }
+      lifestyle_quiz_submissions: {
+        Row: {
+          age_band: string | null
+          answers: Json
+          consent: boolean
+          created_at: string
+          email: string
+          height_cm: number | null
+          id: string
+          name: string | null
+          quiz_version: string
+          result: Json | null
+          sex: string | null
+          user_agent: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          age_band?: string | null
+          answers?: Json
+          consent?: boolean
+          created_at?: string
+          email: string
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          quiz_version?: string
+          result?: Json | null
+          sex?: string | null
+          user_agent?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          age_band?: string | null
+          answers?: Json
+          consent?: boolean
+          created_at?: string
+          email?: string
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          quiz_version?: string
+          result?: Json | null
+          sex?: string | null
+          user_agent?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       medical_condition_categories: {
         Row: {
           created_at: string
