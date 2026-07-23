@@ -22,6 +22,7 @@ import { calculateAge } from "@/lib/biomarkerNorms";
 import {
   computeAllDerivedValues,
   CALCULATED_BIOMARKER_CODES,
+  CALCULATED_FORMULAS,
 } from "@/lib/calculatedBiomarkers";
 import {
   Upload,
@@ -581,12 +582,30 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const planComparison = useMemo(() => {
     if (!selectedPlanId || !planBiomarkers.length) return null;
     const recognizedIds = new Set<string>();
+    const recognizedCodes = new Set<string>();
     for (const e of entries) {
-      if (e.result) for (const r of e.result.recognized) recognizedIds.add(r.biomarker_id);
+      if (e.result) for (const r of e.result.recognized) {
+        recognizedIds.add(r.biomarker_id);
+        if (r.biomarker_code) recognizedCodes.add(r.biomarker_code);
+      }
     }
     const planIds = new Set(planBiomarkers.map(b => b.id));
     const matched = planBiomarkers.filter(b => recognizedIds.has(b.id));
-    const missing = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+
+    // Помечаем недостающие расчётные показатели, которые будут получены автоматически
+    // при импорте (если есть все входы, а для GFR — ещё и возраст+пол пациента).
+    const hasAgeSex = patient.age != null && (patient.gender === "male" || patient.gender === "female");
+    const willCalculateCode = (code: string): boolean => {
+      const formula = CALCULATED_FORMULAS.find(f => f.outputCode === code);
+      if (!formula) return false;
+      if (formula.requiresContext && !hasAgeSex) return false;
+      return formula.requiredInputs.every(inp => recognizedCodes.has(inp));
+    };
+
+    const missingRaw = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+    const willCalculate = missingRaw.filter(b => willCalculateCode(b.code));
+    const missing = missingRaw.filter(b => !willCalculateCode(b.code));
+
     const extra: string[] = [];
     for (const e of entries) {
       if (!e.result) continue;
@@ -594,8 +613,8 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         if (!planIds.has(r.biomarker_id)) extra.push(r.biomarker_name);
       }
     }
-    return { matched, missing, extraCount: new Set(extra).size };
-  }, [selectedPlanId, planBiomarkers, entries]);
+    return { matched, missing, willCalculate, extraCount: new Set(extra).size };
+  }, [selectedPlanId, planBiomarkers, entries, patient.age, patient.gender]);
 
   return (
     <div className="space-y-4 py-2">
@@ -689,6 +708,9 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
             <div className="space-y-2 text-xs">
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-green-600 hover:bg-green-600">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
+                {planComparison.willCalculate.length > 0 && (
+                  <Badge className="bg-blue-600 hover:bg-blue-600">Будет рассчитано {planComparison.willCalculate.length}</Badge>
+                )}
                 {planComparison.missing.length > 0 && (
                   <Badge variant="destructive">Не найдено {planComparison.missing.length}</Badge>
                 )}
@@ -696,6 +718,26 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                   <Badge variant="secondary">Сверх тарифа {planComparison.extraCount}</Badge>
                 )}
               </div>
+              {planComparison.willCalculate.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Показать расчётные ({planComparison.willCalculate.length})
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="pl-4 list-disc space-y-0.5 mt-1">
+                      {planComparison.willCalculate.map(b => (
+                        <li key={b.id}>
+                          <span className="font-medium">{b.name}</span>
+                          <span className="text-muted-foreground"> · {b.code} — вычислится автоматически</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
               {planComparison.missing.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
