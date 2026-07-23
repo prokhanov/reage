@@ -502,12 +502,55 @@ ${catalogText}
     }
 
 
+    // Post-process: суммирование подтипов нейтрофилов (палочко- + сегментоядерные)
+    // → синтетический NEUT, если явного "Нейтрофилы (общие)" в PDF нет.
+    // Автоанализаторы выдают NEUT сразу, но при ручной микроскопии в бланке
+    // печатают только band + segmented. Складываем их, чтобы получить общий %.
+    try {
+      const items = parsed.items || [];
+      const isBand = (n: string) => /палочк/i.test(n);
+      const isSeg = (n: string) => /сегменто/i.test(n);
+      const isTotalNeut = (n: string) => {
+        const s = n.toLowerCase();
+        if (!/нейтрофил|neutrophil|neut/i.test(s)) return false;
+        // исключаем подтипы и производные (миело-, метамиело-, юные, промиелоциты)
+        if (/палочк|сегменто|юн|миело|band|segment|immature/i.test(s)) return false;
+        return true;
+      };
+      const hasTotal = items.some(
+        (it) => it.biomarker_code?.toUpperCase() === "NEUT" || isTotalNeut(it.printed_name || ""),
+      );
+      if (!hasTotal) {
+        const bandItem = items.find((it) => isBand(it.printed_name || ""));
+        const segItem = items.find((it) => isSeg(it.printed_name || ""));
+        const { value: bandVal } = bandItem ? parseValue(bandItem.value_raw) : { value: null };
+        const { value: segVal } = segItem ? parseValue(segItem.value_raw) : { value: null };
+        if (bandVal !== null && segVal !== null) {
+          const sum = Math.round((bandVal + segVal) * 10) / 10;
+          const unit = segItem?.unit_raw || bandItem?.unit_raw || "%";
+          items.push({
+            printed_name: `Нейтрофилы (сумма: палочко- ${bandVal}% + сегменто- ${segVal}%)`,
+            value_raw: String(sum),
+            unit_raw: unit,
+            page: segItem?.page ?? bandItem?.page ?? null,
+            ref_range_raw: null,
+            biomarker_code: "NEUT",
+            confidence: 0.9,
+          });
+          log("neutrophils synthesized", { band: bandVal, seg: segVal, sum });
+        }
+      }
+    } catch (e) {
+      log("neutrophils sum failed", (e as Error)?.message);
+    }
+
     // Reconcile with catalog
     const byCode = new Map(catalog.map(b => [b.code.toUpperCase(), b]));
     const byName = new Map<string, Biomarker>();
     for (const b of catalog) {
       byName.set(normalizeName(b.name), b);
     }
+
 
     const recognized: any[] = [];
     const unknown: any[] = [];
