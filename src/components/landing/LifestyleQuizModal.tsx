@@ -795,23 +795,23 @@ function ResultStep({
             const labelCls =
               level === "clean" ? "text-muted-foreground" : "text-foreground";
             return (
-              <div key={d.key} className="flex items-center gap-3">
+              <div key={d.key} className="flex items-center gap-2 sm:gap-3">
                 <Icon
                   className={cn(
                     "w-4 h-4 shrink-0",
                     level === "clean" ? "text-muted-foreground/60" : "text-primary",
                   )}
                 />
-                <div className={cn("text-xs w-40 shrink-0 truncate", labelCls)}>
+                <div className={cn("text-xs w-24 sm:w-40 shrink-0 truncate", labelCls)}>
                   {d.label}
                 </div>
-                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="flex-1 min-w-0 h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className={cn("h-full rounded-full transition-all", barCls)}
                     style={{ width: `${Math.max(pct, level === "clean" ? 0 : 8)}%` }}
                   />
                 </div>
-                <div className="text-[11px] text-muted-foreground w-8 text-right tabular-nums">
+                <div className="text-[11px] text-muted-foreground w-8 text-right tabular-nums shrink-0">
                   {d.score}/{d.maxScore}
                 </div>
               </div>
