@@ -121,10 +121,10 @@ export default function EmailSettings() {
     setIsLoading(false);
   };
 
-  const updateTemplateField = (type: string, field: keyof EmailTemplate, value: string) => {
+  const updateTemplateField = (type: string, field: keyof EmailTemplate, value: string | boolean) => {
     setTemplates((prev) => ({
       ...prev,
-      [type]: { ...prev[type], [field]: value },
+      [type]: { ...prev[type], [field]: value } as EmailTemplate,
     }));
   };
 
@@ -142,6 +142,7 @@ export default function EmailSettings() {
         button_label: template.button_label,
         footer_text: template.footer_text,
         signature_text: template.signature_text,
+        is_active: template.is_active ?? true,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
