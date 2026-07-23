@@ -1,7 +1,7 @@
 import { LifestyleQuizCTASection } from "@/components/landing/LifestyleQuizCTASection";
 import { PageMeta } from "@/components/PageMeta";
 
-const LifestyleQuiz = () => {
+const LifestyleTest = () => {
   return (
     <>
       <PageMeta
@@ -15,4 +15,4 @@ const LifestyleQuiz = () => {
   );
 };
 
-export default LifestyleQuiz;
+export default LifestyleTest;
