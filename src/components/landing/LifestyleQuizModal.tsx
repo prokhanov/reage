@@ -157,7 +157,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden border-border/50 sm:rounded-3xl bg-card max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl w-screen sm:w-full p-0 gap-0 overflow-hidden border-border/50 rounded-none sm:rounded-3xl bg-card h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col">
         {/* Ambient glow */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
@@ -165,23 +165,22 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
         </div>
 
         {/* Header */}
-        <div className="relative px-6 md:px-10 pt-6 md:pt-7 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
+        <div className="relative px-4 sm:px-6 md:px-10 pt-5 sm:pt-6 md:pt-7 pb-4 shrink-0">
+          <div className="flex items-center justify-between mb-4 pr-10">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
-              <div className="leading-tight">
-                <div className="text-[13px] font-semibold text-foreground">
+              <div className="leading-tight min-w-0">
+                <div className="text-[13px] font-semibold text-foreground truncate">
                   Образ жизни и долголетие
                 </div>
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground truncate">
                   Шаг {Math.min(step + 1, TOTAL_SCREENS)} из {TOTAL_SCREENS} · {STEP_LABELS[step] ?? ""}
                 </div>
               </div>
             </div>
           </div>
-          {/* Continuous progress bar */}
           <div className="relative h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
@@ -193,7 +192,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
         {/* Body */}
         <div
           ref={bodyRef}
-          className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 flex-1 overflow-y-auto"
+          className="relative px-4 sm:px-6 md:px-10 pb-6 sm:pb-8 md:pb-10 pt-5 sm:pt-6 flex-1 overflow-y-auto overscroll-contain"
         >
           <div key={step} className="animate-fade-in">
             {step === 0 && <IntroStep onNext={goNext} />}
@@ -214,23 +213,23 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
           </div>
         </div>
 
-        {/* Footer (hidden on intro — its own CTA — and hidden on contact, uses its own submit) */}
+        {/* Footer */}
         {step > 0 && step < 8 && (
-          <div className="relative px-6 md:px-10 py-4 border-t border-border/40 flex items-center justify-between gap-3 bg-muted/10">
+          <div className="relative px-4 sm:px-6 md:px-10 py-3 sm:py-4 border-t border-border/40 flex items-center justify-between gap-3 bg-muted/10 shrink-0 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:pb-4">
             <Button
               variant="ghost"
               onClick={goBack}
-              className="text-muted-foreground hover:text-foreground -ml-2"
+              className="text-muted-foreground hover:text-foreground -ml-2 px-3 sm:px-4"
             >
-              <ArrowLeft className="mr-1.5 h-4 w-4" />
-              Назад
+              <ArrowLeft className="sm:mr-1.5 h-4 w-4" />
+              <span className="hidden sm:inline">Назад</span>
             </Button>
             <Button
               onClick={goNext}
               disabled={step === 1 ? !demoComplete : !currentAllAnswered}
               size="lg"
               className={cn(
-                "min-w-[180px] h-12 rounded-2xl font-semibold text-[15px]",
+                "flex-1 sm:flex-none sm:min-w-[180px] h-12 rounded-2xl font-semibold text-[15px]",
                 "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35",
                 "transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
                 "disabled:shadow-none disabled:hover:translate-y-0",
