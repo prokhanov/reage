@@ -21,6 +21,7 @@ import {
   User,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FeedbackDialog } from "./FeedbackDialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -209,7 +210,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
             {step === 8 && (
               <ContactStep contact={contact} setContact={setContact} />
             )}
-            {step === 9 && result && <ResultStep result={result} />}
+            {step === 9 && result && <ResultStep result={result} contact={contact} />}
           </div>
         </div>
 
@@ -746,8 +747,15 @@ function ContactFooter({
 
 // ---------- Result (screen 9) ----------
 
-function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeResult>> }) {
+function ResultStep({
+  result,
+  contact,
+}: {
+  result: NonNullable<ReturnType<typeof computeResult>>;
+  contact: { email?: string; name?: string; phone?: string };
+}) {
   const hasStrong = result.items.length > 0;
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
     <div className="space-y-6">
       {/* Заголовок с тоном */}
@@ -915,13 +923,27 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <Button asChild size="lg" className="flex-1">
-          <Link to="/prep">Записаться на анализы</Link>
+        <Button size="lg" className="flex-1" onClick={() => setFeedbackOpen(true)}>
+          Записаться на бесплатную консультацию
         </Button>
         <Button asChild size="lg" variant="outline" className="flex-1">
           <Link to="/register">Оформить годовое наблюдение</Link>
         </Button>
       </div>
+
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        title="Бесплатная консультация"
+        description="Обсудим ваши результаты и подберём программу"
+        initialValues={{
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+          message: "Запрос на бесплатную консультацию после прохождения теста «Оценка образа жизни и скрытых рисков».",
+        }}
+      />
+
 
       <div className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, X, CheckCircle, Loader2, MessageSquare } from "lucide-react";
 import {
   Dialog,
@@ -18,6 +18,10 @@ import { reachGoal, tgpEvent, tmrEvent } from "@/lib/yandexMetrika";
 interface FeedbackDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  defaultMessage?: string;
+  initialValues?: { name?: string; email?: string; phone?: string; message?: string };
 }
 
 interface FormErrors {
@@ -27,10 +31,29 @@ interface FormErrors {
   message?: string;
 }
 
-export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+export function FeedbackDialog({ open, onOpenChange, title, description, defaultMessage, initialValues }: FeedbackDialogProps) {
+  const [form, setForm] = useState({
+    name: initialValues?.name ?? "",
+    email: initialValues?.email ?? "",
+    phone: initialValues?.phone ?? "",
+    message: initialValues?.message ?? defaultMessage ?? "",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: initialValues?.name ?? "",
+        email: initialValues?.email ?? "",
+        phone: initialValues?.phone ?? "",
+        message: initialValues?.message ?? defaultMessage ?? "",
+      });
+      setErrors({});
+      setStatus("idle");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const validate = (): boolean => {
     const next: FormErrors = {};
@@ -111,10 +134,10 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             <div>
               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" />
-                Напишите нам
+                {title ?? "Напишите нам"}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1.5">
-                Ответим в течение часа в рабочее время
+                {description ?? "Ответим в течение часа в рабочее время"}
               </DialogDescription>
             </div>
             <Button
