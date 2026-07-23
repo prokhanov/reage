@@ -156,6 +156,17 @@ export function buildMessage(
         `🕒 ${e(formatDate(payload.requested_at || new Date().toISOString()))}`
       );
     }
+    case "lifestyle_quiz_lead": {
+      return (
+        prefix +
+        "🧭 <b>Новая заявка с квиза Lifestyle-6</b>\n" +
+        `👤 ${e(payload.name || "—")}\n` +
+        `📧 ${e(payload.email || "—")}\n` +
+        `📱 ${e(payload.phone || "—")}\n` +
+        `👥 ${e(payload.sex || "—")} · ${e(payload.age_band || "—")}\n` +
+        (payload.result_summary ? `\n💡 ${e(payload.result_summary)}` : "")
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
