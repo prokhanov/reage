@@ -499,6 +499,15 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       )}
       <div ref={previewContainerRef} className={cn("relative flex-1 min-w-0", fullHeight && "h-full")}>
         {children}
+        {regenCategory && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2 rounded-lg border bg-card px-6 py-4 shadow-lg">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="text-sm font-medium">Перегенерирую раздел…</div>
+              <div className="text-xs text-muted-foreground">«{regenCategory}»</div>
+            </div>
+          </div>
+        )}
         {bottomAction && (
           <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
             <div className="pointer-events-auto">{bottomAction}</div>
@@ -508,6 +517,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       </div>
     </div>
   );
+
 
 
   if (mode === "view") {
