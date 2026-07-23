@@ -734,6 +734,32 @@ function injectHeadingBiomarkerAnchors(
   }
   if (filtered.length === 0) return text;
 
+  // Расширяем начало каждой карточки НАЗАД на 1 вводный абзац, если он
+  // выглядит как «интерпретация биомаркера» (AI часто пишет вводный абзац
+  // ПЕРЕД заголовком биомаркера). Не трогаем блок, если предыдущий абзац —
+  // это заголовок (#…), список, конец предыдущей карточки или заканчивается
+  // на «:» (это подводка к списку/таблице предыдущей секции).
+  for (let i = 0; i < filtered.length; i++) {
+    const cur = filtered[i];
+    const prevEnd = i > 0 ? filtered[i - 1].end : 0;
+    // Ищем разделитель абзаца перед началом карточки.
+    const p1 = text.lastIndexOf("\n\n", cur.start - 1);
+    if (p1 === -1 || p1 < prevEnd) continue;
+    const p2 = text.lastIndexOf("\n\n", p1 - 1);
+    const paraStart = (p2 === -1 || p2 < prevEnd) ? Math.max(prevEnd, 0) : p2 + 2;
+    if (paraStart >= p1) continue;
+    const para = text.slice(paraStart, p1).trim();
+    if (!para) continue;
+    if (/^#{1,6}\s/.test(para)) continue;
+    if (/^[-*•>]/.test(para)) continue;
+    if (/^\d+[.)]\s/.test(para)) continue;
+    if (/[:：]$/.test(para)) continue;
+    // Короткие «заголовочные» строки (без точки в конце) — не intro.
+    if (para.length < 40 && !/[.!?…»)]$/.test(para)) continue;
+    cur.start = paraStart;
+  }
+
+
   const findNextBoundary = (from: number): number => {
     const headerRegex = /^#{1,2}[ \t]+/gm;
     headerRegex.lastIndex = from;
