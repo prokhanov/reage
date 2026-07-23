@@ -43,6 +43,7 @@ interface Template {
   heading: string
   body_text: string
   button_label: string | null
+  button_url?: string | null
   footer_text: string
   secondary_button_label?: string | null
   secondary_button_url?: string | null
