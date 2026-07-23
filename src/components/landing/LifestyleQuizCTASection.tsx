@@ -118,7 +118,7 @@ export function LifestyleQuizCTASection() {
                     </div>
 
                     <p className="mt-4 text-xs md:text-sm text-muted-foreground/80">
-                      Результат — гипотезы и маркеры для проверки. Анкета не сохраняется.
+                      На основе опросника факторов риска Минздрава РФ, интерпретация — по принципам международных клинических шкал, которые используют врачи для скрининга (FINDRISC, ASCVD, NAFLD)
                     </p>
                   </div>
 
