@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
+import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 
 // Below-the-fold sections — lazy-loaded to shrink the initial bundle.
 const WhyCheckupsFail = lazy(() =>
@@ -59,6 +60,9 @@ const S = ({ children }: { children: React.ReactNode }) => (
 );
 
 const Index = () => {
+  useEffect(() => {
+    initActiveTimeTracker();
+  }, []);
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />
