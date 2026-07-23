@@ -987,6 +987,8 @@ export type Database = {
           heading: string
           id: string
           is_active: boolean
+          secondary_button_label: string | null
+          secondary_button_url: string | null
           signature_text: string
           subject: string
           template_type: string
@@ -1000,6 +1002,8 @@ export type Database = {
           heading: string
           id?: string
           is_active?: boolean
+          secondary_button_label?: string | null
+          secondary_button_url?: string | null
           signature_text?: string
           subject: string
           template_type: string
@@ -1013,6 +1017,8 @@ export type Database = {
           heading?: string
           id?: string
           is_active?: boolean
+          secondary_button_label?: string | null
+          secondary_button_url?: string | null
           signature_text?: string
           subject?: string
           template_type?: string
