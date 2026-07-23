@@ -694,7 +694,13 @@ function injectHeadingBiomarkerAnchors(
         const MAX_LEAD_PARAGRAPHS = 2;
         let capped = pos;
         for (let p = 0; p < MAX_LEAD_PARAGRAPHS; p++) {
-          const prev = text.lastIndexOf("\n\n", capped - 1);
+          // Ищем предыдущий разделитель абзаца СТРОГО перед текущим блоком.
+          // capped - 3 гарантирует, что уже учтённый "\n\n" (стоящий на позиции
+          // capped - 2) не будет пойман повторно — иначе цикл топчется на месте
+          // и мы прихватываем только 1 абзац вместо MAX_LEAD_PARAGRAPHS.
+          const searchFrom = capped - 3;
+          if (searchFrom < 0) break;
+          const prev = text.lastIndexOf("\n\n", searchFrom);
           if (prev === -1 || prev < blockStart) break;
           capped = prev + 2;
         }
