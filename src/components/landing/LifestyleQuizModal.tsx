@@ -157,7 +157,12 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl w-screen sm:w-full p-0 gap-0 overflow-hidden border-border/50 rounded-none sm:rounded-3xl bg-card h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col">
+      <DialogContent
+        className="max-w-3xl w-screen sm:w-full p-0 gap-0 overflow-hidden border-border/50 rounded-none sm:rounded-3xl bg-card h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         {/* Ambient glow */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
@@ -166,7 +171,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
         {/* Header */}
         <div className="relative px-4 sm:px-6 md:px-10 pt-5 sm:pt-6 md:pt-7 pb-4 shrink-0">
-          <div className="flex items-center justify-between mb-4 pr-10">
+          <div className="flex items-center justify-between mb-4 pr-10 gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -176,14 +181,17 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
                   Образ жизни и долголетие
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate">
-                  Шаг {Math.min(step + 1, TOTAL_SCREENS)} из {TOTAL_SCREENS} · {STEP_LABELS[step] ?? ""}
+                  {STEP_LABELS[step] ?? ""}
                 </div>
               </div>
             </div>
+            <div className="shrink-0 rounded-full bg-primary/10 ring-1 ring-primary/25 px-3 py-1.5 text-[13px] sm:text-[14px] font-bold text-primary tabular-nums">
+              Шаг {Math.min(step + 1, TOTAL_SCREENS)}<span className="text-primary/60"> / {TOTAL_SCREENS}</span>
+            </div>
           </div>
-          <div className="relative h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+          <div className="relative h-2.5 w-full rounded-full bg-muted overflow-hidden ring-1 ring-border/40">
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
               style={{ width: `${((step + 1) / TOTAL_SCREENS) * 100}%` }}
             />
           </div>
@@ -384,44 +392,84 @@ function DemographyStep({
 
       <div className="grid grid-cols-2 gap-4">
         <FieldBlock label="Рост, см">
-          <div className="relative">
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={demo.heightCm ?? ""}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^\d]/g, "");
-                setDemo({
-                  ...demo,
-                  heightCm: cleaned ? Number(cleaned) : undefined,
-                });
-              }}
-              placeholder="175"
-              aria-label="Рост"
-              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
-            />
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">см</span>
-          </div>
+          {(() => {
+            const raw = demo.heightCm;
+            const invalid =
+              typeof raw === "number" && (raw < 120 || raw > 230);
+            return (
+              <>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={raw ?? ""}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^\d]/g, "");
+                      setDemo({
+                        ...demo,
+                        heightCm: cleaned ? Number(cleaned) : undefined,
+                      });
+                    }}
+                    placeholder="175"
+                    aria-label="Рост"
+                    aria-invalid={invalid || undefined}
+                    className={cn(
+                      "h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16",
+                      invalid
+                        ? "ring-destructive/70 focus-visible:ring-destructive"
+                        : "ring-border/60 hover:ring-primary/40 focus-visible:ring-primary",
+                    )}
+                  />
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">см</span>
+                </div>
+                {invalid && (
+                  <p className="mt-2 text-[12.5px] text-destructive font-medium">
+                    Введите рост от 120 до 230 см
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </FieldBlock>
         <FieldBlock label="Вес, кг">
-          <div className="relative">
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={demo.weightKg ?? ""}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^\d]/g, "");
-                setDemo({
-                  ...demo,
-                  weightKg: cleaned ? Number(cleaned) : undefined,
-                });
-              }}
-              placeholder="70"
-              aria-label="Вес"
-              className="h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 ring-border/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 hover:ring-primary/40 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16"
-            />
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">кг</span>
-          </div>
+          {(() => {
+            const raw = demo.weightKg;
+            const invalid =
+              typeof raw === "number" && (raw < 30 || raw > 250);
+            return (
+              <>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={raw ?? ""}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^\d]/g, "");
+                      setDemo({
+                        ...demo,
+                        weightKg: cleaned ? Number(cleaned) : undefined,
+                      });
+                    }}
+                    placeholder="70"
+                    aria-label="Вес"
+                    aria-invalid={invalid || undefined}
+                    className={cn(
+                      "h-14 text-[18px] font-semibold rounded-2xl bg-background/60 border-0 ring-1 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all placeholder:font-normal placeholder:text-muted-foreground/60 pr-16",
+                      invalid
+                        ? "ring-destructive/70 focus-visible:ring-destructive"
+                        : "ring-border/60 hover:ring-primary/40 focus-visible:ring-primary",
+                    )}
+                  />
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">кг</span>
+                </div>
+                {invalid && (
+                  <p className="mt-2 text-[12.5px] text-destructive font-medium">
+                    Введите вес от 30 до 250 кг
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </FieldBlock>
       </div>
     </div>

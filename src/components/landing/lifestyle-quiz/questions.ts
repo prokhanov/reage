@@ -83,7 +83,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "q5",
     domain: "sleep",
-    text: "Просыпаетесь ли отдохнувшим(ей), даже если спали достаточно?",
+    text: "Просыпаетесь ли утром отдохнувшим(ей) после ночи сна?",
     options: [
       { label: "Почти всегда", score: 0 },
       { label: "Иногда", score: 1 },
