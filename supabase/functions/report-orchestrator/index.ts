@@ -507,6 +507,15 @@ async function handleRegenerateCategory(supabase: any, body: any) {
 
   // Один шаг — только эта категория. Prescriptions/finalize пропускаем:
   // назначения и общее резюме остаются от предыдущей генерации.
+  // Предварительно удаляем старую рекомендацию именно этой категории —
+  // analyze-biomarkers со skipDelete=true ничего не чистит сам.
+  const { error: delErr } = await supabase
+    .from("recommendations")
+    .delete()
+    .eq("analysis_id", analysisId)
+    .eq("type", category);
+  if (delErr) console.warn("[regenerate_category] delete old recommendation:", delErr.message);
+
   const steps: StepDef[] = [{
     id: `category:${category}`,
     label: `Перегенерация: ${category}`,
