@@ -582,12 +582,30 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const planComparison = useMemo(() => {
     if (!selectedPlanId || !planBiomarkers.length) return null;
     const recognizedIds = new Set<string>();
+    const recognizedCodes = new Set<string>();
     for (const e of entries) {
-      if (e.result) for (const r of e.result.recognized) recognizedIds.add(r.biomarker_id);
+      if (e.result) for (const r of e.result.recognized) {
+        recognizedIds.add(r.biomarker_id);
+        if (r.biomarker_code) recognizedCodes.add(r.biomarker_code);
+      }
     }
     const planIds = new Set(planBiomarkers.map(b => b.id));
     const matched = planBiomarkers.filter(b => recognizedIds.has(b.id));
-    const missing = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+
+    // Помечаем недостающие расчётные показатели, которые будут получены автоматически
+    // при импорте (если есть все входы, а для GFR — ещё и возраст+пол пациента).
+    const hasAgeSex = patient.age != null && (patient.gender === "male" || patient.gender === "female");
+    const willCalculateCode = (code: string): boolean => {
+      const formula = CALCULATED_FORMULAS.find(f => f.outputCode === code);
+      if (!formula) return false;
+      if (formula.requiresContext && !hasAgeSex) return false;
+      return formula.requiredInputs.every(inp => recognizedCodes.has(inp));
+    };
+
+    const missingRaw = planBiomarkers.filter(b => !recognizedIds.has(b.id));
+    const willCalculate = missingRaw.filter(b => willCalculateCode(b.code));
+    const missing = missingRaw.filter(b => !willCalculateCode(b.code));
+
     const extra: string[] = [];
     for (const e of entries) {
       if (!e.result) continue;
@@ -595,8 +613,8 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         if (!planIds.has(r.biomarker_id)) extra.push(r.biomarker_name);
       }
     }
-    return { matched, missing, extraCount: new Set(extra).size };
-  }, [selectedPlanId, planBiomarkers, entries]);
+    return { matched, missing, willCalculate, extraCount: new Set(extra).size };
+  }, [selectedPlanId, planBiomarkers, entries, patient.age, patient.gender]);
 
   return (
     <div className="space-y-4 py-2">
