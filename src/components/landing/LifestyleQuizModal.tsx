@@ -405,7 +405,7 @@ function DemographyStep({
           {(() => {
             const raw = demo.heightCm;
             const invalid =
-              typeof raw === "number" && (raw < 120 || raw > 230);
+              validated && typeof raw === "number" && (raw < 120 || raw > 230);
             return (
               <>
                 <div className="relative">
