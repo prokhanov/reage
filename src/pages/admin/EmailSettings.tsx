@@ -188,10 +188,10 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const isDbTemplate = activeTab.startsWith("booking_") || activeTab === "example_report_landing";
+      const isDbTemplate = activeTab.startsWith("booking_") || activeTab === "example_report_landing" || activeTab === "lifestyle_quiz_lead";
       const { data, error } = isDbTemplate
         ? await supabase.functions.invoke("send-analysis-booking-email", {
-            body: { test: true, recipient_email: testEmail, template_type: activeTab },
+            body: { test: true, recipient_email: testEmail, template_type: activeTab, vars: activeTab === "lifestyle_quiz_lead" ? { name: "Елена" } : undefined },
           })
         : await supabase.functions.invoke("send-test-email", {
             body: { email: testEmail, template_type: activeTab },
