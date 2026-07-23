@@ -59,7 +59,7 @@ const domainCards = [
 const bullets = [
   {
     icon: Sparkles,
-    title: "6 доменов",
+    title: "6 сфер жизни",
     text: "Питание, сон, движение, стресс, привычки, тело",
     colors: statusColors.sleep,
   },
