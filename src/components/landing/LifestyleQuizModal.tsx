@@ -157,7 +157,12 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl w-screen sm:w-full p-0 gap-0 overflow-hidden border-border/50 rounded-none sm:rounded-3xl bg-card h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col">
+      <DialogContent
+        className="max-w-3xl w-screen sm:w-full p-0 gap-0 overflow-hidden border-border/50 rounded-none sm:rounded-3xl bg-card h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         {/* Ambient glow */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
@@ -166,7 +171,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
         {/* Header */}
         <div className="relative px-4 sm:px-6 md:px-10 pt-5 sm:pt-6 md:pt-7 pb-4 shrink-0">
-          <div className="flex items-center justify-between mb-4 pr-10">
+          <div className="flex items-center justify-between mb-4 pr-10 gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -176,14 +181,17 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
                   Образ жизни и долголетие
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate">
-                  Шаг {Math.min(step + 1, TOTAL_SCREENS)} из {TOTAL_SCREENS} · {STEP_LABELS[step] ?? ""}
+                  {STEP_LABELS[step] ?? ""}
                 </div>
               </div>
             </div>
+            <div className="shrink-0 rounded-full bg-primary/10 ring-1 ring-primary/25 px-3 py-1.5 text-[13px] sm:text-[14px] font-bold text-primary tabular-nums">
+              Шаг {Math.min(step + 1, TOTAL_SCREENS)}<span className="text-primary/60"> / {TOTAL_SCREENS}</span>
+            </div>
           </div>
-          <div className="relative h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+          <div className="relative h-2.5 w-full rounded-full bg-muted overflow-hidden ring-1 ring-border/40">
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
               style={{ width: `${((step + 1) / TOTAL_SCREENS) * 100}%` }}
             />
           </div>
