@@ -204,6 +204,23 @@ serve(async (req) => {
         .eq("status", "confirmed")
         .eq("is_archived", false);
 
+      // Get recommendations for latest analysis (report sections)
+      const { data: recommendations } = latestAnalysis?.id ? await supabase
+        .from("recommendations")
+        .select("type, text, content_json")
+        .eq("user_id", targetUserId)
+        .eq("analysis_id", latestAnalysis.id)
+        .order("created_at", { ascending: true }) : { data: [] as any[] };
+
+      // Get latest health strategy snapshot
+      const { data: strategy } = await supabase
+        .from("health_strategy_snapshots")
+        .select("current_bio_age, chronological_age, target_bio_age, health_index, cohort_percentile, cohort_label, system_goals, action_map, roadmap, key_biomarkers, trajectory, expectations, rationale, created_at")
+        .eq("user_id", targetUserId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       // Build context
       const biomarkerLines = biomarkers && biomarkers.length > 0
         ? biomarkers.map((b: any) => {
@@ -267,15 +284,49 @@ serve(async (req) => {
         ? symptoms.slice(0, 10).map((s: any) => "- " + s.symptom + " (" + s.category + "): степень " + s.severity).join("\n")
         : "";
 
-      const prescriptionLines = prescriptions && prescriptions.length > 0
-        ? prescriptions.map((p: any) => "- " + p.prescription + (p.effect ? " (" + p.effect + ")" : "")).join("\n")
-        : "";
-
       const genderHardRule = patientGender === 'female'
         ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — женщина. Никогда не упоминай мужские референсы, мужские нормы или формулировки вроде «для мужчин». Все объяснения и сравнения должны быть применимы к женщине.\n\n"
         : patientGender === 'male'
           ? "КРИТИЧЕСКОЕ ПРАВИЛО ПОЛА: пациент — мужчина. Никогда не упоминай женские референсы, женские нормы или формулировки вроде «для женщин». Все объяснения и сравнения должны быть применимы к мужчине.\n\n"
           : "";
+
+      const prescriptionLines = prescriptions && prescriptions.length > 0
+        ? prescriptions.map((p: any) => "- " + p.prescription + (p.effect ? " (" + p.effect + ")" : "")).join("\n")
+        : "";
+
+      const truncate = (s: string, n = 800) => (s && s.length > n ? s.slice(0, n) + "…" : s || "");
+      const recommendationsBlock = recommendations && recommendations.length > 0
+        ? recommendations.map((r: any) => {
+            const body = r.text ? truncate(r.text, 900)
+              : r.content_json ? truncate(JSON.stringify(r.content_json), 900)
+              : "";
+            return `### ${r.type}\n${body}`;
+          }).join("\n\n")
+        : "";
+
+      let strategyBlock = "";
+      if (strategy) {
+        const goals = Array.isArray(strategy.system_goals) ? strategy.system_goals : [];
+        const goalsStr = goals.slice(0, 8).map((g: any) =>
+          `- ${g.system || g.name || 'система'}: ${g.current ?? '—'} → ${g.target ?? '—'}${g.priority ? ' (приоритет: ' + g.priority + ')' : ''}`
+        ).join("\n");
+        const roadmap = strategy.roadmap ? truncate(JSON.stringify(strategy.roadmap), 700) : "";
+        const actions = strategy.action_map ? truncate(JSON.stringify(strategy.action_map), 700) : "";
+        strategyBlock = `\nСТРАТЕГИЯ ЗДОРОВЬЯ (снимок от ${new Date(strategy.created_at).toLocaleDateString('ru-RU')}):
+- Биовозраст сейчас: ${strategy.current_bio_age} (хроно: ${strategy.chronological_age}, цель: ${strategy.target_bio_age})
+- Индекс здоровья: ${strategy.health_index ?? '—'}
+- Когорта: ${strategy.cohort_label ?? '—'}${strategy.cohort_percentile != null ? ' (перцентиль ' + strategy.cohort_percentile + ')' : ''}
+${goalsStr ? "\nЦели по системам:\n" + goalsStr : ""}
+${actions ? "\nActions map (JSON, кратко):\n" + actions : ""}
+${roadmap ? "\nRoadmap (JSON, кратко):\n" + roadmap : ""}
+${strategy.rationale ? "\nОбоснование: " + truncate(strategy.rationale, 500) : ""}
+`;
+      }
+
+      const latestA: any = analyses && analyses[0];
+      const bioAge = latestA?.biological_age;
+      const hIndex = latestA?.health_index;
+      const ageDiff = (bioAge != null && patientAge != null) ? (Number(bioAge) - patientAge).toFixed(1) : null;
 
       userContext = genderHardRule + "ИНФОРМАЦИЯ О ПАЦИЕНТЕ:\n\n" +
         "Личные данные:\n" +
@@ -287,7 +338,14 @@ serve(async (req) => {
         (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" : "") +
         (symptomLines ? "\nПоследние симптомы:\n" + symptomLines + "\n" : "") +
         (prescriptionLines ? "\nАктивные назначения:\n" + prescriptionLines + "\n" : "") +
-        (analyses && analyses.length > 0 ? "\nИстория анализов: " + analyses.length + " записей\nПоследний анализ: биологический возраст " + (analyses[0]?.biological_age || 'н/д') + ", индекс здоровья " + (analyses[0]?.health_index || 'н/д') + "\n" : "");
+        (analyses && analyses.length > 0
+          ? "\nИстория анализов: " + analyses.length + " записей\n" +
+            "Последний анализ (" + (latestA?.date || 'н/д') + "):\n" +
+            "- Биологический возраст: " + (bioAge ?? 'н/д') + (ageDiff != null ? " (Δ к хроно: " + (Number(ageDiff) >= 0 ? "+" : "") + ageDiff + ")" : "") + "\n" +
+            "- Индекс здоровья: " + (hIndex ?? 'н/д') + "\n"
+          : "") +
+        (recommendationsBlock ? "\nРЕКОМЕНДАЦИИ И РАЗДЕЛЫ ОТЧЁТА (последний анализ):\n" + recommendationsBlock + "\n" : "") +
+        strategyBlock;
     }
 
     // Helper function to calculate age
