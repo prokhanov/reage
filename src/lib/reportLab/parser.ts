@@ -686,26 +686,18 @@ function injectHeadingBiomarkerAnchors(
         blockStart = prev === -1 ? boundary : prev + 2;
       }
 
-      // Ограничение: карточка Pass-3 не должна поглощать более 2 абзацев
-      // образовательного текста перед «Ваш показатель …». Иначе, когда
-      // предыдущей границы нет (первый биомаркер категории), в карточку
-      // затягивается всё вступление категории и оно исчезает из отчёта.
+      // Ограничение: карточка Pass-3 захватывает ровно 1 абзац образовательного
+      // текста непосредственно ПЕРЕД «Ваш показатель …». Больше нельзя — иначе
+      // в карточку затягивается пост-текст предыдущего биомаркера («Что это
+      // значит для вас: …»), который идёт между предыдущим «Ваш показатель X»
+      // и вводным абзацем следующего биомаркера.
       {
-        const MAX_LEAD_PARAGRAPHS = 2;
-        let capped = pos;
-        for (let p = 0; p < MAX_LEAD_PARAGRAPHS; p++) {
-          // Ищем предыдущий разделитель абзаца СТРОГО перед текущим блоком.
-          // capped - 3 гарантирует, что уже учтённый "\n\n" (стоящий на позиции
-          // capped - 2) не будет пойман повторно — иначе цикл топчется на месте
-          // и мы прихватываем только 1 абзац вместо MAX_LEAD_PARAGRAPHS.
-          const searchFrom = capped - 3;
-          if (searchFrom < 0) break;
-          const prev = text.lastIndexOf("\n\n", searchFrom);
-          if (prev === -1 || prev < blockStart) break;
-          capped = prev + 2;
+        const prev = text.lastIndexOf("\n\n", pos - 1);
+        if (prev !== -1 && prev + 2 > blockStart) {
+          blockStart = prev + 2;
         }
-        if (capped > blockStart) blockStart = capped;
       }
+
 
       hits.push({
         start: blockStart,
