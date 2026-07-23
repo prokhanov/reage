@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,6 +139,30 @@ export function ReportEditorToolbar({
       setSaving(false);
     }
   };
+
+  // Экспонируем save/hasEdits наружу — используется в ReportV2Dialog для
+  // подтверждения закрытия при клике вне окна.
+  useEffect(() => {
+    if (mode !== "edit") return;
+    const w = window as typeof window & {
+      __reportV2Save?: () => Promise<void>;
+      __reportV2HasEdits?: () => boolean;
+    };
+    w.__reportV2Save = save;
+    w.__reportV2HasEdits = () => {
+      const liveDrafts = (window as typeof window & {
+        __reportLabCollectDrafts?: () => Record<string, string>;
+      }).__reportLabCollectDrafts?.() ?? drafts;
+      const hasRecChanges =
+        collectDirtyRecommendations(report, liveDrafts).length > 0;
+      const coverDirty = !jsonEqual(coverOverrides, report.coverOverrides ?? null);
+      return hasRecChanges || coverDirty;
+    };
+    return () => {
+      if (w.__reportV2Save === save) delete w.__reportV2Save;
+      delete w.__reportV2HasEdits;
+    };
+  }, [mode, save, drafts, coverOverrides, report]);
 
   return (
     <div className="flex gap-2">
