@@ -44,7 +44,10 @@ interface Template {
   body_text: string
   button_label: string | null
   footer_text: string
+  secondary_button_label?: string | null
+  secondary_button_url?: string | null
 }
+
 
 interface Vars {
   patient_name?: string
