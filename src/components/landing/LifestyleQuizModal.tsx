@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +93,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [demo, setDemo] = useState<Partial<Demography>>({});
   const [answers, setAnswers] = useState<Answers>({});
   const [contact, setContact] = useState<{ email?: string; name?: string; phone?: string }>({});
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
     setStep(0);
@@ -137,6 +138,22 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const goNext = () => setStep((s) => Math.min(9, s + 1));
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
+  // Scroll to top of the modal body on every step change.
+  useEffect(() => {
+    if (open && bodyRef.current) {
+      bodyRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [step, open]);
+
+  // On screens with only button questions (domain steps 2..7), auto-advance
+  // as soon as all questions for the current domain are answered.
+  useEffect(() => {
+    if (step >= 2 && step <= 7 && currentAllAnswered) {
+      const timer = setTimeout(() => goNext(), 350);
+      return () => clearTimeout(timer);
+    }
+  }, [step, currentAllAnswered]);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden border-border/50 sm:rounded-3xl bg-card max-h-[90vh] flex flex-col">
@@ -177,7 +194,10 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
         </div>
 
         {/* Body */}
-        <div className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 flex-1 overflow-y-auto">
+        <div
+          ref={bodyRef}
+          className="relative px-6 md:px-10 pb-8 md:pb-10 pt-6 flex-1 overflow-y-auto"
+        >
           <div key={step} className="animate-fade-in">
             {step === 0 && <IntroStep onNext={goNext} />}
             {step === 1 && (
