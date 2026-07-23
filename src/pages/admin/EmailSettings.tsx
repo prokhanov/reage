@@ -25,6 +25,8 @@ interface EmailTemplate {
   button_label: string | null;
   footer_text: string;
   signature_text: string;
+  secondary_button_label: string | null;
+  secondary_button_url: string | null;
   is_active?: boolean;
 }
 
@@ -38,7 +40,7 @@ const TEMPLATE_TABS = [
   { type: "booking_report_pending", label: "Отчёт в работе" },
   { type: "booking_report_ready", label: "Отчёт загружен" },
   { type: "example_report_landing", label: "Пример отчёта (лендинг)" },
-  { type: "lifestyle_quiz_lead", label: "Квиз Lifestyle-6" },
+  { type: "lifestyle_quiz_lead", label: "Приветствие после теста" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -51,8 +53,19 @@ const TEST_NOTES: Record<string, string> = {
   booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
   booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
   example_report_landing: "Письмо клиенту, оставившему заявку «Прислать пример отчёта» на лендинге — со ссылкой на демо-отчёт",
-  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения квиза Lifestyle-6",
+  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения теста образа жизни",
 };
+
+const SUPPORTS_SECONDARY_BUTTON = new Set([
+  "booking_scheduled",
+  "booking_application_submitted",
+  "booking_collected",
+  "booking_report_pending",
+  "booking_report_ready",
+  "example_report_landing",
+  "lifestyle_quiz_lead",
+]);
+
 
 
 
@@ -143,10 +156,13 @@ export default function EmailSettings() {
         button_label: template.button_label,
         footer_text: template.footer_text,
         signature_text: template.signature_text,
+        secondary_button_label: template.secondary_button_label,
+        secondary_button_url: template.secondary_button_url,
         is_active: template.is_active ?? true,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
+
 
     if (error) {
       toast({ title: "Ошибка", description: "Не удалось сохранить шаблон", variant: "destructive" });
@@ -363,14 +379,6 @@ export default function EmailSettings() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Заголовок</Label>
-                        <Input
-                          value={t.heading}
-                          onChange={(e) => updateTemplateField(tab.type, "heading", e.target.value)}
-                          placeholder="Заголовок в теле письма"
-                        />
-                      </div>
-                      <div className="space-y-2">
                         <Label>Основной текст</Label>
                         <Textarea
                           value={t.body_text}
@@ -381,7 +389,7 @@ export default function EmailSettings() {
                       </div>
                       {hasButton(tab.type) && (
                         <div className="space-y-2">
-                          <Label>Текст кнопки</Label>
+                          <Label>Текст основной кнопки</Label>
                           <Input
                             value={t.button_label || ""}
                             onChange={(e) => updateTemplateField(tab.type, "button_label", e.target.value)}
@@ -389,6 +397,30 @@ export default function EmailSettings() {
                           />
                         </div>
                       )}
+                      {SUPPORTS_SECONDARY_BUTTON.has(tab.type) && (
+                        <div className="grid sm:grid-cols-2 gap-4 p-3 rounded-lg border border-dashed border-border">
+                          <div className="space-y-2">
+                            <Label>Вторая кнопка — текст (необязательно)</Label>
+                            <Input
+                              value={t.secondary_button_label || ""}
+                              onChange={(e) => updateTemplateField(tab.type, "secondary_button_label", e.target.value)}
+                              placeholder="Например, Посмотреть демо-кабинет"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Вторая кнопка — ссылка</Label>
+                            <Input
+                              value={t.secondary_button_url || ""}
+                              onChange={(e) => updateTemplateField(tab.type, "secondary_button_url", e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </div>
+                          <p className="sm:col-span-2 text-xs text-muted-foreground">
+                            Показывается, только если заполнены оба поля.
+                          </p>
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <Label>Подпись / футер</Label>
                         <Textarea
