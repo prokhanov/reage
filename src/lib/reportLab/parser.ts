@@ -333,12 +333,14 @@ export function resolveRange(
       gender === "female" ? ageRanges.female : ageRanges.male;
     const row = pickAgeRow(genderRows ?? null, age);
     if (row) {
-      if (row.min != null) warningMin = row.min;
-      if (row.max != null) warningMax = row.max;
-      if (row.optimal_min != null) optimalMin = row.optimal_min;
-      if (row.optimal_max != null) optimalMax = row.optimal_max;
-      if (row.critical_min != null) criticalMin = row.critical_min;
-      if (row.critical_max != null) criticalMax = row.critical_max;
+      // В age-режиме плоские колонки не применимы (они не учитывают возраст).
+      // Полностью заменяем значения на строку из age_ranges для нужного возраста.
+      warningMin = row.min ?? null;
+      warningMax = row.max ?? null;
+      optimalMin = row.optimal_min ?? null;
+      optimalMax = row.optimal_max ?? null;
+      criticalMin = row.critical_min ?? null;
+      criticalMax = row.critical_max ?? null;
     }
   }
 
