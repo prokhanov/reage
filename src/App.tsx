@@ -36,7 +36,7 @@ import ExampleReport from "./pages/ExampleReport";
 import DemoReport from "./pages/DemoReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
 import Faq from "./pages/Faq";
-import LifestyleQuiz from "./pages/LifestyleQuiz";
+import LifestyleTest from "./pages/LifestyleTest";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
@@ -121,7 +121,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/prep" element={<AnalysisPrep />} />
             <Route path="/faq" element={<Faq />} />
-            <Route path="/lifestyle-quiz" element={<LifestyleQuiz />} />
+            <Route path="/lifestyle-test" element={<LifestyleTest />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/:step" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />
