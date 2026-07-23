@@ -411,6 +411,47 @@ async function handleTick(supabase: any, body: any) {
   // Шаг упал — ретрай или фейл. Единый бюджет MAX_ATTEMPTS для всех kind.
   const idle = isIdleTimeoutError(stepError);
   const markedError = idle ? `idle_timeout: ${stepError}` : stepError;
+
+  // RESCUE: при IDLE_TIMEOUT для category/prescriptions analyze-biomarkers мог
+  // успеть сохранить рекомендацию в БД до того как edge убил соединение.
+  // Проверяем — если контент есть, считаем шаг успешным и идём дальше.
+  if (idle && (step.kind === "category" || step.kind === "prescriptions")) {
+    const recType = step.kind === "prescriptions"
+      ? "Назначения"
+      : (step.payload as any)?.categoryFilter?.[0];
+    if (recType) {
+      const { data: rec } = await supabase
+        .from("recommendations")
+        .select("content, content_json, updated_at")
+        .eq("user_id", j.user_id)
+        .eq("type", recType)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
+      const savedDuringStep = savedAt >= stepStartedAt - 5000;
+      const contentLen = (rec?.content ?? "").length;
+      const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
+      if (savedDuringStep && (contentLen > 500 || hasJson)) {
+        const newDone = stepIdx + 1;
+        const isLast = newDone >= j.steps.length;
+        console.warn(
+          `[job ${j.id}] 🛟 RESCUE "${step.label}" после IDLE_TIMEOUT: рекомендация сохранена в БД (len=${contentLen}, updated_at=${rec.updated_at}), помечаем шаг как OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+        );
+        await supabase.from("report_jobs").update({
+          steps_done: newDone,
+          attempts: 0,
+          current_step: isLast ? null : j.steps[newDone].id,
+          status: isLast ? "done" : "running",
+          finished_at: isLast ? new Date().toISOString() : null,
+          error: null,
+        }).eq("id", j.id);
+        if (!isLast) scheduleTick(j.id);
+        return json({ success: true, rescued: true, step: step.id, done: newDone, total: j.steps.length });
+      }
+    }
+  }
+
   const newAttempts = j.attempts + 1;
   if (newAttempts < MAX_ATTEMPTS) {
     const reason = idle ? "IDLE_TIMEOUT" : "ERROR";
