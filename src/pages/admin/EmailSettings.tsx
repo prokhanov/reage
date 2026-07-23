@@ -335,12 +335,30 @@ export default function EmailSettings() {
 
                   return (
                     <TabsContent key={tab.type} value={tab.type} className="space-y-4 mt-4">
+                      <div className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border bg-muted/30">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Отправка писем</p>
+                          <p className="text-xs text-muted-foreground">Если выключено, письма этого типа не будут отправляться пользователям.</p>
+                        </div>
+                        <Switch
+                          checked={t.is_active ?? true}
+                          onCheckedChange={(v) => updateTemplateField(tab.type, "is_active", v)}
+                        />
+                      </div>
                       <div className="space-y-2">
                         <Label>Тема письма</Label>
                         <Input
                           value={t.subject}
                           onChange={(e) => updateTemplateField(tab.type, "subject", e.target.value)}
                           placeholder="Тема письма"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Заголовок</Label>
+                        <Input
+                          value={t.heading}
+                          onChange={(e) => updateTemplateField(tab.type, "heading", e.target.value)}
+                          placeholder="Заголовок в теле письма"
                         />
                       </div>
                       <div className="space-y-2">
