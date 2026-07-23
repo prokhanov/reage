@@ -748,8 +748,15 @@ function ContactFooter({
 
 // ---------- Result (screen 9) ----------
 
-function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeResult>> }) {
+function ResultStep({
+  result,
+  contact,
+}: {
+  result: NonNullable<ReturnType<typeof computeResult>>;
+  contact: { email?: string; name?: string; phone?: string };
+}) {
   const hasStrong = result.items.length > 0;
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
     <div className="space-y-6">
       {/* Заголовок с тоном */}
