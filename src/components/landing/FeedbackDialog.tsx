@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, X, CheckCircle, Loader2, MessageSquare } from "lucide-react";
 import {
   Dialog,
