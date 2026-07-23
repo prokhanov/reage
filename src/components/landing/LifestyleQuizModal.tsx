@@ -82,6 +82,12 @@ function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 }
 
+function capitalize(s: string): string {
+  if (!s) return s;
+  const t = s.trim();
+  return t.charAt(0).toLocaleUpperCase("ru-RU") + t.slice(1);
+}
+
 export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [step, setStep] = useState(0);
   const [demo, setDemo] = useState<Partial<Demography>>({});
