@@ -344,9 +344,11 @@ function IntroStep({ onNext }: { onNext: () => void }) {
 function DemographyStep({
   demo,
   setDemo,
+  validated,
 }: {
   demo: Partial<Demography>;
   setDemo: (d: Partial<Demography>) => void;
+  validated?: boolean;
 }) {
   return (
     <div className="space-y-7">
