@@ -237,12 +237,88 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [analysisId, userId, regenCategory, reloadReport],
   );
 
-  // Клики по кнопкам [data-rl-regenerate-category] внутри рендер-контейнера.
+  const regenerateSummary = useCallback(
+    async () => {
+      if (regenCategory) {
+        toast.info("Уже идёт перегенерация", `Раздел «${regenCategory}»`);
+        return;
+      }
+      const w = window as typeof window & { __reportV2HasEdits?: () => boolean };
+      if (w.__reportV2HasEdits?.()) {
+        const ok = window.confirm(
+          "В отчёте есть несохранённые правки. Перегенерация «Общего резюме» перезапишет его текст. Продолжить?",
+        );
+        if (!ok) return;
+      } else if (
+        !window.confirm("Перегенерировать «Общее резюме»? Текст будет полностью пересобран ИИ.")
+      ) {
+        return;
+      }
+      setRegenCategory("Общее резюме");
+      try {
+        const endpoint = edgeFunctionUrl("report-orchestrator");
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const startRes = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ action: "regenerate_summary", analysisId, userId }),
+        });
+        const startJson = await startRes.json().catch(() => ({}));
+        if (!startRes.ok || !startJson?.success) {
+          throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+        }
+        const jobId = startJson.jobId as string;
+        const deadline = Date.now() + 4 * 60_000;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          if (Date.now() > deadline) throw new Error("Таймаут ожидания генерации");
+          await new Promise((r) => setTimeout(r, 3000));
+          const statusRes = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ action: "status", jobId }),
+          });
+          const statusJson = await statusRes.json().catch(() => ({}));
+          const s = statusJson?.job?.status;
+          if (s === "completed" || s === "success" || s === "done") break;
+          if (s === "failed" || s === "error") {
+            throw new Error(statusJson?.job?.error || "Ошибка генерации");
+          }
+        }
+        await reloadReport();
+        toast.success("Общее резюме перегенерировано");
+      } catch (e) {
+        console.error("[ReportV2Editor] regenerateSummary failed", e);
+        toast.error("Не удалось перегенерировать", e instanceof Error ? e.message : String(e));
+      } finally {
+        setRegenCategory(null);
+      }
+    },
+    [analysisId, userId, regenCategory, reloadReport],
+  );
+
+  // Клики по кнопкам [data-rl-regenerate-category] / [data-rl-regenerate-summary] внутри рендер-контейнера.
   useEffect(() => {
     const el = previewContainerRef.current;
     if (!el) return;
     const handler = (ev: MouseEvent) => {
       const target = ev.target as HTMLElement | null;
+      const summaryBtn = target?.closest("[data-rl-regenerate-summary]") as HTMLElement | null;
+      if (summaryBtn) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        void regenerateSummary();
+        return;
+      }
       const btn = target?.closest("[data-rl-regenerate-category]") as HTMLElement | null;
       if (!btn) return;
       ev.preventDefault();
@@ -252,7 +328,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     };
     el.addEventListener("click", handler, true);
     return () => el.removeEventListener("click", handler, true);
-  }, [regenerateCategory]);
+  }, [regenerateCategory, regenerateSummary]);
+
 
 
   const navSections = useMemo<ReportNavSection[]>(() => {

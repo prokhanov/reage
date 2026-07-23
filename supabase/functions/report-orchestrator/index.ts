@@ -85,6 +85,9 @@ serve(async (req) => {
     if (action === "regenerate_category") {
       return await handleRegenerateCategory(supabase, body);
     }
+    if (action === "regenerate_summary") {
+      return await handleRegenerateSummary(supabase, body);
+    }
     return json({ success: false, error: `Unknown action: ${action}` }, 400);
   } catch (e: any) {
     console.error("orchestrator error:", e);
@@ -589,4 +592,67 @@ async function handleRegenerateCategory(supabase: any, body: any) {
   scheduleTick(job.id);
   return json({ success: true, jobId: job.id, steps_total: 1 });
 }
+
+async function handleRegenerateSummary(supabase: any, body: any) {
+  const { analysisId, userId } = body;
+  const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  if (!analysisId || !userId) {
+    return json({ success: false, error: "analysisId, userId обязательны" }, 400);
+  }
+
+  // Не запускаем поверх активной джобы.
+  const { data: existing } = await supabase
+    .from("report_jobs")
+    .select("id, updated_at")
+    .eq("analysis_id", analysisId)
+    .in("status", ["queued", "running"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    const ageMs = Date.now() - new Date(existing.updated_at).getTime();
+    if (ageMs < STALE_RUNNING_THRESHOLD_MS) {
+      return json({ success: false, error: "Уже идёт генерация отчёта, дождитесь завершения" }, 409);
+    }
+    await supabase.from("report_jobs")
+      .update({ status: "failed", error: "stalled", finished_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  }
+
+  // Удаляем старое общее резюме, чтобы finalize/summary сгенерировал заново.
+  const { error: delErr } = await supabase
+    .from("recommendations")
+    .delete()
+    .eq("analysis_id", analysisId)
+    .eq("type", "Общее резюме");
+  if (delErr) console.warn("[regenerate_summary] delete old summary:", delErr.message);
+
+  const steps: StepDef[] = [{
+    id: "finalize:summary",
+    label: "Общее резюме",
+    kind: "finalize",
+    payload: { phase: "summary" },
+  }];
+
+  const { data: job, error: insErr } = await supabase
+    .from("report_jobs")
+    .insert({
+      analysis_id: analysisId,
+      user_id: userId,
+      mode,
+      status: "running",
+      steps,
+      steps_total: 1,
+      steps_done: 0,
+      current_step: steps[0].id,
+      metadata: { started_via: "orchestrator", regenerate_summary: true },
+    })
+    .select("*")
+    .single();
+  if (insErr) throw insErr;
+
+  scheduleTick(job.id);
+  return json({ success: true, jobId: job.id, steps_total: 1 });
+}
+
 

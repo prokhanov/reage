@@ -1,6 +1,8 @@
 import type { LabReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
+import { useReportEditor } from "../editor/ReportEditorContext";
+
 
 
 interface Props {
@@ -16,11 +18,34 @@ export function ReportOverview({ report }: Props) {
   const summaryText = extractSummaryText(summaryRow?.content_json, summaryRow?.text);
   const age = calcAge(patient.birth_date, analysis.date);
 
+  const ctx = useReportEditor();
+  const isEdit = ctx?.mode === "edit";
+
   return (
     <section className="rl-page" data-section-id="overview">
-      <h1 className="rl-h1" data-section-title="Общее резюме">
-        Общее резюме
+      <h1 className="rl-h1" data-section-title="Общее резюме" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span>Общее резюме</span>
+        {isEdit && (
+          <button
+            type="button"
+            data-rl-regenerate-summary="true"
+            title="Пересобрать общее резюме через ИИ"
+            style={{
+              marginLeft: "auto",
+              padding: "4px 10px",
+              fontSize: "10pt",
+              border: "1px solid #6366f1",
+              background: "#eef2ff",
+              color: "#4338ca",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            ↻ Перегенерировать
+          </button>
+        )}
       </h1>
+
 
       <div className="rl-stats">
         <div className="rl-stat">
