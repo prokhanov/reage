@@ -66,6 +66,15 @@ export function getCategoryRecords(report: LabReport) {
     );
 }
 
+/**
+ * Алиасы кодов, которые ИИ/legacy-текст может использовать вместо канонических
+ * кодов из БД. Ключ — альтернативный код, значение — канонический код.
+ */
+const CODE_ALIASES: Record<string, string> = {
+  "PT_QUICK": "PT-Q",
+  "APOB_A1_RATIO": "ApoB/A1",
+};
+
 /** Мапа code → биомаркер, для быстрого поиска при парсинге. */
 export function buildBiomarkerIndex(
   report: LabReport,
@@ -73,6 +82,12 @@ export function buildBiomarkerIndex(
   const index = new Map<string, ReportBiomarker>();
   for (const b of report.biomarkers) {
     index.set(normalizeCode(b.code), b);
+  }
+  for (const [alias, canonical] of Object.entries(CODE_ALIASES)) {
+    const bio = index.get(normalizeCode(canonical));
+    if (bio) {
+      index.set(normalizeCode(alias), bio);
+    }
   }
   return index;
 }
