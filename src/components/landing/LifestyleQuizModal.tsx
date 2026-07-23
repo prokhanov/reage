@@ -817,7 +817,7 @@ function ResultStep({ result }: { result: NonNullable<ReturnType<typeof computeR
                       Отметили
                     </div>
                     <div className="text-sm font-medium leading-snug">
-                      {item.observation}
+                      {capitalize(item.observation)}
                     </div>
                   </div>
                   <div className="hidden sm:flex items-center justify-center text-muted-foreground">
