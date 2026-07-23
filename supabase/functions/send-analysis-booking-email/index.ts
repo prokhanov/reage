@@ -184,7 +184,9 @@ Deno.serve(async (req) => {
       : (body.vars || {})
 
     const defaultCta = isExampleReport ? `${APP_URL}/demo-report` : `${APP_URL}/profile`
-    const ctaUrl: string = body.cta_url || defaultCta
+    // ctaUrl priority: explicit body.cta_url > template.button_url (from admin) > defaultCta.
+    // Resolved after template load below.
+    let ctaUrl: string = body.cta_url || defaultCta
 
     // Resolve template type: explicit > by booking status > default
     const requestedType: string | undefined =
