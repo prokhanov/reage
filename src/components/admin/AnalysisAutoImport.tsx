@@ -708,6 +708,9 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
             <div className="space-y-2 text-xs">
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-green-600 hover:bg-green-600">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
+                {planComparison.willCalculate.length > 0 && (
+                  <Badge className="bg-blue-600 hover:bg-blue-600">Будет рассчитано {planComparison.willCalculate.length}</Badge>
+                )}
                 {planComparison.missing.length > 0 && (
                   <Badge variant="destructive">Не найдено {planComparison.missing.length}</Badge>
                 )}
@@ -715,6 +718,26 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                   <Badge variant="secondary">Сверх тарифа {planComparison.extraCount}</Badge>
                 )}
               </div>
+              {planComparison.willCalculate.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Показать расчётные ({planComparison.willCalculate.length})
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="pl-4 list-disc space-y-0.5 mt-1">
+                      {planComparison.willCalculate.map(b => (
+                        <li key={b.id}>
+                          <span className="font-medium">{b.name}</span>
+                          <span className="text-muted-foreground"> · {b.code} — вычислится автоматически</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
               {planComparison.missing.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
