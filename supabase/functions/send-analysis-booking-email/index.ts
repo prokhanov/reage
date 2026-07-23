@@ -223,7 +223,9 @@ Deno.serve(async (req) => {
     }
 
     const template = tpl as Template
-    if (templateType === 'booking_application_submitted' && !isTest && !String(vars.request_number || '').trim()) {
+    if (!body.cta_url && template.button_url && String(template.button_url).trim()) {
+      ctaUrl = applyVars(String(template.button_url).trim(), vars)
+    }
       return new Response(JSON.stringify({ error: 'Не заполнен номер заявки ЛабКвест' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
