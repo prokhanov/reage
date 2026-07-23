@@ -179,9 +179,9 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-muted/40 border border-border/40">
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-muted/40 border border-border/40 invisible">
               <ShieldCheck className="w-3 h-3" />
-              Не диагноз
+              {" "}
             </div>
           </div>
           {/* Continuous progress bar */}
