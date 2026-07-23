@@ -211,7 +211,7 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
             {step === 8 && (
               <ContactStep contact={contact} setContact={setContact} />
             )}
-            {step === 9 && result && <ResultStep result={result} />}
+            {step === 9 && result && <ResultStep result={result} contact={contact} />}
           </div>
         </div>
 
