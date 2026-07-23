@@ -36,6 +36,7 @@ import ExampleReport from "./pages/ExampleReport";
 import DemoReport from "./pages/DemoReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
 import Faq from "./pages/Faq";
+import LifestyleQuiz from "./pages/LifestyleQuiz";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
