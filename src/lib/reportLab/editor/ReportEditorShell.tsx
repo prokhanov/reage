@@ -159,6 +159,17 @@ export function ReportEditorToolbar({
     };
   }, [mode, save, drafts, coverOverrides, report]);
 
+  if (!ctx) return null;
+
+  if (mode === "view") {
+    return (
+      <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
+        <Pencil className="mr-2 h-4 w-4" />
+        Редактировать
+      </Button>
+    );
+  }
+
   return (
     <div className="flex gap-2">
       <Button size="sm" variant="ghost" onClick={cancel} disabled={saving}>
