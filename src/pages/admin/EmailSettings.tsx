@@ -25,6 +25,8 @@ interface EmailTemplate {
   button_label: string | null;
   footer_text: string;
   signature_text: string;
+  secondary_button_label: string | null;
+  secondary_button_url: string | null;
   is_active?: boolean;
 }
 
@@ -38,7 +40,7 @@ const TEMPLATE_TABS = [
   { type: "booking_report_pending", label: "Отчёт в работе" },
   { type: "booking_report_ready", label: "Отчёт загружен" },
   { type: "example_report_landing", label: "Пример отчёта (лендинг)" },
-  { type: "lifestyle_quiz_lead", label: "Квиз Lifestyle-6" },
+  { type: "lifestyle_quiz_lead", label: "Приветствие после теста" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -51,8 +53,19 @@ const TEST_NOTES: Record<string, string> = {
   booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
   booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
   example_report_landing: "Письмо клиенту, оставившему заявку «Прислать пример отчёта» на лендинге — со ссылкой на демо-отчёт",
-  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения квиза Lifestyle-6",
+  lifestyle_quiz_lead: "Приветственное письмо клиенту после прохождения теста образа жизни",
 };
+
+const SUPPORTS_SECONDARY_BUTTON = new Set([
+  "booking_scheduled",
+  "booking_application_submitted",
+  "booking_collected",
+  "booking_report_pending",
+  "booking_report_ready",
+  "example_report_landing",
+  "lifestyle_quiz_lead",
+]);
+
 
 
 
