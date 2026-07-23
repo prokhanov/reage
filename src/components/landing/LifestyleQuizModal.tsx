@@ -95,7 +95,6 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   const [answers, setAnswers] = useState<Answers>({});
   const [contact, setContact] = useState<{ email?: string; name?: string; phone?: string }>({});
   const bodyRef = useRef<HTMLDivElement>(null);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const reset = () => {
     setStep(0);
