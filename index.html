@@ -26,6 +26,49 @@
     <meta name="twitter:description" content="Мониторинг здоровья по биомаркерам (100+): расшифровка анализов и персональные рекомендации." />
     <meta name="twitter:image" content="https://reage.life/og-image.jpg" />
 
+    <script>
+      (function () {
+        function isAssetCss(link) {
+          return link && link.rel === "stylesheet" && link.href && link.href.indexOf("/assets/") !== -1;
+        }
+
+        function retry(link) {
+          if (link.dataset.rlRetried) return;
+          link.dataset.rlRetried = "true";
+          try {
+            console.warn("[RL] CSS load failed, retrying:", link.href);
+            var separator = link.href.indexOf("?") === -1 ? "?" : "&";
+            var newLink = document.createElement("link");
+            newLink.rel = "stylesheet";
+            newLink.href = link.href + separator + "retry=" + Date.now();
+            if (link.crossOrigin) newLink.crossOrigin = link.crossOrigin;
+            if (link.parentNode) link.parentNode.insertBefore(newLink, link.nextSibling);
+          } catch (e) {
+            // If retry fails, leave the original link for inspection.
+          }
+        }
+
+        function watch(link) {
+          if (!isAssetCss(link) || link.dataset.rlWatched) return;
+          link.dataset.rlWatched = "true";
+          link.addEventListener("error", function () { retry(link); }, { once: true });
+        }
+
+        var links = document.querySelectorAll('link[rel="stylesheet"]');
+        for (var i = 0; i < links.length; i++) watch(links[i]);
+
+        if ("MutationObserver" in window) {
+          new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+              var added = mutations[i].addedNodes;
+              for (var j = 0; j < added.length; j++) {
+                if (added[j].tagName === "LINK") watch(added[j]);
+              }
+            }
+          }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+      })();
+    </script>
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
