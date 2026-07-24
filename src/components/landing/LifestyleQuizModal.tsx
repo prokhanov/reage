@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -615,7 +615,7 @@ function DomainStep({
 }: {
   domain: DomainKey;
   answers: Answers;
-  setAnswers: (a: Answers) => void;
+  setAnswers: Dispatch<SetStateAction<Answers>>;
 }) {
   const Icon = DOMAIN_ICONS[domain];
   const qs = QUESTIONS.filter((q) => q.domain === domain);
@@ -646,7 +646,7 @@ function DomainStep({
                   key={i}
                   active={answers[q.id] === i}
                   onClick={() =>
-                    setAnswers({ ...answers, [q.id]: i as 0 | 1 | 2 })
+                    setAnswers((prev) => ({ ...prev, [q.id]: i as 0 | 1 | 2 }))
                   }
                   full
                 >
