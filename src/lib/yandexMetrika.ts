@@ -15,6 +15,7 @@ export function reachGoal(goal: string, params?: Record<string, unknown>) {
     } else {
       ym(YM_COUNTER_ID, "reachGoal", goal);
     }
+    console.debug("[ym] reachGoal sent", { counterId: YM_COUNTER_ID, goal, params });
   } catch (err) {
     console.debug("[ym] reachGoal threw", { goal, err });
   }

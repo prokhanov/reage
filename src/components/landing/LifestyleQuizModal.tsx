@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,10 +166,12 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     }
     if (step === 1 && !firstQuestionGoalSentRef.current) {
       firstQuestionGoalSentRef.current = true;
+      console.debug("[lifestyle-quiz] first question opened", { goal: "1question", step });
       reachGoal("1question");
     }
     if (step === 8 && !contactGoalSentRef.current) {
       contactGoalSentRef.current = true;
+      console.debug("[lifestyle-quiz] contact form opened", { goal: "quiz_contact_open", step });
       reachGoal("quiz_contact_open");
     }
   }, [step, open]);
@@ -613,7 +615,7 @@ function DomainStep({
 }: {
   domain: DomainKey;
   answers: Answers;
-  setAnswers: (a: Answers) => void;
+  setAnswers: Dispatch<SetStateAction<Answers>>;
 }) {
   const Icon = DOMAIN_ICONS[domain];
   const qs = QUESTIONS.filter((q) => q.domain === domain);
@@ -644,7 +646,7 @@ function DomainStep({
                   key={i}
                   active={answers[q.id] === i}
                   onClick={() =>
-                    setAnswers({ ...answers, [q.id]: i as 0 | 1 | 2 })
+                    setAnswers((prev) => ({ ...prev, [q.id]: i as 0 | 1 | 2 }))
                   }
                   full
                 >
@@ -745,6 +747,9 @@ function ContactFooter({
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
+    const email = contact.email?.trim();
+    if (!email || !isValidEmail(email)) return;
+
     setSubmitting(true);
     try {
       const result =
@@ -752,7 +757,7 @@ function ContactFooter({
           ? computeResult(answers, demo as Demography)
           : null;
       const payload = {
-        email: contact.email!.trim(),
+        email,
         name: contact.name?.trim() || null,
         phone: contact.phone?.trim() || null,
         quiz_version: QUIZ_VERSION,
@@ -771,6 +776,7 @@ function ContactFooter({
       );
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+      console.debug("[lifestyle-quiz] submitted successfully", { goal: "kviz_form", step: 8 });
       reachGoal("kviz_form");
       onDone();
     } catch (e) {
