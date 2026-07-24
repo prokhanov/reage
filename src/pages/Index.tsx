@@ -52,11 +52,16 @@ const ConsultationCtaBlock = lazy(() =>
 );
 
 // Reserved placeholder to prevent CLS while a lazy section resolves.
-const SectionFallback = () => <div aria-hidden className="min-h-[320px]" />;
+// Higher min-height reduces скачки при подгрузке чанков на медленных сетях.
+const SectionFallback = () => <div aria-hidden className="min-h-[600px]" />;
 
-/** Wraps a lazy section in its own <Suspense> so slow chunks don't block siblings. */
+/** Wraps a lazy section in its own <Suspense> so slow chunks don't block siblings.
+ *  cv-section включает content-visibility: auto — браузер не рендерит секции
+ *  вне viewport, что резко ускоряет скролл на слабых мобильных устройствах. */
 const S = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<SectionFallback />}>{children}</Suspense>
+  <section className="cv-section">
+    <Suspense fallback={<SectionFallback />}>{children}</Suspense>
+  </section>
 );
 
 const Index = () => {
@@ -96,5 +101,6 @@ const Index = () => {
     </div>
   );
 };
+
 
 export default Index;
