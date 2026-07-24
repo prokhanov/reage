@@ -26,7 +26,7 @@ function injectMainCssPreload() {
       if (!cssFiles.length) return html;
 
       const preloadLinks = cssFiles
-        .map((file) => `    <link rel="preload" as="style" href="/${file}" />`)
+        .map((file) => `    <link rel="preload" as="style" crossorigin href="/${file}" />`)
         .join("\n");
 
       return html.replace(
