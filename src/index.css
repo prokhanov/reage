@@ -270,6 +270,59 @@ All colors MUST be HSL.
     }
   }
 
+  /* Комплексный мобильный "GPU-lite" профиль — убираем самые дорогие эффекты,
+     из-за которых блоки лендинга подтормаживают на средних/слабых телефонах.
+     Активен на тач-устройствах И узких экранах (≤ 900px) — этого достаточно,
+     чтобы не задеть десктоп/планшет-ландшафт. */
+  @media (max-width: 900px), (pointer: coarse) {
+    /* 1. Backdrop-filter — самый тяжёлый эффект для мобильного GPU.
+       Каждый blur заставляет растеризовать всё, что под ним, при любом скролле. */
+    [class*="backdrop-blur"] {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* 2. Крупные декоративные размытые пятна (blur-2xl / blur-3xl) —
+       растеризация огромных областей с filter: blur() дорогая.
+       Полностью скрываем их только на "чистых" декоративных обёртках
+       с абсолютным позиционированием (aria-hidden, pointer-events-none). */
+    .blur-2xl,
+    .blur-3xl {
+      filter: blur(0) !important;
+      opacity: 0.35 !important;
+    }
+    [aria-hidden="true"].blur-3xl,
+    [aria-hidden="true"] .blur-3xl,
+    [aria-hidden="true"].blur-2xl,
+    [aria-hidden="true"] .blur-2xl {
+      display: none !important;
+    }
+
+    /* 3. Пульсации / glow / shimmer / gradient-анимации — постоянно
+       перерисовываются, держат main thread занятым во время скролла. */
+    .animate-pulse,
+    .animate-ping,
+    .animate-glow,
+    .animate-shimmer,
+    .animate-gradient,
+    .animate-gradient-x,
+    .animate-gradient-y {
+      animation: none !important;
+    }
+  }
+
+  /* Полный reduce-motion — снимаем ВСЁ, если пользователь так попросил в системе. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Content-visibility для тяжёлых секций лендинга — браузер пропускает
      layout/paint для секций вне viewport, что резко ускоряет скролл на слабых
      устройствах. contain-intrinsic-size резервирует место, чтобы не было CLS. */
@@ -279,6 +332,7 @@ All colors MUST be HSL.
   }
 
 }
+
 
 @keyframes hue-shift {
   0% { filter: hue-rotate(0deg) saturate(0.85); }
