@@ -4,6 +4,38 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
 
+/**
+ * Injects a <link rel="preload" as="style"> for the hashed main CSS bundle
+ * so the browser starts downloading it before parsing the full HTML.
+ */
+function injectMainCssPreload() {
+  return {
+    name: "inject-main-css-preload",
+    transformIndexHtml(html, ctx) {
+      if (!ctx?.bundle) return html;
+
+      const cssFiles = Object.entries(ctx.bundle)
+        .filter(([fileName, asset]) =>
+          fileName.endsWith(".css") &&
+          (asset.type === "asset" || asset.type === "chunk") &&
+          fileName.startsWith("assets/index-")
+        )
+        .map(([fileName]) => fileName);
+
+      if (!cssFiles.length) return html;
+
+      const preloadLinks = cssFiles
+        .map((file) => `    <link rel="preload" as="style" href="/${file}" />`)
+        .join("\n");
+
+      return html.replace(
+        /<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>/,
+        `${preloadLinks}\n    <link rel="preconnect" href="https://fonts.googleapis.com" />`
+      );
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -12,6 +44,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    injectMainCssPreload(),
     // vite-imagetools transforms images through `sharp` on-demand in dev,
     // causing 3-10s cold-start delays per image. Enable only for production builds.
     mode !== "development" && imagetools(),
