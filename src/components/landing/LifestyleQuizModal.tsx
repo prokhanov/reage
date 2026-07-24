@@ -31,6 +31,7 @@ import {
   QUESTIONS,
 } from "./lifestyle-quiz/questions";
 import { computeResult } from "./lifestyle-quiz/scoring";
+import { reachGoal } from "@/lib/yandexMetrika";
 import type {
   AgeBand,
   Answers,
@@ -151,6 +152,19 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
   useEffect(() => {
     if (open && bodyRef.current) {
       bodyRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [step, open]);
+
+  // Fire Yandex.Metrika goal once when the user reaches the contact form screen.
+  const contactGoalSentRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      contactGoalSentRef.current = false;
+      return;
+    }
+    if (step === 8 && !contactGoalSentRef.current) {
+      contactGoalSentRef.current = true;
+      reachGoal("quiz_contact_open");
     }
   }, [step, open]);
 
