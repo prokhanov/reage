@@ -1,8 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, type IndexHtmlTransformContext } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
+import type { OutputBundle } from "rollup";
 
 /**
  * Injects a <link rel="preload" as="style"> for the hashed main CSS bundle
@@ -11,15 +12,15 @@ import { imagetools } from "vite-imagetools";
 function injectMainCssPreload() {
   return {
     name: "inject-main-css-preload",
-    transformIndexHtml(html, ctx) {
+    transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
       if (!ctx?.bundle) return html;
 
-      const cssFiles = Object.entries(ctx.bundle)
-        .filter(([fileName, asset]) =>
-          fileName.endsWith(".css") &&
-          (asset.type === "asset" || asset.type === "chunk") &&
-          fileName.startsWith("assets/index-")
-        )
+      const bundle = ctx.bundle as OutputBundle;
+      const cssFiles = Object.entries(bundle)
+        .filter(([fileName, asset]) => {
+          if (!fileName.endsWith(".css") || !fileName.startsWith("assets/index-")) return false;
+          return asset.type === "asset" || asset.type === "chunk";
+        })
         .map(([fileName]) => fileName);
 
       if (!cssFiles.length) return html;
