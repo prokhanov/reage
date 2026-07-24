@@ -96,7 +96,7 @@ export function LifestyleQuizCTASection() {
                 <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 lg:gap-16 items-center">
                   <div className="text-center lg:text-left">
                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
-                      Узнай свои скрытые риски{" "}
+                      Узнай скрытые риски{" "}
                       <span className="bg-gradient-hero bg-clip-text text-transparent">
                         своего организма за 3 минуты
                       </span>
