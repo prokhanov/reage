@@ -53,7 +53,7 @@ describe("LifestyleQuizModal metrics", () => {
 
     expect(window.ym).toHaveBeenCalledWith(109706546, "reachGoal", "1question");
 
-    fireEvent.click(screen.getByRole("button", { name: "Мужской" }));
+    fireEvent.click(screen.getByRole("button", { name: /Мужской/ }));
     fireEvent.click(screen.getByRole("button", { name: "30–39" }));
     fireEvent.change(screen.getByLabelText("Рост"), { target: { value: "180" } });
     fireEvent.change(screen.getByLabelText("Вес"), { target: { value: "80" } });
