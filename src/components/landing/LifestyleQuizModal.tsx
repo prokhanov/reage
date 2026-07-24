@@ -31,6 +31,7 @@ import {
   QUESTIONS,
 } from "./lifestyle-quiz/questions";
 import { computeResult } from "./lifestyle-quiz/scoring";
+import { reachGoal } from "@/lib/yandexMetrika";
 import type {
   AgeBand,
   Answers,
