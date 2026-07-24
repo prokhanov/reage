@@ -765,6 +765,7 @@ function ContactFooter({
       );
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+      reachGoal("kviz_form");
       onDone();
     } catch (e) {
       console.error("Lifestyle quiz submit failed:", e);
