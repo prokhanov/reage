@@ -155,6 +155,19 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
     }
   }, [step, open]);
 
+  // Fire Yandex.Metrika goal once when the user reaches the contact form screen.
+  const contactGoalSentRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      contactGoalSentRef.current = false;
+      return;
+    }
+    if (step === 8 && !contactGoalSentRef.current) {
+      contactGoalSentRef.current = true;
+      reachGoal("quiz_contact_open");
+    }
+  }, [step, open]);
+
   // On screens with only button questions (domain steps 2..7), auto-advance
   // as soon as all questions for the current domain are answered.
   useEffect(() => {
