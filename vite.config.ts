@@ -46,9 +46,10 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     injectMainCssPreload(),
-    // vite-imagetools transforms images through `sharp` on-demand in dev,
-    // causing 3-10s cold-start delays per image. Enable only for production builds.
-    mode !== "development" && imagetools(),
+    // Must run in dev too — imports across the app use imagetools query params
+    // (`?format=avif&quality=68&url`); without the plugin those requests return
+    // raw PNG bytes and the browser rejects them as invalid JS modules.
+    imagetools(),
     mode === "development" && componentTagger(),
   ].filter(Boolean),
   resolve: {
