@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { reachGoal } from "@/lib/yandexMetrika";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -561,6 +562,26 @@ export function HealthRiskQuizModal({ open, onOpenChange }: Props) {
     waist: null,
     bmi: null,
   });
+  const firstQuestionGoalSentRef = useRef(false);
+  const contactGoalSentRef = useRef(false);
+
+  useEffect(() => {
+    if (!open) {
+      firstQuestionGoalSentRef.current = false;
+      contactGoalSentRef.current = false;
+      return;
+    }
+
+    if (step === 2 && !firstQuestionGoalSentRef.current) {
+      firstQuestionGoalSentRef.current = true;
+      reachGoal("1question");
+    }
+
+    if (step === 7 && !contactGoalSentRef.current) {
+      contactGoalSentRef.current = true;
+      reachGoal("quiz_contact_open");
+    }
+  }, [open, step]);
 
   const update = (patch: Partial<QuizAnswers>) => {
     setA((prev) => {
@@ -1323,6 +1344,7 @@ function ScreenEmail({
         .insert([payload as never]);
 
       if (error) throw error;
+      reachGoal("kviz_form");
       onNext();
     } catch (e) {
       console.error("Quiz submit failed:", e);
