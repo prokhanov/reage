@@ -157,10 +157,16 @@ export function LifestyleQuizModal({ open, onOpenChange }: Props) {
 
   // Fire Yandex.Metrika goal once when the user reaches the contact form screen.
   const contactGoalSentRef = useRef(false);
+  const firstQuestionGoalSentRef = useRef(false);
   useEffect(() => {
     if (!open) {
       contactGoalSentRef.current = false;
+      firstQuestionGoalSentRef.current = false;
       return;
+    }
+    if (step === 1 && !firstQuestionGoalSentRef.current) {
+      firstQuestionGoalSentRef.current = true;
+      reachGoal("1question");
     }
     if (step === 8 && !contactGoalSentRef.current) {
       contactGoalSentRef.current = true;
