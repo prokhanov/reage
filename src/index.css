@@ -255,6 +255,29 @@ All colors MUST be HSL.
       animation: none;
     }
   }
+
+  /* Мобильный/тач-профиль: снимаем самые тяжёлые для GPU эффекты,
+     из-за которых на слабых Android/WebView (VK) контент "пропадает" при скролле. */
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    /* Плавающие blur-блобы — чисто декоративные, на мобиле их не видно за контентом,
+       но они держат крупные композитные слои и провоцируют вытеснение памяти. */
+    .animate-float,
+    .animate-float-delayed,
+    .animate-float-slow,
+    .animate-float-x,
+    .animate-float-y {
+      animation: none !important;
+    }
+  }
+
+  /* Content-visibility для тяжёлых секций лендинга — браузер пропускает
+     layout/paint для секций вне viewport, что резко ускоряет скролл на слабых
+     устройствах. contain-intrinsic-size резервирует место, чтобы не было CLS. */
+  .cv-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+  }
+
 }
 
 @keyframes hue-shift {
