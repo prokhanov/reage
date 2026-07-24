@@ -67,7 +67,14 @@ const S = ({ children }: { children: React.ReactNode }) => (
 const Index = () => {
   useEffect(() => {
     initActiveTimeTracker();
+    // Помечаем body — только на главной активируются мобильные GPU-lite
+    // оптимизации (см. src/index.css). На остальных страницах ничего не трогаем.
+    document.body.setAttribute("data-landing", "1");
+    return () => {
+      document.body.removeAttribute("data-landing");
+    };
   }, []);
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />

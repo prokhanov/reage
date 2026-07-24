@@ -248,10 +248,14 @@ All colors MUST be HSL.
     z-index: 2;
   }
 
+  /* Все мобильные "GPU-lite" оптимизации применяются ТОЛЬКО на главной странице
+     лендинга (body[data-landing="1"]) — на страницах логина/регистрации/ЛК
+     ничего не отключаем. */
+
   /* Отключаем дорогую filter-анимацию на тач-устройствах и при reduced-motion —
      постоянный hue-rotate на крупном логотипе перегружает мобильный GPU. */
   @media (pointer: coarse), (prefers-reduced-motion: reduce) {
-    .animate-hue-shift {
+    body[data-landing="1"] .animate-hue-shift {
       animation: none;
     }
   }
@@ -261,55 +265,50 @@ All colors MUST be HSL.
   @media (pointer: coarse), (prefers-reduced-motion: reduce) {
     /* Плавающие blur-блобы — чисто декоративные, на мобиле их не видно за контентом,
        но они держат крупные композитные слои и провоцируют вытеснение памяти. */
-    .animate-float,
-    .animate-float-delayed,
-    .animate-float-slow,
-    .animate-float-x,
-    .animate-float-y {
+    body[data-landing="1"] .animate-float,
+    body[data-landing="1"] .animate-float-delayed,
+    body[data-landing="1"] .animate-float-slow,
+    body[data-landing="1"] .animate-float-x,
+    body[data-landing="1"] .animate-float-y {
       animation: none !important;
     }
   }
 
   /* Комплексный мобильный "GPU-lite" профиль — убираем самые дорогие эффекты,
      из-за которых блоки лендинга подтормаживают на средних/слабых телефонах.
-     Активен на тач-устройствах И узких экранах (≤ 900px) — этого достаточно,
-     чтобы не задеть десктоп/планшет-ландшафт. */
+     Активен ТОЛЬКО на главной (body[data-landing="1"]). */
   @media (max-width: 900px), (pointer: coarse) {
-    /* 1. Backdrop-filter — самый тяжёлый эффект для мобильного GPU.
-       Каждый blur заставляет растеризовать всё, что под ним, при любом скролле. */
-    [class*="backdrop-blur"] {
+    /* 1. Backdrop-filter — самый тяжёлый эффект для мобильного GPU. */
+    body[data-landing="1"] [class*="backdrop-blur"] {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }
 
-    /* 2. Крупные декоративные размытые пятна (blur-2xl / blur-3xl) —
-       растеризация огромных областей с filter: blur() дорогая.
-       Полностью скрываем их только на "чистых" декоративных обёртках
-       с абсолютным позиционированием (aria-hidden, pointer-events-none). */
-    .blur-2xl,
-    .blur-3xl {
+    /* 2. Крупные декоративные размытые пятна. */
+    body[data-landing="1"] .blur-2xl,
+    body[data-landing="1"] .blur-3xl {
       filter: blur(0) !important;
       opacity: 0.35 !important;
     }
-    [aria-hidden="true"].blur-3xl,
-    [aria-hidden="true"] .blur-3xl,
-    [aria-hidden="true"].blur-2xl,
-    [aria-hidden="true"] .blur-2xl {
+    body[data-landing="1"] [aria-hidden="true"].blur-3xl,
+    body[data-landing="1"] [aria-hidden="true"] .blur-3xl,
+    body[data-landing="1"] [aria-hidden="true"].blur-2xl,
+    body[data-landing="1"] [aria-hidden="true"] .blur-2xl {
       display: none !important;
     }
 
-    /* 3. Пульсации / glow / shimmer / gradient-анимации — постоянно
-       перерисовываются, держат main thread занятым во время скролла. */
-    .animate-pulse,
-    .animate-ping,
-    .animate-glow,
-    .animate-shimmer,
-    .animate-gradient,
-    .animate-gradient-x,
-    .animate-gradient-y {
+    /* 3. Пульсации / glow / shimmer / gradient-анимации. */
+    body[data-landing="1"] .animate-pulse,
+    body[data-landing="1"] .animate-ping,
+    body[data-landing="1"] .animate-glow,
+    body[data-landing="1"] .animate-shimmer,
+    body[data-landing="1"] .animate-gradient,
+    body[data-landing="1"] .animate-gradient-x,
+    body[data-landing="1"] .animate-gradient-y {
       animation: none !important;
     }
   }
+
 
   /* Полный reduce-motion — снимаем ВСЁ, если пользователь так попросил в системе. */
   @media (prefers-reduced-motion: reduce) {
