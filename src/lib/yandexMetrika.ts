@@ -36,16 +36,30 @@ export function tgpEvent(eventId: string) {
 }
 
 export function tmrEvent(goal: string) {
-  if (typeof window === "undefined") return;
-  const tmr = window._tmr;
-  if (typeof tmr !== "object" || typeof tmr.push !== "function") {
-    console.debug("[tmr] reachGoal skipped, window._tmr is not available", { goal });
+  console.log("[vk] tmrEvent called", { goal });
+  if (typeof window === "undefined") {
+    console.log("[vk] no window (SSR?)", { goal });
     return;
   }
+  const tmr = window._tmr as unknown as { push?: (...args: unknown[]) => void; length?: number } | undefined;
+  const state = {
+    exists: typeof tmr !== "undefined",
+    isArray: Array.isArray(tmr),
+    hasPush: !!(tmr && typeof tmr.push === "function"),
+    length: tmr && typeof tmr.length === "number" ? tmr.length : undefined,
+  };
+  console.log("[vk] _tmr state", state);
+  if (!tmr || typeof tmr.push !== "function") {
+    console.warn("[vk] _tmr not ready, event dropped", { goal });
+    return;
+  }
+  const payload = { type: "reachGoal", id: 3780512, goal };
   try {
-    tmr.push({ type: "reachGoal", id: 3780512, goal });
+    console.log("[vk] pushing", payload);
+    tmr.push(payload);
+    console.log("[vk] push ok", { goal });
   } catch (err) {
-    console.debug("[tmr] reachGoal threw", { goal, err });
+    console.error("[vk] push threw", { goal, err });
   }
 }
 

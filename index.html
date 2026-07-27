@@ -119,6 +119,14 @@
     <!-- Top.Mail.Ru counter -->
     <script type="text/javascript">
       var _tmr = window._tmr || (window._tmr = []);
+      // [vk] debug wrapper — logs every _tmr.push (pageView, reachGoal, etc.)
+      try {
+        var __tmrOrigPush = _tmr.push.bind(_tmr);
+        _tmr.push = function () {
+          try { console.log("[vk] _tmr.push", Array.prototype.slice.call(arguments)); } catch (e) {}
+          return __tmrOrigPush.apply(_tmr, arguments);
+        };
+      } catch (e) { console.log("[vk] wrap _tmr.push failed", e); }
       _tmr.push({id: "3780512", type: "pageView", start: (new Date()).getTime()});
       (function (d, w, id) {
         if (d.getElementById(id)) return;
