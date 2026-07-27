@@ -1,28 +1,45 @@
-Plan: CSS preload + retry resilience for landing
+## Что делаю
 
-1.  Add a build-time Vite plugin that injects a `<link rel="preload" as="style">` for the hashed main CSS bundle into `index.html`.
-    - Hook: `transformIndexHtml` with access to `ctx.bundle`.
-    - Locate the main CSS chunk (e.g. `assets/index-*.css`).
-    - Inject `<link rel="preload" as="style" href="/{cssFile}" />` near the top of `<head>`, before the fonts link.
-    - Leave Vite's own stylesheet injection untouched to avoid duplicate stylesheet links.
+Формат push не трогаю — остаётся ровно как у вас:
+```js
+_tmr.push({ type: 'reachGoal', id: 3780512, goal: 'form1' });
+```
 
-2.  Add an inline CSS retry script in `index.html`.
-    - Runs immediately in `<head>`.
-    - Watches existing and dynamically added `<link rel="stylesheet">` tags inside `/assets/`.
-    - On `error` event, re-creates the `<link>` with a cache-busting `?retry=<timestamp>` parameter and swaps it in.
-    - Retries once per link to avoid infinite loops.
-    - Logs a concise warning to the console if a retry happens.
+Добавляю подробные логи только для ВК, чтобы вы (и я) видели в DevTools консоли, что именно отправляется, есть ли `window._tmr`, дошёл ли до него push, и виден ли ответный запрос к `top-fwz1.mail.ru`.
 
-3.  Verify the change with a production build.
-    - Run `bun run build`.
-    - Inspect the generated `index.html` to confirm the preload link matches the actual CSS asset filename.
-    - Confirm no duplicate `<link rel="stylesheet">` for the same bundle exists.
+## Правки
 
-4.  Test failure/retry behavior.
-    - Use a local dev preview or Playwright to block the CSS request once and confirm the retry link is issued and styles recover.
+**1. `src/lib/yandexMetrika.ts` — функция `tmrEvent`**
 
-Technical details
-- File to edit: `vite.config.ts` (add the plugin) and `index.html` (add the inline retry script).
-- The preload does not block rendering beyond the normal stylesheet behavior; it only starts the CSS download earlier.
-- The retry script is a small, dependency-free fallback for flaky mobile networks / ad-blocker-related network drops.
-- No external libraries required; no changes to app components.
+Оставляю формат `{ type: "reachGoal", id: 3780512, goal }`. Добавляю логи на каждом шаге:
+- `[vk] tmrEvent called` — вход в функцию, с именем цели.
+- `[vk] _tmr not ready` — если `window._tmr` отсутствует или без `push`.
+- `[vk] _tmr state` — тип (`Array` / `Object`), длина очереди, есть ли `push`.
+- `[vk] pushing` — сам payload перед push.
+- `[vk] push ok` — успех.
+- `[vk] push threw` — с ошибкой.
+
+Больше в этом файле ничего.
+
+**2. `index.html` — блок Top.Mail.Ru**
+
+Добавлю сразу после инициализации `_tmr` небольшой отладочный wrapper: перехвачу `_tmr.push` через прокси-функцию, которая делает `console.log("[vk] _tmr.push", args)` и вызывает оригинал. Это покажет в консоли **любой** push — и наш из компонентов, и внутренние (pageView и т.п.), сразу как они уходят, включая случаи, когда очередь ещё массив и `code.js` не догрузился.
+
+Логи будут в формате `[vk] ...`, чтобы легко фильтровать в DevTools.
+
+## Что НЕ трогаю
+
+- Яндекс.Метрика (`reachGoal` / `ym`) — не трогаю.
+- Telegram Pixel (`tgpEvent` / `tgp`) — не трогаю.
+- Jivo — не трогаю.
+- Формы (`FeedbackDialog`, `ConsultationCtaBlock`) — не трогаю, там уже стоят вызовы `tmrEvent("form1")` и `tmrEvent("form2")`.
+
+## Как проверять после правок
+
+1. Открыть `/` на превью, открыть DevTools → Console, фильтр `[vk]`.
+2. При загрузке страницы должно быть видно, что `pageView` ушёл в `_tmr.push`.
+3. Открыть форму «Оставить заявку», отправить → должен появиться лог `[vk] tmrEvent called form1` и `[vk] _tmr.push {...}`.
+4. То же для формы «Консультация» — `form2`.
+5. В таб Network фильтр `top-fwz1.mail.ru` — должны видеться запросы счётчика.
+
+По этим логам сразу поймём: push уходит или нет, и в какой момент отваливается.
