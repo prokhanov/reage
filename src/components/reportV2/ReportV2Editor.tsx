@@ -764,10 +764,15 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setPdfPreviewOpen(true)}
-          title="Открыть серверный PDF — так отчёт видит пациент"
+          onClick={openDraftPdfPreview}
+          disabled={pdfPreviewLoading}
+          title="Серверный рендер текущего черновика — как пациент увидит в PDF"
         >
-          <FileText className="mr-2 h-4 w-4" />
+          {pdfPreviewLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="mr-2 h-4 w-4" />
+          )}
           Предпросмотр как PDF
         </Button>
       )}
