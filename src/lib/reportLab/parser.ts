@@ -669,32 +669,9 @@ function injectHeadingBiomarkerAnchors(
       const rawVal = (vm[1] || "").replace(/,/g, ".");
       const codes = byValue.get(rawVal);
       if (!codes || codes.length === 0) continue;
-      // Несколько маркеров с одинаковым значением (Базофилы % и Базофилы абс.
-      // оба «0») — выбираем того, чьё имя реально упомянуто во фразе.
-      const phrase = normalizeName(vm[0]);
       const free = codes.filter((c) => !usedCodes.has(normalizeCode(c)));
       if (free.length === 0) continue;
-      let code = free[0];
-      let best = -1;
-      for (const c of free) {
-        const bio = biomarkerIndex.get(normalizeCode(c));
-        if (!bio) continue;
-        const name = normalizeName(bio.name);
-        const stripped = name.replace(/\s*\([^()]*\)\s*/g, " ").trim();
-        let score = 0;
-        for (const token of stripped.split(" ")) {
-          if (token.length < 4) continue;
-          if (phrase.includes(token.slice(0, Math.max(4, token.length - 2)))) score += 2;
-        }
-        const phraseAbs = /\b(абс|абсолютн)/.test(phrase);
-        const nameAbs = /(абс|абсолютн)/.test(name);
-        if (phraseAbs === nameAbs) score += 1;
-        if (score > best) {
-          best = score;
-          code = c;
-        }
-      }
-      if (!code) continue;
+
       const pos = vm.index ?? 0;
       if (hits.some((hh) => pos >= hh.start && pos <= hh.end)) continue;
 
@@ -738,12 +715,42 @@ function injectHeadingBiomarkerAnchors(
         }
       }
 
-
       // Конец блока — конец АБЗАЦА с фразой, а не сама цифра. Иначе следующая
       // карточка начинается с обрывка предыдущего предложения («% находится…»).
       const phraseEnd = pos + vm[0].length;
       const nlAfter = text.indexOf("\n", phraseEnd);
       const paraEnd = nlAfter === -1 ? text.length : nlAfter;
+
+      // Несколько маркеров с одинаковым значением (Базофилы % и Базофилы абс.
+      // оба «0») — выбираем того, чьё имя реально упомянуто во фразе ИЛИ во
+      // вводном абзаце этой же карточки.
+      const phrase = normalizeName(vm[0]);
+      const context = normalizeName(text.slice(blockStart, phraseEnd));
+      let code = free[0];
+      let best = -1;
+      for (const c of free) {
+        const bio = biomarkerIndex.get(normalizeCode(c));
+        if (!bio) continue;
+        const name = normalizeName(bio.name);
+        const stripped = name.replace(/\s*\([^()]*\)\s*/g, " ").trim();
+        let score = 0;
+        for (const token of stripped.split(" ")) {
+          if (token.length < 4) continue;
+          const stem = token.slice(0, Math.max(4, token.length - 2));
+          if (phrase.includes(stem)) score += 3;
+          else if (context.includes(stem)) score += 2;
+        }
+        const codeNorm = normalizeName(c);
+        if (codeNorm.length >= 2 && context.includes(codeNorm)) score += 2;
+        const phraseAbs = /\b(абс|абсолютн)/.test(phrase);
+        const nameAbs = /(абс|абсолютн)/.test(name);
+        if (phraseAbs === nameAbs) score += 1;
+        if (score > best) {
+          best = score;
+          code = c;
+        }
+      }
+      if (!code) continue;
 
       hits.push({
         start: blockStart,
@@ -754,6 +761,7 @@ function injectHeadingBiomarkerAnchors(
       usedCodes.add(normalizeCode(code));
       priorEnds.push(paraEnd);
     }
+
   }
 
   if (hits.length === 0) return text;
