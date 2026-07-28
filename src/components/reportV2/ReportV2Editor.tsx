@@ -1004,12 +1004,32 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         }}
       />
 
-      <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
+      <Dialog
+        open={pdfPreviewOpen}
+        onOpenChange={(open) => {
+          if (!open && pdfPreviewUrl) {
+            URL.revokeObjectURL(pdfPreviewUrl);
+            setPdfPreviewUrl(null);
+          }
+          setPdfPreviewOpen(open);
+        }}
+      >
         <DialogContent className="max-w-5xl">
           <DialogHeader>
             <DialogTitle>Предпросмотр как PDF</DialogTitle>
           </DialogHeader>
-          <ReportPdfView analysisId={analysisId} persona="staff" />
+          {pdfPreviewLoading && (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="text-sm">Рендерим PDF на сервере — обычно 10–40 секунд…</div>
+            </div>
+          )}
+          {pdfPreviewError && !pdfPreviewUrl && (
+            <div className="p-6 text-center text-sm text-destructive">
+              Не удалось сделать предпросмотр: {pdfPreviewError}
+            </div>
+          )}
+          {pdfPreviewUrl && <PdfCanvas url={pdfPreviewUrl} />}
         </DialogContent>
       </Dialog>
     </div>
