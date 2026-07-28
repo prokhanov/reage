@@ -182,8 +182,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   useEffect(() => {
     return () => {
       if (readyUrlRef.current) URL.revokeObjectURL(readyUrlRef.current);
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
     };
-  }, []);
+  }, [pdfPreviewUrl]);
 
   const patientLabel = useMemo(() => {
     if (!report) return "";
