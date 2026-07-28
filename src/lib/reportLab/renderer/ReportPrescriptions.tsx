@@ -174,9 +174,12 @@ export function ReportPrescriptions({ report, entry }: Props) {
         </div>
       )}
 
-      {sections.map((s) => (
+      {sections.map((s, si) => (
         <div key={s.title} style={{ marginBottom: "8mm" }}>
-          <h3 className="rl-h3">{s.title}</h3>
+          <h3 className="rl-h3">
+            {s.title}
+            {editing && si === 0 && <RxEditButton target="advisory:lifestyle" label="Изменить" />}
+          </h3>
           {s.items.map((item, i) => (
             <div key={i} className="rl-rx">
               <div className="rl-rx-desc">
@@ -187,9 +190,18 @@ export function ReportPrescriptions({ report, entry }: Props) {
         </div>
       ))}
 
+      {editing && sections.length === 0 && (
+        <div style={{ marginBottom: "8mm" }}>
+          <RxEditButton target="advisory:lifestyle" label="Добавить рекомендации по образу жизни" />
+        </div>
+      )}
+
       {followUps.length > 0 && (
         <>
-          <h3 className="rl-h3">Дополнительные консультации</h3>
+          <h3 className="rl-h3">
+            Дополнительные консультации
+            {editing && <RxEditButton target="advisory:followups" label="Изменить" />}
+          </h3>
           {followUps.map((f, i) => (
             <div key={i} className="rl-rx">
               <div className="rl-rx-title">{f.specialist || "Специалист"}</div>
@@ -203,6 +215,13 @@ export function ReportPrescriptions({ report, entry }: Props) {
           ))}
         </>
       )}
+
+      {editing && followUps.length === 0 && (
+        <div style={{ marginBottom: "8mm" }}>
+          <RxEditButton target="advisory:followups" label="Добавить консультации" />
+        </div>
+      )}
+
 
     </section>
 
