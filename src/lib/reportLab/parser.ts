@@ -708,6 +708,9 @@ function injectHeadingBiomarkerAnchors(
       // в карточку затягивается пост-текст предыдущего биомаркера («Что это
       // значит для вас: …»), который идёт между предыдущим «Ваш показатель X»
       // и вводным абзацем следующего биомаркера.
+      // Текст от предыдущей границы до фразы со значением — здесь AI называет
+      // маркер («Нитриты в моче являются…»). Нужен для выбора кода.
+      const introStart = blockStart;
       {
         const prev = text.lastIndexOf("\n\n", pos - 1);
         if (prev !== -1 && prev + 2 > blockStart) {
@@ -725,7 +728,7 @@ function injectHeadingBiomarkerAnchors(
       // оба «0») — выбираем того, чьё имя реально упомянуто во фразе ИЛИ во
       // вводном абзаце этой же карточки.
       const phrase = normalizeName(vm[0]);
-      const context = normalizeName(text.slice(blockStart, phraseEnd));
+      const context = normalizeName(text.slice(introStart, phraseEnd));
       let code = free[0];
       let best = -1;
       for (const c of free) {
