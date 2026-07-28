@@ -74,6 +74,8 @@ export default function HealthStrategy() {
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
+  const [awaitingReport, setAwaitingReport] = useState(false);
+
 
 
 
@@ -231,7 +233,14 @@ export default function HealthStrategy() {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
+      if (data?.error === "report_not_published") {
+        // Стратегия рассчитывается по опубликованному отчёту врача.
+        setAwaitingReport(true);
+        setSnapshot(null);
+        return;
+      }
       if (data?.error) throw new Error(data.error);
+      setAwaitingReport(false);
       setSnapshot(data);
     } catch (e: any) {
       console.error(e);
@@ -240,6 +249,7 @@ export default function HealthStrategy() {
       setGenerating(false);
     }
   };
+
 
 
 
@@ -304,7 +314,18 @@ export default function HealthStrategy() {
               <p className="text-muted-foreground">Добавьте первый анализ для формирования стратегии</p>
             </CardContent>
           </Card>
+        ) : awaitingReport ? (
+          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+            <CardContent className="py-16 text-center">
+              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Отчёт на проверке у врача</h3>
+              <p className="text-muted-foreground">
+                Стратегия здоровья формируется после публикации отчёта — назначения могут быть скорректированы врачом.
+              </p>
+            </CardContent>
+          </Card>
         ) : !snapshot ? (
+
           <Card className="border-dashed bg-card/40 backdrop-blur-xl">
             <CardContent className="py-16 text-center">
               <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />

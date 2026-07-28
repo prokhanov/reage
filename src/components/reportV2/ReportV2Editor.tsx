@@ -27,7 +27,6 @@ import {
 } from "@/lib/reportLab/document";
 import {
   ensureReportDocument,
-  fetchReportDocumentStatus,
 
   publishReportDocument,
   replaceReportDocument,
@@ -130,21 +129,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       .then(async (r) => {
         if (cancelled) return;
         if (requirePublished) {
-          // Пациент: RLS отдаёт только опубликованный снимок. Если его нет,
-          // но документ существует — отчёт ещё на проверке у врача.
+          // Пациент видит ТОЛЬКО опубликованный снимок. Нет снимка — отчёт
+          // ещё на проверке у врача (черновик ИИ пациенту не показываем).
           if (!r.doc) {
-            const status = await fetchReportDocumentStatus(analysisId);
-            if (cancelled) return;
-            if (status && status !== "published") {
-              setAwaitingPublish(true);
-              return;
-            }
+            setAwaitingPublish(true);
+            return;
           }
-
-          if (r.doc) r.doc = syncPrescriptionsEntry(r.doc, r);
+          r.doc = syncPrescriptionsEntry(r.doc, r);
           setReport(r);
           return;
         }
+
         // Ленивая миграция: у старых отчётов сохранённого документа нет —
         // собираем его один раз и фиксируем как черновик.
         if (!r.doc) {

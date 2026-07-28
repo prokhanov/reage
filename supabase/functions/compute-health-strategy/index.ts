@@ -194,6 +194,29 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
+    // Стратегия строится на ОПУБЛИКОВАННОМ отчёте и уже отредактированных
+    // назначениях (таблица prescriptions), а не на черновике ИИ.
+    let reportPublishedAt: string | null = null;
+    let reportDocExists = false;
+    if (latestAnalysisRow) {
+      const { data: docRow } = await supabase
+        .from("report_documents")
+        .select("published_at, published_blocks")
+        .eq("analysis_id", latestAnalysisRow.id)
+        .maybeSingle();
+      if (docRow) {
+        reportDocExists = true;
+        reportPublishedAt = docRow.published_at && docRow.published_blocks ? docRow.published_at : null;
+      }
+    }
+    const isSelfPatient = targetUserId === user.id && !preview;
+    if (isSelfPatient && reportDocExists && !reportPublishedAt) {
+      return new Response(JSON.stringify({ error: "report_not_published" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!force && !preview && latestAnalysisRow) {
       const { data: cached } = await supabase
         .from("health_strategy_snapshots")
@@ -206,10 +229,15 @@ serve(async (req) => {
       const cachedHi = cached?.health_index == null ? null : Math.round(Number(cached.health_index));
       const latestHi = (latestAnalysisRow as any)?.health_index == null ? null : Math.round(Number((latestAnalysisRow as any).health_index));
       const cacheMatchesLatestHealthModel = latestHi == null || cachedHi === latestHi;
-      if (cached && cacheMatchesLatestHealthModel && cached.roadmap && cached.key_biomarkers && Array.isArray(cached.expectations) && cached.expectations.length > 0 && !hasLegacyRoadmap(cached.roadmap)) {
+      // Снимок, созданный до последней публикации отчёта, устарел: назначения
+      // могли быть отредактированы врачом — пересчитываем.
+      const cacheNewerThanPublication =
+        !reportPublishedAt || (cached?.created_at && new Date(cached.created_at) >= new Date(reportPublishedAt));
+      if (cached && cacheMatchesLatestHealthModel && cacheNewerThanPublication && cached.roadmap && cached.key_biomarkers && Array.isArray(cached.expectations) && cached.expectations.length > 0 && !hasLegacyRoadmap(cached.roadmap)) {
         return new Response(JSON.stringify(cached), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
+
 
     const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes, medHistoryRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
