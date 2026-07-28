@@ -32,6 +32,8 @@ export interface DocBodyEntry {
   id: string;
   type: string;
   body: string;
+  /** Правка врача, сохранённая как готовая разметка (приоритет над `body`). */
+  bodyHtml?: string;
   contentJson?: unknown;
 }
 
