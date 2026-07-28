@@ -58,7 +58,10 @@ interface FollowUp {
 }
 
 export function ReportPrescriptions({ report, entry }: Props) {
+  const editor = useReportEditor();
+  const editing = editor?.mode === "edit";
   const row = entry
+
     ? { id: entry.id, text: entry.body, content_json: entry.contentJson ?? null }
     : getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
