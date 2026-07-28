@@ -3394,6 +3394,10 @@ export type Database = {
         }
         Returns: Json
       }
+      report_document_status: {
+        Args: { p_analysis_id: string }
+        Returns: string
+      }
       reset_slot_to_default: {
         Args: { p_date: string; p_time_slot: string }
         Returns: Json
