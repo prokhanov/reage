@@ -179,12 +179,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     };
   }, [analysisId, userId, initialReport, requirePublished]);
 
+  // Кэш предпросмотра: ключ = содержимое черновика, значение = blob URL.
+  // Пока текст не изменился, повторный рендер на сервере не запускается.
+  const previewCacheRef = useRef<{ key: string; url: string } | null>(null);
+
   useEffect(() => {
     return () => {
       if (readyUrlRef.current) URL.revokeObjectURL(readyUrlRef.current);
-      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+      if (previewCacheRef.current) URL.revokeObjectURL(previewCacheRef.current.url);
     };
-  }, [pdfPreviewUrl]);
+  }, []);
+
 
   const patientLabel = useMemo(() => {
     if (!report) return "";
