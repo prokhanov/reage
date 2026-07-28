@@ -5,7 +5,7 @@ import { ReportDocument } from "./ReportDocument";
 import type { CoverOverrides, LabReport } from "../types";
 
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
-import { htmlToMarkdown } from "../editor/markdown";
+import { sanitizeReportHtml } from "../editor/sanitizeHtml";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
 
@@ -895,8 +895,9 @@ function installEditableOverlay(
   const toolbar = ensureToolbar(output);
 
   const collectMarkdown = (id: string): string => {
-    const combined = collectEditableHtmlDrafts(output)[id] ?? "";
-    return htmlToMarkdown(combined);
+    // Возвращаем ГОТОВУЮ РАЗМЕТКУ блока, без конверсии в markdown.
+    // Именно round-trip HTML → Markdown терял форматирование и рвал текст.
+    return sanitizeReportHtml(collectEditableHtmlDrafts(output)[id] ?? "");
   };
 
   const collectAllMarkdown = (): Record<string, string> => {

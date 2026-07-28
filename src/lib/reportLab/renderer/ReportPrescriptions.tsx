@@ -75,11 +75,15 @@ export function ReportPrescriptions({ report, entry }: Props) {
     .replace(/^\s*Назначения\s*/i, "")
     .trim();
 
-  if (!hasStructuredContent && plainText) {
+  if (!hasStructuredContent && (plainText || entry?.bodyHtml)) {
     return (
       <section className="rl-page" data-section-id="prescriptions">
         <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
-        <ProseMarkdown markdown={plainText} editableId={row ? `rec:${row.id}#body` : undefined} />
+        <ProseMarkdown
+          markdown={plainText}
+          html={entry?.bodyHtml}
+          editableId={row ? `rec:${row.id}#body` : undefined}
+        />
       </section>
     );
   }

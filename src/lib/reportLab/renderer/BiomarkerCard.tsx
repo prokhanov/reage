@@ -6,6 +6,8 @@ import { ProseMarkdown } from "./ProseMarkdown";
 interface Props {
   biomarker: ReportBiomarker;
   commentary: string;
+  /** Сохранённая правка комментария (готовая разметка). */
+  commentaryHtml?: string;
   gender: "male" | "female" | "other" | null;
   age?: number | null;
   editableId?: string;
@@ -23,7 +25,7 @@ const BUCKET_LABEL: Record<BiomarkerBucket, string> = {
   critical: "Критично",
 };
 
-export function BiomarkerCard({ biomarker, commentary, gender, age = null, editableId }: Props) {
+export function BiomarkerCard({ biomarker, commentary, commentaryHtml, gender, age = null, editableId }: Props) {
   const bucket = resolveStatusBucket(biomarker, gender, age);
   const label = BUCKET_LABEL[bucket];
 
@@ -44,9 +46,9 @@ export function BiomarkerCard({ biomarker, commentary, gender, age = null, edita
         </div>
         <BiomarkerScale biomarker={biomarker} gender={gender} age={age} />
       </div>
-      {(commentary || editableId) && (
+      {(commentary || commentaryHtml || editableId) && (
         <div className="rl-bio-body">
-          <ProseMarkdown markdown={commentary} editableId={editableId} />
+          <ProseMarkdown markdown={commentary} html={commentaryHtml} editableId={editableId} />
         </div>
       )}
     </div>

@@ -6,6 +6,13 @@ interface Props {
   markdown: string;
   className?: string;
   editableId?: string;
+  /**
+   * Сохранённая правка врача в виде готовой разметки. Если передана —
+   * рендерим её как есть, без markdown-конвейера: именно так гарантируется,
+   * что жирный/курсив/заголовки/списки останутся ровно такими, как их
+   * оставили в редакторе.
+   */
+  html?: string;
 }
 
 const SUMMARY_SUBHEADING_RE =
@@ -22,10 +29,12 @@ const SUMMARY_SUBHEADING_RE =
  * того, как paged.js завершит вёрстку страниц (иначе клонирование ломает
  * интерактив).
  */
-export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
+export function ProseMarkdown({ markdown, className = "", editableId, html }: Props) {
   const ctx = useReportEditor();
-  const source =
-    (editableId && ctx?.getDraft(editableId)) ?? markdown ?? "";
+  // Приоритет: живой драфт редактора → сохранённый HTML → markdown.
+  const draft = editableId ? ctx?.getDraft(editableId) : undefined;
+  const htmlSource = draft ?? html ?? "";
+  const source = markdown ?? "";
   const clean = source
     .replace(/\r\n/g, "\n")
     .replace(/\u200B/g, "")
@@ -113,11 +122,22 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
 
   const editing = ctx?.mode === "edit" && !!editableId;
 
-  if (!clean && !editing) return null;
+  if (!clean && !htmlSource && !editing) return null;
 
   const wrapperProps = editableId
     ? { "data-editable-id": editableId }
     : {};
+
+  // Сохранённая правка врача — рендерим разметку как есть.
+  if (htmlSource) {
+    return (
+      <div
+        className={`rl-prose${editing ? " rl-prose-editable" : ""} ${className}`}
+        {...wrapperProps}
+        dangerouslySetInnerHTML={{ __html: htmlSource }}
+      />
+    );
+  }
 
   return (
     <div
