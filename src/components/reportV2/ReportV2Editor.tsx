@@ -130,16 +130,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       .then(async (r) => {
         if (cancelled) return;
         if (requirePublished) {
-          // Пациент: содержимое неопубликованного документа RLS не отдаёт,
-          // поэтому статус спрашиваем отдельной безопасной функцией.
+          // Пациент: RLS отдаёт только опубликованный снимок. Если его нет,
+          // но документ существует — отчёт ещё на проверке у врача.
           if (!r.doc) {
             const status = await fetchReportDocumentStatus(analysisId);
             if (cancelled) return;
-            if (status && status !== "published" && status !== "edited") {
+            if (status && status !== "published") {
               setAwaitingPublish(true);
               return;
             }
           }
+
           if (r.doc) r.doc = syncPrescriptionsEntry(r.doc, r);
           setReport(r);
           return;
