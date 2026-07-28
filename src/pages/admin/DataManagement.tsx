@@ -726,7 +726,12 @@ export default function DataManagement() {
               <Activity className="w-4 h-4 mr-2" />
               Категории
             </TabsTrigger>
+            <TabsTrigger value="medications">
+              <Pill className="w-4 h-4 mr-2" />
+              Препараты
+            </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="biomarkers" className="space-y-4">
             <Card>
