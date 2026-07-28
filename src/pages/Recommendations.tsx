@@ -1008,7 +1008,7 @@ export default function Recommendations() {
                 return (
                   <div
                     key={report.date}
-                    onClick={() => (!isViewMode && report.analysisId ? openReportV2(report, "view") : handleView(report))}
+                    onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                     className="rounded-2xl border border-primary/20 bg-card/50 p-4 cursor-pointer active:scale-[0.99] transition-transform"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -1026,7 +1026,7 @@ export default function Recommendations() {
                         className="h-9 rounded-xl bg-gradient-primary shadow-neon-primary"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isViewMode && report.analysisId) openReportV2(report, "view");
+                          if (report.analysisId) openReportV2(report, "view");
                           else handleView(report);
                         }}
                       >
@@ -1085,7 +1085,7 @@ export default function Recommendations() {
                   <TableRow 
                     key={report.date} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => (!isViewMode && report.analysisId ? openReportV2(report, "view") : handleView(report))}
+                    onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
