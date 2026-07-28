@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
@@ -186,7 +186,51 @@ function emitReady(extra?: Record<string, unknown>) {
   console.log("[report-preview] paged_ready", extra ?? "");
 }
 
+/**
+ * Ждём, пока загрузятся все шрифты и изображения/SVG внутри fragment.
+ * Это критично для детерминированной пагинации: если Paged.js стартует
+ * раньше, высота блоков считается на fallback-шрифте или без картинок,
+ * и разрывы страниц гуляют между открытиями.
+ */
+async function waitForResources(fragment: DocumentFragment, timeoutMs = 8000) {
+  const docFonts = (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts;
+  const fontPromise = docFonts?.ready ?? Promise.resolve();
+
+  const images = Array.from(
+    fragment.querySelectorAll<HTMLElement>("img, svg, image"),
+  );
+  const imagePromises = images.map((el) => {
+    if (el instanceof HTMLImageElement) {
+      if (el.complete && el.naturalWidth > 0) return Promise.resolve();
+      if (el.complete && el.naturalWidth === 0 && !el.src) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const done = () => resolve();
+        el.addEventListener("load", done, { once: true });
+        el.addEventListener("error", done, { once: true });
+        // Если картинка уже загружена к моменту подписки
+        if (el.complete) done();
+      });
+    }
+    // SVG/image — считаем, что встроенные SVG доступны сразу; для <image> внутри SVG
+    // ждём load/error, если это HTMLImageElement.
+    if (el instanceof SVGImageElement && el.href.baseVal) {
+      return new Promise<void>((resolve) => {
+        const done = () => resolve();
+        el.addEventListener("load", done, { once: true });
+        el.addEventListener("error", done, { once: true });
+      });
+    }
+    return Promise.resolve();
+  });
+
+  await Promise.race([
+    Promise.all([fontPromise, ...imagePromises]),
+    new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+  ]);
+}
+
 /* ─── Плавающий toolbar редактирования (contentEditable + execCommand) ─── */
+
 function ensureToolbar(container: HTMLElement): HTMLDivElement {
   let bar = container.querySelector<HTMLDivElement>(".rl-paged-toolbar");
   if (bar) return bar;
@@ -347,6 +391,8 @@ export function PagedReportPreview({
   editableRef.current = editable;
   const reportRef = useRef(report);
   reportRef.current = report;
+  const [isPaginating, setIsPaginating] = useState(false);
+
 
   useEffect(() => {
     const output = outputRef.current;
@@ -356,6 +402,7 @@ export function PagedReportPreview({
 
     const build = async () => {
       if (token.cancelled) return;
+      setIsPaginating(true);
 
       const isEditable = editableRef.current;
 
@@ -378,6 +425,7 @@ export function PagedReportPreview({
           currentHtml = applyEditableHtmlDrafts(currentHtml, liveHtmlDrafts);
         }
       }
+
 
 
       // Сохраняем caret/scroll ДО перепагинации.
@@ -410,7 +458,7 @@ export function PagedReportPreview({
       output.appendChild(scratch);
 
       try {
-        await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
+        await waitForResources(content.content);
         if (token.cancelled) {
           scratch.remove();
           return;
@@ -480,7 +528,10 @@ export function PagedReportPreview({
         // eslint-disable-next-line no-console
         console.error("[report-preview] paged_render_failed", e);
         scratch.remove();
+      } finally {
+        if (!token.cancelled) setIsPaginating(false);
       }
+
     };
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
@@ -618,8 +669,15 @@ export function PagedReportPreview({
         className="rl-paged-output"
         style={{ position: "relative" }}
       />
+      {isPaginating && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Раскладка страниц…</span>
+        </div>
+      )}
     </div>
   );
+
 }
 
 // ─── Caret helpers ───────────────────────────────────────────────────────────
