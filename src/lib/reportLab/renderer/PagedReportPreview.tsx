@@ -458,7 +458,7 @@ export function PagedReportPreview({
       output.appendChild(scratch);
 
       try {
-        await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
+        await waitForResources(content.content);
         if (token.cancelled) {
           scratch.remove();
           return;
@@ -528,7 +528,10 @@ export function PagedReportPreview({
         // eslint-disable-next-line no-console
         console.error("[report-preview] paged_render_failed", e);
         scratch.remove();
+      } finally {
+        if (!token.cancelled) setIsPaginating(false);
       }
+
     };
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
