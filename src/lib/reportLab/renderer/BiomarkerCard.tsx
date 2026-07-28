@@ -6,6 +6,8 @@ import { ProseMarkdown } from "./ProseMarkdown";
 interface Props {
   biomarker: ReportBiomarker;
   commentary: string;
+  /** Сохранённая правка комментария (готовая разметка). */
+  commentaryHtml?: string;
   gender: "male" | "female" | "other" | null;
   age?: number | null;
   editableId?: string;
