@@ -26,8 +26,17 @@ export async function sha256Hex(input: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function computeReportPdfHash(publishedBlocks: unknown): Promise<string> {
-  return sha256Hex(`${canonicalJSON(publishedBlocks)}|r${RENDERER_VERSION}|t${THEME_VERSION}`);
+/**
+ * Версии можно переопределить (используется в тестах инвалидации:
+ * тот же контент + другая версия рендерера/темы → другой хэш).
+ */
+export async function computeReportPdfHash(
+  publishedBlocks: unknown,
+  versions: { renderer?: string; theme?: string } = {},
+): Promise<string> {
+  const r = versions.renderer ?? RENDERER_VERSION;
+  const t = versions.theme ?? THEME_VERSION;
+  return sha256Hex(`${canonicalJSON(publishedBlocks)}|r${r}|t${t}`);
 }
 
 /** Путь в приватном бакете: {user_id}/{analysis_id}/{hash}.pdf */
