@@ -101,13 +101,23 @@ export interface CoverOverrides {
 export interface LabReport {
   version: 1;
   generatedAt: string;
+  /** id пациента — нужен для записи сохранённого документа. */
+  userId?: string | null;
   patient: ReportPatient;
   analysis: ReportAnalysis;
   recommendations: ReportRecommendationRow[];
   biomarkers: ReportBiomarker[];
   prescriptions?: ReportPrescription[];
   coverOverrides?: CoverOverrides | null;
+  /**
+   * Сохранённый структурированный документ отчёта (report_documents.blocks).
+   * Если задан — рендер идёт из него, парсер в рантайме не вызывается.
+   */
+  doc?: import("./document").ReportDoc | null;
+  /** Статус публикации сохранённого документа. */
+  docStatus?: import("./document").ReportDocStatus | null;
 }
+
 
 export interface ReportPrescription {
   id: string;

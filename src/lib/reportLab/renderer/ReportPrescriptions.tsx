@@ -1,5 +1,6 @@
 import type { LabReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
+import type { DocBodyEntry } from "../document";
 import { ProseMarkdown } from "./ProseMarkdown";
 import {
   sanitizeLifestyle,
@@ -11,6 +12,8 @@ import {
 
 interface Props {
   report: LabReport;
+  /** Блок сохранённого документа. Если задан — источник истины. */
+  entry?: DocBodyEntry;
 }
 
 interface LifestyleData {
@@ -25,8 +28,10 @@ interface FollowUp {
   specialist?: string;
 }
 
-export function ReportPrescriptions({ report }: Props) {
-  const row = getPrescriptionsRecord(report);
+export function ReportPrescriptions({ report, entry }: Props) {
+  const row = entry
+    ? { id: entry.id, text: entry.body, content_json: entry.contentJson ?? null }
+    : getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
   const hasStructuredContent = Boolean(
     contentJson &&

@@ -18,6 +18,7 @@ import type {
   ReportPrescription,
   ReportRecommendationRow,
 } from "./types";
+import { fetchReportDocument } from "./documentStore";
 
 type ProfileRow = {
   first_name: string | null;
@@ -117,6 +118,7 @@ function mapBiomarker(row: BiomarkerRow, value: number, unit_override: string | 
 export async function buildLabReportFromDb(
   analysisId: string,
   userId: string,
+  options: { withDocument?: boolean } = {},
 ): Promise<LabReport> {
   if (!analysisId) throw new Error("buildLabReportFromDb: analysisId is required");
   if (!userId) throw new Error("buildLabReportFromDb: userId is required");
@@ -226,13 +228,26 @@ export async function buildLabReportFromDb(
   const report: LabReport = {
     version: 1,
     generatedAt: new Date().toISOString(),
+    userId,
     patient,
     analysis,
     recommendations,
     biomarkers,
     prescriptions,
     coverOverrides,
+    doc: null,
+    docStatus: null,
   };
+
+  // Сохранённый документ — источник истины для рендера. Если его ещё нет
+  // (старые отчёты), рендер соберёт документ на лету через resolveDoc().
+  if (options.withDocument !== false) {
+    const stored = await fetchReportDocument(analysisId);
+    if (stored) {
+      report.doc = stored.doc;
+      report.docStatus = stored.status;
+    }
+  }
 
   return report;
 }

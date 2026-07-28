@@ -27,6 +27,8 @@ interface Props {
   initialReport?: LabReport;
   /** Скрыть кнопку «Скачать PDF» (используется в демо, где нет auth-сессии). */
   hideDownload?: boolean;
+  /** ЛК пациента: показывать только опубликованный врачом отчёт. */
+  requirePublished?: boolean;
 }
 
 /**
@@ -34,7 +36,7 @@ interface Props {
  * (Beta-иконки в списке). В ЛК пациента и режиме «Просмотр как пациент»
  * используется компактная панель без служебных подписей.
  */
-export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload }: Props) {
+export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished }: Props) {
   const hasSource = initialReport || (analysisId && userId);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -115,6 +117,7 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
                 onClose={requestClose}
                 initialReport={initialReport}
                 hideDownload={hideDownload}
+                requirePublished={requirePublished}
               />
             ) : (
               <div className="text-sm text-muted-foreground">Не удалось определить пациента/анализ.</div>

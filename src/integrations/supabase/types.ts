@@ -2472,6 +2472,56 @@ export type Database = {
         }
         Relationships: []
       }
+      report_documents: {
+        Row: {
+          analysis_id: string
+          blocks: Json
+          created_at: string
+          edited_at: string | null
+          edited_by: string | null
+          id: string
+          published_at: string | null
+          published_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          blocks?: Json
+          created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          blocks?: Json
+          created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_documents_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: true
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_jobs: {
         Row: {
           analysis_id: string
@@ -3343,6 +3393,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      report_document_status: {
+        Args: { p_analysis_id: string }
+        Returns: string
       }
       reset_slot_to_default: {
         Args: { p_date: string; p_time_slot: string }

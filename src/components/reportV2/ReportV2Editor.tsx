@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, X } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,9 +15,22 @@ import { notify as toast } from "@/lib/toast";
 import { PagedReportPreview, ReportDocument } from "@/lib/reportLab/renderer";
 import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
-import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
-import { getCategoryRecords, getPatientDataRecord, getPrescriptionsRecord } from "@/lib/reportLab/parser";
+import {
+  applyDraftsToDoc,
+  buildDocFromReport,
+  getPatientEntry,
+  getPrescriptionsEntry,
+  getSectionEntries,
+  resolveDoc,
+} from "@/lib/reportLab/document";
+import {
+  ensureReportDocument,
+  fetchReportDocumentStatus,
+
+  publishReportDocument,
+  replaceReportDocument,
+} from "@/lib/reportLab/documentStore";
 import type { LabReport } from "@/lib/reportLab/types";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 
@@ -55,6 +68,12 @@ interface Props {
   sidebarFooter?: React.ReactNode;
   /** Опциональный sticky-элемент внизу превью (по центру). */
   bottomAction?: React.ReactNode;
+  /**
+   * Режим пациента: показывать только опубликованный врачом отчёт.
+   * Если документ существует, но ещё в статусе «черновик» — вместо отчёта
+   * выводится заглушка «отчёт готовится».
+   */
+  requirePublished?: boolean;
 }
 
 
@@ -70,14 +89,8 @@ function collectLiveDrafts(): Record<string, string> {
 
 function applyDraftsToReport(source: LabReport, drafts: Record<string, string>): LabReport {
   if (Object.keys(drafts).length === 0) return source;
-  return {
-    ...source,
-    generatedAt: new Date().toISOString(),
-    recommendations: source.recommendations.map((rec) => ({
-      ...rec,
-      text: assembleRecommendationText(rec, drafts, source),
-    })),
-  };
+  const { doc } = applyDraftsToDoc(resolveDoc(source), drafts);
+  return { ...source, generatedAt: new Date().toISOString(), doc };
 }
 
 /**
@@ -87,11 +100,12 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
   const [paginated, setPaginated] = useState(true);
+  const [awaitingPublish, setAwaitingPublish] = useState(false);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -106,8 +120,32 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setAwaitingPublish(false);
     buildLabReportFromDb(analysisId, userId)
-      .then((r) => {
+      .then(async (r) => {
+        if (cancelled) return;
+        if (requirePublished) {
+          // Пациент: содержимое неопубликованного документа RLS не отдаёт,
+          // поэтому статус спрашиваем отдельной безопасной функцией.
+          if (!r.doc) {
+            const status = await fetchReportDocumentStatus(analysisId);
+            if (cancelled) return;
+            if (status && status !== "published" && status !== "edited") {
+              setAwaitingPublish(true);
+              return;
+            }
+          }
+          setReport(r);
+          return;
+        }
+        // Ленивая миграция: у старых отчётов сохранённого документа нет —
+        // собираем его один раз и фиксируем как черновик.
+        if (!r.doc) {
+          const built = buildDocFromReport(r);
+          r.doc = built;
+          const status = await ensureReportDocument(analysisId, userId, built);
+          if (status) r.docStatus = status;
+        }
         if (cancelled) return;
         setReport(r);
       })
@@ -122,7 +160,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     return () => {
       cancelled = true;
     };
-  }, [analysisId, userId, initialReport]);
+  }, [analysisId, userId, initialReport, requirePublished]);
 
   useEffect(() => {
     return () => {
@@ -148,16 +186,57 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   );
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
-  const reloadReport = useCallback(async () => {
+  const publish = useCallback(async () => {
+    if (!report) return;
+    setPublishing(true);
     try {
-      const fresh = await buildLabReportFromDb(analysisId, userId);
-      setReport(fresh);
+      await publishReportDocument(analysisId);
+      setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
+      toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
       onSaved?.();
     } catch (e) {
-      console.error("[ReportV2Editor] reload after regenerate failed", e);
+      console.error("[ReportV2Editor] publish failed", e);
+      toast.error("Не удалось опубликовать", e instanceof Error ? e.message : String(e));
+    } finally {
+      setPublishing(false);
     }
-  }, [analysisId, userId, onSaved]);
+  }, [analysisId, report, onSaved]);
+
+  /**
+   * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
+   * пересобирается из нового черновика ИИ и полностью перезаписывает
+   * сохранённый (ручные правки в нём теряются — об этом предупреждаем заранее).
+   */
+  const reloadReport = useCallback(
+    async (rebuildDoc = false) => {
+      try {
+        const fresh = await buildLabReportFromDb(analysisId, userId);
+        if (rebuildDoc) {
+          const rebuilt = buildDocFromReport(fresh);
+          try {
+            const status = await replaceReportDocument(
+              analysisId,
+              userId,
+              rebuilt,
+              fresh.docStatus,
+            );
+            fresh.doc = rebuilt;
+            fresh.docStatus = status;
+          } catch (e) {
+            console.error("[ReportV2Editor] replaceReportDocument failed", e);
+            fresh.doc = rebuilt;
+          }
+        }
+        setReport(fresh);
+        onSaved?.();
+      } catch (e) {
+        console.error("[ReportV2Editor] reload after regenerate failed", e);
+      }
+    },
+    [analysisId, userId, onSaved],
+  );
 
   const regenerateCategory = useCallback(
     async (category: string) => {
@@ -171,11 +250,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         const ok = window.confirm(
           "В отчёте есть несохранённые правки. Перегенерация раздела «" +
             category +
-            "» перезапишет его текст. Продолжить?",
+            "» сбросит все ручные правки этого отчёта — черновик будет сгенерирован заново. Продолжить?",
         );
         if (!ok) return;
       } else if (
-        !window.confirm(`Перегенерировать раздел «${category}»? Текст будет полностью пересобран ИИ.`)
+        !window.confirm(
+          `Перегенерировать раздел «${category}»? Ручные правки отчёта будут сброшены — текст пересоберётся ИИ заново.`,
+        )
       ) {
         return;
       }
@@ -225,7 +306,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             throw new Error(statusJson?.job?.error || "Ошибка генерации");
           }
         }
-        await reloadReport();
+        await reloadReport(true);
         toast.success("Раздел перегенерирован", category);
       } catch (e) {
         console.error("[ReportV2Editor] regenerateCategory failed", e);
@@ -246,11 +327,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       const w = window as typeof window & { __reportV2HasEdits?: () => boolean };
       if (w.__reportV2HasEdits?.()) {
         const ok = window.confirm(
-          "В отчёте есть несохранённые правки. Перегенерация «Общего резюме» перезапишет его текст. Продолжить?",
+          "В отчёте есть несохранённые правки. Перегенерация «Общего резюме» сбросит ручные правки отчёта — черновик будет сгенерирован заново. Продолжить?",
         );
         if (!ok) return;
       } else if (
-        !window.confirm("Перегенерировать «Общее резюме»? Текст будет полностью пересобран ИИ.")
+        !window.confirm(
+          "Перегенерировать «Общее резюме»? Ручные правки отчёта будут сброшены — текст пересоберётся ИИ заново.",
+        )
       ) {
         return;
       }
@@ -294,7 +377,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             throw new Error(statusJson?.job?.error || "Ошибка генерации");
           }
         }
-        await reloadReport();
+        await reloadReport(true);
         toast.success("Общее резюме перегенерировано");
       } catch (e) {
         console.error("[ReportV2Editor] regenerateSummary failed", e);
@@ -343,11 +426,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     if (!report) return [];
     // Обложку в содержание не выносим — на неё юзер и так попадает первой.
     const items: ReportNavSection[] = [];
-    if (getPatientDataRecord(report)) items.push({ id: "patient", label: "Данные пациента" });
+    const doc = resolveDoc(report);
+    if (getPatientEntry(doc)) items.push({ id: "patient", label: "Данные пациента" });
     items.push({ id: "overview", label: "Общее резюме" });
-    const cats = getCategoryRecords(report);
-    cats.forEach((rec, i) => items.push({ id: `category-${i + 1}`, label: rec.type }));
-    if (getPrescriptionsRecord(report)) items.push({ id: "prescriptions", label: "Рекомендации" });
+    getSectionEntries(doc).forEach((entry, i) =>
+      items.push({ id: `category-${i + 1}`, label: entry.title || entry.type }),
+    );
+    if (getPrescriptionsEntry(doc)) items.push({ id: "prescriptions", label: "Рекомендации" });
     return items;
   }, [report]);
 
@@ -419,7 +504,19 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     );
   }
 
+  if (awaitingPublish) {
+    return (
+      <Alert className="my-6">
+        <AlertDescription>
+          Отчёт сформирован и сейчас проверяется врачом. Он появится здесь сразу
+          после публикации — обычно в течение рабочего дня.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   if (error || !report) {
+
     return (
       <Alert variant="destructive" className="my-6">
         <AlertDescription>
@@ -443,10 +540,36 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   };
 
   // Действия для десктопной панели (inline-кнопки).
+  const docStatus = report.docStatus ?? "draft";
+  const publishLabel =
+    docStatus === "published"
+      ? "Опубликован"
+      : docStatus === "edited"
+        ? "Опубликовать изменения"
+        : "Опубликовать";
+
   const toolbarExtras = (
     <>
       {!compact && (
         <>
+          <Button
+            size="sm"
+            variant={docStatus === "published" ? "outline" : "default"}
+            onClick={publish}
+            disabled={publishing || docStatus === "published"}
+            title={
+              docStatus === "published"
+                ? "Пациент видит эту версию отчёта"
+                : "Сделать текущую версию видимой пациенту"
+            }
+          >
+            {publishing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            {publishLabel}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -512,6 +635,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         )}
         {!compact && (
           <>
+            <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+              <Send className="mr-2 h-4 w-4" />
+              {publishLabel}
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Обновить страницы
