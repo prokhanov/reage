@@ -117,6 +117,7 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
                 onClose={requestClose}
                 initialReport={initialReport}
                 hideDownload={hideDownload}
+                requirePublished={requirePublished}
               />
             ) : (
               <div className="text-sm text-muted-foreground">Не удалось определить пациента/анализ.</div>
