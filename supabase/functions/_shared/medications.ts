@@ -75,7 +75,9 @@ export function matchMedication(raw: string, dict: MedicationEntry[]): Medicatio
     for (const term of candidateTerms(entry)) {
       if (term === q) return entry;
       if (q.includes(term) && term.length >= 5) return entry;
-      const maxDist = q.length >= 9 ? 2 : q.length >= 6 ? 1 : 0;
+      // Осторожный fuzzy: допускаем только 1 опечатку и только для длинных названий,
+      // иначе разные препараты («Небиксиум» и «Нексиум») склеиваются в один.
+      const maxDist = q.length >= 8 ? 1 : 0;
       if (maxDist > 0 && Math.abs(term.length - q.length) <= maxDist) {
         const d = levenshtein(term, q);
         if (d <= maxDist && (!fuzzyBest || d < fuzzyBest.dist)) {
