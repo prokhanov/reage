@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { getBorderlineInfo, borderlineTag, BORDERLINE_RULES_BLOCK } from "../_shared/borderline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -276,7 +277,14 @@ serve(async (req) => {
             if (optimalMin != null && optimalMax != null) rangeInfo = `${genderLabel}; оптимум: ${optimalMin}-${optimalMax} | норма: ${normalMin}-${normalMax}`;
             if (criticalMin != null || criticalMax != null) rangeInfo += ` | крит: ${criticalMin != null ? '<' + criticalMin : ''}${criticalMin != null && criticalMax != null ? ' / ' : ''}${criticalMax != null ? '>' + criticalMax : ''}`;
 
-            return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " " + status + " (" + rangeInfo + ")";
+            const borderline = getBorderlineInfo({
+              code: biomarker.code, value: b.value,
+              normalMin: normalMin, normalMax: normalMax,
+              criticalMin: criticalMin, criticalMax: criticalMax,
+            });
+            const borderlineStr = borderline ? " " + borderlineTag(borderline) : "";
+
+            return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " " + status + " (" + rangeInfo + ")" + borderlineStr;
           }).join("\n")
         : "";
 
