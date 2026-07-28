@@ -39,6 +39,7 @@ import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialo
 import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 import { ReportPdfView } from "./ReportPdfView";
+import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
@@ -118,6 +119,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const readyUrlRef = useRef<string | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
+  // Предпросмотр текущего черновика (не опубликованного снимка) — рендерим
+  // на сервере синхронно, как при скачивании, и показываем blob в диалоге.
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
+  const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (initialReport) {
@@ -175,8 +182,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   useEffect(() => {
     return () => {
       if (readyUrlRef.current) URL.revokeObjectURL(readyUrlRef.current);
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
     };
-  }, []);
+  }, [pdfPreviewUrl]);
 
   const patientLabel = useMemo(() => {
     if (!report) return "";
@@ -609,6 +617,50 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     }
   }, [analysisId, report]);
 
+  const openDraftPdfPreview = useCallback(async () => {
+    if (!report) return;
+    setPdfPreviewOpen(true);
+    setPdfPreviewLoading(true);
+    setPdfPreviewError(null);
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const liveDrafts = collectLiveDrafts();
+      const reportForPdf = applyDraftsToReport(report, liveDrafts);
+      const endpoint = edgeFunctionUrl("render-report-pdf");
+      const requestId = crypto.randomUUID();
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          reportId: `analysis-${analysisId}`,
+          clientRequestId: requestId,
+          report: reportForPdf,
+        }),
+      });
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => "");
+        throw new Error(`HTTP ${response.status}. ${bodyText.slice(0, 300)}`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfPreviewUrl(url);
+    } catch (e) {
+      console.error("[ReportV2Editor] draft PDF preview failed", e);
+      setPdfPreviewError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPdfPreviewLoading(false);
+    }
+  }, [analysisId, report, pdfPreviewUrl]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
@@ -713,10 +765,15 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setPdfPreviewOpen(true)}
-          title="Открыть серверный PDF — так отчёт видит пациент"
+          onClick={openDraftPdfPreview}
+          disabled={pdfPreviewLoading}
+          title="Серверный рендер текущего черновика — как пациент увидит в PDF"
         >
-          <FileText className="mr-2 h-4 w-4" />
+          {pdfPreviewLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="mr-2 h-4 w-4" />
+          )}
           Предпросмотр как PDF
         </Button>
       )}
@@ -948,12 +1005,32 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         }}
       />
 
-      <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
+      <Dialog
+        open={pdfPreviewOpen}
+        onOpenChange={(open) => {
+          if (!open && pdfPreviewUrl) {
+            URL.revokeObjectURL(pdfPreviewUrl);
+            setPdfPreviewUrl(null);
+          }
+          setPdfPreviewOpen(open);
+        }}
+      >
         <DialogContent className="max-w-5xl">
           <DialogHeader>
             <DialogTitle>Предпросмотр как PDF</DialogTitle>
           </DialogHeader>
-          <ReportPdfView analysisId={analysisId} persona="staff" />
+          {pdfPreviewLoading && (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="text-sm">Рендерим PDF на сервере — обычно 10–40 секунд…</div>
+            </div>
+          )}
+          {pdfPreviewError && !pdfPreviewUrl && (
+            <div className="p-6 text-center text-sm text-destructive">
+              Не удалось сделать предпросмотр: {pdfPreviewError}
+            </div>
+          )}
+          {pdfPreviewUrl && <PdfCanvas url={pdfPreviewUrl} />}
         </DialogContent>
       </Dialog>
     </div>

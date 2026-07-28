@@ -21,7 +21,7 @@ interface Props {
   className?: string;
 }
 
-function PdfCanvas({ url }: { url: string }) {
+export function PdfCanvas({ url }: { url: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 
