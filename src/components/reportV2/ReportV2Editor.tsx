@@ -179,12 +179,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     };
   }, [analysisId, userId, initialReport, requirePublished]);
 
+  // Кэш предпросмотра: ключ = содержимое черновика, значение = blob URL.
+  // Пока текст не изменился, повторный рендер на сервере не запускается.
+  const previewCacheRef = useRef<{ key: string; url: string } | null>(null);
+
   useEffect(() => {
     return () => {
       if (readyUrlRef.current) URL.revokeObjectURL(readyUrlRef.current);
-      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+      if (previewCacheRef.current) URL.revokeObjectURL(previewCacheRef.current.url);
     };
-  }, [pdfPreviewUrl]);
+  }, []);
+
 
   const patientLabel = useMemo(() => {
     if (!report) return "";
@@ -620,17 +625,24 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const openDraftPdfPreview = useCallback(async () => {
     if (!report) return;
     setPdfPreviewOpen(true);
-    setPdfPreviewLoading(true);
     setPdfPreviewError(null);
-    if (pdfPreviewUrl) {
-      URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(null);
+
+    const liveDrafts = collectLiveDrafts();
+    const reportForPdf = applyDraftsToReport(report, liveDrafts);
+    const cacheKey = JSON.stringify(reportForPdf);
+
+    // Содержимое не изменилось с прошлого предпросмотра — отдаём кэш мгновенно.
+    if (previewCacheRef.current?.key === cacheKey) {
+      setPdfPreviewUrl(previewCacheRef.current.url);
+      setPdfPreviewLoading(false);
+      return;
     }
+
+    setPdfPreviewLoading(true);
+    setPdfPreviewUrl(null);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      const liveDrafts = collectLiveDrafts();
-      const reportForPdf = applyDraftsToReport(report, liveDrafts);
       const endpoint = edgeFunctionUrl("render-report-pdf");
       const requestId = crypto.randomUUID();
       const response = await fetch(endpoint, {
@@ -652,6 +664,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
+      if (previewCacheRef.current) URL.revokeObjectURL(previewCacheRef.current.url);
+      previewCacheRef.current = { key: cacheKey, url };
       setPdfPreviewUrl(url);
     } catch (e) {
       console.error("[ReportV2Editor] draft PDF preview failed", e);
@@ -659,7 +673,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     } finally {
       setPdfPreviewLoading(false);
     }
-  }, [analysisId, report, pdfPreviewUrl]);
+  }, [analysisId, report]);
+
 
   if (loading) {
     return (
@@ -1008,12 +1023,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       <Dialog
         open={pdfPreviewOpen}
         onOpenChange={(open) => {
-          if (!open && pdfPreviewUrl) {
-            URL.revokeObjectURL(pdfPreviewUrl);
-            setPdfPreviewUrl(null);
-          }
+          // Blob не удаляем: он остаётся в кэше предпросмотра до правок текста.
           setPdfPreviewOpen(open);
         }}
+
       >
         <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
