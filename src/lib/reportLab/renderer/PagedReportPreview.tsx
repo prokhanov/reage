@@ -186,7 +186,51 @@ function emitReady(extra?: Record<string, unknown>) {
   console.log("[report-preview] paged_ready", extra ?? "");
 }
 
+/**
+ * Ждём, пока загрузятся все шрифты и изображения/SVG внутри fragment.
+ * Это критично для детерминированной пагинации: если Paged.js стартует
+ * раньше, высота блоков считается на fallback-шрифте или без картинок,
+ * и разрывы страниц гуляют между открытиями.
+ */
+async function waitForResources(fragment: DocumentFragment, timeoutMs = 8000) {
+  const docFonts = (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts;
+  const fontPromise = docFonts?.ready ?? Promise.resolve();
+
+  const images = Array.from(
+    fragment.querySelectorAll<HTMLElement>("img, svg, image"),
+  );
+  const imagePromises = images.map((el) => {
+    if (el instanceof HTMLImageElement) {
+      if (el.complete && el.naturalWidth > 0) return Promise.resolve();
+      if (el.complete && el.naturalWidth === 0 && !el.src) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const done = () => resolve();
+        el.addEventListener("load", done, { once: true });
+        el.addEventListener("error", done, { once: true });
+        // Если картинка уже загружена к моменту подписки
+        if (el.complete) done();
+      });
+    }
+    // SVG/image — считаем, что встроенные SVG доступны сразу; для <image> внутри SVG
+    // ждём load/error, если это HTMLImageElement.
+    if (el instanceof SVGImageElement && el.href.baseVal) {
+      return new Promise<void>((resolve) => {
+        const done = () => resolve();
+        el.addEventListener("load", done, { once: true });
+        el.addEventListener("error", done, { once: true });
+      });
+    }
+    return Promise.resolve();
+  });
+
+  await Promise.race([
+    Promise.all([fontPromise, ...imagePromises]),
+    new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+  ]);
+}
+
 /* ─── Плавающий toolbar редактирования (contentEditable + execCommand) ─── */
+
 function ensureToolbar(container: HTMLElement): HTMLDivElement {
   let bar = container.querySelector<HTMLDivElement>(".rl-paged-toolbar");
   if (bar) return bar;
