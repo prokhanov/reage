@@ -456,10 +456,31 @@ function splitTailForNextBiomarker(
   };
 }
 
+/**
+ * Фраза «Ваш (абсолютный) показатель <имя маркера> <значение>».
+ * Между ключевым словом и числом AI почти всегда пишет название маркера
+ * («Ваш абсолютный показатель лимфоцитов 1.97»), поэтому допускаем
+ * до 2 прилагательных перед ключевым словом и до 4 слов названия после него.
+ */
+const VALUE_PHRASE_SRC =
+  "Ваш(?:и|е|его|ем)?\\s+(?:[А-Яа-яЁё]+\\s+){0,2}(?:показател[ьия]|уровень|значение|индекс|результат|содержание|концентраци[яи])\\s+(?:[А-Яа-яЁёA-Za-z()\\-\\/]+\\s+){0,4}([-]?\\d+(?:[.,]\\d+)?)(?:\\s+([^\\s,.;:()]{1,12}))?";
+
+/**
+ * Та же фраза, но с ЛЮБЫМ значением (включая «отрицательный», «не обнаружено»).
+ * Используется только как граница между карточками маркеров.
+ */
+const VALUE_PHRASE_BOUNDARY_RE =
+  /Ваш(?:и|е|его|ем)?\s+(?:[А-Яа-яЁё]+\s+){0,2}(?:показател[ьия]|уровень|значение|индекс|результат|содержание|концентраци[яи])\b/giu;
+
+/** Слова из названий маркеров, которые встречаются повсеместно и не помогают. */
+const GENERIC_NAME_TOKENS = new Set([
+  "моче", "мочи", "моча", "крови", "кровь", "сыворотке", "сыворотки",
+  "общий", "общая", "общее", "плазме", "плазмы", "анализ", "показатель",
+  "индекс", "уровень", "свободный", "суточной",
+]);
+
 function hasPatientValueContext(text: string): boolean {
-  return /Ваш(?:и|е|его)?\s+(?:текущ(?:ий|ее|ая)\s+)?(?:показател[ьия]|уровень|значение|индекс|результат)\s+[-]?\d+(?:[.,]\d+)?/iu.test(
-    text,
-  );
+  return new RegExp(VALUE_PHRASE_SRC, "iu").test(text);
 }
 
 function findBiomarkerLeadStart(chunk: string, bio: ReportBiomarker): number {
@@ -611,8 +632,7 @@ function injectHeadingBiomarkerAnchors(
   // Некоторые версии AI-отчёта пропускают заголовки биомаркеров и оставляют
   // только прозу с фразой «Ваш показатель <value> <unit>». Матчим по точному
   // значению против снапшота, чтобы всё равно нарисовать карточки.
-  const valuePhraseRegex =
-    /Ваш(?:и|е|его)?\s+(?:текущ(?:ий|ее|ая)\s+)?(?:показател[ьия]|уровень|значение|индекс|результат)\s+([-]?\d+(?:[.,]\d+)?)/giu;
+  const valuePhraseRegex = new RegExp(VALUE_PHRASE_SRC, "giu");
   const valueMatches = [...text.matchAll(valuePhraseRegex)];
   if (valueMatches.length > 0) {
     const byValue = new Map<string, string[]>();
@@ -644,7 +664,10 @@ function injectHeadingBiomarkerAnchors(
     // предыдущей границы. Это гарантирует, что весь вводный текст ПЕРЕД фразой
     // «Ваш показатель …» попадёт в этот же маркер, а не в предыдущий.
     const priorEnds: number[] = hits.map((h) => h.end);
-    const valuePositions = valueMatches
+    // ВАЖНО: границами служат ЛЮБЫЕ фразы «Ваш показатель …», в том числе
+    // нечисловые («…отрицательный», «…не обнаружено»). Иначе вводный абзац
+    // такого маркера утечёт в следующую карточку и весь раздел «сдвинется».
+    const valuePositions = [...text.matchAll(VALUE_PHRASE_BOUNDARY_RE)]
       .map((m) => m.index ?? -1)
       .filter((i) => i >= 0)
       .sort((a, b) => a - b);
@@ -653,8 +676,9 @@ function injectHeadingBiomarkerAnchors(
       const rawVal = (vm[1] || "").replace(/,/g, ".");
       const codes = byValue.get(rawVal);
       if (!codes || codes.length === 0) continue;
-      const code = codes.find((c) => !usedCodes.has(normalizeCode(c)));
-      if (!code) continue;
+      const free = codes.filter((c) => !usedCodes.has(normalizeCode(c)));
+      if (free.length === 0) continue;
+
       const pos = vm.index ?? 0;
       if (hits.some((hh) => pos >= hh.start && pos <= hh.end)) continue;
 
@@ -691,6 +715,9 @@ function injectHeadingBiomarkerAnchors(
       // в карточку затягивается пост-текст предыдущего биомаркера («Что это
       // значит для вас: …»), который идёт между предыдущим «Ваш показатель X»
       // и вводным абзацем следующего биомаркера.
+      // Текст от предыдущей границы до фразы со значением — здесь AI называет
+      // маркер («Нитриты в моче являются…»). Нужен для выбора кода.
+      const introStart = blockStart;
       {
         const prev = text.lastIndexOf("\n\n", pos - 1);
         if (prev !== -1 && prev + 2 > blockStart) {
@@ -698,16 +725,66 @@ function injectHeadingBiomarkerAnchors(
         }
       }
 
+      // Конец блока — конец АБЗАЦА с фразой, а не сама цифра. Иначе следующая
+      // карточка начинается с обрывка предыдущего предложения («% находится…»).
+      const phraseEnd = pos + vm[0].length;
+      const nlAfter = text.indexOf("\n", phraseEnd);
+      const paraEnd = nlAfter === -1 ? text.length : nlAfter;
+
+      // Несколько маркеров с одинаковым значением (Базофилы % и Базофилы абс.
+      // оба «0») — выбираем того, чьё имя реально упомянуто во фразе ИЛИ во
+      // вводном абзаце этой же карточки.
+      const phrase = normalizeName(vm[0]);
+      const context = normalizeName(text.slice(introStart, phraseEnd));
+      const phraseUnit = normalizeCode(vm[2] || "");
+      let code = free[0];
+      let best = -1;
+      for (const c of free) {
+        const bio = biomarkerIndex.get(normalizeCode(c));
+        if (!bio) continue;
+        const name = normalizeName(bio.name);
+        const stripped = name.replace(/\s*\([^()]*\)\s*/g, " ").trim();
+        let score = 0;
+        for (const token of stripped.split(" ")) {
+          if (token.length < 4) continue;
+          // Общие слова («в моче», «крови») есть почти в каждом абзаце —
+          // они не помогают отличить один маркер от другого.
+          if (GENERIC_NAME_TOKENS.has(token)) continue;
+          const stem = token.slice(0, Math.max(4, token.length - 2));
+          if (phrase.includes(stem)) score += 3;
+          else if (context.includes(stem)) score += 2;
+          // Более мягкое совпадение по корню слова: «лейкоцитарная» ↔ «лейкоцитами».
+          else if (token.length >= 6 && context.includes(token.slice(0, 5))) score += 1;
+        }
+        const codeNorm = normalizeName(c);
+        if (codeNorm.length >= 2 && context.includes(codeNorm)) score += 2;
+        // Единица измерения — самый надёжный дискриминатор для маркеров
+        // с одинаковым значением («0 ед» vs «0 кл/мкл» vs «0 мкмоль/л»).
+        const bioUnit = normalizeCode((bio as { unit?: string }).unit || "");
+        if (phraseUnit && bioUnit) {
+          if (phraseUnit === bioUnit) score += 6;
+          else score -= 4;
+        }
+        const phraseAbs = /\b(абс|абсолютн)/.test(phrase);
+        const nameAbs = /(абс|абсолютн)/.test(name);
+        if (phraseAbs === nameAbs) score += 1;
+        if (score > best) {
+          best = score;
+          code = c;
+        }
+      }
+      if (!code) continue;
 
       hits.push({
         start: blockStart,
-        end: pos + vm[0].length,
+        end: paraEnd,
         code,
         nameLen: 0,
       });
       usedCodes.add(normalizeCode(code));
-      priorEnds.push(pos + vm[0].length);
+      priorEnds.push(paraEnd);
     }
+
   }
 
   if (hits.length === 0) return text;
