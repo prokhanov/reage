@@ -859,9 +859,35 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </>
         )}
       </ReportEditorShell>
+
+      <EditPrescriptionDialog
+        open={rxDialogOpen}
+        onOpenChange={(open) => {
+          setRxDialogOpen(open);
+          if (!open) {
+            setRxEditRow(null);
+            void refreshPrescriptions();
+          }
+        }}
+        prescription={(rxEditRow as never) ?? null}
+      />
+
+      <EditAdvisoryDialog
+        open={advisoryFocus !== null}
+        onOpenChange={(open) => {
+          if (!open) setAdvisoryFocus(null);
+        }}
+        userId={userId}
+        preferredAnalysisId={analysisId}
+        initialFocus={advisoryFocus ?? "lifestyle"}
+        onSaved={() => {
+          void refreshPrescriptions();
+        }}
+      />
     </div>
   );
 }
+
 
 
 function EditablePreview({
