@@ -122,11 +122,22 @@ export function ProseMarkdown({ markdown, className = "", editableId, html }: Pr
 
   const editing = ctx?.mode === "edit" && !!editableId;
 
-  if (!clean && !editing) return null;
+  if (!clean && !htmlSource && !editing) return null;
 
   const wrapperProps = editableId
     ? { "data-editable-id": editableId }
     : {};
+
+  // Сохранённая правка врача — рендерим разметку как есть.
+  if (htmlSource) {
+    return (
+      <div
+        className={`rl-prose${editing ? " rl-prose-editable" : ""} ${className}`}
+        {...wrapperProps}
+        dangerouslySetInnerHTML={{ __html: htmlSource }}
+      />
+    );
+  }
 
   return (
     <div
