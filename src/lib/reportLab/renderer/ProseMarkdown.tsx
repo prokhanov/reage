@@ -29,10 +29,12 @@ const SUMMARY_SUBHEADING_RE =
  * того, как paged.js завершит вёрстку страниц (иначе клонирование ломает
  * интерактив).
  */
-export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
+export function ProseMarkdown({ markdown, className = "", editableId, html }: Props) {
   const ctx = useReportEditor();
-  const source =
-    (editableId && ctx?.getDraft(editableId)) ?? markdown ?? "";
+  // Приоритет: живой драфт редактора → сохранённый HTML → markdown.
+  const draft = editableId ? ctx?.getDraft(editableId) : undefined;
+  const htmlSource = draft ?? html ?? "";
+  const source = markdown ?? "";
   const clean = source
     .replace(/\r\n/g, "\n")
     .replace(/\u200B/g, "")
