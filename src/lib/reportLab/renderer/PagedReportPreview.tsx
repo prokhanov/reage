@@ -1197,6 +1197,15 @@ function installEditableOverlay(
     // Ctrl/Cmd+Enter оставляем на дефолтное поведение (новый абзац) на
     // случай, если пользователю нужен именно параграф.
     el.addEventListener("keydown", (e) => {
+      if ((e.key === "Backspace" || e.key === "Delete") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const direction = e.key === "Backspace" ? "backward" : "forward";
+        if (tryMergeAdjacentTextBlock(output, el, direction)) {
+          e.preventDefault();
+          el.setAttribute("data-rl-dirty", "1");
+        }
+        return;
+      }
+
       if (e.key !== "Enter") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
