@@ -148,14 +148,29 @@ export async function replaceReportDocument(
   return saveReportDocument(analysisId, userId, doc, currentStatus);
 }
 
-export async function publishReportDocument(analysisId: string): Promise<void> {
+/**
+ * Публикация: рабочая версия копируется в снимок `published_blocks` —
+ * именно его видит пациент. Дальнейшие правки врача снова становятся
+ * черновиком и на пациента не влияют до следующей публикации.
+ */
+export async function publishReportDocument(analysisId: string, doc?: ReportDoc): Promise<void> {
   const { data: authData } = await supabase.auth.getUser();
+  let blocks = doc?.entries;
+  if (!blocks) {
+    const { data: row } = await table()
+      .select("blocks")
+      .eq("analysis_id", analysisId)
+      .maybeSingle();
+    blocks = (row?.blocks as DocEntry[] | undefined) ?? undefined;
+  }
   const { error } = await table()
     .update({
       status: "published",
+      published_blocks: blocks ?? null,
       published_at: new Date().toISOString(),
       published_by: authData.user?.id ?? null,
     })
+
     .eq("analysis_id", analysisId);
   if (error) throw error;
 }
