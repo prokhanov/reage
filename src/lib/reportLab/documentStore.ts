@@ -171,14 +171,20 @@ export async function publishReportDocument(analysisId: string, doc?: ReportDoc)
       .maybeSingle();
     blocks = (row?.blocks as DocEntry[] | undefined) ?? undefined;
   }
-  const { error } = await table()
+  const { data: updated, error } = await table()
     .update({
       status: "published",
       published_blocks: blocks ?? null,
       published_at: new Date().toISOString(),
       published_by: authData.user?.id ?? null,
     })
-
-    .eq("analysis_id", analysisId);
+    .eq("analysis_id", analysisId)
+    .select("id")
+    .maybeSingle();
   if (error) throw error;
+  if (!updated) {
+    throw new Error(
+      "Публикация не выполнена: документ отчёта не найден или нет прав на его изменение",
+    );
+  }
 }
