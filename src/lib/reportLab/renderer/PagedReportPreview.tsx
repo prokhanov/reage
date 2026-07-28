@@ -669,8 +669,15 @@ export function PagedReportPreview({
         className="rl-paged-output"
         style={{ position: "relative" }}
       />
+      {isPaginating && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Раскладка страниц…</span>
+        </div>
+      )}
     </div>
   );
+
 }
 
 // ─── Caret helpers ───────────────────────────────────────────────────────────
