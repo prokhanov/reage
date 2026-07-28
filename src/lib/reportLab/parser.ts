@@ -743,6 +743,8 @@ function injectHeadingBiomarkerAnchors(
           const stem = token.slice(0, Math.max(4, token.length - 2));
           if (phrase.includes(stem)) score += 3;
           else if (context.includes(stem)) score += 2;
+          // Более мягкое совпадение по корню слова: «лейкоцитарная» ↔ «лейкоцитами».
+          else if (token.length >= 6 && context.includes(token.slice(0, 5))) score += 1;
         }
         const codeNorm = normalizeName(c);
         if (codeNorm.length >= 2 && context.includes(codeNorm)) score += 2;
