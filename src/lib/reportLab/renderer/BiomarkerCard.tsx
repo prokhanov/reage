@@ -46,9 +46,9 @@ export function BiomarkerCard({ biomarker, commentary, commentaryHtml, gender, a
         </div>
         <BiomarkerScale biomarker={biomarker} gender={gender} age={age} />
       </div>
-      {(commentary || editableId) && (
+      {(commentary || commentaryHtml || editableId) && (
         <div className="rl-bio-body">
-          <ProseMarkdown markdown={commentary} editableId={editableId} />
+          <ProseMarkdown markdown={commentary} html={commentaryHtml} editableId={editableId} />
         </div>
       )}
     </div>
