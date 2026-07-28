@@ -211,10 +211,33 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       }
       // Публикуем то, что реально лежит в БД (а не локальный state).
       const stored = await fetchReportDocument(analysisId, false);
-      await publishReportDocument(analysisId, stored?.doc ?? resolveDoc(report));
+      const publishedDoc = stored?.doc ?? resolveDoc(report);
+      await publishReportDocument(analysisId, publishedDoc);
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
       onSaved?.();
+
+      // Серверный рендер PDF — единый источник пагинации для всех ролей.
+      // Хэш и дедупликация считаются на сервере, клиент их не присылает.
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        await fetch(edgeFunctionUrl("queue-report-pdf"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            ...(sess.session?.access_token
+              ? { Authorization: `Bearer ${sess.session.access_token}` }
+              : {}),
+          },
+          body: JSON.stringify({
+            analysisId,
+            report: { ...report, doc: publishedDoc, docStatus: "published" },
+          }),
+        });
+      } catch (e) {
+        console.error("[ReportV2Editor] queue-report-pdf failed", e);
+      }
     } catch (e) {
       console.error("[ReportV2Editor] publish failed", e);
       toast.error("Не удалось опубликовать", e instanceof Error ? e.message : String(e));
@@ -222,6 +245,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setPublishing(false);
     }
   }, [analysisId, report, onSaved]);
+
 
 
   /**
