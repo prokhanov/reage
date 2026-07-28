@@ -83,3 +83,24 @@ Deno.test("M1: score монотонно убывает при удалении �
   const v4 = normalizeMarker({ code: "GLU", value: 7.0, system: null, range: glu }, S).score;
   assert(v1 > v2 && v2 > v3 && v3 > v4, `monotone failed: ${v1} ${v2} ${v3} ${v4}`);
 });
+
+Deno.test("M1: пограничное отклонение штрафуется мягко (как вне оптимума, не как риск)", () => {
+  const range = {
+    optimal_min: 0.8, optimal_max: 0.9,
+    normal_min: 0.66, normal_max: 1.07,
+    critical_min: 0.45, critical_max: 1.3,
+  };
+  const soft = normalizeMarker({ code: "MG", value: 1.10, system: "energy", range }, S);
+  assertEquals(soft.zone, "normal");
+  assertEquals(soft.zone_raw, "risk");
+  assertEquals(soft.borderline, true);
+  assertEquals(soft.penalty, S.penalties.acceptable_marker);
+
+  // Исключение (глюкоза) — смягчения нет
+  const glu = normalizeMarker(
+    { code: "GLU", value: 6.2, system: "metabolism", range: { optimal_min: 4.1, optimal_max: 5.2, normal_min: 3.9, normal_max: 6.1, critical_min: 2.8, critical_max: 11 } },
+    S,
+  );
+  assertEquals(glu.zone, "risk");
+  assertEquals(glu.borderline, false);
+});

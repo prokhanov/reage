@@ -74,9 +74,12 @@ export function computeSystemScores(
       raw *= 0.85 + 0.15 * (coverage / covT);
     }
 
-    // Бонус «все зелёные»
-    const noBad = inSystem.every((m) => m.zone === "optimal" || m.zone === "normal");
+    // Бонус «все зелёные» — пограничные маркеры зелёными не считаются
+    const noBad = inSystem.every(
+      (m) => !m.borderline && (m.zone === "optimal" || m.zone === "normal"),
+    );
     if (noBad) raw += settings.bonuses.all_green_system_bonus;
+
 
     return {
       system,

@@ -43,9 +43,15 @@ export interface MarkerScore {
   score: number;
   /** Штраф в баллах HI (для агрегации). */
   penalty: number;
+  /** Зона, используемая в расчётах (пограничные risk смягчены до "normal"). */
   zone: MarkerZone;
+  /** Исходная зона по 7-сегментной шкале (для UI/объяснений). */
+  zone_raw?: MarkerZone;
+  /** Значение попало в пограничный коридор (±5 % от границы нормы). */
+  borderline?: boolean;
   /** Итоговый вес с учётом критичности. */
   weight_effective: number;
+
 }
 
 export interface SystemScore {

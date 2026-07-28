@@ -9,17 +9,37 @@
 // Никаких внешних зависимостей — чистая функция, удобно тестировать в Deno.
 
 import type { HealthModelSettings, MarkerInput, MarkerRange, MarkerScore, MarkerZone } from "./types.ts";
+import { getBorderlineInfo, BORDERLINE_BAND_PERCENT } from "../borderline.ts";
 
 const NORMAL_EDGE_SCORE = 0.6; // целевой score ровно на границе normal
+/** Насколько «просаживается» score внутри пограничного коридора (0.6 → 0.45). */
+const BORDERLINE_SCORE_DROP = 0.25;
 
 export function normalizeMarker(
   input: MarkerInput,
   settings: HealthModelSettings,
 ): MarkerScore {
   const { code, value, system, range } = input;
-  const zone = classifyZone(value, range);
+  const zoneRaw = classifyZone(value, range);
 
-  const score = computeScore(value, range, zone);
+  // Пограничная зона: формально risk, но отклонение минимально.
+  // Штрафуем мягко — как «выше/ниже оптимума» (acceptable), а не как риск.
+  const borderlineInfo = zoneRaw === "risk"
+    ? getBorderlineInfo({
+      code,
+      value,
+      normalMin: range.normal_min,
+      normalMax: range.normal_max,
+      criticalMin: range.critical_min ?? null,
+      criticalMax: range.critical_max ?? null,
+    })
+    : null;
+  const borderline = borderlineInfo != null;
+  const zone: MarkerZone = borderline ? "normal" : zoneRaw;
+
+  const score = borderline
+    ? borderlineScore(borderlineInfo!.deviationPercent)
+    : computeScore(value, range, zone);
   const penalty = penaltyFor(zone, settings);
 
   const baseWeight = range.base_weight ?? 1;
@@ -27,8 +47,15 @@ export function normalizeMarker(
     ? baseWeight * settings.critical_marker_weight_multiplier
     : baseWeight;
 
-  return { code, system, score, penalty, zone, weight_effective };
+  return { code, system, score, penalty, zone, zone_raw: zoneRaw, borderline, weight_effective };
 }
+
+/** Внутри пограничного коридора score плавно уходит ниже границы нормы. */
+function borderlineScore(deviationPercent: number): number {
+  const t = clamp01(Math.abs(deviationPercent) / BORDERLINE_BAND_PERCENT);
+  return clamp01(NORMAL_EDGE_SCORE * (1 - BORDERLINE_SCORE_DROP * t));
+}
+
 
 export function classifyZone(value: number, r: MarkerRange): MarkerZone {
   if (!Number.isFinite(value)) return "unknown";
