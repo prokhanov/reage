@@ -118,7 +118,7 @@ function mapBiomarker(row: BiomarkerRow, value: number, unit_override: string | 
 export async function buildLabReportFromDb(
   analysisId: string,
   userId: string,
-  options: { withDocument?: boolean } = {},
+  options: { withDocument?: boolean; published?: boolean } = {},
 ): Promise<LabReport> {
   if (!analysisId) throw new Error("buildLabReportFromDb: analysisId is required");
   if (!userId) throw new Error("buildLabReportFromDb: userId is required");
@@ -242,7 +242,7 @@ export async function buildLabReportFromDb(
   // Сохранённый документ — источник истины для рендера. Если его ещё нет
   // (старые отчёты), рендер соберёт документ на лету через resolveDoc().
   if (options.withDocument !== false) {
-    const stored = await fetchReportDocument(analysisId);
+    const stored = await fetchReportDocument(analysisId, options.published === true);
     if (stored) {
       report.doc = stored.doc;
       report.docStatus = stored.status;

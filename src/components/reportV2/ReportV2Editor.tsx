@@ -126,7 +126,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     setLoading(true);
     setError(null);
     setAwaitingPublish(false);
-    buildLabReportFromDb(analysisId, userId)
+    buildLabReportFromDb(analysisId, userId, { published: requirePublished })
       .then(async (r) => {
         if (cancelled) return;
         if (requirePublished) {
@@ -202,7 +202,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     if (!report) return;
     setPublishing(true);
     try {
-      await publishReportDocument(analysisId);
+      await publishReportDocument(analysisId, resolveDoc(report));
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
       onSaved?.();
