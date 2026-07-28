@@ -619,28 +619,34 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         ? "Опубликовать изменения"
         : "Опубликовать";
 
+  // Публикация доступна персоналу (режим редактирования), в т.ч. в диалоге
+  // (compact) — раньше кнопка пропадала и опубликовать было нечем.
+  const canPublish = mode === "edit" && !requirePublished && !initialReport;
+
   const toolbarExtras = (
     <>
+      {canPublish && (
+        <Button
+          size="sm"
+          variant={docStatus === "published" ? "outline" : "default"}
+          onClick={publish}
+          disabled={publishing || docStatus === "published"}
+          title={
+            docStatus === "published"
+              ? "Пациент видит эту версию отчёта"
+              : "Сделать текущую версию видимой пациенту"
+          }
+        >
+          {publishing ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="mr-2 h-4 w-4" />
+          )}
+          {publishLabel}
+        </Button>
+      )}
       {!compact && (
         <>
-          <Button
-            size="sm"
-            variant={docStatus === "published" ? "outline" : "default"}
-            onClick={publish}
-            disabled={publishing || docStatus === "published"}
-            title={
-              docStatus === "published"
-                ? "Пациент видит эту версию отчёта"
-                : "Сделать текущую версию видимой пациенту"
-            }
-          >
-            {publishing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="mr-2 h-4 w-4" />
-            )}
-            {publishLabel}
-          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -704,12 +710,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             Скачать PDF
           </DropdownMenuItem>
         )}
+        {canPublish && (
+          <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+            <Send className="mr-2 h-4 w-4" />
+            {publishLabel}
+          </DropdownMenuItem>
+        )}
         {!compact && (
           <>
-            <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
-              <Send className="mr-2 h-4 w-4" />
-              {publishLabel}
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Обновить страницы
