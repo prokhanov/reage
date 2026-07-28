@@ -3375,6 +3375,10 @@ export type Database = {
         }
         Returns: number
       }
+      publish_report_document: {
+        Args: { p_analysis_id: string; p_blocks?: Json }
+        Returns: string
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
