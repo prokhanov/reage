@@ -5,7 +5,7 @@ import { ReportDocument } from "./ReportDocument";
 import type { CoverOverrides, LabReport } from "../types";
 
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
-import { htmlToMarkdown } from "../editor/markdown";
+import { sanitizeReportHtml } from "../editor/sanitizeHtml";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
 
