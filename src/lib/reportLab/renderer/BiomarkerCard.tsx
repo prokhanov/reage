@@ -25,7 +25,7 @@ const BUCKET_LABEL: Record<BiomarkerBucket, string> = {
   critical: "Критично",
 };
 
-export function BiomarkerCard({ biomarker, commentary, gender, age = null, editableId }: Props) {
+export function BiomarkerCard({ biomarker, commentary, commentaryHtml, gender, age = null, editableId }: Props) {
   const bucket = resolveStatusBucket(biomarker, gender, age);
   const label = BUCKET_LABEL[bucket];
 
