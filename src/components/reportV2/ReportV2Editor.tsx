@@ -570,7 +570,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin" />
-        <div className="text-sm">Собираю отчёт из данных пациента…</div>
+        <div className="text-sm">Загружаю сохранённый отчёт…</div>
       </div>
     );
   }
