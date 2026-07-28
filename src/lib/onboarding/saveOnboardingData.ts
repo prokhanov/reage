@@ -2,6 +2,7 @@ import { format, isValid } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizePhone } from "@/lib/phone";
 import type { RegisterFormData } from "@/pages/Register";
+import { resolveMedicationsInBackground } from "@/lib/medications/resolveMedications";
 
 /**
  * Единая точка сохранения анкеты онбординга.
@@ -64,6 +65,7 @@ export async function saveOnboardingData(
   }
   if (data.medications && data.medications.length > 0) {
     profileUpdate.medications = data.medications;
+    resolveMedicationsInBackground(data.medications);
   }
   if (opts?.passportSeries) {
     profileUpdate.passport_series = opts.passportSeries.replace(/\D/g, "");

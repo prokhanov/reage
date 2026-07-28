@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
-import { buildAnketaContext } from "../_shared/anketaContext.ts";
+import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -313,7 +313,7 @@ serve(async (req) => {
       });
     }
 
-    userContext += `\n\n${buildAnketaContext(profile)}\n`;
+    userContext += `\n\n${await buildAnketaContextAsync(supabase, profile)}\n`;
 
 
 

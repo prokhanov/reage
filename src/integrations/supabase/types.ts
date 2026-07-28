@@ -1546,6 +1546,81 @@ export type Database = {
         }
         Relationships: []
       }
+      medication_dictionary: {
+        Row: {
+          brand_names: string[]
+          clinical_note: string | null
+          created_at: string
+          drug_class: string
+          id: string
+          inn: string
+          inn_en: string | null
+          lab_effects: Json
+          search_terms: string[]
+          source: string
+          updated_at: string
+          verified: boolean
+        }
+        Insert: {
+          brand_names?: string[]
+          clinical_note?: string | null
+          created_at?: string
+          drug_class?: string
+          id?: string
+          inn: string
+          inn_en?: string | null
+          lab_effects?: Json
+          search_terms?: string[]
+          source?: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Update: {
+          brand_names?: string[]
+          clinical_note?: string | null
+          created_at?: string
+          drug_class?: string
+          id?: string
+          inn?: string
+          inn_en?: string | null
+          lab_effects?: Json
+          search_terms?: string[]
+          source?: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
+      medication_unresolved: {
+        Row: {
+          created_at: string
+          hits: number
+          id: string
+          last_seen_at: string
+          normalized: string
+          raw_text: string
+          resolved: boolean
+        }
+        Insert: {
+          created_at?: string
+          hits?: number
+          id?: string
+          last_seen_at?: string
+          normalized: string
+          raw_text: string
+          resolved?: boolean
+        }
+        Update: {
+          created_at?: string
+          hits?: number
+          id?: string
+          last_seen_at?: string
+          normalized?: string
+          raw_text?: string
+          resolved?: boolean
+        }
+        Relationships: []
+      }
       password_reset_tokens: {
         Row: {
           created_at: string

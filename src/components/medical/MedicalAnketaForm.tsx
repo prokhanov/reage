@@ -1,4 +1,5 @@
 import { useState, KeyboardEvent } from "react";
+import { useMedicationSuggestions } from "@/hooks/useMedicationSuggestions";
 import { Plus, Info, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,9 @@ interface ChipsBlockProps {
   customValue: string;
   setCustomValue: (v: string) => void;
   onAddCustom: () => void;
+  /** Включает подсказки из справочника препаратов. */
+  withMedicationSuggestions?: boolean;
+  onPickSuggestion?: (v: string) => void;
 }
 
 function ChipsBlock({
@@ -42,8 +46,13 @@ function ChipsBlock({
   customValue,
   setCustomValue,
   onAddCustom,
+  withMedicationSuggestions,
+  onPickSuggestion,
 }: ChipsBlockProps) {
   const customs = selected.filter((s) => !chips.includes(s));
+  const [focused, setFocused] = useState(false);
+  const suggestions = useMedicationSuggestions(customValue, !!withMedicationSuggestions);
+  const showSuggestions = !!withMedicationSuggestions && focused && suggestions.length > 0;
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -92,14 +101,45 @@ function ChipsBlock({
           </span>
         ))}
       </div>
-      <div className="flex gap-2">
-        <Input
-          value={customValue}
-          onChange={(e) => setCustomValue(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder={placeholder}
-          className="flex-1"
-        />
+      <div className="flex gap-2 relative">
+        <div className="flex-1 relative">
+          <Input
+            value={customValue}
+            onChange={(e) => setCustomValue(e.target.value)}
+            onKeyDown={handleKey}
+            onFocus={() => setFocused(true)}
+            onBlur={() => window.setTimeout(() => setFocused(false), 150)}
+            placeholder={placeholder}
+            className="w-full"
+            autoComplete="off"
+          />
+          {showSuggestions && (
+            <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-border bg-popover shadow-lg py-1">
+              {suggestions.map((s) => (
+                <li key={s.inn}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      const label = s.matchedBrand ? `${s.matchedBrand} (${s.inn})` : s.inn;
+                      (onPickSuggestion ?? setCustomValue)(label);
+                      setFocused(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted/60 transition-colors"
+                  >
+                    <span className="font-medium">{s.matchedBrand ?? s.inn}</span>
+                    {s.matchedBrand && (
+                      <span className="text-muted-foreground"> — {s.inn}</span>
+                    )}
+                    {s.drug_class && (
+                      <span className="block text-xs text-muted-foreground">{s.drug_class}</span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -157,6 +197,13 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
     if (!v) return;
     if (!value.medications.includes(v)) {
       onChange({ medications: [...value.medications, v] });
+    }
+    setCustomMed("");
+  };
+
+  const addMedFromSuggestion = (label: string) => {
+    if (!value.medications.includes(label)) {
+      onChange({ medications: [...value.medications, label] });
     }
     setCustomMed("");
   };
@@ -278,6 +325,8 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
           customValue={customMed}
           setCustomValue={setCustomMed}
           onAddCustom={addCustomMed}
+          withMedicationSuggestions
+          onPickSuggestion={addMedFromSuggestion}
         />
       </section>
 

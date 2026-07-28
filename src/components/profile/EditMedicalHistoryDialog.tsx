@@ -20,6 +20,7 @@ import {
 import { Flower2 } from "lucide-react";
 import { MedicalAnketaForm, MedicalAnketaValue } from "@/components/medical/MedicalAnketaForm";
 import { CHRONIC_CATEGORY } from "@/lib/medicalAnketa";
+import { resolveMedicationsInBackground } from "@/lib/medications/resolveMedications";
 
 interface MedicalCondition {
   id?: string;
@@ -125,6 +126,8 @@ export function EditMedicalHistoryDialog({
         const { error: insErr } = await supabase.from("medical_history").insert(rows);
         if (insErr) throw insErr;
       }
+
+      resolveMedicationsInBackground(value.medications);
 
       const profileUpdate: Record<string, unknown> = {
         medications: value.medications,

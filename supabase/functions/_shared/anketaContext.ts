@@ -1,3 +1,5 @@
+import { buildMedicationFacts } from "./medications.ts";
+
 // Формирование текстового блока "анкета пациента" для AI-контекста:
 // препараты и добавки, операции/процедуры, дополнительные заметки о здоровье.
 
@@ -64,4 +66,25 @@ ${buildHealthNoteText(profile)}
 - Не назначай препарат/добавку, которую пациент уже принимает, без явного указания на коррекцию дозы или отмену; избегай дублирования и опасных сочетаний.
 - Недавние операции, переливание крови, донорство и вакцинация могут искажать воспалительные маркеры, показатели крови и железа — упоминай это при объяснении отклонений.
 - Дополнительную информацию о здоровье учитывай как контекст жалоб и образа жизни.`;
+}
+
+/**
+ * Асинхронный вариант: подставляет факты о препаратах из справочника
+ * medication_dictionary (действующее вещество, группа, влияние на биомаркеры).
+ */
+export async function buildAnketaContextAsync(
+  supabase: { from: (t: string) => any } | null | undefined,
+  profile: AnketaProfileLike | null | undefined,
+): Promise<string> {
+  const base = buildAnketaContext(profile);
+  if (!supabase) return base;
+  try {
+    const facts = await buildMedicationFacts(supabase, profile?.medications);
+    return base.replace(
+      `ПРЕПАРАТЫ И ДОБАВКИ (принимает сейчас):\n${buildMedicationsText(profile)}`,
+      `ПРЕПАРАТЫ И ДОБАВКИ (принимает сейчас):\n${facts}`,
+    );
+  } catch (_e) {
+    return base;
+  }
 }
