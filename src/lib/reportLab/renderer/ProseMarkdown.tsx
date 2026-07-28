@@ -6,6 +6,13 @@ interface Props {
   markdown: string;
   className?: string;
   editableId?: string;
+  /**
+   * Сохранённая правка врача в виде готовой разметки. Если передана —
+   * рендерим её как есть, без markdown-конвейера: именно так гарантируется,
+   * что жирный/курсив/заголовки/списки останутся ровно такими, как их
+   * оставили в редакторе.
+   */
+  html?: string;
 }
 
 const SUMMARY_SUBHEADING_RE =
