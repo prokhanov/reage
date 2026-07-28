@@ -464,9 +464,17 @@ export function PagedReportPreview({
           return;
         }
         const previewer = new Previewer({});
+        // Водяной знак печати: ФИО пациента · дата публикации · номер анализа.
+        // Печатается в нижнем колонтитуле каждой страницы CSS-шаблоном,
+        // а не оверлеем поверх содержимого.
+        const watermarkCss = report.watermark
+          ? `@page { @bottom-left { content: ${JSON.stringify(String(report.watermark))};
+               font-family: "Inter", sans-serif; font-size: 7px; letter-spacing: 0.6px;
+               color: #9aa0ad; padding-left: 15mm; vertical-align: middle; } }`
+          : "";
         const flow = await previewer.preview(
           content.content,
-          [{ "reportLab.css": `${themeCss}\n${pagedCss}` }],
+          [{ "reportLab.css": `${themeCss}\n${pagedCss}\n${watermarkCss}` }],
           scratch,
         );
         if (token.cancelled) {
