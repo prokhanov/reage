@@ -27,6 +27,8 @@ import {
 } from "@/lib/reportLab/document";
 import {
   ensureReportDocument,
+  fetchReportDocument,
+
 
   publishReportDocument,
   replaceReportDocument,
@@ -198,7 +200,18 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     if (!report) return;
     setPublishing(true);
     try {
-      await publishReportDocument(analysisId, resolveDoc(report));
+      // Если редактор в режиме правки и есть несохранённые изменения —
+      // сначала сохраняем их, иначе опубликуется предыдущая версия.
+      const w = window as typeof window & {
+        __reportV2HasEdits?: () => boolean;
+        __reportV2Save?: () => Promise<void>;
+      };
+      if (w.__reportV2HasEdits?.() && w.__reportV2Save) {
+        await w.__reportV2Save();
+      }
+      // Публикуем то, что реально лежит в БД (а не локальный state).
+      const stored = await fetchReportDocument(analysisId, false);
+      await publishReportDocument(analysisId, stored?.doc ?? resolveDoc(report));
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
       onSaved?.();
@@ -209,6 +222,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setPublishing(false);
     }
   }, [analysisId, report, onSaved]);
+
 
   /**
    * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
