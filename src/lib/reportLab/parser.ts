@@ -729,6 +729,7 @@ function injectHeadingBiomarkerAnchors(
       // вводном абзаце этой же карточки.
       const phrase = normalizeName(vm[0]);
       const context = normalizeName(text.slice(introStart, phraseEnd));
+      const phraseUnit = normalizeCode(vm[2] || "");
       let code = free[0];
       let best = -1;
       for (const c of free) {
@@ -745,6 +746,13 @@ function injectHeadingBiomarkerAnchors(
         }
         const codeNorm = normalizeName(c);
         if (codeNorm.length >= 2 && context.includes(codeNorm)) score += 2;
+        // Единица измерения — самый надёжный дискриминатор для маркеров
+        // с одинаковым значением («0 ед» vs «0 кл/мкл» vs «0 мкмоль/л»).
+        const bioUnit = normalizeCode((bio as { unit?: string }).unit || "");
+        if (phraseUnit && bioUnit) {
+          if (phraseUnit === bioUnit) score += 6;
+          else score -= 4;
+        }
         const phraseAbs = /\b(абс|абсолютн)/.test(phrase);
         const nameAbs = /(абс|абсолютн)/.test(name);
         if (phraseAbs === nameAbs) score += 1;
