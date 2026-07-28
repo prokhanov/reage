@@ -313,6 +313,10 @@ serve(async (req) => {
       });
     }
 
+    userContext += `\n\n${buildAnketaContext(profile)}\n`;
+
+
+
     // Call AI for each component
     const riskMapData = await callAI(
       promptMap.get("risk_zones_risk_map") || "",
