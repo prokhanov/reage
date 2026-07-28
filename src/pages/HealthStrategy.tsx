@@ -233,7 +233,14 @@ export default function HealthStrategy() {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
+      if (data?.error === "report_not_published") {
+        // Стратегия рассчитывается по опубликованному отчёту врача.
+        setAwaitingReport(true);
+        setSnapshot(null);
+        return;
+      }
       if (data?.error) throw new Error(data.error);
+      setAwaitingReport(false);
       setSnapshot(data);
     } catch (e: any) {
       console.error(e);
@@ -242,6 +249,7 @@ export default function HealthStrategy() {
       setGenerating(false);
     }
   };
+
 
 
 
