@@ -38,24 +38,47 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
 
-  // 1. Старт задачи
-  const startResp = await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      action: "start",
-      analysisId: payload.analysisId,
-      userId,
-      mode: payload.mode,
-    }),
-  });
-  const startText = await startResp.text();
+  // 1. Старт задачи.
+  // Прокси/шлюз периодически отдаёт 502/503/504 на холодном старте функции —
+  // один такой сбой не должен ронять всю генерацию, поэтому ретраим старт.
+  let startResp: Response | null = null;
   let startData: any = null;
-  try { startData = startText ? JSON.parse(startText) : null; } catch { /* ignore */ }
-  if (!startResp.ok || !startData?.success) {
-    throw new Error(startData?.error || `Не удалось запустить генерацию (${startResp.status})`);
+  let lastErr = "";
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      startResp = await fetch(baseUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          action: "start",
+          analysisId: payload.analysisId,
+          userId,
+          mode: payload.mode,
+        }),
+      });
+      const startText = await startResp.text();
+      startData = null;
+      try { startData = startText ? JSON.parse(startText) : null; } catch { /* ignore */ }
+      if (startResp.ok && startData?.success) break;
+
+      // Ошибка бизнес-логики (400 с текстом) — ретраить бессмысленно.
+      if (startData?.error) {
+        lastErr = startData.error;
+        if (startResp.status < 500) throw new Error(lastErr);
+      } else {
+        lastErr = `Не удалось запустить генерацию (${startResp.status})`;
+      }
+    } catch (e: any) {
+      if (e?.message && startData?.error && e.message === startData.error) throw e;
+      lastErr = e?.message || "Сеть недоступна";
+    }
+    if (attempt < 4) await new Promise((r) => setTimeout(r, attempt * 2000));
+  }
+  if (!startData?.success) {
+    throw new Error(lastErr || "Не удалось запустить генерацию");
   }
   const jobId = startData.jobId as string;
+
 
   // 2. Поллинг через report_jobs (RLS: пользователь видит свои задачи)
   const POLL_INTERVAL_MS = 3000;
