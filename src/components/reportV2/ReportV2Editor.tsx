@@ -119,6 +119,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const readyUrlRef = useRef<string | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
+  // Предпросмотр текущего черновика (не опубликованного снимка) — рендерим
+  // на сервере синхронно, как при скачивании, и показываем blob в диалоге.
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
+  const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (initialReport) {
