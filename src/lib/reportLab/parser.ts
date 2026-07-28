@@ -650,7 +650,10 @@ function injectHeadingBiomarkerAnchors(
     // предыдущей границы. Это гарантирует, что весь вводный текст ПЕРЕД фразой
     // «Ваш показатель …» попадёт в этот же маркер, а не в предыдущий.
     const priorEnds: number[] = hits.map((h) => h.end);
-    const valuePositions = valueMatches
+    // ВАЖНО: границами служат ЛЮБЫЕ фразы «Ваш показатель …», в том числе
+    // нечисловые («…отрицательный», «…не обнаружено»). Иначе вводный абзац
+    // такого маркера утечёт в следующую карточку и весь раздел «сдвинется».
+    const valuePositions = [...text.matchAll(VALUE_PHRASE_BOUNDARY_RE)]
       .map((m) => m.index ?? -1)
       .filter((i) => i >= 0)
       .sort((a, b) => a - b);
