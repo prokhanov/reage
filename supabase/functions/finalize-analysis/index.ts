@@ -218,6 +218,10 @@ BMI: ${bmi || "Не рассчитан"}
 МЕДИЦИНСКИЙ АНАМНЕЗ:
 ${medicalHistoryText}
 
+${buildAnketaContext(profile)}
+
+
+
 ТЕКУЩИЕ ЖАЛОБЫ:
 ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_complaints || "Не указано"}`).join("\n") : "Не указаны"}
 
