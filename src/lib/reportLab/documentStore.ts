@@ -162,25 +162,16 @@ export async function replaceReportDocument(
  * черновиком и на пациента не влияют до следующей публикации.
  */
 export async function publishReportDocument(analysisId: string, doc?: ReportDoc): Promise<void> {
-  const { data: authData } = await supabase.auth.getUser();
-  let blocks = doc?.entries;
-  if (!blocks) {
-    const { data: row } = await table()
-      .select("blocks")
-      .eq("analysis_id", analysisId)
-      .maybeSingle();
-    blocks = (row?.blocks as DocEntry[] | undefined) ?? undefined;
-  }
-  const { data: updated, error } = await table()
-    .update({
-      status: "published",
-      published_blocks: blocks ?? null,
-      published_at: new Date().toISOString(),
-      published_by: authData.user?.id ?? null,
-    })
-    .eq("analysis_id", analysisId)
-    .select("id")
-    .maybeSingle();
+  const blocks = doc?.entries;
+  const { data: updated, error } = await (supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+  }).rpc("publish_report_document", {
+    p_analysis_id: analysisId,
+    p_blocks: blocks ?? null,
+  });
   if (error) throw error;
   if (!updated) {
     throw new Error(
