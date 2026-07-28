@@ -402,6 +402,7 @@ export function PagedReportPreview({
 
     const build = async () => {
       if (token.cancelled) return;
+      setIsPaginating(true);
 
       const isEditable = editableRef.current;
 
@@ -424,6 +425,7 @@ export function PagedReportPreview({
           currentHtml = applyEditableHtmlDrafts(currentHtml, liveHtmlDrafts);
         }
       }
+
 
 
       // Сохраняем caret/scroll ДО перепагинации.
