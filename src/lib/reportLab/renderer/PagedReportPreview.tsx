@@ -8,6 +8,7 @@ import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { sanitizeReportHtml } from "../editor/sanitizeHtml";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
+import { reportFontFaceCss, ensureReportFontsLoaded } from "../reportFonts";
 
 const pagedCss = `
 .reportlab { padding: 0 !important; background: transparent !important; min-height: 0 !important; }
@@ -194,7 +195,9 @@ function emitReady(extra?: Record<string, unknown>) {
  */
 async function waitForResources(fragment: DocumentFragment, timeoutMs = 8000) {
   const docFonts = (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts;
-  const fontPromise = docFonts?.ready ?? Promise.resolve();
+  const fontPromise = docFonts
+    ? ensureReportFontsLoaded(document)
+    : Promise.resolve();
 
   const images = Array.from(
     fragment.querySelectorAll<HTMLElement>("img, svg, image"),
@@ -474,7 +477,7 @@ export function PagedReportPreview({
           : "";
         const flow = await previewer.preview(
           content.content,
-          [{ "reportLab.css": `${themeCss}\n${pagedCss}\n${watermarkCss}` }],
+          [{ "reportLab.css": `${reportFontFaceCss}\n${themeCss}\n${pagedCss}\n${watermarkCss}` }],
           scratch,
         );
         if (token.cancelled) {

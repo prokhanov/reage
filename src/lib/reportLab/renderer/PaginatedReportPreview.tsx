@@ -4,6 +4,7 @@ import { ReportDocument } from "./ReportDocument";
 import type { LabReport } from "../types";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
+import { reportFontFaceCss } from "../reportFonts";
 
 interface Props {
   report: LabReport;
@@ -21,6 +22,7 @@ export function PaginatedReportPreview({ report, height = "85vh" }: Props) {
     const html = renderToStaticMarkup(<ReportDocument report={report} />);
     return `<!doctype html><html lang="ru"><head><meta charset="utf-8"/>
 <style>
+${reportFontFaceCss}
 ${themeCss}
 /* ─── Настройки под paged.js (только для превью) ─────────────────────── */
 html, body { margin: 0; padding: 0; background: #d9d5cd; }

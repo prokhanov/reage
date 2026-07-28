@@ -14,6 +14,7 @@ import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
 import "../theme.css";
+import { reportFontFaceCss } from "../reportFonts";
 
 interface Props {
   report: LabReport;
