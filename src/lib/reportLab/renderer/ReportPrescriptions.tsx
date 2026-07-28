@@ -2,11 +2,40 @@ import type { LabReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import type { DocBodyEntry } from "../document";
 import { ProseMarkdown } from "./ProseMarkdown";
+import { useReportEditor } from "../editor/ReportEditorContext";
 import {
   sanitizeLifestyle,
   extractFollowUpsFromLifestyle,
   mergeFollowUps,
 } from "@/components/prescriptions/AdvisorySections";
+
+/**
+ * Кнопка правки блока рекомендаций. Рендер идёт через renderToStaticMarkup,
+ * поэтому обработчик вешается делегированно в ReportV2Editor по data-атрибутам.
+ */
+function RxEditButton({ target, label }: { target: string; label: string }) {
+  return (
+    <button
+      type="button"
+      data-rx-edit={target}
+      contentEditable={false}
+      style={{
+        marginLeft: "3mm",
+        fontSize: "9pt",
+        lineHeight: 1.2,
+        padding: "1mm 2mm",
+        border: "1px solid rgba(0,0,0,0.2)",
+        borderRadius: "2mm",
+        background: "transparent",
+        cursor: "pointer",
+        verticalAlign: "middle",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 
 
 
@@ -29,7 +58,10 @@ interface FollowUp {
 }
 
 export function ReportPrescriptions({ report, entry }: Props) {
+  const editor = useReportEditor();
+  const editing = editor?.mode === "edit";
   const row = entry
+
     ? { id: entry.id, text: entry.body, content_json: entry.contentJson ?? null }
     : getPrescriptionsRecord(report);
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
@@ -103,7 +135,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
               <div key={p.id} className="rl-rx rl-nutri">
                 <div className="rl-nutri-title">
                   {idx + 1}. {p.name}
+                  {editing && <RxEditButton target={`rx:${p.id}`} label="Изменить" />}
                 </div>
+
                 {p.form && (
                   <div className="rl-nutri-row">
                     <span className="rl-nutri-label">Форма:</span> {p.form}
@@ -140,9 +174,12 @@ export function ReportPrescriptions({ report, entry }: Props) {
         </div>
       )}
 
-      {sections.map((s) => (
+      {sections.map((s, si) => (
         <div key={s.title} style={{ marginBottom: "8mm" }}>
-          <h3 className="rl-h3">{s.title}</h3>
+          <h3 className="rl-h3">
+            {s.title}
+            {editing && si === 0 && <RxEditButton target="advisory:lifestyle" label="Изменить" />}
+          </h3>
           {s.items.map((item, i) => (
             <div key={i} className="rl-rx">
               <div className="rl-rx-desc">
@@ -153,9 +190,18 @@ export function ReportPrescriptions({ report, entry }: Props) {
         </div>
       ))}
 
+      {editing && sections.length === 0 && (
+        <div style={{ marginBottom: "8mm" }}>
+          <RxEditButton target="advisory:lifestyle" label="Добавить рекомендации по образу жизни" />
+        </div>
+      )}
+
       {followUps.length > 0 && (
         <>
-          <h3 className="rl-h3">Дополнительные консультации</h3>
+          <h3 className="rl-h3">
+            Дополнительные консультации
+            {editing && <RxEditButton target="advisory:followups" label="Изменить" />}
+          </h3>
           {followUps.map((f, i) => (
             <div key={i} className="rl-rx">
               <div className="rl-rx-title">{f.specialist || "Специалист"}</div>
@@ -169,6 +215,13 @@ export function ReportPrescriptions({ report, entry }: Props) {
           ))}
         </>
       )}
+
+      {editing && followUps.length === 0 && (
+        <div style={{ marginBottom: "8mm" }}>
+          <RxEditButton target="advisory:followups" label="Добавить консультации" />
+        </div>
+      )}
+
 
     </section>
 

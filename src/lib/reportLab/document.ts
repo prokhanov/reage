@@ -236,3 +236,43 @@ export function applyDraftsToDoc(
   if (!changed) return { doc, changed: false };
   return { doc: { ...doc, entries }, changed: true };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Синхронизация блока «Назначения» с записями ЛК
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Обновляет блок «Назначения» в документе из свежих данных `recommendations`.
+ * Нужен после правок рекомендаций в разделе ЛК (или из отчёта): нутрицевтики
+ * и advisory-блоки — общие записи, отчёт обязан показывать их актуальную версию.
+ */
+export function syncPrescriptionsEntry(doc: ReportDoc, report: LabReport): ReportDoc {
+  const rec = report.recommendations.find(
+    (r) => (r.type || "").trim().toLowerCase() === PRESCRIPTIONS_TYPE.toLowerCase(),
+  );
+  if (!rec) return doc;
+
+  let found = false;
+  const entries = doc.entries.map((e): DocEntry => {
+    if (e.kind !== "body") return e;
+    if ((e.type || "").trim().toLowerCase() !== PRESCRIPTIONS_TYPE.toLowerCase()) return e;
+    found = true;
+    // contentJson === null означает «врач переписал блок вручную» —
+    // такие правки не затираем данными из recommendations.
+    if (e.contentJson === null) return e;
+    return { ...e, id: rec.id, body: rec.text || "", contentJson: rec.content_json ?? null };
+
+  });
+
+  if (!found) {
+    entries.push({
+      kind: "body",
+      id: rec.id,
+      type: rec.type,
+      body: rec.text || "",
+      contentJson: rec.content_json ?? null,
+    });
+  }
+
+  return { ...doc, entries };
+}
