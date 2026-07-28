@@ -2,11 +2,40 @@ import type { LabReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import type { DocBodyEntry } from "../document";
 import { ProseMarkdown } from "./ProseMarkdown";
+import { useReportEditor } from "../editor/ReportEditorContext";
 import {
   sanitizeLifestyle,
   extractFollowUpsFromLifestyle,
   mergeFollowUps,
 } from "@/components/prescriptions/AdvisorySections";
+
+/**
+ * Кнопка правки блока рекомендаций. Рендер идёт через renderToStaticMarkup,
+ * поэтому обработчик вешается делегированно в ReportV2Editor по data-атрибутам.
+ */
+function RxEditButton({ target, label }: { target: string; label: string }) {
+  return (
+    <button
+      type="button"
+      data-rx-edit={target}
+      contentEditable={false}
+      style={{
+        marginLeft: "3mm",
+        fontSize: "9pt",
+        lineHeight: 1.2,
+        padding: "1mm 2mm",
+        border: "1px solid rgba(0,0,0,0.2)",
+        borderRadius: "2mm",
+        background: "transparent",
+        cursor: "pointer",
+        verticalAlign: "middle",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 
 
 
