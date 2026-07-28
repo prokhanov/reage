@@ -28,13 +28,14 @@ export function ReportPatientData({ report, entry }: Props) {
     : getPatientDataRecord(report);
   if (!row) return null;
   const text = cleanText(row.text || "");
-  if (!text) return null;
+  const html = entry?.bodyHtml;
+  if (!text && !html) return null;
 
   return (
     <section className="rl-page rl-patient-data" data-section-id="patient">
       <div className="rl-eyebrow">Пациент</div>
       <h1 className="rl-h1">Данные пациента</h1>
-      <ProseMarkdown markdown={text} editableId={`rec:${row.id}#body`} />
+      <ProseMarkdown markdown={text} html={html} editableId={`rec:${row.id}#body`} />
     </section>
   );
 }
