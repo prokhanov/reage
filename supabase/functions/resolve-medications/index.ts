@@ -87,6 +87,48 @@ Deno.serve(async (req) => {
       else unknown.push(raw);
     }
 
+    // Чистим журнал нераспознанных: 1) названия, которые теперь распознаются,
+    // 2) «висяки», которых уже нет ни у одного пациента (исправленные опечатки).
+    try {
+      const { data: openRows } = await supabase
+        .from("medication_unresolved")
+        .select("id, raw_text, normalized")
+        .eq("resolved", false);
+
+      if (openRows && openRows.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("medications")
+          .not("medications", "is", null);
+        const inUse = new Set<string>();
+        for (const p of profs ?? []) {
+          const list = Array.isArray((p as { medications?: unknown }).medications)
+            ? ((p as { medications: unknown[] }).medications)
+            : [];
+          for (const m of list) {
+            const n = normalizeMedName(String(m ?? ""));
+            if (n) inUse.add(n);
+          }
+        }
+
+        const staleIds = openRows
+          .filter((r) => {
+            const n = r.normalized ?? normalizeMedName(r.raw_text ?? "");
+            if (!n) return true;
+            if (!inUse.has(n)) return true; // никто больше так не пишет
+            return !!matchMedication(r.raw_text ?? n, dict); // теперь есть в справочнике
+          })
+          .map((r) => r.id);
+
+        if (staleIds.length > 0) {
+          await supabase.from("medication_unresolved").update({ resolved: true }).in("id", staleIds);
+        }
+      }
+    } catch (e) {
+      console.error("unresolved cleanup failed", e);
+    }
+
+
     if (unknown.length > 0) {
       const { data: bm } = await supabase.from("biomarkers").select("code").order("code");
       const codes = (bm ?? []).map((b: { code: string }) => b.code);
