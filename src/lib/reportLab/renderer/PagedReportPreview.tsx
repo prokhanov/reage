@@ -895,8 +895,9 @@ function installEditableOverlay(
   const toolbar = ensureToolbar(output);
 
   const collectMarkdown = (id: string): string => {
-    const combined = collectEditableHtmlDrafts(output)[id] ?? "";
-    return htmlToMarkdown(combined);
+    // Возвращаем ГОТОВУЮ РАЗМЕТКУ блока, без конверсии в markdown.
+    // Именно round-trip HTML → Markdown терял форматирование и рвал текст.
+    return sanitizeReportHtml(collectEditableHtmlDrafts(output)[id] ?? "");
   };
 
   const collectAllMarkdown = (): Record<string, string> => {
