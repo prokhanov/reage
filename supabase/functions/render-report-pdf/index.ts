@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
     reportId?: string;
     clientRequestId?: string;
     report?: unknown;
+    jobId?: string;
   } = {};
   try {
     body = await req.json();
@@ -52,6 +53,18 @@ Deno.serve(async (req) => {
   const logError = (...args: unknown[]) => console.error(`[render-report-pdf ${requestId}]`, ...args);
 
   log("start", { method: req.method });
+
+  // ── Режим фоновой задачи (вызывает queue-report-pdf под service_role) ──
+  // Результат не стримится наружу, а кладётся в приватный бакет report-pdfs.
+  if (body.jobId) {
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const auth = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    if (auth !== serviceKey) {
+      return json({ error: "unauthorized", requestId }, 401);
+    }
+    return await runPdfJob(body.jobId, requestId, log, logError);
+  }
+
 
   const secret = Deno.env.get("REPORT_PREVIEW_HMAC_SECRET");
   const rendererUrl = (Deno.env.get("REPORT_RENDERER_URL") || "").replace(/\/$/, "");
