@@ -112,7 +112,16 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     setLoading(true);
     setError(null);
     buildLabReportFromDb(analysisId, userId)
-      .then((r) => {
+      .then(async (r) => {
+        if (cancelled) return;
+        // Ленивая миграция: у старых отчётов сохранённого документа нет —
+        // собираем его один раз и фиксируем как черновик.
+        if (!r.doc) {
+          const built = buildDocFromReport(r);
+          r.doc = built;
+          const status = await ensureReportDocument(analysisId, userId, built);
+          if (status) r.docStatus = status;
+        }
         if (cancelled) return;
         setReport(r);
       })
@@ -153,6 +162,23 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   );
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+
+  const publish = useCallback(async () => {
+    if (!report) return;
+    setPublishing(true);
+    try {
+      await publishReportDocument(analysisId);
+      setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
+      toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
+      onSaved?.();
+    } catch (e) {
+      console.error("[ReportV2Editor] publish failed", e);
+      toast.error("Не удалось опубликовать", e instanceof Error ? e.message : String(e));
+    } finally {
+      setPublishing(false);
+    }
+  }, [analysisId, report, onSaved]);
 
   /**
    * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
