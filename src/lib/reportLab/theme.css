@@ -660,6 +660,25 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ─── Читаемость цифр: чистый ноль без точки/слэша (0 ≠ 8) ───────────────── */
+.reportlab .rl-bio-scale-value,
+.reportlab .rl-bio-scale-optrange,
+.reportlab .rl-bio-code,
+.reportlab [class*="rl-"] {
+  font-variant-numeric: tabular-nums;
+}
+.reportlab .rl-bio-scale-value,
+.reportlab .rl-bio-scale-optrange,
+.reportlab .rl-bio-code {
+  /* JetBrains Mono рисует ноль с точкой внутри — на мелком кегле похоже на 8.
+     Для числовых значений используем Inter с табличными цифрами. */
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum", "kern";
+  -webkit-font-feature-settings: "tnum", "kern";
+  letter-spacing: 0.01em;
+}
+
+
 /* ─── Статистика ─────────────────────────────────────────────────────────── */
 .reportlab .rl-stats {
   /* table-layout вместо grid: Chromium print-engine стабильно уважает
