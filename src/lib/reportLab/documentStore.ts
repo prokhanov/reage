@@ -167,15 +167,30 @@ export async function publishReportDocument(analysisId: string, doc?: ReportDoc)
     rpc: (
       fn: string,
       args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+    ) => Promise<{ data: unknown; error: { message?: string; details?: string; code?: string } | null }>;
   }).rpc("publish_report_document", {
     p_analysis_id: analysisId,
     p_blocks: blocks ?? null,
   });
-  if (error) throw error;
+  if (error) {
+    const code = error.code ? ` [${error.code}]` : "";
+    throw new Error(`${error.message ?? "Ошибка публикации"}${code}`);
+  }
   if (!updated) {
     throw new Error(
       "Публикация не выполнена: документ отчёта не найден или нет прав на его изменение",
     );
   }
+  // Контроль результата: пациент читает published_blocks — убеждаемся, что
+  // снимок действительно записан и не пустой.
+  const { data: row, error: checkError } = await table()
+    .select("status, published_at, published_blocks")
+    .eq("analysis_id", analysisId)
+    .maybeSingle();
+  if (checkError) return;
+  const published = (row as { published_blocks?: unknown } | null)?.published_blocks;
+  if (!Array.isArray(published) || published.length === 0) {
+    throw new Error("Публикация не сохранилась: опубликованная версия пуста");
+  }
 }
+
