@@ -135,7 +135,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
               <div key={p.id} className="rl-rx rl-nutri">
                 <div className="rl-nutri-title">
                   {idx + 1}. {p.name}
+                  {editing && <RxEditButton target={`rx:${p.id}`} label="Изменить" />}
                 </div>
+
                 {p.form && (
                   <div className="rl-nutri-row">
                     <span className="rl-nutri-label">Форма:</span> {p.form}
