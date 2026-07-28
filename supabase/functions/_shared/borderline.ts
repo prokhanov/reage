@@ -13,27 +13,49 @@
 export const BORDERLINE_BAND_PERCENT = 5;
 
 /**
+ * Дополнительное ограничение: пограничный коридор не может «съесть» больше
+ * этой доли расстояния от границы нормы до критического порога.
+ *
+ * Нужно для маркеров с узким физиологическим окном (Cl 98–107 при крит. 112,
+ * SG 1.005–1.030 при крит. 1.040, MCV 80–100 при крит. 110): там 5% от границы
+ * шире, чем вся зона риска, и без этой поправки «пограничным» становилось бы
+ * даже почти критическое значение.
+ */
+export const BORDERLINE_MAX_GAP_FRACTION = 0.3;
+
+/**
  * Биомаркеры, для которых пограничная зона НЕ применяется:
- * даже минимальное превышение клинически значимо и смягчать его нельзя.
+ * даже минимальное отклонение клинически значимо и смягчать его нельзя.
+ * Коды нормализуются (верхний регистр, без пробелов), поэтому «HbA1c», «Na»,
+ * «NT-proBNP», «Lp(a)» и т.п. попадают сюда корректно.
  */
 export const BORDERLINE_EXCLUDED_CODES = new Set(
   [
-    // Углеводный обмен — диагностические пороги жёсткие (преддиабет/диабет)
-    "GLU", "GLU-FAST", "HBA1C", "HBA1C-IFCC",
-    // Электролиты — узкий терапевтический коридор, аритмогенность
-    "K", "NA", "CA-ION", "CAI",
-    // Почки
+    // Углеводный обмен — пороги ADA/ВОЗ диагностические (преддиабет/диабет)
+    "GLU", "GLU-FAST", "HBA1C", "HBA1C-IFCC", "INS-FAST",
+    // Электролиты и минералы с узким коридором — аритмогенность, нейромышечные эффекты
+    "K", "NA", "CA", "CA-ION", "CAI", "CA-COR",
+    // Почки — KDIGO: даже минимальная альбуминурия/снижение СКФ прогностически значимы
     "CREA", "EGFR", "GFR", "CYSC", "MAU", "ACR", "PRO-U",
-    // Кардио / тромбозы
-    "TROP", "TROPI", "TROPT", "NT-PROBNP", "BNP", "DDIMER", "D-DIMER",
+    // Кардио / тромбозы — пороги отсечки (99-й перцентиль, rule-out значения)
+    "TROP", "TROPI", "TROPT", "HS-TNI", "HS-TNT", "TNI", "TNT",
+    "NT-PROBNP", "BNP", "DDIMER", "D-DIMER",
     "INR", "MNO", "APTT", "PLT",
     // Онкомаркеры и генетически детерминированные факторы риска
     "PSA", "PSA-FREE", "CA-125", "CA125", "CEA", "AFP", "LP(A)", "LPA",
+    // Аутоантитела — «слабоположительный» результат всё равно означает аутоиммунитет
+    "ANTI-TPO", "ANTI-TG", "TRAB", "ATTPO", "ATTG",
     // Патологические находки в моче: любое присутствие значимо
     "BIL-U", "HB-U", "NIT-U", "GLU-U", "KET-U",
     "CYL-PATH-U", "ERY-RXN-U", "LEU-EST-U", "EPI-REN-U",
-  ].map((c) => c.toUpperCase()),
+  ].map(normalizeCode),
 );
+
+/** Приводит код биомаркера к каноническому виду для сравнения. */
+export function normalizeCode(code: string | null | undefined): string {
+  return String(code ?? "").trim().toUpperCase().replace(/\s+/g, "");
+}
+
 
 export type BorderlineSide = "high" | "low";
 
@@ -60,6 +82,7 @@ export interface BorderlineInput {
  * Пограничным считается значение, которое:
  *  - вышло за границу нормы,
  *  - но не более чем на bandPercent от этой границы,
+ *  - и не более чем на BORDERLINE_MAX_GAP_FRACTION расстояния до крит. порога,
  *  - не является критическим,
  *  - и биомаркер не входит в список исключений.
  */
@@ -76,17 +99,27 @@ export function getBorderlineInfo(input: BorderlineInput): BorderlineInfo | null
 
   if (!Number.isFinite(value)) return null;
 
-  const codeUpper = String(code ?? "").trim().toUpperCase();
-  if (codeUpper && BORDERLINE_EXCLUDED_CODES.has(codeUpper)) return null;
+  const normalized = normalizeCode(code);
+  if (normalized && BORDERLINE_EXCLUDED_CODES.has(normalized)) return null;
 
   // Критические значения никогда не смягчаем
   if (criticalMin != null && value < criticalMin) return null;
   if (criticalMax != null && value > criticalMax) return null;
 
+  /** Абсолютная ширина коридора с учётом расстояния до критического порога. */
+  const bandWidth = (boundary: number, critical: number | null): number => {
+    const byPercent = (Math.abs(boundary) * bandPercent) / 100;
+    if (critical == null) return byPercent;
+    const gap = Math.abs(critical - boundary);
+    if (!(gap > 0)) return 0;
+    return Math.min(byPercent, gap * BORDERLINE_MAX_GAP_FRACTION);
+  };
+
   if (normalMax != null && value > normalMax) {
     if (normalMax === 0) return null; // «должно быть 0» — любое превышение значимо
-    const deviationPercent = ((value - normalMax) / Math.abs(normalMax)) * 100;
-    if (deviationPercent <= bandPercent) {
+    const width = bandWidth(normalMax, criticalMax);
+    if (width > 0 && value - normalMax <= width) {
+      const deviationPercent = ((value - normalMax) / Math.abs(normalMax)) * 100;
       return { side: "high", deviationPercent, boundary: normalMax };
     }
     return null;
@@ -94,13 +127,15 @@ export function getBorderlineInfo(input: BorderlineInput): BorderlineInfo | null
 
   if (normalMin != null && value < normalMin) {
     if (normalMin === 0) return null;
-    const deviationPercent = ((normalMin - value) / Math.abs(normalMin)) * 100;
-    if (deviationPercent <= bandPercent) {
+    const width = bandWidth(normalMin, criticalMin);
+    if (width > 0 && normalMin - value <= width) {
+      const deviationPercent = ((normalMin - value) / Math.abs(normalMin)) * 100;
       return { side: "low", deviationPercent, boundary: normalMin };
     }
   }
 
   return null;
+
 }
 
 /** Короткая пометка для строки биомаркера в промпте. */
