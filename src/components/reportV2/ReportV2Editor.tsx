@@ -616,6 +616,50 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     }
   }, [analysisId, report]);
 
+  const openDraftPdfPreview = useCallback(async () => {
+    if (!report) return;
+    setPdfPreviewOpen(true);
+    setPdfPreviewLoading(true);
+    setPdfPreviewError(null);
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const liveDrafts = collectLiveDrafts();
+      const reportForPdf = applyDraftsToReport(report, liveDrafts);
+      const endpoint = edgeFunctionUrl("render-report-pdf");
+      const requestId = crypto.randomUUID();
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          reportId: `analysis-${analysisId}`,
+          clientRequestId: requestId,
+          report: reportForPdf,
+        }),
+      });
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => "");
+        throw new Error(`HTTP ${response.status}. ${bodyText.slice(0, 300)}`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfPreviewUrl(url);
+    } catch (e) {
+      console.error("[ReportV2Editor] draft PDF preview failed", e);
+      setPdfPreviewError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPdfPreviewLoading(false);
+    }
+  }, [analysisId, report, pdfPreviewUrl]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
