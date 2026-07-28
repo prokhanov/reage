@@ -660,6 +660,22 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ─── Читаемость цифр: чистый ноль без точки/слэша (0 ≠ 8) ───────────────── */
+.reportlab .rl-bio-scale-value,
+.reportlab .rl-bio-scale-optrange,
+.reportlab .rl-bio-code,
+.reportlab [class*="rl-"] {
+  font-variant-numeric: tabular-nums;
+}
+.reportlab .rl-bio-scale-value,
+.reportlab .rl-bio-scale-optrange,
+.reportlab .rl-bio-code {
+  font-feature-settings: "tnum", "kern";
+  font-variant-alternates: normal;
+  -webkit-font-feature-settings: "tnum", "kern";
+}
+
+
 /* ─── Статистика ─────────────────────────────────────────────────────────── */
 .reportlab .rl-stats {
   /* table-layout вместо grid: Chromium print-engine стабильно уважает
