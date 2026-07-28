@@ -136,8 +136,10 @@ export interface ReportPrescription {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ReportBlock =
-  | { kind: "prose"; markdown: string }
-  | { kind: "biomarker"; code: string; commentary: string };
+  // `html` — правка врача, сохранённая как готовая разметка.
+  // Если поле заполнено, рендер использует именно его, минуя markdown.
+  | { kind: "prose"; markdown: string; html?: string }
+  | { kind: "biomarker"; code: string; commentary: string; commentaryHtml?: string };
 
 export interface ParsedCategory {
   title: string;
