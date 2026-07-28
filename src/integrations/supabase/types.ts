@@ -2481,6 +2481,7 @@ export type Database = {
           edited_by: string | null
           id: string
           published_at: string | null
+          published_blocks: Json | null
           published_by: string | null
           status: string
           updated_at: string
@@ -2494,6 +2495,7 @@ export type Database = {
           edited_by?: string | null
           id?: string
           published_at?: string | null
+          published_blocks?: Json | null
           published_by?: string | null
           status?: string
           updated_at?: string
@@ -2507,6 +2509,7 @@ export type Database = {
           edited_by?: string | null
           id?: string
           published_at?: string | null
+          published_blocks?: Json | null
           published_by?: string | null
           status?: string
           updated_at?: string
