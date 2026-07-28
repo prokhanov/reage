@@ -140,6 +140,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
               return;
             }
           }
+          if (r.doc) r.doc = syncPrescriptionsEntry(r.doc, r);
           setReport(r);
           return;
         }
@@ -150,9 +151,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           r.doc = built;
           const status = await ensureReportDocument(analysisId, userId, built);
           if (status) r.docStatus = status;
+        } else {
+          // Рекомендации — общие записи с разделом ЛК: подтягиваем актуальные.
+          r.doc = syncPrescriptionsEntry(r.doc, r);
         }
         if (cancelled) return;
         setReport(r);
+
       })
       .catch((e) => {
         if (cancelled) return;
