@@ -74,6 +74,8 @@ export default function HealthStrategy() {
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
+  const [awaitingReport, setAwaitingReport] = useState(false);
+
 
 
 
