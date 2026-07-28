@@ -729,14 +729,20 @@ function injectHeadingBiomarkerAnchors(
       }
 
 
+      // Конец блока — конец АБЗАЦА с фразой, а не сама цифра. Иначе следующая
+      // карточка начинается с обрывка предыдущего предложения («% находится…»).
+      const phraseEnd = pos + vm[0].length;
+      const nlAfter = text.indexOf("\n", phraseEnd);
+      const paraEnd = nlAfter === -1 ? text.length : nlAfter;
+
       hits.push({
         start: blockStart,
-        end: pos + vm[0].length,
+        end: paraEnd,
         code,
         nameLen: 0,
       });
       usedCodes.add(normalizeCode(code));
-      priorEnds.push(pos + vm[0].length);
+      priorEnds.push(paraEnd);
     }
   }
 
