@@ -61,8 +61,16 @@ export async function fetchReportDocument(
     .eq("analysis_id", analysisId)
     .maybeSingle();
   if (error) {
-    // Отсутствие прав (пациент до публикации) — не ошибка приложения.
-    console.warn("[reportLab] fetchReportDocument:", error.message);
+    const code = (error as { code?: string }).code ?? "";
+    const message = error.message ?? "";
+    const isPermission =
+      code === "42501" || /permission denied|row-level security/i.test(message);
+    if (isPermission) {
+      // Явно пробрасываем: у пользователя нет прав на документ отчёта.
+      console.error("[reportLab] fetchReportDocument: доступ запрещён", message);
+      throw new Error("Нет прав на просмотр документа отчёта");
+    }
+    console.warn("[reportLab] fetchReportDocument:", message);
     return null;
   }
   if (!data) return null;
