@@ -391,6 +391,8 @@ export function PagedReportPreview({
   editableRef.current = editable;
   const reportRef = useRef(report);
   reportRef.current = report;
+  const [isPaginating, setIsPaginating] = useState(false);
+
 
   useEffect(() => {
     const output = outputRef.current;
