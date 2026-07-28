@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, X } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -504,10 +504,36 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   };
 
   // Действия для десктопной панели (inline-кнопки).
+  const docStatus = report.docStatus ?? "draft";
+  const publishLabel =
+    docStatus === "published"
+      ? "Опубликован"
+      : docStatus === "edited"
+        ? "Опубликовать изменения"
+        : "Опубликовать";
+
   const toolbarExtras = (
     <>
       {!compact && (
         <>
+          <Button
+            size="sm"
+            variant={docStatus === "published" ? "outline" : "default"}
+            onClick={publish}
+            disabled={publishing || docStatus === "published"}
+            title={
+              docStatus === "published"
+                ? "Пациент видит эту версию отчёта"
+                : "Сделать текущую версию видимой пациенту"
+            }
+          >
+            {publishing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            {publishLabel}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -573,6 +599,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         )}
         {!compact && (
           <>
+            <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+              <Send className="mr-2 h-4 w-4" />
+              {publishLabel}
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Обновить страницы
