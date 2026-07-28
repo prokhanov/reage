@@ -61,6 +61,24 @@ export async function fetchReportDocument(
   return rowToDoc(data as ReportDocumentRow);
 }
 
+/**
+ * Статус документа без доступа к содержимому — пациент так узнаёт, что отчёт
+ * существует, но ещё не опубликован врачом. `null` — документа нет вовсе
+ * (старый отчёт, рендерится по прежней схеме).
+ */
+export async function fetchReportDocumentStatus(
+  analysisId: string,
+): Promise<ReportDocStatus | null> {
+  if (!analysisId) return null;
+  const { data, error } = await (supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+  }).rpc("report_document_status", { p_analysis_id: analysisId });
+  if (error || !data) return null;
+  return data as ReportDocStatus;
+}
+
+
+
 /** Создаёт документ, если его ещё нет (ленивая миграция старых отчётов). */
 export async function ensureReportDocument(
   analysisId: string,
