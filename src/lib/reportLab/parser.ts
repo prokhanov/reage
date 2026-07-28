@@ -618,8 +618,7 @@ function injectHeadingBiomarkerAnchors(
   // Некоторые версии AI-отчёта пропускают заголовки биомаркеров и оставляют
   // только прозу с фразой «Ваш показатель <value> <unit>». Матчим по точному
   // значению против снапшота, чтобы всё равно нарисовать карточки.
-  const valuePhraseRegex =
-    /Ваш(?:и|е|его)?\s+(?:текущ(?:ий|ее|ая)\s+)?(?:показател[ьия]|уровень|значение|индекс|результат)\s+([-]?\d+(?:[.,]\d+)?)/giu;
+  const valuePhraseRegex = new RegExp(VALUE_PHRASE_SRC, "giu");
   const valueMatches = [...text.matchAll(valuePhraseRegex)];
   if (valueMatches.length > 0) {
     const byValue = new Map<string, string[]>();
