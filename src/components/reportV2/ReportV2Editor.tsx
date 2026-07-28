@@ -66,6 +66,12 @@ interface Props {
   sidebarFooter?: React.ReactNode;
   /** Опциональный sticky-элемент внизу превью (по центру). */
   bottomAction?: React.ReactNode;
+  /**
+   * Режим пациента: показывать только опубликованный врачом отчёт.
+   * Если документ существует, но ещё в статусе «черновик» — вместо отчёта
+   * выводится заглушка «отчёт готовится».
+   */
+  requirePublished?: boolean;
 }
 
 
@@ -92,11 +98,12 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
   const [paginated, setPaginated] = useState(true);
+  const [awaitingPublish, setAwaitingPublish] = useState(false);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -111,9 +118,24 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setAwaitingPublish(false);
     buildLabReportFromDb(analysisId, userId)
       .then(async (r) => {
         if (cancelled) return;
+        if (requirePublished) {
+          // Пациент: содержимое неопубликованного документа RLS не отдаёт,
+          // поэтому статус спрашиваем отдельной безопасной функцией.
+          if (!r.doc) {
+            const status = await fetchReportDocumentStatus(analysisId);
+            if (cancelled) return;
+            if (status && status !== "published" && status !== "edited") {
+              setAwaitingPublish(true);
+              return;
+            }
+          }
+          setReport(r);
+          return;
+        }
         // Ленивая миграция: у старых отчётов сохранённого документа нет —
         // собираем его один раз и фиксируем как черновик.
         if (!r.doc) {
@@ -136,7 +158,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     return () => {
       cancelled = true;
     };
-  }, [analysisId, userId, initialReport]);
+  }, [analysisId, userId, initialReport, requirePublished]);
 
   useEffect(() => {
     return () => {
