@@ -1015,23 +1015,26 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           setPdfPreviewOpen(open);
         }}
       >
-        <DialogContent className="max-w-5xl">
-          <DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Предпросмотр как PDF</DialogTitle>
           </DialogHeader>
-          {pdfPreviewLoading && (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <div className="text-sm">Рендерим PDF на сервере — обычно 10–40 секунд…</div>
-            </div>
-          )}
-          {pdfPreviewError && !pdfPreviewUrl && (
-            <div className="p-6 text-center text-sm text-destructive">
-              Не удалось сделать предпросмотр: {pdfPreviewError}
-            </div>
-          )}
-          {pdfPreviewUrl && <PdfCanvas url={pdfPreviewUrl} />}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-2 px-2">
+            {pdfPreviewLoading && (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <div className="text-sm">Рендерим PDF на сервере — обычно 10–40 секунд…</div>
+              </div>
+            )}
+            {pdfPreviewError && !pdfPreviewUrl && (
+              <div className="p-6 text-center text-sm text-destructive">
+                Не удалось сделать предпросмотр: {pdfPreviewError}
+              </div>
+            )}
+            {pdfPreviewUrl && <PdfCanvas url={pdfPreviewUrl} />}
+          </div>
         </DialogContent>
+
       </Dialog>
     </div>
   );
