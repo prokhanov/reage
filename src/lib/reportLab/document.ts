@@ -152,11 +152,15 @@ export function getSectionEntries(doc: ReportDoc): DocSectionEntry[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Ключи драфтов (формат не менялся — редактор адресует блоки, а не текст):
+ * Ключи драфтов (редактор адресует блоки, а не текст):
  *   rec:<id>#body        — одиночное тело
  *   rec:<id>#prose:<n>   — n-й prose-блок раздела
  *   rec:<id>#bio:<code>  — комментарий к биомаркеру
  *   rec:<id>#insert:<n>  — новый текстовый блок перед n-й карточкой биомаркера
+ *
+ * ВАЖНО: значения драфтов — это ГОТОВАЯ РАЗМЕТКА из редактора (HTML), а не
+ * markdown. Обратной конверсии HTML → Markdown больше нет: именно она теряла
+ * жирный/курсив/заголовки и рвала текст при пагинации.
  */
 export function applyDraftsToDoc(
   doc: ReportDoc,
@@ -175,12 +179,12 @@ export function applyDraftsToDoc(
     if (entry.kind === "body") {
       const draft = drafts[`${prefix}body`];
       if (draft === undefined) return entry;
-      const next = draft.trim();
-      if (next === (entry.body || "").trim()) return entry;
+      const next = sanitizeReportHtml(draft);
+      if (next === (entry.bodyHtml || "")) return entry;
       changed = true;
       // Ручная правка «побеждает» структурный снапшот content_json,
       // иначе часть блоков при рендере снова берётся из старого JSON.
-      return { ...entry, body: next, contentJson: null };
+      return { ...entry, bodyHtml: next, contentJson: null };
     }
 
     // section
@@ -192,9 +196,9 @@ export function applyDraftsToDoc(
     const pushInsert = (index: number) => {
       const raw = drafts[`${prefix}insert:${index}`];
       if (raw === undefined) return;
-      const md = raw.trim();
-      if (!md) return;
-      nextBlocks.push({ kind: "prose", markdown: md });
+      const html = sanitizeReportHtml(raw);
+      if (!html) return;
+      nextBlocks.push({ kind: "prose", markdown: "", html });
       sectionChanged = true;
     };
 
@@ -203,12 +207,14 @@ export function applyDraftsToDoc(
         const key = `${prefix}prose:${proseIndex}`;
         proseIndex += 1;
         const draft = drafts[key];
-        if (draft !== undefined && draft.trim() !== block.markdown.trim()) {
-          sectionChanged = true;
-          const md = draft.trim();
-          // Пустой prose-блок = пользователь стёр текст → блок исчезает.
-          if (md) nextBlocks.push({ kind: "prose", markdown: md });
-          continue;
+        if (draft !== undefined) {
+          const html = sanitizeReportHtml(draft);
+          if (html !== (block.html || "")) {
+            sectionChanged = true;
+            // Пустой prose-блок = пользователь стёр текст → блок исчезает.
+            if (html) nextBlocks.push({ ...block, html });
+            continue;
+          }
         }
         nextBlocks.push(block);
         continue;
@@ -219,12 +225,15 @@ export function applyDraftsToDoc(
 
       const key = `${prefix}bio:${block.code}`;
       const draft = drafts[key];
-      if (draft !== undefined && draft.trim() !== (block.commentary || "").trim()) {
-        sectionChanged = true;
-        nextBlocks.push({ ...block, commentary: draft.trim() });
-      } else {
-        nextBlocks.push(block);
+      if (draft !== undefined) {
+        const html = sanitizeReportHtml(draft);
+        if (html !== (block.commentaryHtml || "")) {
+          sectionChanged = true;
+          nextBlocks.push({ ...block, commentaryHtml: html });
+          continue;
+        }
       }
+      nextBlocks.push(block);
     }
 
     // Слот после последней карточки.
