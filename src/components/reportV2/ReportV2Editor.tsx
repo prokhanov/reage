@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -38,6 +38,8 @@ import type { LabReport } from "@/lib/reportLab/types";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
 import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
+import { ReportPdfView } from "./ReportPdfView";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 
@@ -195,6 +197,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  // Финальная пагинация считается на сервере — этот просмотр показывает то,
+  // что реально увидит пациент (Paged.js в редакторе — только черновой ориентир).
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
 
   const publish = useCallback(async () => {
     if (!report) return;
@@ -703,6 +708,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {paginated ? "Постранично" : "Потоком"}
           </Button>
         </>
+      )}
+      {canPublish && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setPdfPreviewOpen(true)}
+          title="Открыть серверный PDF — так отчёт видит пациент"
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Предпросмотр как PDF
+        </Button>
       )}
       {compact && !hideDownload && (
         <Button size="sm" variant="outline" onClick={openInNewWindow}>
