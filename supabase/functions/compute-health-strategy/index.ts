@@ -9,7 +9,7 @@ import { computeBioAge } from "../_shared/health-model/m5-bioage.ts";
 import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
 import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
 import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
-import { buildAnketaContext } from "../_shared/anketaContext.ts";
+import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
 
 // Обратная карта SystemKey → русское имя категории (для матчинга с biomarker_categories)
 const SYSTEM_TO_CATEGORY: Record<string, string> = {
@@ -530,7 +530,7 @@ ${categoriesContext}
 АНКЕТА ЗДОРОВЬЯ:
 Хронические заболевания: ${chronicText}
 
-${buildAnketaContext(profile)}
+${await buildAnketaContextAsync(supabase, profile)}
 
 ВАШИ АКТИВНЫЕ НАЗНАЧЕНИЯ:
 ${prescContext || "(нет активных назначений — действия должны строиться вокруг наблюдения и образа жизни)"}
