@@ -740,6 +740,9 @@ function injectHeadingBiomarkerAnchors(
         let score = 0;
         for (const token of stripped.split(" ")) {
           if (token.length < 4) continue;
+          // Общие слова («в моче», «крови») есть почти в каждом абзаце —
+          // они не помогают отличить один маркер от другого.
+          if (GENERIC_NAME_TOKENS.has(token)) continue;
           const stem = token.slice(0, Math.max(4, token.length - 2));
           if (phrase.includes(stem)) score += 3;
           else if (context.includes(stem)) score += 2;
