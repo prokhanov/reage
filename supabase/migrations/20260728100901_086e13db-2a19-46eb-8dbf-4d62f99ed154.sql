@@ -1,0 +1,1 @@
+DELETE FROM public.report_documents WHERE analysis_id = '60b7f023-39f7-4288-9772-9977af6d5981' AND published_at IS NULL;
