@@ -257,7 +257,11 @@ export function syncPrescriptionsEntry(doc: ReportDoc, report: LabReport): Repor
     if (e.kind !== "body") return e;
     if ((e.type || "").trim().toLowerCase() !== PRESCRIPTIONS_TYPE.toLowerCase()) return e;
     found = true;
+    // contentJson === null означает «врач переписал блок вручную» —
+    // такие правки не затираем данными из recommendations.
+    if (e.contentJson === null) return e;
     return { ...e, id: rec.id, body: rec.text || "", contentJson: rec.content_json ?? null };
+
   });
 
   if (!found) {
