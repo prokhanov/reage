@@ -23,6 +23,7 @@ import {
   getPrescriptionsEntry,
   getSectionEntries,
   resolveDoc,
+  syncPrescriptionsEntry,
 } from "@/lib/reportLab/document";
 import {
   ensureReportDocument,
@@ -30,9 +31,13 @@ import {
 
   publishReportDocument,
   replaceReportDocument,
+  saveReportDocument,
 } from "@/lib/reportLab/documentStore";
 import type { LabReport } from "@/lib/reportLab/types";
+import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
+import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
+
 
 
 interface Props {
