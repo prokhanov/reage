@@ -91,7 +91,7 @@ export function ReportSection({
             : undefined;
           proseIndex += 1;
           return (
-            <ProseMarkdown key={i} markdown={b.markdown} editableId={editableId} />
+            <ProseMarkdown key={i} markdown={b.markdown} html={b.html} editableId={editableId} />
           );
         }
         const bio = biomarkerByCode.get(normalizeCode(b.code));
