@@ -1,5 +1,6 @@
 import type { LabReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
+import type { DocBodyEntry } from "../document";
 import { ProseMarkdown } from "./ProseMarkdown";
 import { useReportEditor } from "../editor/ReportEditorContext";
 
@@ -7,14 +8,18 @@ import { useReportEditor } from "../editor/ReportEditorContext";
 
 interface Props {
   report: LabReport;
+  /** Блок сохранённого документа. Если задан — источник истины. */
+  entry?: DocBodyEntry;
 }
 
 /**
  * Разворот с общим резюме: ключевые метрики + вводный нарратив от AI.
  */
-export function ReportOverview({ report }: Props) {
+export function ReportOverview({ report, entry }: Props) {
   const { patient, analysis } = report;
-  const summaryRow = getSummaryRecord(report);
+  const summaryRow = entry
+    ? { id: entry.id, text: entry.body, content_json: entry.contentJson ?? null }
+    : getSummaryRecord(report);
   const summaryText = extractSummaryText(summaryRow?.content_json, summaryRow?.text);
   const age = calcAge(patient.birth_date, analysis.date);
 

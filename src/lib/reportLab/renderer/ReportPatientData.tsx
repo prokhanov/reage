@@ -1,9 +1,12 @@
 import type { LabReport } from "../types";
 import { getPatientDataRecord } from "../parser";
+import type { DocBodyEntry } from "../document";
 import { ProseMarkdown } from "./ProseMarkdown";
 
 interface Props {
   report: LabReport;
+  /** Блок сохранённого документа. Если задан — источник истины. */
+  entry?: DocBodyEntry;
 }
 
 const HTML_COMMENT_RE = /<!--[\s\S]*?(?:-->|→|\n)/g;
@@ -19,8 +22,10 @@ function cleanText(raw: string): string {
     .trim();
 }
 
-export function ReportPatientData({ report }: Props) {
-  const row = getPatientDataRecord(report);
+export function ReportPatientData({ report, entry }: Props) {
+  const row = entry
+    ? { id: entry.id, text: entry.body }
+    : getPatientDataRecord(report);
   if (!row) return null;
   const text = cleanText(row.text || "");
   if (!text) return null;

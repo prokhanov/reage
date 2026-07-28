@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import type { LabReport } from "../types";
+import { buildBiomarkerIndex, calcAge } from "../parser";
 import {
-  buildBiomarkerIndex,
-  calcAge,
-  getCategoryRecords,
-  parseCategory,
-} from "../parser";
+  getPatientEntry,
+  getPrescriptionsEntry,
+  getSectionEntries,
+  getSummaryEntry,
+  resolveDoc,
+} from "../document";
 import { ReportCover } from "./ReportCover";
 import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
@@ -31,7 +33,10 @@ interface Props {
  */
 export function ReportDocument({ report, signalReady }: Props) {
   const biomarkerByCode = buildBiomarkerIndex(report);
-  const categoryRecords = getCategoryRecords(report);
+  // Документ собирается парсером ровно один раз (при генерации). Здесь либо
+  // берётся сохранённый, либо — для старых отчётов — собирается на лету.
+  const doc = resolveDoc(report);
+  const sectionEntries = getSectionEntries(doc);
   const gender = report.patient.gender;
   const age = calcAge(report.patient.birth_date, report.analysis.date);
 
@@ -50,7 +55,7 @@ export function ReportDocument({ report, signalReady }: Props) {
       // eslint-disable-next-line no-console
       console.log(`[report-preview] ${step}`, extra ?? "");
     };
-    log("document_mounted", { categories: categoryRecords.length });
+    log("document_mounted", { categories: sectionEntries.length });
     let readyMarked = false;
     const mark = () => {
       if (cancelled || readyMarked) return;
@@ -78,23 +83,20 @@ export function ReportDocument({ report, signalReady }: Props) {
   return (
     <div className="reportlab">
       <ReportCover report={report} />
-      <ReportPatientData report={report} />
-      <ReportOverview report={report} />
-      {categoryRecords.map((rec, i) => {
-        const parsed = parseCategory(rec.type, rec.text || "", biomarkerByCode);
-        return (
-          <ReportSection
-            key={rec.id}
-            index={i + 1}
-            category={parsed}
-            biomarkerByCode={biomarkerByCode}
-            gender={gender}
-            age={age}
-            recommendationId={rec.id}
-          />
-        );
-      })}
-      <ReportPrescriptions report={report} />
+      <ReportPatientData report={report} entry={getPatientEntry(doc)} />
+      <ReportOverview report={report} entry={getSummaryEntry(doc)} />
+      {sectionEntries.map((entry, i) => (
+        <ReportSection
+          key={entry.id}
+          index={i + 1}
+          category={{ title: entry.title, blocks: entry.blocks }}
+          biomarkerByCode={biomarkerByCode}
+          gender={gender}
+          age={age}
+          recommendationId={entry.id}
+        />
+      ))}
+      <ReportPrescriptions report={report} entry={getPrescriptionsEntry(doc)} />
     </div>
   );
 }
