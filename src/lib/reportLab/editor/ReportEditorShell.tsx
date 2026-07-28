@@ -105,6 +105,14 @@ export function ReportEditorToolbar({
       });
       resetDrafts();
       setMode("view");
+      // После сохранения документа пересчитываем раскладку прямо в этом же
+      // окне, чтобы врач сразу увидел финальный вид без переоткрытия отчёта.
+      // Таймаут даёт React отрисовать обновлённый state и заменить edit-режим
+      // на view, после чего Paged.js пересчитает страницы с сохранённым html.
+      window.setTimeout(() => {
+        const w = window as typeof window & { __reportLabReflow?: () => void };
+        w.__reportLabReflow?.();
+      }, 0);
       const parts: string[] = [];
       if (changed) parts.push("текст отчёта");
       if (coverDirty) parts.push("обложка");
@@ -114,6 +122,7 @@ export function ReportEditorToolbar({
           ? `Обновлено — ${parts.join(", ")}`
           : `Правки применены локально: ${parts.join(", ")}`,
       );
+
     } catch (e) {
       console.error(e);
       toast.error(
