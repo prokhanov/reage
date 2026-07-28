@@ -82,6 +82,7 @@ export interface BorderlineInput {
  * Пограничным считается значение, которое:
  *  - вышло за границу нормы,
  *  - но не более чем на bandPercent от этой границы,
+ *  - и не более чем на BORDERLINE_MAX_GAP_FRACTION расстояния до крит. порога,
  *  - не является критическим,
  *  - и биомаркер не входит в список исключений.
  */
@@ -98,17 +99,27 @@ export function getBorderlineInfo(input: BorderlineInput): BorderlineInfo | null
 
   if (!Number.isFinite(value)) return null;
 
-  const codeUpper = String(code ?? "").trim().toUpperCase();
-  if (codeUpper && BORDERLINE_EXCLUDED_CODES.has(codeUpper)) return null;
+  const normalized = normalizeCode(code);
+  if (normalized && BORDERLINE_EXCLUDED_CODES.has(normalized)) return null;
 
   // Критические значения никогда не смягчаем
   if (criticalMin != null && value < criticalMin) return null;
   if (criticalMax != null && value > criticalMax) return null;
 
+  /** Абсолютная ширина коридора с учётом расстояния до критического порога. */
+  const bandWidth = (boundary: number, critical: number | null): number => {
+    const byPercent = (Math.abs(boundary) * bandPercent) / 100;
+    if (critical == null) return byPercent;
+    const gap = Math.abs(critical - boundary);
+    if (!(gap > 0)) return 0;
+    return Math.min(byPercent, gap * BORDERLINE_MAX_GAP_FRACTION);
+  };
+
   if (normalMax != null && value > normalMax) {
     if (normalMax === 0) return null; // «должно быть 0» — любое превышение значимо
-    const deviationPercent = ((value - normalMax) / Math.abs(normalMax)) * 100;
-    if (deviationPercent <= bandPercent) {
+    const width = bandWidth(normalMax, criticalMax);
+    if (width > 0 && value - normalMax <= width) {
+      const deviationPercent = ((value - normalMax) / Math.abs(normalMax)) * 100;
       return { side: "high", deviationPercent, boundary: normalMax };
     }
     return null;
@@ -116,13 +127,15 @@ export function getBorderlineInfo(input: BorderlineInput): BorderlineInfo | null
 
   if (normalMin != null && value < normalMin) {
     if (normalMin === 0) return null;
-    const deviationPercent = ((normalMin - value) / Math.abs(normalMin)) * 100;
-    if (deviationPercent <= bandPercent) {
+    const width = bandWidth(normalMin, criticalMin);
+    if (width > 0 && normalMin - value <= width) {
+      const deviationPercent = ((normalMin - value) / Math.abs(normalMin)) * 100;
       return { side: "low", deviationPercent, boundary: normalMin };
     }
   }
 
   return null;
+
 }
 
 /** Короткая пометка для строки биомаркера в промпте. */
