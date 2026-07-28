@@ -12,12 +12,17 @@ let cache: Promise<MedicationSuggestion[]> | null = null;
 
 function loadDictionary(): Promise<MedicationSuggestion[]> {
   if (!cache) {
-    cache = supabase
-      .from("medication_dictionary")
-      .select("inn, drug_class, brand_names, search_terms")
-      .order("inn")
-      .then(({ data }) => (data ?? []) as MedicationSuggestion[])
-      .catch(() => []);
+    cache = (async () => {
+      try {
+        const { data } = await supabase
+          .from("medication_dictionary")
+          .select("inn, drug_class, brand_names, search_terms")
+          .order("inn");
+        return (data ?? []) as MedicationSuggestion[];
+      } catch {
+        return [];
+      }
+    })();
   }
   return cache;
 }
