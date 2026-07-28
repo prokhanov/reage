@@ -161,12 +161,15 @@ serve(async (req) => {
               if (deviation) {
                 userContext += ` ${deviation}`;
               }
-              userContext += ` [${rangeInfo}]`;
+              userContext += ` [${rangeInfo}]${borderlineStr}`;
               userContext += `\n`;
             }
           });
         }
       });
+      if (userContext.includes('[ПОГРАНИЧНО')) {
+        userContext += `\n${BORDERLINE_RULES_BLOCK}\n`;
+      }
     } else {
       // Warn AI that there are no biomarkers
       userContext += `\n⚠️ ВНИМАНИЕ: У пациента нет лабораторных данных биомаркеров.\n`;
