@@ -15,9 +15,20 @@ import { notify as toast } from "@/lib/toast";
 import { PagedReportPreview, ReportDocument } from "@/lib/reportLab/renderer";
 import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
-import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
-import { getCategoryRecords, getPatientDataRecord, getPrescriptionsRecord } from "@/lib/reportLab/parser";
+import {
+  applyDraftsToDoc,
+  buildDocFromReport,
+  getPatientEntry,
+  getPrescriptionsEntry,
+  getSectionEntries,
+  resolveDoc,
+} from "@/lib/reportLab/document";
+import {
+  ensureReportDocument,
+  publishReportDocument,
+  replaceReportDocument,
+} from "@/lib/reportLab/documentStore";
 import type { LabReport } from "@/lib/reportLab/types";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 
@@ -70,14 +81,8 @@ function collectLiveDrafts(): Record<string, string> {
 
 function applyDraftsToReport(source: LabReport, drafts: Record<string, string>): LabReport {
   if (Object.keys(drafts).length === 0) return source;
-  return {
-    ...source,
-    generatedAt: new Date().toISOString(),
-    recommendations: source.recommendations.map((rec) => ({
-      ...rec,
-      text: assembleRecommendationText(rec, drafts, source),
-    })),
-  };
+  const { doc } = applyDraftsToDoc(resolveDoc(source), drafts);
+  return { ...source, generatedAt: new Date().toISOString(), doc };
 }
 
 /**
@@ -149,15 +154,39 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
 
-  const reloadReport = useCallback(async () => {
-    try {
-      const fresh = await buildLabReportFromDb(analysisId, userId);
-      setReport(fresh);
-      onSaved?.();
-    } catch (e) {
-      console.error("[ReportV2Editor] reload after regenerate failed", e);
-    }
-  }, [analysisId, userId, onSaved]);
+  /**
+   * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
+   * пересобирается из нового черновика ИИ и полностью перезаписывает
+   * сохранённый (ручные правки в нём теряются — об этом предупреждаем заранее).
+   */
+  const reloadReport = useCallback(
+    async (rebuildDoc = false) => {
+      try {
+        const fresh = await buildLabReportFromDb(analysisId, userId);
+        if (rebuildDoc) {
+          const rebuilt = buildDocFromReport(fresh);
+          try {
+            const status = await replaceReportDocument(
+              analysisId,
+              userId,
+              rebuilt,
+              fresh.docStatus,
+            );
+            fresh.doc = rebuilt;
+            fresh.docStatus = status;
+          } catch (e) {
+            console.error("[ReportV2Editor] replaceReportDocument failed", e);
+            fresh.doc = rebuilt;
+          }
+        }
+        setReport(fresh);
+        onSaved?.();
+      } catch (e) {
+        console.error("[ReportV2Editor] reload after regenerate failed", e);
+      }
+    },
+    [analysisId, userId, onSaved],
+  );
 
   const regenerateCategory = useCallback(
     async (category: string) => {
@@ -171,11 +200,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         const ok = window.confirm(
           "В отчёте есть несохранённые правки. Перегенерация раздела «" +
             category +
-            "» перезапишет его текст. Продолжить?",
+            "» сбросит все ручные правки этого отчёта — черновик будет сгенерирован заново. Продолжить?",
         );
         if (!ok) return;
       } else if (
-        !window.confirm(`Перегенерировать раздел «${category}»? Текст будет полностью пересобран ИИ.`)
+        !window.confirm(
+          `Перегенерировать раздел «${category}»? Ручные правки отчёта будут сброшены — текст пересоберётся ИИ заново.`,
+        )
       ) {
         return;
       }
@@ -225,7 +256,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             throw new Error(statusJson?.job?.error || "Ошибка генерации");
           }
         }
-        await reloadReport();
+        await reloadReport(true);
         toast.success("Раздел перегенерирован", category);
       } catch (e) {
         console.error("[ReportV2Editor] regenerateCategory failed", e);
@@ -246,11 +277,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       const w = window as typeof window & { __reportV2HasEdits?: () => boolean };
       if (w.__reportV2HasEdits?.()) {
         const ok = window.confirm(
-          "В отчёте есть несохранённые правки. Перегенерация «Общего резюме» перезапишет его текст. Продолжить?",
+          "В отчёте есть несохранённые правки. Перегенерация «Общего резюме» сбросит ручные правки отчёта — черновик будет сгенерирован заново. Продолжить?",
         );
         if (!ok) return;
       } else if (
-        !window.confirm("Перегенерировать «Общее резюме»? Текст будет полностью пересобран ИИ.")
+        !window.confirm(
+          "Перегенерировать «Общее резюме»? Ручные правки отчёта будут сброшены — текст пересоберётся ИИ заново.",
+        )
       ) {
         return;
       }
@@ -294,7 +327,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             throw new Error(statusJson?.job?.error || "Ошибка генерации");
           }
         }
-        await reloadReport();
+        await reloadReport(true);
         toast.success("Общее резюме перегенерировано");
       } catch (e) {
         console.error("[ReportV2Editor] regenerateSummary failed", e);
@@ -343,11 +376,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     if (!report) return [];
     // Обложку в содержание не выносим — на неё юзер и так попадает первой.
     const items: ReportNavSection[] = [];
-    if (getPatientDataRecord(report)) items.push({ id: "patient", label: "Данные пациента" });
+    const doc = resolveDoc(report);
+    if (getPatientEntry(doc)) items.push({ id: "patient", label: "Данные пациента" });
     items.push({ id: "overview", label: "Общее резюме" });
-    const cats = getCategoryRecords(report);
-    cats.forEach((rec, i) => items.push({ id: `category-${i + 1}`, label: rec.type }));
-    if (getPrescriptionsRecord(report)) items.push({ id: "prescriptions", label: "Рекомендации" });
+    getSectionEntries(doc).forEach((entry, i) =>
+      items.push({ id: `category-${i + 1}`, label: entry.title || entry.type }),
+    );
+    if (getPrescriptionsEntry(doc)) items.push({ id: "prescriptions", label: "Рекомендации" });
     return items;
   }, [report]);
 
