@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
+import { getBorderlineInfo, borderlineTag, BORDERLINE_RULES_BLOCK } from "../_shared/borderline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -138,6 +139,13 @@ serve(async (req) => {
                 status = '🟠 РИСК';
               }
 
+              const borderline = getBorderlineInfo({
+                code: biomarker.code, value: val.value,
+                normalMin: normalMin, normalMax: normalMax,
+                criticalMin: criticalMin, criticalMax: criticalMax,
+              });
+              const borderlineStr = borderline ? ' ' + borderlineTag(borderline) : '';
+
               const deviation = calculateDeviation(val.value, normalMin, normalMax);
               const rangeInfo = [
                 criticalMin != null ? `🔴 Крит.низ: <${criticalMin}` : null,
@@ -153,12 +161,15 @@ serve(async (req) => {
               if (deviation) {
                 userContext += ` ${deviation}`;
               }
-              userContext += ` [${rangeInfo}]`;
+              userContext += ` [${rangeInfo}]${borderlineStr}`;
               userContext += `\n`;
             }
           });
         }
       });
+      if (userContext.includes('[ПОГРАНИЧНО')) {
+        userContext += `\n${BORDERLINE_RULES_BLOCK}\n`;
+      }
     } else {
       // Warn AI that there are no biomarkers
       userContext += `\n⚠️ ВНИМАНИЕ: У пациента нет лабораторных данных биомаркеров.\n`;

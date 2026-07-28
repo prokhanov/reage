@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callAiWithReasoningRetry } from "../_shared/ai-call-with-retry.ts";
 import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
+import { getBorderlineInfo, borderlineTag, BORDERLINE_RULES_BLOCK } from "../_shared/borderline.ts";
 
 
 
@@ -774,7 +775,13 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
       const normalRangeStr = `норма: ${nMin ?? '—'}–${nMax ?? '—'}`;
       const optimalRangeStr = (oMin !== null || oMax !== null) ? `, оптимум: ${oMin ?? '—'}–${oMax ?? '—'}` : '';
 
-      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} ${direction} (${normalRangeStr}${optimalRangeStr}) [${av.biomarkers.category}]`;
+      const borderline = getBorderlineInfo({
+        code: av.biomarkers.code, value: av.value,
+        normalMin: nMin, normalMax: nMax, criticalMin: cMin, criticalMax: cMax,
+      });
+      const borderlineStr = borderline ? ` ${borderlineTag(borderline)}` : '';
+
+      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} ${direction} (${normalRangeStr}${optimalRangeStr})${borderlineStr} [${av.biomarkers.category}]`;
     }).join('\n');
 
     const globalBiomarkersInstructions = prompts['global_biomarkers_instructions'] || `ВАЖНО: 
@@ -796,6 +803,7 @@ ${globalBiomarkersInstructions}
     function buildCriticalGuard(analysisValues: any[]): string {
       const criticalMarkers: string[] = [];
       const acceptableMarkers: string[] = [];
+      const borderlineMarkers: string[] = [];
       const specialistRules: string[] = [];
 
       for (const av of analysisValues) {
@@ -822,6 +830,22 @@ ${globalBiomarkersInstructions}
         const isInOpt = (oMin !== null || oMax !== null)
           ? (oMin === null || av.value >= oMin) && (oMax === null || av.value <= oMax)
           : !isOutNorm;
+
+        const borderline = getBorderlineInfo({
+          code: av.biomarkers.code, value: av.value,
+          normalMin: nMin, normalMax: nMax,
+          criticalMin: av.biomarkers.critical_min, criticalMax: av.biomarkers.critical_max,
+        });
+
+        // Пограничные отклонения — отдельный внутренний бакет со смягчённой терминологией
+        if (isOutNorm && borderline) {
+          const dirWord = borderline.side === 'high' ? 'выше' : 'ниже';
+          const pct = borderline.deviationPercent < 0.1 ? '<0.1' : borderline.deviationPercent.toFixed(1);
+          borderlineMarkers.push(
+            `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — формально вне нормы, но всего на ${pct}% ${dirWord} границы ${borderline.boundary} (норма ${nMin ?? '—'}–${nMax ?? '—'}). Это ЛЁГКОЕ ПОГРАНИЧНОЕ ОТКЛОНЕНИЕ. ЗАПРЕЩЕНО ставить диагноз/называть синдром и писать «значительно повышен/снижен». Пиши: «на ${borderline.side === 'high' ? 'верхней' : 'нижней'} границе референсного диапазона», «незначительное отклонение», рекомендуй только контроль в динамике.`
+          );
+          continue;
+        }
 
         // 🟠/🔴 — риск/критично: маркеры вне нормы
         if (isOutNorm) {
@@ -858,6 +882,9 @@ ${globalBiomarkersInstructions}
       }
       if (acceptableMarkers.length > 0) {
         parts.push(`🟡 ЗОНА «ДОПУСТИМО» — СТРОГО СОБЛЮДАЙ ТЕРМИНОЛОГИЮ:\n${acceptableMarkers.join('\n')}`);
+      }
+      if (borderlineMarkers.length > 0) {
+        parts.push(`🔎 ПОГРАНИЧНЫЕ ОТКЛОНЕНИЯ — СМЯГЧИ ФОРМУЛИРОВКИ:\n${borderlineMarkers.join('\n')}\n\n${BORDERLINE_RULES_BLOCK}`);
       }
       if (specialistRules.length > 0) {
         parts.push(`👨‍⚕️ ОБЯЗАТЕЛЬНЫЕ КОНСУЛЬТАЦИИ СПЕЦИАЛИСТОВ:\n${specialistRules.join('\n')}`);
