@@ -116,7 +116,13 @@ export interface LabReport {
   doc?: import("./document").ReportDoc | null;
   /** Статус публикации сохранённого документа. */
   docStatus?: import("./document").ReportDocStatus | null;
+  /**
+   * Водяной знак печатного PDF (ФИО пациента · дата публикации · номер анализа).
+   * Проставляет серверный рендер; в экранном превью не используется.
+   */
+  watermark?: string | null;
 }
+
 
 
 export interface ReportPrescription {

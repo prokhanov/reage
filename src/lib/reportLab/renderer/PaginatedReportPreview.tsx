@@ -54,7 +54,7 @@ body { padding: 24px 0; }
 @page {
   @top-left {
     content: string(section-title, first);
-    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 8px;
     color: #7a7f8f;
     letter-spacing: 1.2px;
@@ -64,7 +64,7 @@ body { padding: 24px 0; }
   }
   @top-right {
     content: "ReAge · reage.life";
-    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 8px;
     color: #7a7f8f;
     letter-spacing: 1.2px;
@@ -74,7 +74,7 @@ body { padding: 24px 0; }
   }
   @bottom-right {
     content: counter(page) " / " counter(pages);
-    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 8px;
     color: #7a7f8f;
     letter-spacing: 1.2px;

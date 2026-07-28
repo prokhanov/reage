@@ -2472,6 +2472,44 @@ export type Database = {
         }
         Relationships: []
       }
+      report_access_log: {
+        Row: {
+          analysis_id: string
+          channel: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+          viewer_id: string
+        }
+        Insert: {
+          analysis_id: string
+          channel: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+          viewer_id: string
+        }
+        Update: {
+          analysis_id?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_access_log_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_documents: {
         Row: {
           analysis_id: string
@@ -2483,6 +2521,9 @@ export type Database = {
           published_at: string | null
           published_blocks: Json | null
           published_by: string | null
+          published_pdf_hash: string | null
+          published_pdf_path: string | null
+          published_pdf_rendered_at: string | null
           status: string
           updated_at: string
           user_id: string
@@ -2497,6 +2538,9 @@ export type Database = {
           published_at?: string | null
           published_blocks?: Json | null
           published_by?: string | null
+          published_pdf_hash?: string | null
+          published_pdf_path?: string | null
+          published_pdf_rendered_at?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -2511,6 +2555,9 @@ export type Database = {
           published_at?: string | null
           published_blocks?: Json | null
           published_by?: string | null
+          published_pdf_hash?: string | null
+          published_pdf_path?: string | null
+          published_pdf_rendered_at?: string | null
           status?: string
           updated_at?: string
           user_id?: string

@@ -13,6 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ReportV2Editor } from "./ReportV2Editor";
 import type { LabReport } from "@/lib/reportLab/types";
+import { useReportPdf } from "@/hooks/useReportPdf";
+import { ReportPdfView } from "./ReportPdfView";
 
 interface Props {
   open: boolean;
@@ -38,6 +40,13 @@ interface Props {
  */
 export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished }: Props) {
   const hasSource = initialReport || (analysisId && userId);
+  // В ЛК пациента показываем серверный PDF, если он уже собран; пока рендер
+  // не готов — остаётся привычный HTML-просмотр (без «пустого экрана»).
+  const patientPdf = useReportPdf(
+    requirePublished && !initialReport ? analysisId : null,
+    "patient",
+  );
+  const patientPdfReady = Boolean(requirePublished && !initialReport && patientPdf.url);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -109,6 +118,10 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
           </DialogDescription>
           <div className="flex-1 overflow-auto p-0 sm:p-4 min-h-0">
             {hasSource ? (
+              patientPdfReady ? (
+                // Пациент видит серверный PDF — единый источник пагинации.
+                <ReportPdfView analysisId={analysisId!} persona="patient" />
+              ) : (
               <ReportV2Editor
                 analysisId={initialReport?.analysis.id ?? analysisId ?? "demo"}
                 userId={userId ?? "demo"}
@@ -119,6 +132,7 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
                 hideDownload={hideDownload}
                 requirePublished={requirePublished}
               />
+              )
             ) : (
               <div className="text-sm text-muted-foreground">Не удалось определить пациента/анализ.</div>
             )}

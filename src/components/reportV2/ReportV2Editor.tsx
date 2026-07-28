@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X } from "lucide-react";
+import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -38,6 +38,8 @@ import type { LabReport } from "@/lib/reportLab/types";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
 import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
+import { ReportPdfView } from "./ReportPdfView";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 
@@ -195,6 +197,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  // Финальная пагинация считается на сервере — этот просмотр показывает то,
+  // что реально увидит пациент (Paged.js в редакторе — только черновой ориентир).
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
 
   const publish = useCallback(async () => {
     if (!report) return;
@@ -211,10 +216,33 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       }
       // Публикуем то, что реально лежит в БД (а не локальный state).
       const stored = await fetchReportDocument(analysisId, false);
-      await publishReportDocument(analysisId, stored?.doc ?? resolveDoc(report));
+      const publishedDoc = stored?.doc ?? resolveDoc(report);
+      await publishReportDocument(analysisId, publishedDoc);
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
       onSaved?.();
+
+      // Серверный рендер PDF — единый источник пагинации для всех ролей.
+      // Хэш и дедупликация считаются на сервере, клиент их не присылает.
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        await fetch(edgeFunctionUrl("queue-report-pdf"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            ...(sess.session?.access_token
+              ? { Authorization: `Bearer ${sess.session.access_token}` }
+              : {}),
+          },
+          body: JSON.stringify({
+            analysisId,
+            report: { ...report, doc: publishedDoc, docStatus: "published" },
+          }),
+        });
+      } catch (e) {
+        console.error("[ReportV2Editor] queue-report-pdf failed", e);
+      }
     } catch (e) {
       console.error("[ReportV2Editor] publish failed", e);
       toast.error("Не удалось опубликовать", e instanceof Error ? e.message : String(e));
@@ -222,6 +250,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setPublishing(false);
     }
   }, [analysisId, report, onSaved]);
+
 
 
   /**
@@ -680,6 +709,17 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Button>
         </>
       )}
+      {canPublish && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setPdfPreviewOpen(true)}
+          title="Открыть серверный PDF — так отчёт видит пациент"
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Предпросмотр как PDF
+        </Button>
+      )}
       {compact && !hideDownload && (
         <Button size="sm" variant="outline" onClick={openInNewWindow}>
           <ExternalLink className="mr-2 h-4 w-4" />
@@ -907,9 +947,19 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           void refreshPrescriptions();
         }}
       />
+
+      <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Предпросмотр как PDF</DialogTitle>
+          </DialogHeader>
+          <ReportPdfView analysisId={analysisId} persona="staff" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 
 
