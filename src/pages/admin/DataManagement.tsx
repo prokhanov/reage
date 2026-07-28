@@ -1251,7 +1251,12 @@ export default function DataManagement() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="medications" className="space-y-4">
+            <MedicationsTab />
+          </TabsContent>
         </Tabs>
+
       </div>
 
       {/* Biomarker Dialog */}
