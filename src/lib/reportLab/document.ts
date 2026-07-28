@@ -12,6 +12,7 @@
  */
 
 import { buildBiomarkerIndex, getCategoryRecords, parseCategory } from "./parser";
+import { sanitizeReportHtml } from "./editor/sanitizeHtml";
 import type { LabReport, ReportBlock } from "./types";
 
 export const REPORT_DOC_VERSION = 2 as const;
