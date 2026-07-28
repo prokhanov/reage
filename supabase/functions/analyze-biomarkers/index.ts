@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callAiWithReasoningRetry } from "../_shared/ai-call-with-retry.ts";
-import { buildAnketaContext } from "../_shared/anketaContext.ts";
+import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
 
 
 
@@ -617,7 +617,7 @@ BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)
 МЕДИЦИНСКИЙ АНАМНЕЗ:
 ${medicalHistoryText}
 
-${buildAnketaContext(profile)}
+${await buildAnketaContextAsync(supabase, profile)}
 
 
 
