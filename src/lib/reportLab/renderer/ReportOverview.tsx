@@ -86,10 +86,11 @@ export function ReportOverview({ report, entry }: Props) {
         </div>
       </div>
 
-      {(summaryText || summaryRow) && (
+      {(summaryText || entry?.bodyHtml || summaryRow) && (
         <div className={`rl-conclusion${summaryRow ? " rl-conclusion-editable" : ""}`}>
           <ProseMarkdown
             markdown={summaryText}
+            html={entry?.bodyHtml}
             editableId={summaryRow ? `rec:${summaryRow.id}#body` : undefined}
           />
         </div>
