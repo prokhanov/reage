@@ -210,7 +210,7 @@ serve(async (req) => {
       }
     }
 
-    const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes] = await Promise.all([
+    const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes, medHistoryRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
       supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, aging_weight))").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).order("date", { ascending: false }).limit(1),
       supabase.from("prescriptions").select("*").eq("user_id", targetUserId).eq("is_archived", false),
@@ -220,8 +220,12 @@ serve(async (req) => {
       supabase.from("analysis_bookings").select("booking_date, status").eq("user_id", targetUserId).gte("booking_date", new Date().toISOString().slice(0, 10)).order("booking_date", { ascending: true }),
       supabase.from("prescription_adherence").select("status").eq("user_id", targetUserId).gte("date", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10)),
       supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).not("biological_age", "is", null).order("date", { ascending: true }),
+      supabase.from("medical_history").select("category, condition").eq("user_id", targetUserId),
     ]);
 
+    const chronicText = (medHistoryRes.data || []).length > 0
+      ? (medHistoryRes.data || []).map((h: any) => h.condition).join(", ")
+      : "не указаны";
 
     const profile = profileRes.data;
     const latest = analysesRes.data?.[0];
