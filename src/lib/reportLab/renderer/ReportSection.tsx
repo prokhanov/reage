@@ -126,6 +126,7 @@ export function ReportSection({
             <BiomarkerCard
               biomarker={bio}
               commentary={b.commentary}
+              commentaryHtml={b.commentaryHtml}
               gender={gender}
               age={age}
               editableId={editableId}
