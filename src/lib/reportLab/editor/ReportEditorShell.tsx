@@ -61,18 +61,15 @@ export function ReportEditorToolbar({
       __reportLabCollectDrafts?: () => Record<string, string>;
     };
     const liveDrafts = w.__reportLabCollectDrafts?.() ?? drafts;
-    const changed = collectDirtyRecommendations(report, liveDrafts).map((c) => {
-      const rec = report.recommendations.find((r) => r.id === c.id);
-      return {
-        ...c,
-        type: rec?.type ?? "",
-        // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
-        text: cleanMarkdownArtifacts(c.text),
-      };
-    });
+
+    // Правки применяются к БЛОКАМ сохранённого документа. Никакой обратной
+    // конверсии HTML → markdown и никакой перезаписи черновика ИИ
+    // (recommendations.text) — именно они раньше «съедали» правки.
+    const currentDoc = resolveDoc(report);
+    const { doc: nextDoc, changed } = applyDraftsToDoc(currentDoc, liveDrafts);
     const coverDirty = !jsonEqual(coverOverrides, report.coverOverrides ?? null);
 
-    if (changed.length === 0 && !coverDirty) {
+    if (!changed && !coverDirty) {
       toast.info("Ничего не изменилось");
       resetDrafts();
       setMode("view");
@@ -80,19 +77,17 @@ export function ReportEditorToolbar({
     }
     setSaving(true);
     try {
+      let nextStatus = report.docStatus ?? null;
       if (persist) {
-        for (const c of changed) {
-          const patch = { text: c.text, content_json: null };
-          const { error } = await supabase
-            .from("recommendations")
-            // content_json — структурный snapshot. Если оставить старый snapshot
-            // после ручной правки markdown, часть отчёта (например «Общее резюме»)
-            // при следующем рендере снова берётся из старого JSON и выглядит так,
-            // будто правка «откатилась».
-            // @ts-ignore — локальные generated types могут не знать content_json.
-            .update(patch)
-            .eq("id", c.id);
-          if (error) throw error;
+        if (changed || !report.doc) {
+          const userId = report.userId;
+          if (!userId) throw new Error("Не удалось определить пациента отчёта");
+          nextStatus = await saveReportDocument(
+            report.analysis.id,
+            userId,
+            nextDoc,
+            report.docStatus,
+          );
         }
         if (coverDirty) {
           const { error } = await supabase
@@ -102,28 +97,22 @@ export function ReportEditorToolbar({
           if (error) throw error;
         }
       }
-      const updatedRecs = report.recommendations.map((r) => {
-        const hit = changed.find((c) => c.id === r.id);
-        if (!hit) return r;
-        return {
-          ...r,
-          text: hit.text,
-          content_json: null,
-        };
-      });
       onReportUpdate({
         ...report,
-        recommendations: updatedRecs,
+        doc: nextDoc,
+        docStatus: nextStatus,
         coverOverrides: coverDirty ? coverOverrides : report.coverOverrides ?? null,
       });
       resetDrafts();
       setMode("view");
       const parts: string[] = [];
-      if (changed.length > 0) parts.push(`разделов: ${changed.length}`);
+      if (changed) parts.push("текст отчёта");
       if (coverDirty) parts.push("обложка");
       toast.success(
         "Сохранено",
-        persist ? `Обновлено — ${parts.join(", ")}` : `Правки применены локально: ${parts.join(", ")}`,
+        persist
+          ? `Обновлено — ${parts.join(", ")}`
+          : `Правки применены локально: ${parts.join(", ")}`,
       );
     } catch (e) {
       console.error(e);
@@ -149,16 +138,16 @@ export function ReportEditorToolbar({
       const liveDrafts = (window as typeof window & {
         __reportLabCollectDrafts?: () => Record<string, string>;
       }).__reportLabCollectDrafts?.() ?? drafts;
-      const hasRecChanges =
-        collectDirtyRecommendations(report, liveDrafts).length > 0;
+      const { changed } = applyDraftsToDoc(resolveDoc(report), liveDrafts);
       const coverDirty = !jsonEqual(coverOverrides, report.coverOverrides ?? null);
-      return hasRecChanges || coverDirty;
+      return changed || coverDirty;
     };
     return () => {
       if (w.__reportV2Save === save) delete w.__reportV2Save;
       delete w.__reportV2HasEdits;
     };
   }, [mode, save, drafts, coverOverrides, report]);
+
 
   if (!ctx) return null;
 
