@@ -502,7 +502,19 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     );
   }
 
+  if (awaitingPublish) {
+    return (
+      <Alert className="my-6">
+        <AlertDescription>
+          Отчёт сформирован и сейчас проверяется врачом. Он появится здесь сразу
+          после публикации — обычно в течение рабочего дня.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   if (error || !report) {
+
     return (
       <Alert variant="destructive" className="my-6">
         <AlertDescription>
