@@ -1023,12 +1023,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       <Dialog
         open={pdfPreviewOpen}
         onOpenChange={(open) => {
-          if (!open && pdfPreviewUrl) {
-            URL.revokeObjectURL(pdfPreviewUrl);
-            setPdfPreviewUrl(null);
-          }
+          // Blob не удаляем: он остаётся в кэше предпросмотра до правок текста.
           setPdfPreviewOpen(open);
         }}
+
       >
         <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
