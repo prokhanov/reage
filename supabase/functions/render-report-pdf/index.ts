@@ -15,6 +15,7 @@
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { REPORT_PDF_BUCKET } from "../_shared/reportPdf.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -325,4 +326,151 @@ async function signToken(claims: TokenClaims, secret: string): Promise<string> {
   const key = await importKey(secret);
   const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
   return `${payload}.${b64url(sig)}`;
+}
+
+// ─── Фоновая задача: рендер опубликованного отчёта в бакет report-pdfs ───
+
+/**
+ * ВАЖНО: у headless Chromium нет пользовательской сессии, поэтому весь доступ
+ * к данным и Storage внутри задачи идёт напрямую под service_role.
+ * Через fetch-report-pdf (пациентская функция) рендерер ходить не может.
+ */
+async function runPdfJob(
+  jobId: string,
+  requestId: string,
+  log: (...a: unknown[]) => void,
+  logError: (...a: unknown[]) => void,
+): Promise<Response> {
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const fail = async (reason: string, details?: string) => {
+    logError("job_failed", { jobId, reason, details });
+    await admin
+      .from("report_jobs")
+      .update({ status: "failed", error: `${reason}${details ? `: ${details}` : ""}`, finished_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", jobId);
+    return json({ error: reason, requestId, details }, 500);
+  };
+
+  const { data: job } = await admin
+    .from("report_jobs")
+    .select("id, analysis_id, user_id, metadata, status")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (!job) return json({ error: "job_not_found", requestId }, 404);
+
+  await admin
+    .from("report_jobs")
+    .update({ status: "running", current_step: "render_pdf", updated_at: new Date().toISOString() })
+    .eq("id", jobId);
+
+  const meta = ((job as any).metadata ?? {}) as {
+    hash?: string;
+    path?: string;
+    report?: Record<string, unknown> | null;
+  };
+  if (!meta.hash || !meta.path) return await fail("job_metadata_incomplete");
+
+  const secret = Deno.env.get("REPORT_PREVIEW_HMAC_SECRET");
+  const rendererUrl = (Deno.env.get("REPORT_RENDERER_URL") || "").replace(/\/$/, "");
+  const rendererAuth = Deno.env.get("REPORT_RENDERER_AUTH_TOKEN");
+  const previewBase = (Deno.env.get("PREVIEW_BASE_URL") || "").replace(/\/$/, "");
+  if (!secret || !rendererUrl || !rendererAuth || !previewBase) {
+    return await fail("renderer_not_configured");
+  }
+
+  // Водяной знак печатается в колонтитуле каждой страницы (CSS печатного
+  // шаблона), а не оверлеем во вьюере.
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("first_name, last_name, middle_name, name")
+    .eq("id", (job as any).user_id)
+    .maybeSingle();
+  const fio =
+    [
+      (profile as any)?.last_name,
+      (profile as any)?.first_name,
+      (profile as any)?.middle_name,
+    ]
+      .filter(Boolean)
+      .join(" ") || (profile as any)?.name || "";
+  const publishedDate = new Date().toLocaleDateString("ru-RU");
+  const watermark = [fio, publishedDate, `Анализ ${String((job as any).analysis_id).slice(0, 8)}`]
+    .filter(Boolean)
+    .join(" · ");
+
+  const exp = Math.floor(Date.now() / 1000) + TOKEN_TTL_SEC;
+  const token = await signToken({ reportId: (job as any).analysis_id, exp }, secret);
+  const reportPayload = meta.report ? { ...meta.report, watermark } : null;
+  if (reportPayload) {
+    const { error: snapErr } = await admin.from("report_preview_snapshots").insert({
+      token,
+      report: reportPayload,
+      expires_at: new Date(exp * 1000).toISOString(),
+      created_by: (job as any).user_id,
+    });
+    if (snapErr) return await fail("snapshot_insert_failed", snapErr.message);
+  }
+
+  const previewUrl = `${previewBase}/internal/report-preview?token=${encodeURIComponent(token)}`;
+  log("job_render_start", { jobId, previewBase });
+
+  try {
+    await fetch(`${rendererUrl}/healthz`, { signal: AbortSignal.timeout(RENDERER_WARMUP_TIMEOUT_MS) });
+  } catch {
+    // не блокируем: основной вызов вернёт диагностируемую ошибку
+  }
+
+  let flyRes: Response;
+  try {
+    flyRes = await fetch(`${rendererUrl}/render`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Render-Auth": rendererAuth,
+        "X-Debug-Request-Id": requestId,
+      },
+      body: JSON.stringify({ url: previewUrl, requestId }),
+      signal: AbortSignal.timeout(RENDERER_TIMEOUT_MS),
+    });
+  } catch (e) {
+    return await fail("renderer_fetch_failed", e instanceof Error ? e.message : String(e));
+  }
+  if (!flyRes.ok) {
+    return await fail("renderer_failed", (await flyRes.text()).slice(0, 500));
+  }
+
+  const pdf = new Uint8Array(await flyRes.arrayBuffer());
+  const { error: upErr } = await admin.storage
+    .from(REPORT_PDF_BUCKET)
+    .upload(meta.path, pdf, { contentType: "application/pdf", upsert: true });
+  if (upErr) return await fail("storage_upload_failed", upErr.message);
+
+  const nowIso = new Date().toISOString();
+  const { error: docErr } = await admin
+    .from("report_documents")
+    .update({
+      published_pdf_path: meta.path,
+      published_pdf_hash: meta.hash,
+      published_pdf_rendered_at: nowIso,
+    })
+    .eq("analysis_id", (job as any).analysis_id);
+  if (docErr) return await fail("document_update_failed", docErr.message);
+
+  await admin
+    .from("report_jobs")
+    .update({
+      status: "done",
+      steps_done: 1,
+      current_step: null,
+      finished_at: nowIso,
+      updated_at: nowIso,
+    })
+    .eq("id", jobId);
+
+  log("job_done", { jobId, bytes: pdf.byteLength, path: meta.path });
+  return json({ status: "done", requestId, path: meta.path, bytes: pdf.byteLength }, 200);
 }
