@@ -416,7 +416,20 @@ html, body {
 }
 
 /* ─── Проза ──────────────────────────────────────────────────────────────── */
+/* Длинные «слова» без пробелов (коды, ссылки, случайный ввод) обязаны
+   переноситься, иначе строка вылезает за границу страницы. */
+.reportlab .rl-prose,
+.reportlab .rl-prose p,
+.reportlab .rl-prose li,
+.reportlab .rl-prose h2,
+.reportlab .rl-prose h3,
+.reportlab .rl-prose td,
+.reportlab .rl-prose th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .reportlab .rl-prose p {
+
   margin: 0 0 4mm;
   font-size: 10.5pt;
   line-height: 1.6;
