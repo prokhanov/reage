@@ -20,6 +20,8 @@ import { Loader2 } from "lucide-react";
  */
 function AccessGate({ analysisId, userId, mode }: { analysisId: string; userId: string; mode: "view" | "edit" }) {
   const [state, setState] = useState<"checking" | "allowed" | "denied">("checking");
+  // Пациент (не staff) видит здесь только опубликованную врачом версию.
+  const [requirePublished, setRequirePublished] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,7 +34,14 @@ function AccessGate({ analysisId, userId, mode }: { analysisId: string; userId: 
         }
         // Владелец отчёта — сразу пропускаем.
         if (user.id === userId) {
-          if (!cancelled) setState("allowed");
+          const { data: staff } = await supabase.rpc("has_admin_permission", {
+            _user_id: user.id,
+            _module: "patients",
+          });
+          if (!cancelled) {
+            setRequirePublished(staff !== true);
+            setState("allowed");
+          }
           return;
         }
         // Иначе — только staff с доступом к модулю `patients`.
@@ -40,7 +49,10 @@ function AccessGate({ analysisId, userId, mode }: { analysisId: string; userId: 
           _user_id: user.id,
           _module: "patients",
         });
-        if (!cancelled) setState(allowed === true ? "allowed" : "denied");
+        if (!cancelled) {
+          setRequirePublished(false);
+          setState(allowed === true ? "allowed" : "denied");
+        }
       } catch {
         if (!cancelled) setState("denied");
       }
@@ -69,7 +81,13 @@ function AccessGate({ analysisId, userId, mode }: { analysisId: string; userId: 
   }
   return (
     <div className="min-h-screen bg-background p-0 md:p-6">
-      <ReportV2Editor analysisId={analysisId} userId={userId} mode={mode} compact />
+      <ReportV2Editor
+        analysisId={analysisId}
+        userId={userId}
+        mode={requirePublished ? "view" : mode}
+        compact
+        requirePublished={requirePublished}
+      />
     </div>
   );
 }

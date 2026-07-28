@@ -14,6 +14,7 @@ interface ReportDocumentRow {
   analysis_id: string;
   user_id: string;
   blocks: unknown;
+  published_blocks?: unknown;
   status: string;
   published_at: string | null;
   edited_at: string | null;
@@ -29,8 +30,8 @@ export interface LoadedReportDocument {
 // Локальные generated types могут не знать о новой таблице.
 const table = () => (supabase as unknown as { from: (t: string) => any }).from("report_documents");
 
-function rowToDoc(row: ReportDocumentRow): LoadedReportDocument | null {
-  const blocks = row.blocks;
+function rowToDoc(row: ReportDocumentRow, published: boolean): LoadedReportDocument | null {
+  const blocks = published ? row.published_blocks : row.blocks;
   if (!Array.isArray(blocks) || blocks.length === 0) return null;
   return {
     doc: {
@@ -44,12 +45,19 @@ function rowToDoc(row: ReportDocumentRow): LoadedReportDocument | null {
   };
 }
 
+/**
+ * @param published — читать опубликованный снимок (`published_blocks`).
+ *   Пациенту доступен только он; врач/админ работают с рабочей версией.
+ */
 export async function fetchReportDocument(
   analysisId: string,
+  published = false,
 ): Promise<LoadedReportDocument | null> {
   if (!analysisId) return null;
   const { data, error } = await table()
-    .select("id, analysis_id, user_id, blocks, status, published_at, edited_at")
+    .select(
+      "id, analysis_id, user_id, blocks, published_blocks, status, published_at, edited_at",
+    )
     .eq("analysis_id", analysisId)
     .maybeSingle();
   if (error) {
@@ -58,8 +66,9 @@ export async function fetchReportDocument(
     return null;
   }
   if (!data) return null;
-  return rowToDoc(data as ReportDocumentRow);
+  return rowToDoc(data as ReportDocumentRow, published);
 }
+
 
 /**
  * Статус документа без доступа к содержимому — пациент так узнаёт, что отчёт
@@ -139,14 +148,29 @@ export async function replaceReportDocument(
   return saveReportDocument(analysisId, userId, doc, currentStatus);
 }
 
-export async function publishReportDocument(analysisId: string): Promise<void> {
+/**
+ * Публикация: рабочая версия копируется в снимок `published_blocks` —
+ * именно его видит пациент. Дальнейшие правки врача снова становятся
+ * черновиком и на пациента не влияют до следующей публикации.
+ */
+export async function publishReportDocument(analysisId: string, doc?: ReportDoc): Promise<void> {
   const { data: authData } = await supabase.auth.getUser();
+  let blocks = doc?.entries;
+  if (!blocks) {
+    const { data: row } = await table()
+      .select("blocks")
+      .eq("analysis_id", analysisId)
+      .maybeSingle();
+    blocks = (row?.blocks as DocEntry[] | undefined) ?? undefined;
+  }
   const { error } = await table()
     .update({
       status: "published",
+      published_blocks: blocks ?? null,
       published_at: new Date().toISOString(),
       published_by: authData.user?.id ?? null,
     })
+
     .eq("analysis_id", analysisId);
   if (error) throw error;
 }
