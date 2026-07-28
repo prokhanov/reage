@@ -947,9 +947,19 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           void refreshPrescriptions();
         }}
       />
+
+      <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Предпросмотр как PDF</DialogTitle>
+          </DialogHeader>
+          <ReportPdfView analysisId={analysisId} persona="staff" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 
 
