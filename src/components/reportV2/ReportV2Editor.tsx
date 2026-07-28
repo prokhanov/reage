@@ -710,12 +710,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             Скачать PDF
           </DropdownMenuItem>
         )}
+        {canPublish && (
+          <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+            <Send className="mr-2 h-4 w-4" />
+            {publishLabel}
+          </DropdownMenuItem>
+        )}
         {!compact && (
           <>
-            <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
-              <Send className="mr-2 h-4 w-4" />
-              {publishLabel}
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Обновить страницы
