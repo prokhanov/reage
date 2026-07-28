@@ -343,7 +343,7 @@ ${strategy.rationale ? "\nОбоснование: " + truncate(strategy.rational
         "- Возраст: " + (patientAge || "Не указан") + " лет\n" +
         "- Рост: " + (profile?.height || "Не указан") + " см\n" +
         "- Вес: " + (actualWeight || "Не указан") + " кг\n" +
-        (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" : "") +
+        (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" + (biomarkerLines.includes("[ПОГРАНИЧНО") ? "\n" + BORDERLINE_RULES_BLOCK + "\n" : "") : "") +
         (symptomLines ? "\nПоследние симптомы:\n" + symptomLines + "\n" : "") +
         (prescriptionLines ? "\nАктивные назначения:\n" + prescriptionLines + "\n" : "") +
         (analyses && analyses.length > 0
