@@ -14,6 +14,7 @@ interface ReportDocumentRow {
   analysis_id: string;
   user_id: string;
   blocks: unknown;
+  published_blocks?: unknown;
   status: string;
   published_at: string | null;
   edited_at: string | null;
