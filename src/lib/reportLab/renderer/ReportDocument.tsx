@@ -14,6 +14,7 @@ import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
 import "../theme.css";
+import { reportFontFaceCss, ensureReportFontsLoaded } from "../reportFonts";
 
 interface Props {
   report: LabReport;
@@ -63,9 +64,9 @@ export function ReportDocument({ report, signalReady }: Props) {
       w.__reportReady = true;
       log("report_ready");
     };
-    const fontsReady =
-      (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts
-        ?.ready ?? Promise.resolve();
+    // Ждём именно наши bundled-шрифты: fonts.ready резолвится и тогда,
+    // когда шрифт ещё не запрошен, а метрики fallback'а отличаются.
+    const fontsReady = ensureReportFontsLoaded(document);
     log("fonts_wait_start");
     fontsReady
       .then(() => {
@@ -82,6 +83,8 @@ export function ReportDocument({ report, signalReady }: Props) {
 
   return (
     <div className="reportlab">
+      {/* Локальные @font-face: одинаковые метрики текста на всех устройствах. */}
+      <style dangerouslySetInnerHTML={{ __html: reportFontFaceCss }} />
       <ReportCover report={report} />
       <ReportPatientData report={report} entry={getPatientEntry(doc)} />
       <ReportOverview report={report} entry={getSummaryEntry(doc)} />

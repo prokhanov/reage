@@ -35,7 +35,9 @@
   --status-warning-bg: var(--status-risk-bg);
   --status-suboptimal-bg: var(--status-acceptable-bg);
 
-  --font-serif: "Fraunces", serif;
+  /* У Fraunces нет кириллицы — русский текст детерминированно отдаём Lora,
+     иначе браузер подставит случайный системный serif и пагинация «поедет». */
+  --font-serif: "Fraunces", "Lora", serif;
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
