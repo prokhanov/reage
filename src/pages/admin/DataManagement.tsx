@@ -27,7 +27,9 @@ import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { notify as toast } from "@/lib/toast";
-import { Plus, Trash2, Edit2, Search, FileText, Activity } from "lucide-react";
+import { Plus, Trash2, Edit2, Search, FileText, Activity, Pill } from "lucide-react";
+import { MedicationsTab } from "@/components/admin/MedicationsTab";
+
 import { getSymptomCategoryIcon, getConditionCategoryIcon, stripEmoji } from "@/lib/categoryIcons";
 import {
   Dialog,
@@ -726,7 +728,12 @@ export default function DataManagement() {
               <Activity className="w-4 h-4 mr-2" />
               Категории
             </TabsTrigger>
+            <TabsTrigger value="medications">
+              <Pill className="w-4 h-4 mr-2" />
+              Препараты
+            </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="biomarkers" className="space-y-4">
             <Card>
@@ -1244,7 +1251,12 @@ export default function DataManagement() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="medications" className="space-y-4">
+            <MedicationsTab />
+          </TabsContent>
         </Tabs>
+
       </div>
 
       {/* Biomarker Dialog */}
