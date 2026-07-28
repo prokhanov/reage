@@ -243,6 +243,71 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [analysisId, userId, onSaved],
   );
 
+  // ── Рекомендации: те же записи, что и в разделе ЛК «Рекомендации» ──────────
+  const [rxEditRow, setRxEditRow] = useState<Record<string, unknown> | null>(null);
+  const [rxDialogOpen, setRxDialogOpen] = useState(false);
+  const [advisoryFocus, setAdvisoryFocus] = useState<"lifestyle" | "followups" | null>(null);
+
+  /**
+   * Перечитывает нутрицевтики/advisory из БД и обновляет соответствующий блок
+   * сохранённого документа — правка из отчёта и из ЛК дают один результат.
+   */
+  const refreshPrescriptions = useCallback(async () => {
+    try {
+      const fresh = await buildLabReportFromDb(analysisId, userId);
+      const nextDoc = syncPrescriptionsEntry(resolveDoc(fresh), fresh);
+      fresh.doc = nextDoc;
+      try {
+        fresh.docStatus = await saveReportDocument(analysisId, userId, nextDoc, fresh.docStatus);
+      } catch (e) {
+        console.warn("[ReportV2Editor] saveReportDocument after rx edit:", e);
+      }
+      setReport(fresh);
+      onSaved?.();
+    } catch (e) {
+      console.error("[ReportV2Editor] refreshPrescriptions failed", e);
+    }
+  }, [analysisId, userId, onSaved]);
+
+  useEffect(() => {
+    if (mode !== "edit") return;
+    const host = previewContainerRef.current;
+    if (!host) return;
+    const onClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest?.("[data-rx-edit]") as HTMLElement | null;
+      if (!el || !host.contains(el)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const target = el.getAttribute("data-rx-edit") || "";
+      if (target.startsWith("advisory:")) {
+        setAdvisoryFocus(target.endsWith("followups") ? "followups" : "lifestyle");
+        return;
+      }
+      if (target.startsWith("rx:")) {
+        const id = target.slice(3);
+        void (async () => {
+          const { data, error } = await supabase
+            .from("prescriptions")
+            .select(
+              "id, prescription, name, form, dosage, how_to_take, duration, reason, effect, control_date, status",
+            )
+            .eq("id", id)
+            .maybeSingle();
+          if (error || !data) {
+            toast.error("Не удалось открыть рекомендацию", error?.message ?? "Запись не найдена");
+            return;
+          }
+          setRxEditRow(data as unknown as Record<string, unknown>);
+          setRxDialogOpen(true);
+        })();
+      }
+    };
+    host.addEventListener("click", onClick, true);
+    return () => host.removeEventListener("click", onClick, true);
+  }, [mode, report]);
+
+
+
   const regenerateCategory = useCallback(
     async (category: string) => {
       if (regenCategory) {
