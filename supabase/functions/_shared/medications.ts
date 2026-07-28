@@ -64,30 +64,65 @@ function candidateTerms(entry: MedicationEntry): string[] {
   return terms.map(normalizeMedName).filter(Boolean);
 }
 
-/** Подбор записи справочника под произвольную строку (точное + fuzzy совпадение). */
+/** Вхождение термина в строку как отдельного слова (а не куска другого слова). */
+function containsAsWord(q: string, term: string): boolean {
+  let from = 0;
+  for (;;) {
+    const i = q.indexOf(term, from);
+    if (i < 0) return false;
+    const before = i === 0 ? "" : q[i - 1];
+    const after = i + term.length >= q.length ? "" : q[i + term.length];
+    const isLetter = (c: string) => !!c && /[a-zа-я0-9]/.test(c);
+    if (!isLetter(before) && !isLetter(after)) return true;
+    from = i + 1;
+  }
+}
+
+/**
+ * Подбор записи справочника под произвольную строку.
+ * Порядок: точное совпадение → вхождение термина целым словом (самый длинный термин)
+ * → осторожный fuzzy (1 опечатка, только длинные названия).
+ * Важно: точный проход идёт по всему справочнику раньше подстрочного, иначе
+ * «эзомепразол» цепляется за «омепразол», а «метилпреднизолон» — за «преднизолон».
+ */
 export function matchMedication(raw: string, dict: MedicationEntry[]): MedicationEntry | null {
   const q = normalizeMedName(raw);
   if (!q) return null;
 
-  let fuzzyBest: { entry: MedicationEntry; dist: number } | null = null;
+  const prepared = dict.map((entry) => ({ entry, terms: candidateTerms(entry) }));
 
-  for (const entry of dict) {
-    for (const term of candidateTerms(entry)) {
-      if (term === q) return entry;
-      if (q.includes(term) && term.length >= 5) return entry;
-      // Осторожный fuzzy: допускаем только 1 опечатку и только для длинных названий,
-      // иначе разные препараты («Небиксиум» и «Нексиум») склеиваются в один.
-      const maxDist = q.length >= 8 ? 1 : 0;
-      if (maxDist > 0 && Math.abs(term.length - q.length) <= maxDist) {
-        const d = levenshtein(term, q);
-        if (d <= maxDist && (!fuzzyBest || d < fuzzyBest.dist)) {
-          fuzzyBest = { entry, dist: d };
-        }
+  // 1. Точное совпадение
+  for (const { entry, terms } of prepared) {
+    if (terms.some((t) => t === q)) return entry;
+  }
+
+  // 2. Термин как отдельное слово внутри строки — берём самый длинный (самый специфичный)
+  let subBest: { entry: MedicationEntry; len: number } | null = null;
+  for (const { entry, terms } of prepared) {
+    for (const term of terms) {
+      if (term.length < 5) continue;
+      if (containsAsWord(q, term) && (!subBest || term.length > subBest.len)) {
+        subBest = { entry, len: term.length };
       }
+    }
+  }
+  if (subBest) return subBest.entry;
+
+  // 3. Осторожный fuzzy: 1 опечатка и только для длинных названий,
+  // иначе разные препараты («Небиксиум» и «Нексиум») склеиваются в один.
+  const maxDist = q.length >= 8 ? 1 : 0;
+  if (maxDist === 0) return null;
+  let fuzzyBest: { entry: MedicationEntry; dist: number } | null = null;
+  for (const { entry, terms } of prepared) {
+    for (const term of terms) {
+      if (Math.abs(term.length - q.length) > maxDist) continue;
+      const d = levenshtein(term, q);
+      if (d <= maxDist && (!fuzzyBest || d < fuzzyBest.dist)) fuzzyBest = { entry, dist: d };
     }
   }
   return fuzzyBest?.entry ?? null;
 }
+
 
 const DIRECTION_RU: Record<string, string> = {
   up: "повышает",
