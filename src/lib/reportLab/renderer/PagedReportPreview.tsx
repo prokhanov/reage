@@ -887,6 +887,160 @@ function replaceSelectedHeadingsWithParagraphs(root: HTMLElement) {
   });
 }
 
+const EDITABLE_TEXT_BLOCK_SELECTOR = "p,h1,h2,h3,h4,h5,h6,li,blockquote";
+
+function closestEditableTextBlock(node: Node, editable: HTMLElement): HTMLElement | null {
+  const el = node.nodeType === Node.ELEMENT_NODE
+    ? (node as HTMLElement)
+    : node.parentElement;
+  const block = el?.closest?.(EDITABLE_TEXT_BLOCK_SELECTOR) as HTMLElement | null;
+  if (!block || !editable.contains(block)) return null;
+  return block;
+}
+
+function rangeText(range: Range): string {
+  return range
+    .toString()
+    .replace(/\u200B/g, "")
+    .replace(/\u00A0/g, " ");
+}
+
+function caretAtBlockStart(block: HTMLElement, range: Range): boolean {
+  const probe = document.createRange();
+  probe.selectNodeContents(block);
+  try {
+    probe.setEnd(range.startContainer, range.startOffset);
+  } catch {
+    return false;
+  }
+  return rangeText(probe).trim().length === 0;
+}
+
+function caretAtBlockEnd(block: HTMLElement, range: Range): boolean {
+  const probe = document.createRange();
+  probe.selectNodeContents(block);
+  try {
+    probe.setStart(range.endContainer, range.endOffset);
+  } catch {
+    return false;
+  }
+  return rangeText(probe).trim().length === 0;
+}
+
+function orderedEditableTextBlocks(output: HTMLElement, editableId: string): HTMLElement[] {
+  const blocks: HTMLElement[] = [];
+  const parts = Array.from(output.querySelectorAll<HTMLElement>(editableSelector(editableId)));
+  for (const part of parts) {
+    const candidates = Array.from(part.querySelectorAll<HTMLElement>(EDITABLE_TEXT_BLOCK_SELECTOR));
+    for (const candidate of candidates) {
+      const parentBlock = candidate.parentElement?.closest?.(EDITABLE_TEXT_BLOCK_SELECTOR) as HTMLElement | null;
+      if (parentBlock && part.contains(parentBlock)) continue;
+      blocks.push(candidate);
+    }
+  }
+  return blocks;
+}
+
+function trimLeadingInlineWhitespace(el: HTMLElement) {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const first = walker.nextNode();
+  if (first && first.nodeType === Node.TEXT_NODE) {
+    first.textContent = (first.textContent || "").replace(/^[\s\u00A0]+/, "");
+  }
+}
+
+function needsJoinSpace(left: HTMLElement, right: HTMLElement): boolean {
+  const rawLeft = left.textContent || "";
+  const rawRight = right.textContent || "";
+  const leftText = rawLeft.replace(/\u00A0/g, " ").trimEnd();
+  const rightText = rawRight.replace(/\u00A0/g, " ").trimStart();
+  if (!leftText || !rightText) return false;
+  if (/\s$/.test(rawLeft) || /^\s/.test(rawRight)) return false;
+  if (/^[,.;:!?»”’\])}]/.test(rightText)) return false;
+  if (/[«“‘([{]$/.test(leftText)) return false;
+  return true;
+}
+
+function markRelatedEditablesDirty(...nodes: Array<HTMLElement | null>) {
+  nodes.forEach((node) => {
+    const editable = node?.closest?.("[data-editable-id]") as HTMLElement | null;
+    editable?.setAttribute("data-rl-dirty", "1");
+  });
+}
+
+function mergeTextBlockIntoPrevious(target: HTMLElement, source: HTMLElement) {
+  const sourceEditable = source.closest("[data-editable-id]") as HTMLElement | null;
+  const targetEditable = target.closest("[data-editable-id]") as HTMLElement | null;
+  const insertSpace = needsJoinSpace(target, source);
+  trimLeadingInlineWhitespace(source);
+
+  let caretAfter: Node | null = null;
+  let firstMoved: Node | null = source.firstChild;
+  if (insertSpace) {
+    caretAfter = document.createTextNode(" ");
+    target.appendChild(caretAfter);
+  }
+  while (source.firstChild) {
+    target.appendChild(source.firstChild);
+  }
+  source.remove();
+
+  targetEditable?.setAttribute("data-rl-dirty", "1");
+  sourceEditable?.setAttribute("data-rl-dirty", "1");
+
+  const sel = window.getSelection();
+  if (!sel) return;
+  const nextRange = document.createRange();
+  if (caretAfter) {
+    nextRange.setStartAfter(caretAfter);
+  } else if (firstMoved && target.contains(firstMoved)) {
+    nextRange.setStartBefore(firstMoved);
+  } else {
+    nextRange.selectNodeContents(target);
+    nextRange.collapse(false);
+  }
+  nextRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nextRange);
+}
+
+function tryMergeAdjacentTextBlock(
+  output: HTMLElement,
+  editable: HTMLElement,
+  direction: "backward" | "forward",
+): boolean {
+  const id = editable.getAttribute("data-editable-id");
+  if (!id) return false;
+
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return false;
+  const range = sel.getRangeAt(0);
+  if (!range.collapsed) return false;
+
+  const block = closestEditableTextBlock(range.startContainer, editable);
+  if (!block) return false;
+
+  const atBoundary = direction === "backward"
+    ? caretAtBlockStart(block, range)
+    : caretAtBlockEnd(block, range);
+  if (!atBoundary) return false;
+
+  const blocks = orderedEditableTextBlocks(output, id);
+  const index = blocks.indexOf(block);
+  if (index < 0) return false;
+  const neighbor = direction === "backward" ? blocks[index - 1] : blocks[index + 1];
+  if (!neighbor) return false;
+
+  if (direction === "backward") {
+    mergeTextBlockIntoPrevious(neighbor, block);
+    markRelatedEditablesDirty(neighbor, block);
+  } else {
+    mergeTextBlockIntoPrevious(block, neighbor);
+    markRelatedEditablesDirty(block, neighbor);
+  }
+  return true;
+}
+
 function sanitizeEditableHtml(html: string): string {
   const template = document.createElement("template");
   template.innerHTML = html;
