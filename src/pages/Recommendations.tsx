@@ -1497,7 +1497,7 @@ export default function Recommendations() {
             mode={reportV2State.mode}
             initialReport={demoMode ? buildLabReportFromExample() : undefined}
             hideDownload={demoMode}
-            requirePublished={!demoMode && !isViewingAsPatient}
+            requirePublished={!demoMode && !isViewMode}
           />
         )}
 
