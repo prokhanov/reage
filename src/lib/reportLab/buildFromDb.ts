@@ -228,6 +228,7 @@ export async function buildLabReportFromDb(
   const report: LabReport = {
     version: 1,
     generatedAt: new Date().toISOString(),
+    userId,
     patient,
     analysis,
     recommendations,

@@ -101,6 +101,8 @@ export interface CoverOverrides {
 export interface LabReport {
   version: 1;
   generatedAt: string;
+  /** id пациента — нужен для записи сохранённого документа. */
+  userId?: string | null;
   patient: ReportPatient;
   analysis: ReportAnalysis;
   recommendations: ReportRecommendationRow[];
