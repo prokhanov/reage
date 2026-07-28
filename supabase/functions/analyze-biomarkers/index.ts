@@ -617,6 +617,10 @@ BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)
 МЕДИЦИНСКИЙ АНАМНЕЗ:
 ${medicalHistoryText}
 
+${buildAnketaContext(profile)}
+
+
+
 ТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:
 ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_complaints || c.complaint || "Не указано"}`).join("\n") : "Не указаны"}
 
