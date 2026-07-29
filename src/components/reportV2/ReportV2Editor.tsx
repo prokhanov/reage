@@ -113,9 +113,6 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
-  // HTML-просмотр всегда потоковый (без Paged.js). Печатная пагинация —
-  // только в серверном PDF («Предпросмотр как PDF» / скачивание).
-  const paginated = false;
 
   const [awaitingPublish, setAwaitingPublish] = useState(false);
   const [rendering, setRendering] = useState(false);
@@ -710,12 +707,6 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     );
   }
 
-  const refreshPagination = () => {
-    const w = window as typeof window & { __reportLabReflow?: () => void };
-    w.__reportLabReflow?.();
-  };
-
-
   const openInNewWindow = () => {
     const url = `/internal/report-v2?analysisId=${encodeURIComponent(
       analysisId,
@@ -956,7 +947,6 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {withNav(
               <EditablePreview
                 report={report}
-                paginated={paginated}
                 editable={shellMode === "edit"}
                 height={fullHeight ? "100%" : "85vh"}
               />,
@@ -1028,17 +1018,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 function EditablePreview({
   report,
-  paginated,
   editable,
   height = "85vh",
 }: {
   report: LabReport;
-  paginated: boolean;
   editable: boolean;
   height?: string | number;
 }) {
   const ctx = useReportEditor();
-  void paginated;
   // ВАЖНО: во время набора мы НЕ обновляем React-состояние drafts,
   // иначе Paged.js перезапускает полную пагинацию на каждый keystroke
   // (курсор прыгает, ощутимые лаги). Правки уже видны в DOM
