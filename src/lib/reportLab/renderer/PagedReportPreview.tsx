@@ -143,12 +143,66 @@ const pagedCss = `
 }
 `;
 
+/**
+ * CSS для потокового (непагинированного) HTML-режима: документ идёт
+ * непрерывным скроллом, «листов» A4 нет, но структура блоков сохраняется.
+ */
+const flowCss = `
+.rl-flow-shell { background: #e6e7ea; overflow: auto; }
+.rl-flow-shell .rl-flow-output { padding: 24px 0 48px; }
+.rl-flow-shell .reportlab {
+  width: min(210mm, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 16px 36px -14px rgba(20,36,56,0.38);
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+.rl-flow-shell .reportlab .rl-page {
+  width: auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  break-before: auto !important;
+  page-break-before: auto !important;
+}
+.rl-flow-shell .reportlab .rl-page.rl-cover {
+  min-height: 0 !important;
+  height: auto !important;
+}
+/* Inline editor markers (те же, что и в постраничном режиме) */
+.rl-flow-shell .reportlab [data-editable-id] {
+  border-radius: 2px;
+  transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"] {
+  outline: 1.5px dashed rgba(20, 36, 56, 0.28);
+  outline-offset: 4px;
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"]:hover {
+  outline-color: rgba(181, 138, 68, 0.55);
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"]:focus {
+  outline: 2px solid #b58a44;
+  background: rgba(181, 138, 68, 0.06);
+}
+`;
+
 interface Props {
   report: LabReport;
   height?: number | string;
   signalReady?: boolean;
   chrome?: "framed" | "plain";
   editable?: boolean;
+  /**
+   * "paged" — постраничная вёрстка через Paged.js (нужна только для PDF-пути),
+   * "flow" — непрерывный скролл без разбивки на страницы (HTML-просмотр).
+   */
+  layout?: "paged" | "flow";
   drafts?: Record<string, string>;
   /** Стартовые overrides обложки (из БД / контекста). */
   coverOverrides?: CoverOverrides | null;
@@ -164,6 +218,7 @@ interface Props {
   /** @deprecated используйте onEditChange — вызывается для совместимости на blur. */
   onEditBlur?: (editableId: string, markdown: string) => void;
 }
+
 
 type CaretSnapshot = {
   editableId: string;
