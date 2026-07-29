@@ -630,7 +630,52 @@ export function PagedReportPreview({
       if (ww.__reportLabReflow === w.__reportLabReflow) delete ww.__reportLabReflow;
       // output НЕ чистим — swap следующего успешного билда его обновит.
     };
-  }, [html, signalReady, editable]);
+  }, [html, signalReady, editable, layout]);
+
+  /* ─── Потоковый режим: непрерывный скролл без Paged.js ──────────────────
+     Используется для HTML-просмотра (редактор + ЛК пациента). Печатная
+     пагинация остаётся только в PDF-рендере (/internal/report-preview). */
+  useEffect(() => {
+    if (layout !== "flow") return;
+    const output = outputRef.current;
+    if (!output) return;
+    let cancelled = false;
+    setIsPaginating(true);
+    const run = async () => {
+      const template = document.createElement("template");
+      template.innerHTML = html;
+      await waitForResources(template.content);
+      if (cancelled) return;
+      output.innerHTML = "";
+      output.appendChild(template.content);
+      output.dataset.paged = "flow";
+      if (editableRef.current) {
+        installEditableOverlay(
+          output,
+          (id, md) => onEditChangeRef.current?.(id, md),
+          (id, md) => {
+            onEditBlurRef.current?.(id, md);
+            onEditChangeRef.current?.(id, md);
+          },
+          () => {},
+        );
+        installCoverInlineEditor(
+          output,
+          coverOverridesRef.current,
+          (next) => onCoverOverridesChangeRef.current?.(next),
+        );
+      }
+      setIsPaginating(false);
+      if (signalReady) requestAnimationFrame(() => emitReady({ pages: null }));
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [html, signalReady, editable, layout]);
+
+
+
 
 
   // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) не
