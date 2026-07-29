@@ -31,6 +31,11 @@ interface Props {
   hideDownload?: boolean;
   /** ЛК пациента: показывать только опубликованный врачом отчёт. */
   requirePublished?: boolean;
+  /**
+   * Режим «Просмотр как пациент» у персонала: в view-режиме показываем тот же
+   * финальный PDF, что видит пациент (через issue-report-pdf-url).
+   */
+  staffPdfPreview?: boolean;
 }
 
 /**
