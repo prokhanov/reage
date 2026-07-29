@@ -78,9 +78,6 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query", "framer-motion"],
     },
-    optimizeDeps: {
-      include: ["react", "react-dom", "@tanstack/react-query", "framer-motion"],
-    },
     esbuild: mode === "production"
       ? { drop: ["console", "debugger"] }
       : undefined,
