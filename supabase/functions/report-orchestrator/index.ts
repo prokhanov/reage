@@ -166,6 +166,12 @@ async function handleStart(supabase: any, body: any) {
       .eq("id", existing.id);
   }
 
+  // Полная перегенерация = чистый лист. Делаем это на backend-стороне,
+  // а не только во фронте: иначе при старом кэше, другом входе или RLS-сбое
+  // `report_documents.blocks` остаётся старым и редактор открывает прежний
+  // сохранённый документ поверх свежих recommendations/prescriptions.
+  await resetReportDocumentForFullRegeneration(supabase, analysisId);
+
   // Загружаем актуальный список категорий из БД, отсортированный по display_order
   const { data: cats, error: catsErr } = await supabase
     .from("biomarker_categories")
@@ -236,6 +242,25 @@ async function handleStart(supabase: any, body: any) {
   scheduleTick(job.id);
 
   return json({ success: true, jobId: job.id, steps_total: steps.length });
+}
+
+async function resetReportDocumentForFullRegeneration(supabase: any, analysisId: string) {
+  const { error } = await supabase
+    .from("report_documents")
+    .update({
+      blocks: [],
+      published_blocks: null,
+      published_at: null,
+      published_by: null,
+      published_pdf_path: null,
+      published_pdf_hash: null,
+      published_pdf_rendered_at: null,
+      status: "draft",
+      edited_at: null,
+      edited_by: null,
+    })
+    .eq("analysis_id", analysisId);
+  if (error) throw new Error(`Не удалось очистить сохранённый документ отчёта: ${error.message}`);
 }
 
 async function handleStatus(supabase: any, body: any) {
