@@ -136,18 +136,8 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
       const categoryOrder = new Map<string, number>();
       categories.forEach((c) => categoryOrder.set(c.name, c.display_order));
 
-      const biomarkerToPlans = new Map<string, Set<string>>();
-      (planBiomarkersRes.data ?? []).forEach((pb) => {
-        const set = biomarkerToPlans.get(pb.biomarker_id) ?? new Set<string>();
-        set.add(pb.plan_id);
-        biomarkerToPlans.set(pb.biomarker_id, set);
-      });
-
-      const categoryOrder = new Map<string, number>();
-      (categoriesRes.data ?? []).forEach((c) => categoryOrder.set(c.name, c.display_order));
-
       const byCategory = new Map<string, BiomarkerRow[]>();
-      (biomarkersRes.data ?? []).forEach((b) => {
+      biomarkers.forEach((b) => {
         const planIds = biomarkerToPlans.get(b.id) ?? new Set<string>();
         if (planIds.size === 0) return;
         const row: BiomarkerRow = {
