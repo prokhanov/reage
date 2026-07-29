@@ -54,20 +54,13 @@ const ConsultationCtaBlock = lazy(() =>
 );
 
 // Reserved placeholder to prevent CLS while a lazy section resolves.
-// Higher min-height reduces скачки при подгрузке чанков на медленных сетях.
-// Видимый спиннер добавлен намеренно: пустой фолбэк на медленной мобильной сети
-// выглядит как «зависший белый экран», и пользователь не понимает — грузится ли что-то.
+// Единый лоадер как в админке — AdminCenterLoader.
 const SectionFallback = () => (
-  <div
-    aria-label="Загрузка раздела"
-    className="min-h-[600px] flex items-center justify-center"
-  >
-    <div
-      className="w-8 h-8 rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground/70 animate-spin"
-      aria-hidden
-    />
+  <div className="min-h-[600px] flex items-center justify-center">
+    <AdminCenterLoader size="lg" />
   </div>
 );
+
 
 /** Wraps a lazy section in its own <Suspense> so slow chunks don't block siblings.
  *  cv-section включает content-visibility: auto — браузер не рендерит секции
