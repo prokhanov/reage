@@ -43,7 +43,7 @@ interface Props {
  * (Beta-иконки в списке). В ЛК пациента и режиме «Просмотр как пациент»
  * используется компактная панель без служебных подписей.
  */
-export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished }: Props) {
+export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished, staffPdfPreview }: Props) {
   const hasSource = initialReport || (analysisId && userId);
   // В ЛК пациента показываем серверный PDF, если он уже собран; пока рендер
   // не готов — остаётся привычный HTML-просмотр (без «пустого экрана»).
@@ -52,8 +52,19 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
     "patient",
   );
   const patientPdfReady = Boolean(requirePublished && !initialReport && patientPdf.url);
+
+  // Персонал в режиме «Просмотр как пациент» — тот же финальный PDF.
+  const staffMode = Boolean(staffPdfPreview && !requirePublished && !initialReport && mode === "view");
+  const [forceDraftHtml, setForceDraftHtml] = useState(false);
+  const staffPdf = useReportPdf(staffMode ? analysisId : null, "staff");
+  const staffPdfReady = Boolean(staffMode && staffPdf.url && !forceDraftHtml);
+  const staffPdfPending = Boolean(
+    staffMode && !staffPdf.url && !forceDraftHtml && (staffPdf.loading || staffPdf.notReady || staffPdf.error),
+  );
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
 
   const requestClose = () => {
     if (mode === "edit") {
