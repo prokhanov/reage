@@ -911,6 +911,10 @@ export function normalizeCode(code: string): string {
 
 /** Явные синонимы кодов: ИИ и снапшот могут писать один показатель по-разному. */
 const SYNONYM_CODES: Record<string, string> = {
+  ptquick: "ptq",
+  quickpt: "ptq",
+  protrombinpokviku: "ptq",
+  ptpercent: "ptq",
   d25oh: "vitd",
   "25ohd": "vitd",
   "25ohvitd": "vitd",

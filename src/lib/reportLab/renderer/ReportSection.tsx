@@ -103,7 +103,33 @@ export function ReportSection({
         )}
       </header>
 
-      {blocks.map((b, i) => {
+      {(() => {
+        // Дедуп: если несколько блоков ссылаются на один и тот же биомаркер
+        // (PT_QUICK / PT-Q и т.п.) — оставляем тот, у которого есть текст.
+        const keepIndexByBio = new Map<string, number>();
+        blocks.forEach((b, i) => {
+          if (b.kind !== "biomarker") return;
+          const bio = findBio(b.code);
+          if (!bio) return;
+          const prev = keepIndexByBio.get(bio.code);
+          if (prev === undefined) {
+            keepIndexByBio.set(bio.code, i);
+            return;
+          }
+          const prevBlock = blocks[prev] as typeof b;
+          const hasText = (x: typeof b) => Boolean(x.commentary?.trim() || x.commentaryHtml?.trim());
+          if (!hasText(prevBlock) && hasText(b)) keepIndexByBio.set(bio.code, i);
+        });
+        const skip = new Set<number>();
+        blocks.forEach((b, i) => {
+          if (b.kind !== "biomarker") return;
+          const bio = findBio(b.code);
+          if (!bio) return;
+          if (keepIndexByBio.get(bio.code) !== i) skip.add(i);
+        });
+        return blocks.map((b, i) => {
+        if (skip.has(i)) return null;
+
         if (b.kind === "prose") {
           const editableId = recommendationId
             ? `rec:${recommendationId}#prose:${proseIndex}`
@@ -155,7 +181,9 @@ export function ReportSection({
             />
           </div>
         );
-      })}
+        });
+      })()}
+
 
       {hasBiomarker && recommendationId && (
         <InsertSlot editableId={`rec:${recommendationId}#insert:${bioIndex}`} />
