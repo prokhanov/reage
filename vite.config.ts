@@ -39,7 +39,7 @@ function beastiesPlugin() {
         const beasties = new Beasties({
           path: "dist",
           publicPath: "/",
-          inlineThreshold: 14_000,
+          inlineThreshold: 8_000,
           preload: "swap",
           noscriptFallback: true,
           fonts: false,
