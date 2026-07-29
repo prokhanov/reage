@@ -767,32 +767,44 @@ export function PagedReportPreview({
       mo.disconnect();
       window.visualViewport?.removeEventListener("resize", scheduleStabilizedZoom);
     };
-  }, [chrome]);
+  }, [chrome, layout]);
+
+  const isFlow = layout === "flow";
 
   return (
     <div
       ref={shellRef}
-      className={chrome === "framed" ? "rl-paged-shell rl-paged-shell-framed" : "rl-paged-shell"}
+      className={
+        isFlow
+          ? "rl-paged-shell rl-paged-shell-framed rl-flow-shell relative"
+          : chrome === "framed"
+            ? "rl-paged-shell rl-paged-shell-framed"
+            : "rl-paged-shell"
+      }
       style={
-        chrome === "framed"
+        chrome === "framed" || isFlow
           ? { height: typeof height === "number" ? `${height}px` : height }
           : undefined
       }
     >
+      {isFlow && <style dangerouslySetInnerHTML={{ __html: flowCss }} />}
       <div ref={sourceRef} className="sr-only" aria-hidden="true" />
       <div
         ref={outputRef}
-        className="rl-paged-output"
+        className={isFlow ? "rl-flow-output" : "rl-paged-output"}
         style={{ position: "relative" }}
       />
       {isPaginating && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <span className="text-sm text-muted-foreground">Раскладка страниц…</span>
+          <span className="text-sm text-muted-foreground">
+            {isFlow ? "Загрузка отчёта…" : "Раскладка страниц…"}
+          </span>
         </div>
       )}
     </div>
   );
+
 
 }
 
