@@ -54,6 +54,15 @@ export function ReportSection({
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
 
+  // Фолбэк: коды вида «D25OH» vs «25-OH D» — сравниваем по отсортированным символам.
+  const fuzzyKey = (code: string) => normalizeCode(code).split("").sort().join("");
+  const fuzzyIndex = new Map<string, ReportBiomarker>();
+  biomarkerByCode.forEach((bio, code) => {
+    const key = fuzzyKey(code);
+    if (!fuzzyIndex.has(key)) fuzzyIndex.set(key, bio);
+  });
+
+
   return (
     <section className="rl-page" data-section-id={`category-${index}`}>
       <header className="rl-section-header">
@@ -94,7 +103,9 @@ export function ReportSection({
             <ProseMarkdown key={i} markdown={b.markdown} html={b.html} editableId={editableId} />
           );
         }
-        const bio = biomarkerByCode.get(normalizeCode(b.code));
+        const bio =
+          biomarkerByCode.get(normalizeCode(b.code)) || fuzzyIndex.get(fuzzyKey(b.code));
+
         const currentBioIndex = bioIndex;
         bioIndex += 1;
         const editableId = recommendationId
@@ -108,18 +119,19 @@ export function ReportSection({
         ) : null;
 
         if (!bio) {
+          // В просмотре/PDF технические плейсхолдеры не показываем.
           return (
             <div key={i}>
               {insertBefore}
-              <div
-                className="rl-prose"
-                style={{ opacity: 0.5, fontSize: "9pt" }}
-              >
-                [биомаркер «{b.code}» не найден в снапшоте]
-              </div>
+              {isEdit && (
+                <div className="rl-prose" style={{ opacity: 0.5, fontSize: "9pt" }}>
+                  [биомаркер «{b.code}» не найден в снапшоте]
+                </div>
+              )}
             </div>
           );
         }
+
         return (
           <div key={i}>
             {insertBefore}
