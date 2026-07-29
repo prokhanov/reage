@@ -1,8 +1,10 @@
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useEmailVerificationHandler } from "@/hooks/useEmailVerificationHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SuperAdminRoute } from "@/components/SuperAdminRoute";
@@ -11,77 +13,85 @@ import { PatientRoute } from "@/components/PatientRoute";
 import { StaffRoute } from "@/components/StaffRoute";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import Index from "./pages/Index";
-import LandingV2 from "./pages/LandingV2";
-import Auth from "./pages/Auth";
-import Register from "./pages/Register";
-import Onboarding from "./pages/Onboarding";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import Analyses from "./pages/Analyses";
-import AnalysisDetail from "./pages/AnalysisDetail";
-import AnalysesPrint from "./pages/AnalysesPrint";
-import { Navigate } from "react-router-dom";
-import Biomarkers from "./pages/Biomarkers";
-import Recommendations from "./pages/Recommendations";
-import Prescriptions from "./pages/Prescriptions";
-import Trends from "./pages/Trends";
-import MyState from "./pages/MyState";
-import HealthAssistant from "./pages/HealthAssistant";
-import Subscription from "./pages/Subscription";
-import SubscriptionSuccess from "./pages/SubscriptionSuccess";
-import SubscriptionFail from "./pages/SubscriptionFail";
-import HealthStrategy from "./pages/HealthStrategy";
-import ExampleReport from "./pages/ExampleReport";
-import DemoReport from "./pages/DemoReport";
-import AnalysisPrep from "./pages/AnalysisPrep";
-import Faq from "./pages/Faq";
-import LifestyleTest from "./pages/LifestyleTest";
-
-import AISettings from "./pages/admin/AISettings";
-import DataManagement from "./pages/admin/DataManagement";
-import Patients from "./pages/admin/Patients";
-import PatientProfile from "./pages/admin/PatientProfile";
-import UserManagement from "./pages/admin/UserManagement";
-import AnalysisBookings from "./pages/admin/AnalysisBookings";
-import MyAssignments from "./pages/admin/MyAssignments";
-import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
-import PaymentGatewaySettings from "./pages/admin/PaymentGatewaySettings";
-import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
-import ScaleLabelsPreview from "./pages/admin/ScaleLabelsPreview";
-import EmailSettings from "./pages/admin/EmailSettings";
-import SmsSettings from "./pages/admin/SmsSettings";
-import TelegramSettings from "./pages/admin/TelegramSettings";
-import LabLocations from "./pages/admin/LabLocations";
-import PromoCodes from "./pages/admin/PromoCodes";
-import RegisterStaff from "./pages/RegisterStaff";
-import ResetPassword from "./pages/ResetPassword";
-import Unsubscribe from "./pages/Unsubscribe";
-import VerifyEmail from "./pages/VerifyEmail";
-import ReportPreview from "./pages/internal/ReportPreview";
-import ReportV2Standalone from "./pages/internal/ReportV2Standalone";
-import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { YandexMetrika } from "@/components/YandexMetrika";
-import Requisites from "./pages/legal/Requisites";
-import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
-import TermsOfService from "./pages/legal/TermsOfService";
-import ConsentData from "./pages/legal/ConsentData";
-import ConsentResearch from "./pages/legal/ConsentResearch";
-import Documents from "./pages/legal/Documents";
-import Compliance from "./pages/legal/Compliance";
 import { JivoVisibility } from "./components/JivoVisibility";
+
+// Statically imported — landing critical path
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+
+// Auth / public utilities
+const LandingV2 = lazy(() => import("./pages/LandingV2"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Register = lazy(() => import("./pages/Register"));
+const RegisterStaff = lazy(() => import("./pages/RegisterStaff"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const LifestyleTest = lazy(() => import("./pages/LifestyleTest"));
+const AnalysisPrep = lazy(() => import("./pages/AnalysisPrep"));
+const Faq = lazy(() => import("./pages/Faq"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+
+// Patient area
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Analyses = lazy(() => import("./pages/Analyses"));
+const AnalysisDetail = lazy(() => import("./pages/AnalysisDetail"));
+const AnalysesPrint = lazy(() => import("./pages/AnalysesPrint"));
+const Recommendations = lazy(() => import("./pages/Recommendations"));
+const Prescriptions = lazy(() => import("./pages/Prescriptions"));
+const MyState = lazy(() => import("./pages/MyState"));
+const HealthAssistant = lazy(() => import("./pages/HealthAssistant"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
+const SubscriptionFail = lazy(() => import("./pages/SubscriptionFail"));
+const HealthStrategy = lazy(() => import("./pages/HealthStrategy"));
+const ExampleReport = lazy(() => import("./pages/ExampleReport"));
+const DemoReport = lazy(() => import("./pages/DemoReport"));
+
+// Admin area
+const AISettings = lazy(() => import("./pages/admin/AISettings"));
+const DataManagement = lazy(() => import("./pages/admin/DataManagement"));
+const Patients = lazy(() => import("./pages/admin/Patients"));
+const PatientProfile = lazy(() => import("./pages/admin/PatientProfile"));
+const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const AnalysisBookings = lazy(() => import("./pages/admin/AnalysisBookings"));
+const MyAssignments = lazy(() => import("./pages/admin/MyAssignments"));
+const SubscriptionPlans = lazy(() => import("./pages/admin/SubscriptionPlans"));
+const PaymentGatewaySettings = lazy(() => import("./pages/admin/PaymentGatewaySettings"));
+const ReportVisualsTest = lazy(() => import("./pages/admin/ReportVisualsTest"));
+const ScaleLabelsPreview = lazy(() => import("./pages/admin/ScaleLabelsPreview"));
+const EmailSettings = lazy(() => import("./pages/admin/EmailSettings"));
+const SmsSettings = lazy(() => import("./pages/admin/SmsSettings"));
+const TelegramSettings = lazy(() => import("./pages/admin/TelegramSettings"));
+const LabLocations = lazy(() => import("./pages/admin/LabLocations"));
+const PromoCodes = lazy(() => import("./pages/admin/PromoCodes"));
+
+// Internal service pages (Playwright PDF renderer, standalone report)
+const ReportPreview = lazy(() => import("./pages/internal/ReportPreview"));
+const ReportV2Standalone = lazy(() => import("./pages/internal/ReportV2Standalone"));
+
+// Legal
+const Requisites = lazy(() => import("./pages/legal/Requisites"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const ConsentData = lazy(() => import("./pages/legal/ConsentData"));
+const ConsentResearch = lazy(() => import("./pages/legal/ConsentResearch"));
+const Documents = lazy(() => import("./pages/legal/Documents"));
+const Compliance = lazy(() => import("./pages/legal/Compliance"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000, // 30 секунд - данные свежие
-      gcTime: 5 * 60 * 1000, // 5 минут в кеше (вместо устаревшего cacheTime)
-      refetchOnWindowFocus: false, // не перезапрашивать при фокусе окна
-      refetchOnMount: false, // не перезапрашивать при каждом монтировании
-      retry: 1, // одна попытка повтора при ошибке
+      staleTime: 30 * 1000,
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
     },
   },
 });
@@ -89,6 +99,14 @@ const queryClient = new QueryClient({
 function EmailVerificationListener() {
   useEmailVerificationHandler();
   return null;
+}
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 }
 
 const App = () => (
@@ -102,6 +120,7 @@ const App = () => (
           <RouteMeta />
           <JivoVisibility />
           <RegisterGuardProvider>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -141,9 +160,6 @@ const App = () => (
             {/* Полностраничный отчёт v2 (открытие в новой вкладке из ЛК). */}
             <Route path="/internal/report-v2" element={<ReportV2Standalone />} />
 
-
-
-
             {/* Protected routes with persistent DashboardLayout.
                 OnboardingGate: пациент с активной подпиской и незавершённой
                 анкетой (onboarding_completed=false) редиректится на /onboarding.
@@ -177,131 +193,131 @@ const App = () => (
               <Route path="/subscription" element={<PatientRoute><Subscription /></PatientRoute>} />
 
               {/* Admin routes */}
-              <Route 
-                path="/admin/ai-settings" 
+              <Route
+                path="/admin/ai-settings"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="ai_settings">
                       <AISettings />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/data-management" 
+              <Route
+                path="/admin/data-management"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="data_management">
                       <DataManagement />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/patients" 
+              <Route
+                path="/admin/patients"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="patients">
                       <Patients />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/patients/:userId" 
+              <Route
+                path="/admin/patients/:userId"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="patients">
                       <PatientProfile />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
               <Route
-                path="/admin/user-management" 
+                path="/admin/user-management"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="user_management">
                       <UserManagement />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/analysis-bookings" 
+              <Route
+                path="/admin/analysis-bookings"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="analysis_bookings">
                       <AnalysisBookings />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/my-assignments" 
+              <Route
+                path="/admin/my-assignments"
                 element={
                   <StaffRoute>
                     <AdminModuleRoute module="my_assignments">
                       <MyAssignments />
                     </AdminModuleRoute>
                   </StaffRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/subscription-plans" 
+              <Route
+                path="/admin/subscription-plans"
                 element={
                   <SuperAdminRoute>
                     <SubscriptionPlans />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/payment-gateway" 
+              <Route
+                path="/admin/payment-gateway"
                 element={
                   <SuperAdminRoute>
                     <PaymentGatewaySettings />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/report-visuals" 
+              <Route
+                path="/admin/report-visuals"
                 element={
                   <SuperAdminRoute>
                     <ReportVisualsTest />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/scale-preview" 
+              <Route
+                path="/admin/scale-preview"
                 element={
                   <SuperAdminRoute>
                     <ScaleLabelsPreview />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/email-settings" 
+              <Route
+                path="/admin/email-settings"
                 element={
                   <SuperAdminRoute>
                     <EmailSettings />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/sms-settings" 
+              <Route
+                path="/admin/sms-settings"
                 element={
                   <SuperAdminRoute>
                     <SmsSettings />
                   </SuperAdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/admin/telegram-settings" 
+              <Route
+                path="/admin/telegram-settings"
                 element={
                   <SuperAdminRoute>
                     <TelegramSettings />
                   </SuperAdminRoute>
-                } 
+                }
               />
               <Route
                 path="/admin/labs"
@@ -334,6 +350,7 @@ const App = () => (
             <Route path="/subscription/fail" element={<SubscriptionFail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           </RegisterGuardProvider>
         </BrowserRouter>
     </TooltipProvider>
