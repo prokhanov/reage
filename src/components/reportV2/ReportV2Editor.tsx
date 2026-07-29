@@ -825,19 +825,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {publishLabel}
           </DropdownMenuItem>
         )}
-        {!compact && (
-          <>
-            <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Обновить страницы
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setPaginated((v) => !v)}>
-              {paginated ? "Переключить: потоком" : "Переключить: постранично"}
-            </DropdownMenuItem>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
+
   );
 
   const toolbarWrap = (extra: React.ReactNode) => (
