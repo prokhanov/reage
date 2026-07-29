@@ -3,6 +3,8 @@ import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+
 
 // Below-the-fold sections — lazy-loaded to shrink the initial bundle.
 const WhyCheckupsFail = lazy(() =>
