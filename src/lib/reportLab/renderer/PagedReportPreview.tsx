@@ -170,9 +170,17 @@ const flowCss = `
   break-before: auto !important;
   page-break-before: auto !important;
 }
+/* Обложка в потоковом режиме сохраняет пропорции листа A4 (210×297),
+   чтобы на любой ширине выглядеть как полноценный титульный лист. */
 .rl-flow-shell .reportlab .rl-page.rl-cover {
-  min-height: 0 !important;
   height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 210 / 297;
+}
+@supports not (aspect-ratio: 1) {
+  .rl-flow-shell .reportlab .rl-page.rl-cover {
+    min-height: 297mm !important;
+  }
 }
 /* Inline editor markers (те же, что и в постраничном режиме) */
 .rl-flow-shell .reportlab [data-editable-id] {
