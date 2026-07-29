@@ -758,28 +758,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           {publishLabel}
         </Button>
       )}
-      {!compact && (
-        <>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshPagination}
-            disabled={!paginated}
-            title="Пересчитать разбиение на страницы"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Обновить страницы
-          </Button>
-          <Button
-            variant={paginated ? "default" : "outline"}
-            size="sm"
-            onClick={() => setPaginated((v) => !v)}
-          >
-            {paginated ? "Постранично" : "Потоком"}
-          </Button>
-        </>
-      )}
       {canPublish && (
+
         <Button
           size="sm"
           variant="outline"
