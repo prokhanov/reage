@@ -137,7 +137,29 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
               patientPdfReady ? (
                 // Пациент видит серверный PDF — единый источник пагинации.
                 <ReportPdfView analysisId={analysisId!} persona="patient" />
+              ) : staffPdfReady ? (
+                // Персонал в «Просмотре как пациент» — тот же финальный PDF.
+                <ReportPdfView analysisId={analysisId!} persona="staff" />
+              ) : staffPdfPending ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 p-10 text-center">
+                  {staffPdf.loading ? (
+                    <p className="text-sm text-muted-foreground">Загружаем опубликованный PDF…</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Отчёт ещё не опубликован — финального PDF для показа нет.
+                      </p>
+                      {staffPdf.error && (
+                        <p className="text-xs text-destructive">{staffPdf.error}</p>
+                      )}
+                      <Button variant="outline" onClick={() => setForceDraftHtml(true)}>
+                        Открыть черновик (с предпросмотром PDF)
+                      </Button>
+                    </>
+                  )}
+                </div>
               ) : (
+
               <ReportV2Editor
                 analysisId={initialReport?.analysis.id ?? analysisId ?? "demo"}
                 userId={userId ?? "demo"}
