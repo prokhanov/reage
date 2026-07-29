@@ -455,10 +455,12 @@ export function PagedReportPreview({
 
 
   useEffect(() => {
+    if (layout === "flow") return;
     const output = outputRef.current;
     const source = sourceRef.current;
     if (!output || !source) return;
     const token = { cancelled: false };
+
 
     const build = async () => {
       if (token.cancelled) return;
