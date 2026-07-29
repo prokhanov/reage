@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/reage-logo-light.png";
+import logoLightWebp from "@/assets/reage-logo-light.png?format=webp&quality=80&w=300&url";
+import logoLightAvif from "@/assets/reage-logo-light.png?format=avif&quality=70&w=300&url";
 import logoDark from "@/assets/reage-logo-dark.png";
+import logoDarkWebp from "@/assets/reage-logo-dark.png?format=webp&quality=80&w=300&url";
+import logoDarkAvif from "@/assets/reage-logo-dark.png?format=avif&quality=70&w=300&url";
 import { cn } from "@/lib/utils";
 
 interface ThemedLogoProps {
@@ -18,20 +22,25 @@ export function ThemedLogo({ className, alt = "ReAge", eager = false }: ThemedLo
     setMounted(true);
   }, []);
 
-  // До монтирования отдаём light-логотип (default theme = dark → light logo).
-  // Это позволяет браузеру декодировать только ОДНУ картинку, не две.
-  const src = !mounted || resolvedTheme !== "light" ? logoLight : logoDark;
+  const isLight = mounted && resolvedTheme === "light";
+  const src = isLight ? logoDark : logoLight;
+  const webp = isLight ? logoDarkWebp : logoLightWebp;
+  const avif = isLight ? logoDarkAvif : logoLightAvif;
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={cn(className)}
-      width={500}
-      height={681}
-      decoding={eager ? "sync" : "async"}
-      loading={eager ? "eager" : "lazy"}
-      {...({ fetchpriority: eager ? "high" : "auto" } as Record<string, string>)}
-    />
+    <picture>
+      <source srcSet={avif} type="image/avif" />
+      <source srcSet={webp} type="image/webp" />
+      <img
+        src={src}
+        alt={alt}
+        className={cn(className)}
+        width={500}
+        height={681}
+        decoding={eager ? "sync" : "async"}
+        loading={eager ? "eager" : "lazy"}
+        {...({ fetchpriority: eager ? "high" : "auto" } as Record<string, string>)}
+      />
+    </picture>
   );
 }
