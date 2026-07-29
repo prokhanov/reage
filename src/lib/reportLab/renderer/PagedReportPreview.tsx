@@ -170,18 +170,27 @@ const flowCss = `
   break-before: auto !important;
   page-break-before: auto !important;
 }
-/* Обложка в потоковом режиме сохраняет пропорции листа A4 (210×297),
-   чтобы на любой ширине выглядеть как полноценный титульный лист. */
-.rl-flow-shell .reportlab .rl-page.rl-cover {
+/* Обложка и страница "Данные пациента" в потоковом режиме сохраняют
+   пропорции листа A4 (210×297), чтобы на любой ширине выглядеть как
+   полноценные титульные/стартовые листы. */
+.rl-flow-shell .reportlab .rl-page.rl-cover,
+.rl-flow-shell .reportlab .rl-page.rl-patient-data {
   height: auto !important;
   min-height: 0 !important;
   aspect-ratio: 210 / 297;
 }
+.rl-flow-shell .reportlab .rl-page.rl-patient-data {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 @supports not (aspect-ratio: 1) {
-  .rl-flow-shell .reportlab .rl-page.rl-cover {
+  .rl-flow-shell .reportlab .rl-page.rl-cover,
+  .rl-flow-shell .reportlab .rl-page.rl-patient-data {
     min-height: 297mm !important;
   }
 }
+
 /* Inline editor markers (те же, что и в постраничном режиме) */
 .rl-flow-shell .reportlab [data-editable-id] {
   border-radius: 2px;
