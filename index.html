@@ -11,7 +11,7 @@
     <meta name="author" content="ReAge" />
 
     <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
       (function(m,e,t,r,i,k,a){
         m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
         m[i].l=1*new Date();
@@ -20,7 +20,7 @@
       })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109706546', 'ym');
 
       ym(109706546, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-    </script>
+    </script>  -->
     <!-- /Yandex.Metrika counter -->
 
     <link rel="canonical" href="https://reage.life/" />
@@ -127,7 +127,7 @@
     </script>
 
     <!-- Top.Mail.Ru counter -->
-    <script type="text/javascript">
+    <!--    <script type="text/javascript">
       var _tmr = window._tmr || (window._tmr = []);
       // [vk] debug wrapper — logs every _tmr.push (pageView, reachGoal, etc.)
       try {
@@ -145,15 +145,15 @@
         var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
         if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
       })(document, window, "tmr-code");
-    </script>
+    </script>-->
     <!-- /Top.Mail.Ru counter -->
 
     <!-- Telegram Pixel -->
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
       (function(t,g,p){t.tgpTrackId=p;var s=g.createElement('script');s.async=1;
       s.src='https://telegram.org/js/pixel.js';var f=g.getElementsByTagName('script')[0];
       f.parentNode.insertBefore(s,f);})(window,document,'U8ii6Wnr');
-    </script>
+    </script> -->
     <!-- /Telegram Pixel -->
 
     <!-- Jivo (deferred to idle to keep landing fast) -->
@@ -189,99 +189,37 @@
         /></div
     ></noscript>
     <div id="root">
-      <div id="rl-boot" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f19;color:hsl(270,90%,60%);z-index:9999;padding:24px;">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:rlspin 1s linear infinite;" aria-hidden="true">
-          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      <div
+        id="rl-boot"
+        style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b0f19;color:hsl(270,90%,60%);z-index:9999;"
+      >
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="animation:rlspin 1s linear infinite;"
+          aria-hidden="true"
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
         </svg>
-        <div id="rl-boot-pending" style="display:none;margin-top:20px;max-width:560px;text-align:center;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#94a3b8;word-break:break-all;"></div>
-        <style>@keyframes rlspin{to{transform:rotate(360deg)}}</style>
+        <style>
+          @keyframes rlspin{to{transform:rotate(360deg)}}
+        </style>
       </div>
     </div>
     <script>
       (function () {
-        // ---- Pending resources tracker (shown after 5s if boot still visible) ----
-        var pending = new Map(); // url -> startedAt
-        function short(url) {
-          try {
-            var u = new URL(url, location.href);
-            var path = u.pathname.length > 60 ? '…' + u.pathname.slice(-60) : u.pathname;
-            return u.host + path;
-          } catch (e) { return String(url).slice(-80); }
-        }
-        function track(url) { if (url) pending.set(url, Date.now()); }
-        function untrack(url) { if (url) pending.delete(url); }
-
-        // Wrap fetch
-        if (window.fetch) {
-          var origFetch = window.fetch;
-          window.fetch = function (input, init) {
-            var url = typeof input === 'string' ? input : (input && input.url) || '';
-            track(url);
-            return origFetch.apply(this, arguments).then(function (r) { untrack(url); return r; },
-              function (e) { untrack(url); throw e; });
-          };
-        }
-        // Wrap XHR
-        if (window.XMLHttpRequest) {
-          var XHR = window.XMLHttpRequest.prototype;
-          var open = XHR.open, send = XHR.send;
-          XHR.open = function (m, u) { this.__rlUrl = u; return open.apply(this, arguments); };
-          XHR.send = function () {
-            var self = this, url = self.__rlUrl;
-            track(url);
-            self.addEventListener('loadend', function () { untrack(url); });
-            return send.apply(this, arguments);
-          };
-        }
-        // Observe <script>/<link> insertions
-        var domMo = new MutationObserver(function (muts) {
-          muts.forEach(function (m) {
-            m.addedNodes && m.addedNodes.forEach(function (n) {
-              if (!n || n.nodeType !== 1) return;
-              var url = n.tagName === 'SCRIPT' ? n.src
-                     : n.tagName === 'LINK' ? n.href : '';
-              if (!url) return;
-              track(url);
-              n.addEventListener && n.addEventListener('load', function () { untrack(url); });
-              n.addEventListener && n.addEventListener('error', function () { untrack(url); });
-            });
-          });
-        });
-        domMo.observe(document.documentElement, { childList: true, subtree: true });
-
-        var pendingEl;
-        setTimeout(function () {
-          pendingEl = document.getElementById('rl-boot-pending');
-          if (!pendingEl) return;
-          var tick = function () {
-            if (!document.getElementById('rl-boot')) return;
-            var now = Date.now();
-            var list = Array.from(pending.entries())
-              .filter(function (kv) { return now - kv[1] > 500; })
-              .sort(function (a, b) { return a[1] - b[1]; })
-              .slice(0, 3);
-            if (!list.length) {
-              pendingEl.style.display = 'none';
-              pendingEl.textContent = '';
-            } else {
-              pendingEl.style.display = 'block';
-              pendingEl.innerHTML = 'Ожидаем ответа:<br>' + list.map(function (kv) {
-                var sec = Math.round((now - kv[1]) / 1000);
-                return short(kv[0]) + '  <span style="color:#64748b">(' + sec + 's)</span>';
-              }).join('<br>');
-            }
-            setTimeout(tick, 1000);
-          };
-          tick();
-        }, 5000);
-
         // Once React mounts anything real, hide the boot loader.
         var boot = document.getElementById('rl-boot');
         var mo = new MutationObserver(function () {
           var root = document.getElementById('root');
           if (root && root.children.length > 1) {
             if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
-            domMo.disconnect();
             mo.disconnect();
           }
         });
