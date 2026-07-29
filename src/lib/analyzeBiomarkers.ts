@@ -24,8 +24,13 @@ type AnalyzeBiomarkersPayload = {
  * analyze-biomarkers/finalize-analysis.
  */
 export async function invokeAnalyzeBiomarkers(payload: AnalyzeBiomarkersPayload) {
+  // Полная перегенерация = чистый лист: сохранённый документ отчёта
+  // (черновик с правками врача и опубликованный снимок) стирается,
+  // чтобы редактор собрал отчёт заново из свежих данных ИИ.
+  await resetReportDocument(payload.analysisId);
   return await runOrchestratedPipeline(payload);
 }
+
 
 async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
   const { data: sessionData } = await supabase.auth.getSession();
