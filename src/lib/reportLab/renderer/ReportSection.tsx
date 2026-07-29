@@ -103,7 +103,9 @@ export function ReportSection({
             <ProseMarkdown key={i} markdown={b.markdown} html={b.html} editableId={editableId} />
           );
         }
-        const bio = biomarkerByCode.get(normalizeCode(b.code));
+        const bio =
+          biomarkerByCode.get(normalizeCode(b.code)) || fuzzyIndex.get(fuzzyKey(b.code));
+
         const currentBioIndex = bioIndex;
         bioIndex += 1;
         const editableId = recommendationId
