@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getLandingBootstrap } from "@/lib/landingBootstrap";
 
 export interface PlanHighlight {
   label: string;
@@ -48,6 +49,21 @@ export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; 
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     queryFn: async () => {
+      // Fast path: если данные уже пришли батчем из landing-bootstrap,
+      // используем их без дополнительных запросов.
+      const bootstrapPromise = getLandingBootstrap();
+      if (bootstrapPromise && !includeInactivePlans && !includeDisabledPricing) {
+        try {
+          const b = await bootstrapPromise;
+          const plans = b.plans;
+          const pricing = b.pricing;
+          const planBiomarkers = b.planBiomarkers;
+          return buildPlansWithPricing(plans, pricing, planBiomarkers);
+        } catch {
+          // fall through to individual queries
+        }
+      }
+
       let plansQuery = supabase
         .from('subscription_plans')
         .select('*');
@@ -70,15 +86,25 @@ export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; 
       }
 
       const { data: pricing, error: pricingError } = await pricingQuery;
+      if (pricingError) throw pricingError;
 
-      // Загрузка биомаркеров для каждого тарифа
       const { data: planBiomarkers, error: biomarkersError } = await supabase
         .from('plan_biomarkers')
         .select('plan_id, biomarker_id');
 
       if (biomarkersError) throw biomarkersError;
 
-      const plansWithPricing: PlanWithPricing[] = (plans || []).map(plan => ({
+      return buildPlansWithPricing(plans || [], pricing || [], planBiomarkers || []);
+    },
+  });
+}
+
+function buildPlansWithPricing(
+  plans: any[],
+  pricing: any[],
+  planBiomarkers: Array<{ plan_id: string; biomarker_id: string }>,
+): PlanWithPricing[] {
+  return plans.map((plan) => ({
         ...plan,
         features: (plan.features as string[]) || [],
         comparison_highlights: Array.isArray(plan.comparison_highlights)
@@ -94,10 +120,6 @@ export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; 
           .filter(pb => pb.plan_id === plan.id)
           .map(pb => pb.biomarker_id)
       }));
-
-      return plansWithPricing;
-    },
-  });
 }
 
 export function calculateSavings(monthlyPrice: number, actualPrice: number, months: number) {

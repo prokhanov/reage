@@ -1,44 +1,76 @@
-План: устранить render-blocking CSS и усилить отказоустойчивость загрузки стилей
+## Проблема
 
-### Цели
-1. Убрать блокирующий рендер 43KB CSS (PageSpeed жалуется на ~1190ms).  
-2. Застраховать первый экран от «распада» стилей, если внешний CSS-ассет не загрузился из-за кэш-рассинхронизации или медленной сети.
+7 параллельных Supabase-запросов лендинга блокируют LCP: критический путь 1530 мс. Свежесть данных обязательна → снапшот на билде не подходит.
 
-### Почему это поможет CSS-багу
-Текущий HTML содержит `<link rel="stylesheet">` на единый `index-*.css`. Если браузер держит старый `index.html` со ссылкой на удалённый ассет, CSS не применяется и получаем гигантский нестилизованный логотип. При инлайне критического CSS часть стилей (фон, типографика, размер логотипа, hero-раскладка) окажется прямо в HTML, поэтому первый экран останется читаемым даже при отказе внешнего файла. Это не заменяет `no-cache` для `index.html`, но снижает ущерб от сценария, когда старый HTML всё-таки попадает пользователю.
+## Решение: 1 batched edge function + preload
 
-### Что предлагается сделать
-1. **Инлайн критического CSS через Vite-плагин**  
-   - Подключить `beasties` (форк `critters` от Google Chrome Labs).  
-   - В `vite.config.ts` добавить плагин с настройками: inline threshold ~14KB, preload async, preload fonts = false, noscript fallback.  
-   - Критический CSS должен захватывать `<body>`, `#root`, `#rl-boot`, `ThemedLogo`/`<picture><img>` размеры, базовые фоновые цвета и hero-заголовок лендинга.
+Заменяем 7 запросов на **один** edge function, который собирает все данные лендинга в одну JSON-порцию и отдаётся с коротким CDN-кешем. Плюс preload в `<head>`, чтобы запрос стартовал до парсинга JS.
 
-2. **Перевести основной CSS в preload + swap**  
-   - Убрать render-blocking `<link rel="stylesheet">` из `<head>`.  
-   - Использовать `<link rel="preload" as="style" href="/assets/index-*.css">` + `onload="this.rel='stylesheet'"` + `<noscript>` fallback.  
-   - Сохранить существующий плагин `injectMainCssPreload`, но переключить его на preload+swap вместо обычного stylesheet.
+### 1. Edge function `landing-bootstrap`
 
-3. **Сохранить и дополнить механизмы восстановления**  
-   - Оставить `no-cache` для `index.html` на nginx (если конфиг доступен).  
-   - Оставить JS-скрипт retry/reload для CSS-ассетов и диагностическую панель `#rl-load-diagnostics`.  
-   - Добавить в `index.html` встроенный `<style>` с минимальным фолбэком (background, цвет текста, размер логотипа), который работает до загрузки любого внешнего CSS.
+Новая публичная функция `supabase/functions/landing-bootstrap/index.ts`:
+- Читает через service_role параллельно (`Promise.all`):
+  - `subscription_plans` (is_active)
+  - `subscription_pricing` (is_enabled)
+  - `biomarker_categories`
+  - `biomarkers` (id, name, category, display_order)
+  - `plan_biomarkers`
+  - `lab_locations` (активные, с координатами)
+  - `lab_map_contexts?key=landing`
+- Возвращает `{ plans, pricing, categories, biomarkers, planBiomarkers, labLocations, mapContext }`.
+- Заголовки: `Cache-Control: public, s-maxage=60, stale-while-revalidate=300` (свежесть в течение минуты, фон-обновление до 5 мин). CORS `*`.
+- Публичный доступ (JWT не требуется) — все данные и так с anon-доступом.
 
-4. **Убрать избыточные inline-зависимости**  
-   - Убедиться, что шрифты не возвращаются как render-blocking (сейчас закомментированы — не восстанавливать).  
-   - Проверить, что загрузчики Метрики/VK/Telegram/Jivo остаются deferred через `requestIdleCallback`.
+**Почему безопасно по свежести**: любая правка в админке видна максимум через 60 сек (в среднем 30). Пользователь этого не заметит.
 
-### Проверка
-1. После билда: `grep -E '<style|<link rel="preload" as="style"|noscript' dist/index.html` — должен быть инлайн `<style>` и preload+swap для основного CSS.  
-2. PageSpeed Insights: блок «Eliminate render-blocking resources» для CSS должен исчезнуть или сильно уменьшиться.  
-3. Эмуляция старого мобильного: через DevTools «Fast 3G + Offline для CSS» убедиться, что лендинг не распадается на нестилизованный логотип, а остаётся читаемым (возможно, неполным, но без «гигантской картинки»).  
-4. Playwright: скриншот лендинга в мобильном viewport до и после — визуально идентичен.
+### 2. Клиентский хук `useLandingBootstrap`
 
-### Риски и ограничения
-- Размер `index.html` вырастет на ~8–14KB из-за инлайна. Это приемлемо, так как устраняет отдельный RTT для CSS.  
-- Не гарантирует 100% фикс CSS-бага: если HTML всё-таки старый, инлайн тоже может быть старым. Поэтому сохраняем `no-cache` и recovery-скрипт.  
-- Нужно проверить, что `beasties` корректно работает с текущей версией Vite 5 и не ломает динамические импорты из `App.tsx`.
+`src/hooks/useLandingBootstrap.ts`:
+- Fetch к `${APP_URL}/functions/v1/landing-bootstrap` (URL берётся из `import.meta.env.VITE_SUPABASE_URL` — прод получит `https://api.reage.life`, тест — прямой домен, никакого хардкода).
+- Модульный in-memory кеш на сессию.
+- Возвращает типизированные данные + `isLoading`.
 
-### Технические детали
-- Плагин: `beasties` (npm), конфигурация в `vite.config.ts` внутри `plugins`.  
-- Альтернативы: `vite-plugin-critters` (менее активен) или ручной `postbuild` через `critical` — но `beasties` предпочтительнее из-за поддержки Vite 5.  
-- После применения не откатываем: code-splitting в `App.tsx`, deferred-загрузку трекеров, self-hosted шрифты, отказ от Google Fonts в `<head>`.
+### 3. Переключение компонентов лендинга
+
+Найти и переключить существующие хуки/компоненты, которые сейчас делают 7 отдельных запросов:
+- Компонент карты лабораторий (`lab_locations`, `lab_map_contexts`)
+- Тарифы (`subscription_plans`, `subscription_pricing`)
+- Quiz / comparison table (`biomarkers`, `biomarker_categories`, `plan_biomarkers`)
+
+Только на публичных маршрутах (Landing, `/pricing` если читает те же таблицы). ЛК/админку **не трогаем** — там прямые запросы к БД остаются.
+
+### 4. Preload в `<head>`
+
+В `index.html`:
+```html
+<link rel="preload" as="fetch" 
+  href="https://api.reage.life/functions/v1/landing-bootstrap" 
+  crossorigin>
+```
+
+URL нужно вычислять по окружению. Так как `index.html` статичен, вариант — использовать Vite plugin `transformIndexHtml` с подстановкой `VITE_SUPABASE_URL` (аналог того, что уже делается для других env). Это даст правильный URL и для теста, и для прода.
+
+## Не сломает
+
+- **nginx whitelist**: не затрагиваем — запросы идут напрямую в `api.reage.life/functions/v1/*`, а не через nginx проекта.
+- **Прокси РКН**: URL берётся из `VITE_SUPABASE_URL`, который на проде = `https://api.reage.life` (правило соблюдено).
+- **Test vs Production**: та же env-переменная → каждое окружение бьёт в свой backend.
+- **Хардкод доменов**: отсутствует, всё через env.
+- **RLS/безопасность**: функция читает только публичные таблицы, которые и так доступны с anon-ключом. Ничего нового не разглашается.
+- **ЛК/админка/edge functions email/tg**: не трогаются.
+- **Медиа-правило**: не создаём `.asset.json` и не используем `/__l5e/` — только edge function.
+
+## Ожидаемый эффект
+
+Было: `HTML (178) → JS (316) → 7 × ~1100 мс параллельно = 1530 мс критический путь`.
+
+Станет: `HTML (178) → JS (316) → 1 × ~300 мс bootstrap (preload параллельно с JS) ≈ 500 мс`.
+
+Плюс с 2-го визита — 0 мс благодаря s-maxage CDN-кешу до 60 сек.
+
+## Технические детали
+
+- Функция чистая, без БД-записей, без побочных эффектов.
+- Если функция упадёт → компоненты фолбэчатся на текущие индивидуальные запросы (retry через существующий supabase-client). Ничего не ломается, только теряется ускорение.
+- Клиентский код: `if (bootstrap.plans) usePreloaded() else useLiveQuery()`.
+- Никаких миграций БД. Никаких изменений в `client.ts`.

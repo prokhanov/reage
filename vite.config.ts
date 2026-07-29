@@ -78,6 +78,28 @@ function beastiesPlugin() {
 }
 
 
+/**
+ * Injects <link rel="preconnect"> for the backend origin so the browser opens
+ * a TLS connection to api.reage.life during HTML parse. We deliberately do
+ * NOT preload the landing-bootstrap URL as `fetch` — the runtime request
+ * carries an `apikey`/`Authorization` header pair, which would not match a
+ * headerless preload and the browser would issue a second request anyway.
+ * Preconnect gives the DNS+TLS win with no matching pitfalls.
+ */
+function landingBootstrapPreconnectPlugin(backendUrl: string) {
+  return {
+    name: "landing-bootstrap-preconnect",
+    transformIndexHtml(html: string) {
+      const origin = new URL(backendUrl).origin;
+      const tag =
+        `\n    <link rel="preconnect" href="${origin}" crossorigin="anonymous" />` +
+        `\n    <link rel="dns-prefetch" href="${origin}" />`;
+      return html.replace("</head>", `${tag}\n  </head>`);
+    },
+  };
+}
+
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -94,6 +116,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       beastiesPlugin(),
+      landingBootstrapPreconnectPlugin(backendUrl),
       // Must run in dev too — imports across the app use imagetools query params
       // (`?format=avif&quality=68&url`); without the plugin those requests return
       // raw PNG bytes and the browser rejects them as invalid JS modules.

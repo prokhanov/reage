@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getLandingBootstrap } from "@/lib/landingBootstrap";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
@@ -358,6 +359,20 @@ export function PricingSection() {
     queryKey: ["pricing-biomarkers"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
+      const boot = getLandingBootstrap();
+      if (boot) {
+        try {
+          const b = await boot;
+          const categoryOrder = new Map<string, number>();
+          b.biomarkerCategories.forEach((c) => categoryOrder.set(c.name, c.display_order));
+          return {
+            biomarkers: b.biomarkers as BiomarkerRow[],
+            categoryOrder,
+          };
+        } catch {
+          // fallback
+        }
+      }
       const [bRes, cRes] = await Promise.all([
         supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
         supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
