@@ -143,12 +143,66 @@ const pagedCss = `
 }
 `;
 
+/**
+ * CSS для потокового (непагинированного) HTML-режима: документ идёт
+ * непрерывным скроллом, «листов» A4 нет, но структура блоков сохраняется.
+ */
+const flowCss = `
+.rl-flow-shell { background: #e6e7ea; overflow: auto; }
+.rl-flow-shell .rl-flow-output { padding: 24px 0 48px; }
+.rl-flow-shell .reportlab {
+  width: min(210mm, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 16px 36px -14px rgba(20,36,56,0.38);
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+.rl-flow-shell .reportlab .rl-page {
+  width: auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  break-before: auto !important;
+  page-break-before: auto !important;
+}
+.rl-flow-shell .reportlab .rl-page.rl-cover {
+  min-height: 0 !important;
+  height: auto !important;
+}
+/* Inline editor markers (те же, что и в постраничном режиме) */
+.rl-flow-shell .reportlab [data-editable-id] {
+  border-radius: 2px;
+  transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"] {
+  outline: 1.5px dashed rgba(20, 36, 56, 0.28);
+  outline-offset: 4px;
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"]:hover {
+  outline-color: rgba(181, 138, 68, 0.55);
+}
+.rl-flow-shell .reportlab [data-editable-id][contenteditable="true"]:focus {
+  outline: 2px solid #b58a44;
+  background: rgba(181, 138, 68, 0.06);
+}
+`;
+
 interface Props {
   report: LabReport;
   height?: number | string;
   signalReady?: boolean;
   chrome?: "framed" | "plain";
   editable?: boolean;
+  /**
+   * "paged" — постраничная вёрстка через Paged.js (нужна только для PDF-пути),
+   * "flow" — непрерывный скролл без разбивки на страницы (HTML-просмотр).
+   */
+  layout?: "paged" | "flow";
   drafts?: Record<string, string>;
   /** Стартовые overrides обложки (из БД / контекста). */
   coverOverrides?: CoverOverrides | null;
@@ -164,6 +218,7 @@ interface Props {
   /** @deprecated используйте onEditChange — вызывается для совместимости на blur. */
   onEditBlur?: (editableId: string, markdown: string) => void;
 }
+
 
 type CaretSnapshot = {
   editableId: string;
@@ -351,6 +406,8 @@ export function PagedReportPreview({
   signalReady,
   chrome = "framed",
   editable = false,
+  layout = "paged",
+
   drafts,
   coverOverrides = null,
   onCoverOverridesChange,
@@ -398,10 +455,12 @@ export function PagedReportPreview({
 
 
   useEffect(() => {
+    if (layout === "flow") return;
     const output = outputRef.current;
     const source = sourceRef.current;
     if (!output || !source) return;
     const token = { cancelled: false };
+
 
     const build = async () => {
       if (token.cancelled) return;
@@ -573,7 +632,52 @@ export function PagedReportPreview({
       if (ww.__reportLabReflow === w.__reportLabReflow) delete ww.__reportLabReflow;
       // output НЕ чистим — swap следующего успешного билда его обновит.
     };
-  }, [html, signalReady, editable]);
+  }, [html, signalReady, editable, layout]);
+
+  /* ─── Потоковый режим: непрерывный скролл без Paged.js ──────────────────
+     Используется для HTML-просмотра (редактор + ЛК пациента). Печатная
+     пагинация остаётся только в PDF-рендере (/internal/report-preview). */
+  useEffect(() => {
+    if (layout !== "flow") return;
+    const output = outputRef.current;
+    if (!output) return;
+    let cancelled = false;
+    setIsPaginating(true);
+    const run = async () => {
+      const template = document.createElement("template");
+      template.innerHTML = html;
+      await waitForResources(template.content);
+      if (cancelled) return;
+      output.innerHTML = "";
+      output.appendChild(template.content);
+      output.dataset.paged = "flow";
+      if (editableRef.current) {
+        installEditableOverlay(
+          output,
+          (id, md) => onEditChangeRef.current?.(id, md),
+          (id, md) => {
+            onEditBlurRef.current?.(id, md);
+            onEditChangeRef.current?.(id, md);
+          },
+          () => {},
+        );
+        installCoverInlineEditor(
+          output,
+          coverOverridesRef.current,
+          (next) => onCoverOverridesChangeRef.current?.(next),
+        );
+      }
+      setIsPaginating(false);
+      if (signalReady) requestAnimationFrame(() => emitReady({ pages: null }));
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [html, signalReady, editable, layout]);
+
+
+
 
 
   // Fit-to-width на планшете/мобиле: страница A4 (~794px CSS-пикселей) не
@@ -584,7 +688,8 @@ export function PagedReportPreview({
   // соответствовал видимому контенту, а горизонтальный не появлялся.
   const shellRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (chrome !== "framed") return;
+    if (chrome !== "framed" || layout === "flow") return;
+
     const shell = shellRef.current;
     const output = outputRef.current;
     if (!shell || !output) return;
@@ -662,32 +767,44 @@ export function PagedReportPreview({
       mo.disconnect();
       window.visualViewport?.removeEventListener("resize", scheduleStabilizedZoom);
     };
-  }, [chrome]);
+  }, [chrome, layout]);
+
+  const isFlow = layout === "flow";
 
   return (
     <div
       ref={shellRef}
-      className={chrome === "framed" ? "rl-paged-shell rl-paged-shell-framed" : "rl-paged-shell"}
+      className={
+        isFlow
+          ? "rl-paged-shell rl-paged-shell-framed rl-flow-shell relative"
+          : chrome === "framed"
+            ? "rl-paged-shell rl-paged-shell-framed"
+            : "rl-paged-shell"
+      }
       style={
-        chrome === "framed"
+        chrome === "framed" || isFlow
           ? { height: typeof height === "number" ? `${height}px` : height }
           : undefined
       }
     >
+      {isFlow && <style dangerouslySetInnerHTML={{ __html: flowCss }} />}
       <div ref={sourceRef} className="sr-only" aria-hidden="true" />
       <div
         ref={outputRef}
-        className="rl-paged-output"
+        className={isFlow ? "rl-flow-output" : "rl-paged-output"}
         style={{ position: "relative" }}
       />
       {isPaginating && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <span className="text-sm text-muted-foreground">Раскладка страниц…</span>
+          <span className="text-sm text-muted-foreground">
+            {isFlow ? "Загрузка отчёта…" : "Раскладка страниц…"}
+          </span>
         </div>
       )}
     </div>
   );
+
 
 }
 

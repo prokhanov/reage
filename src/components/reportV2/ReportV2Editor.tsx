@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, RefreshCw, ExternalLink, MoreVertical, Send, X, FileText } from "lucide-react";
+import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,7 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { notify as toast } from "@/lib/toast";
-import { PagedReportPreview, ReportDocument } from "@/lib/reportLab/renderer";
+import { PagedReportPreview } from "@/lib/reportLab/renderer";
 import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
@@ -113,7 +113,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
-  const [paginated, setPaginated] = useState(true);
+
   const [awaitingPublish, setAwaitingPublish] = useState(false);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
@@ -707,12 +707,6 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     );
   }
 
-  const refreshPagination = () => {
-    const w = window as typeof window & { __reportLabReflow?: () => void };
-    w.__reportLabReflow?.();
-  };
-
-
   const openInNewWindow = () => {
     const url = `/internal/report-v2?analysisId=${encodeURIComponent(
       analysisId,
@@ -755,28 +749,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           {publishLabel}
         </Button>
       )}
-      {!compact && (
-        <>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshPagination}
-            disabled={!paginated}
-            title="Пересчитать разбиение на страницы"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Обновить страницы
-          </Button>
-          <Button
-            variant={paginated ? "default" : "outline"}
-            size="sm"
-            onClick={() => setPaginated((v) => !v)}
-          >
-            {paginated ? "Постранично" : "Потоком"}
-          </Button>
-        </>
-      )}
       {canPublish && (
+
         <Button
           size="sm"
           variant="outline"
@@ -842,19 +816,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {publishLabel}
           </DropdownMenuItem>
         )}
-        {!compact && (
-          <>
-            <DropdownMenuItem onSelect={refreshPagination} disabled={!paginated}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Обновить страницы
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setPaginated((v) => !v)}>
-              {paginated ? "Переключить: потоком" : "Переключить: постранично"}
-            </DropdownMenuItem>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
+
   );
 
   const toolbarWrap = (extra: React.ReactNode) => (
@@ -949,17 +913,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Alert>
         )}
         {withNav(
-          paginated ? (
-            <PagedReportPreview
-              report={report}
-              editable={false}
-              drafts={EMPTY_DRAFTS}
-              onEditChange={() => {}}
-              height={fullHeight ? "100%" : "85vh"}
-            />
-          ) : (
-            <ReportDocument report={report} />
-          ),
+          <PagedReportPreview
+            report={report}
+            layout="flow"
+            editable={false}
+            drafts={EMPTY_DRAFTS}
+            onEditChange={() => {}}
+            height={fullHeight ? "100%" : "85vh"}
+          />,
         )}
       </div>
     );
@@ -986,7 +947,6 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {withNav(
               <EditablePreview
                 report={report}
-                paginated={paginated}
                 editable={shellMode === "edit"}
                 height={fullHeight ? "100%" : "85vh"}
               />,
@@ -1058,17 +1018,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
 function EditablePreview({
   report,
-  paginated,
   editable,
   height = "85vh",
 }: {
   report: LabReport;
-  paginated: boolean;
   editable: boolean;
   height?: string | number;
 }) {
   const ctx = useReportEditor();
-  if (!paginated) return <ReportDocument report={report} />;
   // ВАЖНО: во время набора мы НЕ обновляем React-состояние drafts,
   // иначе Paged.js перезапускает полную пагинацию на каждый keystroke
   // (курсор прыгает, ощутимые лаги). Правки уже видны в DOM
@@ -1077,6 +1034,7 @@ function EditablePreview({
   return (
     <PagedReportPreview
       report={report}
+      layout="flow"
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
       onEditChange={() => {
