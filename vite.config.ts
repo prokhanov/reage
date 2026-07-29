@@ -1,9 +1,11 @@
 import { defineConfig, loadEnv, type IndexHtmlTransformContext } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
 import Beasties from "beasties";
+
 
 const DEFAULT_BACKEND_URL = "https://api.reage.life";
 
