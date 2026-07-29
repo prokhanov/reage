@@ -61,6 +61,167 @@
 
     <script>
       (function () {
+        var DIAG_EVENT_LIMIT = 24;
+
+        function shortHash(input) {
+          var hash = 2166136261;
+          for (var i = 0; i < input.length; i++) {
+            hash ^= input.charCodeAt(i);
+            hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+          }
+          return (hash >>> 0).toString(36).toUpperCase().slice(0, 6);
+        }
+
+        function shortUrl(value) {
+          try {
+            var url = new URL(value, location.href);
+            return url.pathname.split('/').pop() || url.pathname || value;
+          } catch (e) {
+            return String(value || '').slice(0, 96);
+          }
+        }
+
+        function getConnectionInfo() {
+          var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!connection) return 'unknown';
+          return [connection.effectiveType, connection.downlink ? connection.downlink + 'mbps' : '', connection.saveData ? 'saveData' : '']
+            .filter(Boolean)
+            .join('/');
+        }
+
+        function getAssetSnapshot() {
+          var css = [];
+          var js = [];
+          var links = document.querySelectorAll('link[rel="stylesheet"]');
+          var scripts = document.querySelectorAll('script[src]');
+          for (var i = 0; i < links.length; i++) css.push(shortUrl(links[i].href));
+          for (var j = 0; j < scripts.length; j++) js.push(shortUrl(scripts[j].src));
+          return { css: css.slice(0, 8), js: js.slice(0, 8) };
+        }
+
+        function buildPayload(reason, detail) {
+          var assets = getAssetSnapshot();
+          var errors = (window.__RL_BOOT_DIAG__ && window.__RL_BOOT_DIAG__.events) || [];
+          var seed = [
+            reason,
+            detail || '',
+            location.href,
+            navigator.userAgent,
+            assets.css.join(','),
+            assets.js.join(','),
+            errors.map(function (event) { return event.type + ':' + event.detail; }).join('|'),
+          ].join('|');
+          return {
+            reason: reason,
+            detail: String(detail || '').slice(0, 260),
+            code: shortHash(seed),
+            href: location.href,
+            ua: navigator.userAgent,
+            viewport: window.innerWidth + 'x' + window.innerHeight,
+            dpr: window.devicePixelRatio || 1,
+            connection: getConnectionInfo(),
+            readyState: document.readyState,
+            css: assets.css,
+            js: assets.js,
+            errors: errors.slice(-8),
+          };
+        }
+
+        function sendDiagnostic(reason, detail) {
+          var payload = buildPayload(reason, detail);
+          try { console.warn('[RL-DIAG]', payload); } catch (e) {}
+          try {
+            if (typeof window.ym === 'function') {
+              window.ym(109706546, 'reachGoal', 'front_load_issue', {
+                reason: payload.reason,
+                code: payload.code,
+                detail: payload.detail,
+                viewport: payload.viewport,
+                connection: payload.connection,
+                css_count: payload.css.length,
+                js_count: payload.js.length,
+              });
+              window.ym(109706546, 'params', { front_load_issue: payload });
+            }
+          } catch (e) {}
+          return payload;
+        }
+
+        function showDiagnostic(reason, detail) {
+          var payload = sendDiagnostic(reason, detail);
+          var panel = document.getElementById('rl-load-diagnostics');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'rl-load-diagnostics';
+            panel.setAttribute('role', 'status');
+            panel.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2147483647;max-width:calc(100vw - 16px);background:#1f0b0b;color:#fff;border:2px solid #ff5a5f;border-radius:8px;padding:8px 10px;font:12px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.35);text-align:left;white-space:normal;';
+            document.documentElement.appendChild(panel);
+          }
+          panel.textContent = 'ReAge: ошибка загрузки ' + payload.reason + ' • код ' + payload.code + ' • CSS ' + payload.css.length + ' • JS ' + payload.js.length + ' • ' + payload.connection;
+        }
+
+        function recordDiagnostic(type, detail, critical) {
+          var event = {
+            type: String(type || 'UNKNOWN').slice(0, 48),
+            detail: String(detail || '').slice(0, 180),
+            at: Math.round(performance.now()),
+          };
+          var diag = window.__RL_BOOT_DIAG__;
+          if (diag) {
+            diag.events.push(event);
+            if (diag.events.length > DIAG_EVENT_LIMIT) diag.events.shift();
+          }
+          if (critical) showDiagnostic(event.type, event.detail);
+        }
+
+        function checkCssApplied() {
+          if (!document.body) return true;
+          var probe = document.createElement('div');
+          probe.className = 'hidden text-primary bg-background';
+          probe.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;';
+          document.body.appendChild(probe);
+          var cssWorks = false;
+          try { cssWorks = getComputedStyle(probe).display === 'none'; } catch (e) {}
+          if (probe.parentNode) probe.parentNode.removeChild(probe);
+          if (!cssWorks) {
+            recordDiagnostic('CSS_MISSING', 'Tailwind utility classes are not applied', true);
+          }
+          return cssWorks;
+        }
+
+        function scheduleCssChecks() {
+          setTimeout(checkCssApplied, 2500);
+          setTimeout(checkCssApplied, 7000);
+        }
+
+        window.__RL_BOOT_DIAG__ = window.__RL_BOOT_DIAG__ || {
+          events: [],
+          record: recordDiagnostic,
+          show: showDiagnostic,
+          payload: buildPayload,
+          checkCss: checkCssApplied,
+        };
+
+        window.addEventListener('error', function (event) {
+          var target = event && event.target;
+          if (target && target !== window && (target.src || target.href)) {
+            var url = target.src || target.href;
+            var type = target.tagName === 'LINK' ? 'LINK_ERROR' : target.tagName === 'SCRIPT' ? 'SCRIPT_ERROR' : 'RESOURCE_ERROR';
+            recordDiagnostic(type, shortUrl(url), /\/assets\//.test(url));
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event && event.reason;
+          var message = (reason && (reason.message || reason.toString())) || '';
+          if (/Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|Loading chunk/i.test(message)) {
+            recordDiagnostic('CHUNK_REJECTION', message, true);
+          }
+        });
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleCssChecks, { once: true });
+        else scheduleCssChecks();
+
         function isAssetCss(link) {
           return link && link.rel === "stylesheet" && link.href && link.href.indexOf("/assets/") !== -1;
         }
@@ -70,6 +231,7 @@
             if (sessionStorage.getItem("rl-chunk-reloaded") === "1") return;
             sessionStorage.setItem("rl-chunk-reloaded", "1");
           } catch (e) {}
+          recordDiagnostic('FORCE_RELOAD', reason, false);
           console.warn("[RL] " + reason + " — reloading once");
           location.reload();
         }
@@ -87,6 +249,7 @@
             // Если ретрай тоже упал — значит asset реально удалён (deploy race,
             // старый закешированный HTML). Форсируем reload, чтобы получить свежий index.html.
             newLink.addEventListener("error", function () {
+              recordDiagnostic('CSS_RETRY_FAILED', shortUrl(link.href), true);
               forceReloadOnce("CSS retry also failed for " + link.href);
             }, { once: true });
             if (link.parentNode) link.parentNode.insertBefore(newLink, link.nextSibling);
@@ -98,7 +261,10 @@
         function watch(link) {
           if (!isAssetCss(link) || link.dataset.rlWatched) return;
           link.dataset.rlWatched = "true";
-          link.addEventListener("error", function () { retry(link); }, { once: true });
+          link.addEventListener("error", function () {
+            recordDiagnostic('CSS_ASSET_ERROR', shortUrl(link.href), true);
+            retry(link);
+          }, { once: true });
         }
 
 
