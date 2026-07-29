@@ -170,7 +170,9 @@ const App = () => (
                   <DemoModeProvider>
                     <OnboardingGate>
                       <DashboardLayout>
-                        <Outlet />
+                        <Suspense fallback={<RouteFallback />}>
+                          <Outlet />
+                        </Suspense>
                       </DashboardLayout>
                     </OnboardingGate>
                   </DemoModeProvider>
