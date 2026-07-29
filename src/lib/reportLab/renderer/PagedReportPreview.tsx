@@ -406,6 +406,8 @@ export function PagedReportPreview({
   signalReady,
   chrome = "framed",
   editable = false,
+  layout = "paged",
+
   drafts,
   coverOverrides = null,
   onCoverOverridesChange,
