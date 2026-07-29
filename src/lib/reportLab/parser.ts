@@ -910,7 +910,7 @@ export function normalizeCode(code: string): string {
 }
 
 /** Явные синонимы кодов: ИИ и снапшот могут писать один показатель по-разному. */
-const CODE_ALIASES: Record<string, string> = {
+const SYNONYM_CODES: Record<string, string> = {
   d25oh: "vitd",
   "25ohd": "vitd",
   "25ohvitd": "vitd",
@@ -937,7 +937,7 @@ export function codeMatchKeys(code: string): string[] {
   if (!base) return [];
   const keys = new Set<string>([base]);
 
-  const alias = CODE_ALIASES[base];
+  const alias = SYNONYM_CODES[base];
   if (alias) keys.add(alias);
 
   // соотношения: делим по разделителям в исходном коде
@@ -947,7 +947,7 @@ export function codeMatchKeys(code: string): string[] {
     .map((p) => normalizeCode(p))
     .filter(Boolean);
   if (parts.length > 1) {
-    const stripped = parts.map((p) => CODE_ALIASES[p] || p.replace(/^apo/, ""));
+    const stripped = parts.map((p) => SYNONYM_CODES[p] || p.replace(/^apo/, ""));
     keys.add(`ratio:${[...stripped].sort().join("|")}`);
   } else {
     // одиночный код, который сам может быть частью пары (apoba1 -> ratio)
