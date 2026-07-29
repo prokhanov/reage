@@ -188,7 +188,76 @@
           alt="Top.Mail.Ru"
         /></div
     ></noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div id="rl-boot" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f19;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;z-index:9999;">
+        <div style="width:36px;height:36px;border:3px solid #334155;border-top-color:#60a5fa;border-radius:50%;animation:rlspin 0.8s linear infinite;"></div>
+        <div id="rl-boot-msg" style="margin-top:16px;font-size:14px;opacity:0.7;">Загрузка…</div>
+        <div id="rl-boot-slow" style="margin-top:24px;max-width:320px;text-align:center;font-size:13px;line-height:1.5;color:#fca5a5;display:none;">
+          Приложение долго загружается.<br/>Возможно, сеть блокирует часть ресурсов.<br/>
+          <button id="rl-boot-reload" style="margin-top:12px;padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">Перезагрузить</button>
+        </div>
+        <style>@keyframes rlspin{to{transform:rotate(360deg)}}</style>
+      </div>
+    </div>
+    <script>
+      (function () {
+        // Once React mounts anything real, hide the boot loader.
+        var boot = document.getElementById('rl-boot');
+        var mo = new MutationObserver(function () {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 1) {
+            if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
+            mo.disconnect();
+          }
+        });
+        mo.observe(document.getElementById('root'), { childList: true, subtree: false });
+
+        // Slow-network / blocked resource warning.
+        setTimeout(function () {
+          if (!document.getElementById('rl-boot')) return;
+          var slow = document.getElementById('rl-boot-slow');
+          if (slow) slow.style.display = 'block';
+        }, 15000);
+
+        var btn = document.getElementById('rl-boot-reload');
+        if (btn) btn.addEventListener('click', function () {
+          try { sessionStorage.removeItem('rl-chunk-reloaded'); } catch (e) {}
+          location.reload();
+        });
+
+        // ChunkLoadError handler: dynamic import() failed (network/proxy/adblock).
+        // Auto-reload once; if it happens twice, show the slow-network banner.
+        function handleChunkError(err) {
+          var msg = (err && (err.message || err.toString())) || '';
+          var isChunk = /ChunkLoadError|Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|Importing a module script failed/i.test(msg);
+          if (!isChunk) return;
+          var already = false;
+          try { already = sessionStorage.getItem('rl-chunk-reloaded') === '1'; } catch (e) {}
+          if (already) {
+            var slow = document.getElementById('rl-boot-slow');
+            if (slow) slow.style.display = 'block';
+            var m = document.getElementById('rl-boot-msg');
+            if (m) m.textContent = 'Не удалось загрузить модуль приложения';
+            return;
+          }
+          try { sessionStorage.setItem('rl-chunk-reloaded', '1'); } catch (e) {}
+          console.warn('[RL] chunk load failed, reloading once:', msg);
+          location.reload();
+        }
+        window.addEventListener('error', function (e) {
+          handleChunkError(e && (e.error || { message: e.message }));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          handleChunkError(e && e.reason);
+        });
+        // Clear the "already reloaded" flag once app boots successfully.
+        window.addEventListener('load', function () {
+          setTimeout(function () {
+            try { sessionStorage.removeItem('rl-chunk-reloaded'); } catch (e) {}
+          }, 5000);
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
