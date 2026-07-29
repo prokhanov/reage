@@ -3,7 +3,7 @@ import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
-import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+
 
 
 // Below-the-fold sections — lazy-loaded to shrink the initial bundle.
@@ -54,12 +54,13 @@ const ConsultationCtaBlock = lazy(() =>
 );
 
 // Reserved placeholder to prevent CLS while a lazy section resolves.
-// Единый лоадер как в админке — AdminCenterLoader.
+// Используем тот же ринг-лоадер, что в админских роут-гвардах.
 const SectionFallback = () => (
   <div className="min-h-[600px] flex items-center justify-center">
-    <AdminCenterLoader size="lg" />
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-hidden="true" />
   </div>
 );
+
 
 
 /** Wraps a lazy section in its own <Suspense> so slow chunks don't block siblings.
