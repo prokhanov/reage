@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
