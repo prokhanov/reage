@@ -204,11 +204,46 @@ html, body {
   }
 }
 
+/* ─── Reset контейнера документа ─────────────────────────────────────────
+   Убираем зависимость от дефолтных стилей браузера (разные line-height,
+   отступы списков и заголовков в Chrome/Safari/Firefox), чтобы раскладка
+   считалась одинаково в редакторе и в серверном Chromium. */
+.reportlab,
+.reportlab p,
+.reportlab ul,
+.reportlab ol,
+.reportlab li,
+.reportlab h1,
+.reportlab h2,
+.reportlab h3,
+.reportlab h4,
+.reportlab h5,
+.reportlab h6,
+.reportlab blockquote,
+.reportlab figure,
+.reportlab table {
+  margin: 0;
+  padding: 0;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+}
+.reportlab {
+  text-rendering: geometricPrecision;
+}
+
 /* ─── Правила разрывов ───────────────────────────────────────────────────── */
 .reportlab .rl-prose p {
   orphans: 3;
   widows: 3;
 }
+.reportlab .rl-prose li,
+.reportlab li {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
 .reportlab .rl-callout,
 .reportlab .rl-stats,
 .reportlab .rl-rx,
@@ -499,7 +534,14 @@ html, body {
   margin: 0 0 1.5mm;
   color: var(--ink-soft);
   display: list-item;
+  /* Пункт списка неделим: либо целиком на странице, либо целиком переезжает.
+     Иначе Paged.js рвёт <li> и рисует у продолжения паразитный маркер. */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  orphans: 2;
+  widows: 2;
 }
+
 .reportlab .rl-prose ul ul {
   list-style: circle outside;
 }
