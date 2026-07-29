@@ -499,7 +499,14 @@ html, body {
   margin: 0 0 1.5mm;
   color: var(--ink-soft);
   display: list-item;
+  /* Пункт списка неделим: либо целиком на странице, либо целиком переезжает.
+     Иначе Paged.js рвёт <li> и рисует у продолжения паразитный маркер. */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  orphans: 2;
+  widows: 2;
 }
+
 .reportlab .rl-prose ul ul {
   list-style: circle outside;
 }
