@@ -78,6 +78,27 @@ function beastiesPlugin() {
 }
 
 
+/**
+ * Injects `<link rel="preload" as="fetch">` for landing-bootstrap so the
+ * browser starts the batch request during HTML parse, before JS executes.
+ */
+function landingBootstrapPreloadPlugin(backendUrl: string, anonKey: string) {
+  return {
+    name: "landing-bootstrap-preload",
+    transformIndexHtml(html: string) {
+      const url = `${backendUrl}/functions/v1/landing-bootstrap`;
+      const tag =
+        `\n    <link rel="preload" as="fetch" crossorigin="anonymous" ` +
+        `href="${url}" fetchpriority="high" />` +
+        (anonKey
+          ? `\n    <link rel="dns-prefetch" href="${new URL(backendUrl).origin}" />`
+          : "");
+      return html.replace("</head>", `${tag}\n  </head>`);
+    },
+  };
+}
+
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
