@@ -1,76 +1,35 @@
-## Проблема
+## Диагноз
 
-7 параллельных Supabase-запросов лендинга блокируют LCP: критический путь 1530 мс. Свежесть данных обязательна → снапшот на билде не подходит.
+Регресс 70→61 вызван тем, что «оптимизация» стартует раньше времени и отбирает мобильную полосу/CPU у критичных ресурсов первого экрана:
 
-## Решение: 1 batched edge function + preload
+1. `landing-bootstrap` (22 КБ br, ~500 мс, `cf-cache: DYNAMIC`) стартует в `main.tsx` **до mount React**, конкурируя с загрузкой Hero-картинки и главного JS-бандла.
+2. Данные из bootstrap нужны только блокам **ниже первого экрана** (`PricingSection`, `WhereToTestSection`, `BiomarkerComparisonDialog`) — все они уже `lazy()` и не блокируют LCP сами по себе.
+3. `<link rel="preconnect" href="https://api.reage.life">` в `<head>` открывает лишний TLS-хендшейк в самой ранней фазе — на 4G это отнимает бюджет у соединения к origin (шрифты/картинки/JS).
+4. Beasties inline-порог 14 КБ + `reduceInlineStyles:true` в связке с большим Tailwind-CSS может раздувать HTML и повышать TTFB/FCP на медленных сетях.
 
-Заменяем 7 запросов на **один** edge function, который собирает все данные лендинга в одну JSON-порцию и отдаётся с коротким CDN-кешем. Плюс preload в `<head>`, чтобы запрос стартовал до парсинга JS.
+## Что делаем (только фронт/сборка, только лендинг)
 
-### 1. Edge function `landing-bootstrap`
+### 1. Отложить `landing-bootstrap` на idle
+`src/main.tsx`: убрать безусловный `preloadLandingBootstrap()` перед mount. Заменить на отложенный запуск после `load` через `requestIdleCallback` (fallback `setTimeout(1500)`), только для `/`. Это освобождает мобильную полосу для Hero и JS в LCP-окне; данные всё равно приедут к моменту, когда пользователь доскроллит до Pricing/WhereToTest (эти секции `lazy`, сами дозапросят при необходимости).
 
-Новая публичная функция `supabase/functions/landing-bootstrap/index.ts`:
-- Читает через service_role параллельно (`Promise.all`):
-  - `subscription_plans` (is_active)
-  - `subscription_pricing` (is_enabled)
-  - `biomarker_categories`
-  - `biomarkers` (id, name, category, display_order)
-  - `plan_biomarkers`
-  - `lab_locations` (активные, с координатами)
-  - `lab_map_contexts?key=landing`
-- Возвращает `{ plans, pricing, categories, biomarkers, planBiomarkers, labLocations, mapContext }`.
-- Заголовки: `Cache-Control: public, s-maxage=60, stale-while-revalidate=300` (свежесть в течение минуты, фон-обновление до 5 мин). CORS `*`.
-- Публичный доступ (JWT не требуется) — все данные и так с anon-доступом.
+### 2. Понизить приоритет preconnect
+`vite.config.ts` → `landingBootstrapPreconnectPlugin`: убрать `preconnect`, оставить только `dns-prefetch`. DNS-lookup дёшев, а TLS-хендшейк больше не будет конкурировать с origin в первые 500 мс.
 
-**Почему безопасно по свежести**: любая правка в админке видна максимум через 60 сек (в среднем 30). Пользователь этого не заметит.
+### 3. Проверить и ужать beasties
+`vite.config.ts` → `beastiesPlugin`:
+- Понизить `inlineThreshold` с 14 000 до 8 000, чтобы не тащить в HTML стили не-критичных секций.
+- Оставить `preload:"swap"`, `reduceInlineStyles:true`.
+- После сборки замерить размер `index.html` (цель: ≤ 20 КБ gz).
 
-### 2. Клиентский хук `useLandingBootstrap`
+### 4. Замер и подтверждение
+После деплоя прогнать PageSpeed на мобильном для `/` **3 раза подряд** (для стабильности) и сравнить с базовой 70. Если LCP всё ещё > 2.5 с — дополнительно посмотреть Hero-картинку (формат/preload) отдельным этапом.
 
-`src/hooks/useLandingBootstrap.ts`:
-- Fetch к `${APP_URL}/functions/v1/landing-bootstrap` (URL берётся из `import.meta.env.VITE_SUPABASE_URL` — прод получит `https://api.reage.life`, тест — прямой домен, никакого хардкода).
-- Модульный in-memory кеш на сессию.
-- Возвращает типизированные данные + `isLoading`.
+## Что НЕ трогаем
 
-### 3. Переключение компонентов лендинга
+- Edge Function `landing-bootstrap` и её кэш — они корректны, проблема была в тайминге вызова.
+- Логика хуков `useSubscriptionPlans` и т.п. — fallback остаётся, просто «fast path» сработает чуть позже.
+- CSS/дизайн, backend, шрифты, отчёты.
 
-Найти и переключить существующие хуки/компоненты, которые сейчас делают 7 отдельных запросов:
-- Компонент карты лабораторий (`lab_locations`, `lab_map_contexts`)
-- Тарифы (`subscription_plans`, `subscription_pricing`)
-- Quiz / comparison table (`biomarkers`, `biomarker_categories`, `plan_biomarkers`)
+## Риск
 
-Только на публичных маршрутах (Landing, `/pricing` если читает те же таблицы). ЛК/админку **не трогаем** — там прямые запросы к БД остаются.
-
-### 4. Preload в `<head>`
-
-В `index.html`:
-```html
-<link rel="preload" as="fetch" 
-  href="https://api.reage.life/functions/v1/landing-bootstrap" 
-  crossorigin>
-```
-
-URL нужно вычислять по окружению. Так как `index.html` статичен, вариант — использовать Vite plugin `transformIndexHtml` с подстановкой `VITE_SUPABASE_URL` (аналог того, что уже делается для других env). Это даст правильный URL и для теста, и для прода.
-
-## Не сломает
-
-- **nginx whitelist**: не затрагиваем — запросы идут напрямую в `api.reage.life/functions/v1/*`, а не через nginx проекта.
-- **Прокси РКН**: URL берётся из `VITE_SUPABASE_URL`, который на проде = `https://api.reage.life` (правило соблюдено).
-- **Test vs Production**: та же env-переменная → каждое окружение бьёт в свой backend.
-- **Хардкод доменов**: отсутствует, всё через env.
-- **RLS/безопасность**: функция читает только публичные таблицы, которые и так доступны с anon-ключом. Ничего нового не разглашается.
-- **ЛК/админка/edge functions email/tg**: не трогаются.
-- **Медиа-правило**: не создаём `.asset.json` и не используем `/__l5e/` — только edge function.
-
-## Ожидаемый эффект
-
-Было: `HTML (178) → JS (316) → 7 × ~1100 мс параллельно = 1530 мс критический путь`.
-
-Станет: `HTML (178) → JS (316) → 1 × ~300 мс bootstrap (preload параллельно с JS) ≈ 500 мс`.
-
-Плюс с 2-го визита — 0 мс благодаря s-maxage CDN-кешу до 60 сек.
-
-## Технические детали
-
-- Функция чистая, без БД-записей, без побочных эффектов.
-- Если функция упадёт → компоненты фолбэчатся на текущие индивидуальные запросы (retry через существующий supabase-client). Ничего не ломается, только теряется ускорение.
-- Клиентский код: `if (bootstrap.plans) usePreloaded() else useLiveQuery()`.
-- Никаких миграций БД. Никаких изменений в `client.ts`.
+Пользователь, который очень быстро скроллит до Pricing (< 1.5 с от FCP на 4G), увидит дополнительный сетевой запрос вместо мгновенных данных. Это редкий кейс и он уже покрыт индивидуальным fallback внутри хуков — визуально проявится максимум как скелетон карточек цен.
