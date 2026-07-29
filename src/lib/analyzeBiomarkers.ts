@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
+import { resetReportDocument } from "@/lib/reportLab/documentStore";
+
 
 type AnalyzeBiomarkersPayload = {
   analysisId: string;
