@@ -1,5 +1,5 @@
 import type { ParsedCategory, ReportBiomarker } from "../types";
-import { normalizeCode } from "../parser";
+import { normalizeCode, codeMatchKeys } from "../parser";
 import { BiomarkerCard } from "./BiomarkerCard";
 import { ProseMarkdown } from "./ProseMarkdown";
 import { useReportEditor } from "../editor/ReportEditorContext";
@@ -114,7 +114,7 @@ export function ReportSection({
           );
         }
         const bio =
-          biomarkerByCode.get(normalizeCode(b.code)) || fuzzyIndex.get(fuzzyKey(b.code));
+          findBio(b.code);
 
         const currentBioIndex = bioIndex;
         bioIndex += 1;
