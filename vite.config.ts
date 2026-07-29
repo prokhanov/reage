@@ -78,13 +78,14 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query", "framer-motion"],
     },
-    optimizeDeps: {
-      include: ["react", "react-dom", "@tanstack/react-query", "framer-motion"],
-    },
     esbuild: mode === "production"
       ? { drop: ["console", "debugger"] }
       : undefined,
     build: {
+      // Safari 17.5 / iOS 17.5 не поддерживают Iterator Helpers (глобальный Iterator).
+      // Держим target на уровне, который esbuild гарантированно down-компилирует
+      // до совместимого синтаксиса для Safari 17 / Chrome 110+.
+      target: ["es2022", "safari16", "chrome110", "firefox115", "edge110"],
       rollupOptions: {
         output: {
           manualChunks: {
@@ -93,6 +94,12 @@ export default defineConfig(({ mode }) => {
             "vendor-query": ["@tanstack/react-query"],
           },
         },
+      },
+    },
+    optimizeDeps: {
+      include: ["react", "react-dom", "@tanstack/react-query", "framer-motion"],
+      esbuildOptions: {
+        target: ["es2022", "safari16", "chrome110", "firefox115", "edge110"],
       },
     },
   };
