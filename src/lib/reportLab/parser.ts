@@ -909,6 +909,57 @@ export function normalizeCode(code: string): string {
     .replace(/[\s\-_+()]/g, "");
 }
 
+/** Явные синонимы кодов: ИИ и снапшот могут писать один показатель по-разному. */
+const CODE_ALIASES: Record<string, string> = {
+  d25oh: "vitd",
+  "25ohd": "vitd",
+  "25ohvitd": "vitd",
+  vitamind: "vitd",
+  vitd3: "vitd",
+  "25ohd3": "vitd",
+  vitb12: "b12",
+  b12vit: "b12",
+  cobalamin: "b12",
+  hcy: "homocysteine",
+  gomocistein: "homocysteine",
+  folate: "b9",
+  folicacid: "b9",
+  vitb9: "b9",
+};
+
+/**
+ * Ключи, по которым код можно сопоставить со снапшотом:
+ * 1) нормализованный код, 2) алиас, 3) канонический вид соотношений
+ * (apob_apoa1 == apob/a1), 4) отсортированные символы (d25oh == 25-oh d).
+ */
+export function codeMatchKeys(code: string): string[] {
+  const base = normalizeCode(code);
+  if (!base) return [];
+  const keys = new Set<string>([base]);
+
+  const alias = CODE_ALIASES[base];
+  if (alias) keys.add(alias);
+
+  // соотношения: делим по разделителям в исходном коде
+  const parts = code
+    .toLowerCase()
+    .split(/[\/_\\:|]|\bк\b|\bto\b/)
+    .map((p) => normalizeCode(p))
+    .filter(Boolean);
+  if (parts.length > 1) {
+    const stripped = parts.map((p) => CODE_ALIASES[p] || p.replace(/^apo/, ""));
+    keys.add(`ratio:${[...stripped].sort().join("|")}`);
+  } else {
+    // одиночный код, который сам может быть частью пары (apoba1 -> ratio)
+    const m = base.match(/^apo([a-z])apo?([a-z]\d*)$/);
+    if (m) keys.add(`ratio:${[m[1], m[2]].sort().join("|")}`);
+  }
+
+  keys.add(`sorted:${base.split("").sort().join("")}`);
+  return [...keys];
+}
+
+
 /** Возраст в годах на дату исследования. */
 export function calcAge(birthDate: string | null, onDate: string): number | null {
   if (!birthDate) return null;
