@@ -113,7 +113,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
-  const [paginated, setPaginated] = useState(true);
+  // HTML-просмотр всегда потоковый (без Paged.js). Печатная пагинация —
+  // только в серверном PDF («Предпросмотр как PDF» / скачивание).
+  const paginated = false;
+
   const [awaitingPublish, setAwaitingPublish] = useState(false);
   const [rendering, setRendering] = useState(false);
   const readyUrlRef = useRef<string | null>(null);
