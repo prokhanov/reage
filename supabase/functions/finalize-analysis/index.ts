@@ -915,12 +915,15 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
               endocrine: "Эндокринная и стрессовая система",
               energy: "Энергия и восстановление",
             };
-            if (Array.isArray(systemScores)) {
+            const unifiedSystems: any[] = Array.isArray(newModelBreakdown?.systems)
+              ? newModelBreakdown.systems
+              : [];
+            if (unifiedSystems.length > 0) {
               const aiCat = (aiResult.category_scores && typeof aiResult.category_scores === "object")
                 ? aiResult.category_scores
                 : {};
               const unifiedCat: Record<string, any> = {};
-              for (const s of systemScores) {
+              for (const s of unifiedSystems) {
                 const catName = SYSTEM_TO_CATEGORY_RU[s.system];
                 if (!catName) continue;
                 const aiEntry = aiCat[catName] || {};
