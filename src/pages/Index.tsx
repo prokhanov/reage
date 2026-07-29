@@ -76,14 +76,21 @@ const S = ({ children }: { children: React.ReactNode }) => (
 
 const Index = () => {
   useEffect(() => {
-    initActiveTimeTracker();
-    // Помечаем body — только на главной активируются мобильные GPU-lite
-    // оптимизации (см. src/index.css). На остальных страницах ничего не трогаем.
+    // Трекер активности — не критичен для первого рендера, откладываем в idle.
+    const startTracker = () => initActiveTimeTracker();
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number };
+    const idleId = w.requestIdleCallback
+      ? w.requestIdleCallback(startTracker, { timeout: 3000 })
+      : (window.setTimeout(startTracker, 1500) as unknown as number);
     document.body.setAttribute("data-landing", "1");
     return () => {
+      const wc = window as Window & { cancelIdleCallback?: (id: number) => void };
+      if (wc.cancelIdleCallback) wc.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
       document.body.removeAttribute("data-landing");
     };
   }, []);
+
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
