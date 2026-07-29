@@ -1,5 +1,5 @@
 import type { ParsedCategory, ReportBiomarker } from "../types";
-import { normalizeCode } from "../parser";
+import { normalizeCode, codeMatchKeys } from "../parser";
 import { BiomarkerCard } from "./BiomarkerCard";
 import { ProseMarkdown } from "./ProseMarkdown";
 import { useReportEditor } from "../editor/ReportEditorContext";
@@ -54,13 +54,23 @@ export function ReportSection({
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
 
-  // Фолбэк: коды вида «D25OH» vs «25-OH D» — сравниваем по отсортированным символам.
-  const fuzzyKey = (code: string) => normalizeCode(code).split("").sort().join("");
+  // Фолбэк: коды вида «D25OH» vs «25-OH D», «APOB_APOA1» vs «ApoB/A1».
   const fuzzyIndex = new Map<string, ReportBiomarker>();
   biomarkerByCode.forEach((bio, code) => {
-    const key = fuzzyKey(code);
-    if (!fuzzyIndex.has(key)) fuzzyIndex.set(key, bio);
+    for (const key of codeMatchKeys(code)) {
+      if (!fuzzyIndex.has(key)) fuzzyIndex.set(key, bio);
+    }
   });
+  const findBio = (code: string) => {
+    const direct = biomarkerByCode.get(normalizeCode(code));
+    if (direct) return direct;
+    for (const key of codeMatchKeys(code)) {
+      const hit = fuzzyIndex.get(key);
+      if (hit) return hit;
+    }
+    return undefined;
+  };
+
 
 
   return (
@@ -104,7 +114,7 @@ export function ReportSection({
           );
         }
         const bio =
-          biomarkerByCode.get(normalizeCode(b.code)) || fuzzyIndex.get(fuzzyKey(b.code));
+          findBio(b.code);
 
         const currentBioIndex = bioIndex;
         bioIndex += 1;
