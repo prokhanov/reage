@@ -1,43 +1,14 @@
 import { defineConfig, loadEnv, type IndexHtmlTransformContext } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
-import type { OutputBundle } from "rollup";
+import Beasties from "beasties";
 
-/**
- * Injects a <link rel="preload" as="style"> for the hashed main CSS bundle
- * so the browser starts downloading it before parsing the full HTML.
- */
-function injectMainCssPreload() {
-  return {
-    name: "inject-main-css-preload",
-    transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
-      if (!ctx?.bundle) return html;
-
-      const bundle = ctx.bundle as OutputBundle;
-      const cssFiles = Object.entries(bundle)
-        .filter(([fileName, asset]) => {
-          if (!fileName.endsWith(".css") || !fileName.startsWith("assets/index-")) return false;
-          return asset.type === "asset" || asset.type === "chunk";
-        })
-        .map(([fileName]) => fileName);
-
-      if (!cssFiles.length) return html;
-
-      const preloadLinks = cssFiles
-        .map((file) => `    <link rel="preload" as="style" crossorigin href="/${file}" />`)
-        .join("\n");
-
-      return html.replace(
-        /<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>/,
-        `${preloadLinks}\n    <link rel="preconnect" href="https://fonts.googleapis.com" />`
-      );
-    },
-  };
-}
 
 const DEFAULT_BACKEND_URL = "https://api.reage.life";
+
 
 function normalizeBackendUrl(rawUrl?: string) {
   const clean = (rawUrl && rawUrl.length > 0 ? rawUrl : DEFAULT_BACKEND_URL).replace(/\/+$/, "");
@@ -49,6 +20,63 @@ function normalizeBackendUrl(rawUrl?: string) {
     return DEFAULT_BACKEND_URL;
   }
 }
+
+/**
+ * Inlines critical CSS and converts the remaining stylesheet into an
+ * asynchronous preload+swap so the browser never blocks first paint on CSS.
+ * Reads stylesheet contents from the Vite bundle to avoid relying on the
+ * dist files being written before HTML post-processing.
+ */
+function beastiesPlugin() {
+  return {
+    name: "beasties",
+    apply: "build" as const,
+    transformIndexHtml: {
+      order: "post" as const,
+      async handler(html: string, ctx: IndexHtmlTransformContext) {
+        if (!ctx?.bundle) return html;
+
+        const beasties = new Beasties({
+          path: "dist",
+          publicPath: "/",
+          inlineThreshold: 14_000,
+          preload: "swap",
+          noscriptFallback: true,
+          fonts: false,
+          preloadFonts: false,
+          logLevel: "warn",
+          reduceInlineStyles: true,
+        });
+
+        // Override file reading so beasties reads CSS from the in-memory Vite
+        // bundle rather than from disk. This avoids race conditions where the
+        // stylesheet has not been written yet during HTML post-processing.
+        const originalReadFile = beasties.readFile.bind(beasties);
+        beasties.readFile = async (filename: string) => {
+          const bundle = ctx.bundle;
+          if (!bundle) return originalReadFile(filename);
+          const base = path.basename(filename);
+          const bundleKey = Object.keys(bundle).find(
+            (key) =>
+              key.endsWith(".css") &&
+              (key === base || key.endsWith(`/${base}`) || key.endsWith(`/assets/${base}`))
+          );
+          if (bundleKey) {
+            const asset = bundle[bundleKey];
+            if (asset && (asset.type === "asset" || "source" in asset)) {
+              return String(asset.source);
+            }
+          }
+          return originalReadFile(filename);
+        };
+
+        return await beasties.process(html);
+
+      },
+    },
+  };
+}
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -65,13 +93,14 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
-      injectMainCssPreload(),
+      beastiesPlugin(),
       // Must run in dev too — imports across the app use imagetools query params
       // (`?format=avif&quality=68&url`); without the plugin those requests return
       // raw PNG bytes and the browser rejects them as invalid JS modules.
       imagetools(),
       mode === "development" && componentTagger(),
     ].filter(Boolean),
+
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
