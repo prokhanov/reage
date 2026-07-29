@@ -24,32 +24,51 @@ function normalizeBackendUrl(rawUrl?: string) {
 /**
  * Inlines critical CSS and converts the remaining stylesheet into an
  * asynchronous preload+swap so the browser never blocks first paint on CSS.
+ * Reads stylesheet contents from the Vite bundle to avoid relying on the
+ * dist files being written before HTML post-processing.
  */
 function beastiesPlugin() {
-  const beasties = new Beasties({
-    path: "dist",
-    publicPath: "/",
-    inlineThreshold: 14_000,
-    preload: "swap",
-    noscriptFallback: true,
-    fonts: false,
-    preloadFonts: false,
-    logLevel: "warn",
-    reduceInlineStyles: true,
-  });
-
   return {
     name: "beasties",
     apply: "build" as const,
     transformIndexHtml: {
-      enforce: "post" as const,
-      async transform(html: string, ctx: IndexHtmlTransformContext) {
+      order: "post" as const,
+      async handler(html: string, ctx: IndexHtmlTransformContext) {
         if (!ctx?.bundle) return html;
+
+        const beasties = new Beasties({
+          path: "dist",
+          publicPath: "/",
+          inlineThreshold: 14_000,
+          preload: "swap",
+          noscriptFallback: true,
+          fonts: false,
+          preloadFonts: false,
+          logLevel: "warn",
+          reduceInlineStyles: true,
+          async readFile(filename: string) {
+            // Try to read from the Vite bundle first (source of truth during build).
+            const base = path.basename(filename);
+            const bundleKey = Object.keys(ctx.bundle).find(
+              (key) => key.endsWith(`.css`) && (key === base || key.endsWith(`/${base}`) || key.endsWith(`/${path.join("assets", base)}`))
+            );
+            if (bundleKey) {
+              const asset = ctx.bundle[bundleKey];
+              if (asset && (asset.type === "asset" || "source" in asset)) {
+                return String(asset.source);
+              }
+            }
+            // Fallback to disk for any additional stylesheets not in the bundle.
+            return fs.promises.readFile(filename, "utf-8");
+          },
+        });
+
         return await beasties.process(html);
       },
     },
   };
 }
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
