@@ -110,7 +110,7 @@ export async function ensureReportDocument(
         blocks: doc.entries,
         status: "draft",
       },
-      { onConflict: "analysis_id", ignoreDuplicates: true },
+      { onConflict: "analysis_id" },
     )
     .select("status")
     .maybeSingle();
@@ -120,6 +120,31 @@ export async function ensureReportDocument(
   }
   return ((data?.status as ReportDocStatus) ?? "draft") as ReportDocStatus;
 }
+
+/**
+ * Полный сброс сохранённого документа перед перегенерацией всего отчёта.
+ * Стирает и черновик (ручные правки врача/админа), и опубликованный снимок —
+ * пациент до новой публикации отчёта не видит.
+ */
+export async function resetReportDocument(analysisId: string): Promise<void> {
+  if (!analysisId) return;
+  const { error } = await table()
+    .update({
+      blocks: [],
+      published_blocks: null,
+      published_at: null,
+      published_by: null,
+      published_pdf_path: null,
+      published_pdf_hash: null,
+      published_pdf_rendered_at: null,
+      status: "draft",
+      edited_at: null,
+      edited_by: null,
+    })
+    .eq("analysis_id", analysisId);
+  if (error) console.warn("[reportLab] resetReportDocument:", error.message);
+}
+
 
 /** Сохраняет правки врача. Опубликованный документ переходит в состояние `edited`. */
 export async function saveReportDocument(
