@@ -25,6 +25,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { ReportV2Dialog } from "@/components/reportV2/ReportV2Dialog";
 import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
+import { fetchReportDocumentStatus } from "@/lib/reportLab/documentStore";
 
 const ENABLE_REPORT_V2 = true;
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
@@ -382,7 +383,31 @@ export default function Recommendations() {
         analysisId: recs[0]?.analysis_id || null,
       })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+      // Пациент видит отчёт только после публикации врачом.
+      // Персонал (в т.ч. режим «просмотр как пациент») видит всё.
+      if (!isViewMode) {
+        const ids = Array.from(
+          new Set(reportsList.map((r) => r.analysisId).filter(Boolean) as string[]),
+        );
+        const statuses = await Promise.all(
+          ids.map(async (id) => [id, await fetchReportDocumentStatus(id)] as const),
+        );
+        const publishedIds = new Set(
+          statuses.filter(([, s]) => s === "published").map(([id]) => id),
+        );
+        const visible = reportsList.filter(
+          (r) => r.analysisId && publishedIds.has(r.analysisId),
+        );
+        setReports(visible);
+        const visibleIds = new Set(visible.map((r) => r.analysisId));
+        setRecommendations(
+          transformedData.filter((rec) => rec.analysis_id && visibleIds.has(rec.analysis_id)),
+        );
+        return;
+      }
+
       setReports(reportsList);
+
     } catch (error: any) {
       console.error("Error loading recommendations:", error);
 
