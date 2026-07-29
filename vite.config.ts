@@ -79,20 +79,21 @@ function beastiesPlugin() {
 
 
 /**
- * Injects `<link rel="preload" as="fetch">` for landing-bootstrap so the
- * browser starts the batch request during HTML parse, before JS executes.
+ * Injects <link rel="preconnect"> for the backend origin so the browser opens
+ * a TLS connection to api.reage.life during HTML parse. We deliberately do
+ * NOT preload the landing-bootstrap URL as `fetch` — the runtime request
+ * carries an `apikey`/`Authorization` header pair, which would not match a
+ * headerless preload and the browser would issue a second request anyway.
+ * Preconnect gives the DNS+TLS win with no matching pitfalls.
  */
-function landingBootstrapPreloadPlugin(backendUrl: string, anonKey: string) {
+function landingBootstrapPreconnectPlugin(backendUrl: string) {
   return {
-    name: "landing-bootstrap-preload",
+    name: "landing-bootstrap-preconnect",
     transformIndexHtml(html: string) {
-      const url = `${backendUrl}/functions/v1/landing-bootstrap`;
+      const origin = new URL(backendUrl).origin;
       const tag =
-        `\n    <link rel="preload" as="fetch" crossorigin="anonymous" ` +
-        `href="${url}" fetchpriority="high" />` +
-        (anonKey
-          ? `\n    <link rel="dns-prefetch" href="${new URL(backendUrl).origin}" />`
-          : "");
+        `\n    <link rel="preconnect" href="${origin}" crossorigin="anonymous" />` +
+        `\n    <link rel="dns-prefetch" href="${origin}" />`;
       return html.replace("</head>", `${tag}\n  </head>`);
     },
   };
