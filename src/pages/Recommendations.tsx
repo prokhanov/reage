@@ -1452,6 +1452,7 @@ export default function Recommendations() {
             initialReport={demoMode ? buildLabReportFromExample() : undefined}
             hideDownload={demoMode}
             requirePublished={!demoMode && !isViewMode}
+            staffPdfPreview={!demoMode && isViewMode}
           />
         )}
 

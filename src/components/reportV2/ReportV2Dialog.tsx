@@ -31,6 +31,11 @@ interface Props {
   hideDownload?: boolean;
   /** ЛК пациента: показывать только опубликованный врачом отчёт. */
   requirePublished?: boolean;
+  /**
+   * Режим «Просмотр как пациент» у персонала: в view-режиме показываем тот же
+   * финальный PDF, что видит пациент (через issue-report-pdf-url).
+   */
+  staffPdfPreview?: boolean;
 }
 
 /**
@@ -38,7 +43,7 @@ interface Props {
  * (Beta-иконки в списке). В ЛК пациента и режиме «Просмотр как пациент»
  * используется компактная панель без служебных подписей.
  */
-export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished }: Props) {
+export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished, staffPdfPreview }: Props) {
   const hasSource = initialReport || (analysisId && userId);
   // В ЛК пациента показываем серверный PDF, если он уже собран; пока рендер
   // не готов — остаётся привычный HTML-просмотр (без «пустого экрана»).
@@ -47,8 +52,19 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
     "patient",
   );
   const patientPdfReady = Boolean(requirePublished && !initialReport && patientPdf.url);
+
+  // Персонал в режиме «Просмотр как пациент» — тот же финальный PDF.
+  const staffMode = Boolean(staffPdfPreview && !requirePublished && !initialReport && mode === "view");
+  const [forceDraftHtml, setForceDraftHtml] = useState(false);
+  const staffPdf = useReportPdf(staffMode ? analysisId : null, "staff");
+  const staffPdfReady = Boolean(staffMode && staffPdf.url && !forceDraftHtml);
+  const staffPdfPending = Boolean(
+    staffMode && !staffPdf.url && !forceDraftHtml && (staffPdf.loading || staffPdf.notReady || staffPdf.error),
+  );
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
 
   const requestClose = () => {
     if (mode === "edit") {
@@ -121,7 +137,29 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
               patientPdfReady ? (
                 // Пациент видит серверный PDF — единый источник пагинации.
                 <ReportPdfView analysisId={analysisId!} persona="patient" />
+              ) : staffPdfReady ? (
+                // Персонал в «Просмотре как пациент» — тот же финальный PDF.
+                <ReportPdfView analysisId={analysisId!} persona="staff" />
+              ) : staffPdfPending ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 p-10 text-center">
+                  {staffPdf.loading ? (
+                    <p className="text-sm text-muted-foreground">Загружаем опубликованный PDF…</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Отчёт ещё не опубликован — финального PDF для показа нет.
+                      </p>
+                      {staffPdf.error && (
+                        <p className="text-xs text-destructive">{staffPdf.error}</p>
+                      )}
+                      <Button variant="outline" onClick={() => setForceDraftHtml(true)}>
+                        Открыть черновик (с предпросмотром PDF)
+                      </Button>
+                    </>
+                  )}
+                </div>
               ) : (
+
               <ReportV2Editor
                 analysisId={initialReport?.analysis.id ?? analysisId ?? "demo"}
                 userId={userId ?? "demo"}
