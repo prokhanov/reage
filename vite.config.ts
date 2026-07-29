@@ -79,25 +79,21 @@ function beastiesPlugin() {
 
 
 /**
- * Injects <link rel="preconnect"> for the backend origin so the browser opens
- * a TLS connection to api.reage.life during HTML parse. We deliberately do
- * NOT preload the landing-bootstrap URL as `fetch` — the runtime request
- * carries an `apikey`/`Authorization` header pair, which would not match a
- * headerless preload and the browser would issue a second request anyway.
- * Preconnect gives the DNS+TLS win with no matching pitfalls.
+ * Injects a low-cost <link rel="dns-prefetch"> for the backend origin so the
+ * browser resolves DNS during HTML parse without opening a TLS handshake that
+ * would compete with the origin's critical connection in the LCP window.
  */
 function landingBootstrapPreconnectPlugin(backendUrl: string) {
   return {
     name: "landing-bootstrap-preconnect",
     transformIndexHtml(html: string) {
       const origin = new URL(backendUrl).origin;
-      const tag =
-        `\n    <link rel="preconnect" href="${origin}" crossorigin="anonymous" />` +
-        `\n    <link rel="dns-prefetch" href="${origin}" />`;
+      const tag = `\n    <link rel="dns-prefetch" href="${origin}" />`;
       return html.replace("</head>", `${tag}\n  </head>`);
     },
   };
 }
+
 
 
 // https://vitejs.dev/config/
