@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
@@ -54,10 +55,10 @@ const ConsultationCtaBlock = lazy(() =>
 );
 
 // Reserved placeholder to prevent CLS while a lazy section resolves.
-// Используем тот же ринг-лоадер, что в админских роут-гвардах.
+// Используем ту же иконку Loader2, что и AdminCenterLoader.
 const SectionFallback = () => (
   <div className="min-h-[600px] flex items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-hidden="true" />
+    <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
   </div>
 );
 
