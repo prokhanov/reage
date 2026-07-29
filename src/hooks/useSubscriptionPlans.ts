@@ -120,27 +120,7 @@ function buildPlansWithPricing(
           .filter(pb => pb.plan_id === plan.id)
           .map(pb => pb.biomarker_id)
       }));
-
-      const plansWithPricing: PlanWithPricing[] = (plans || []).map(plan => ({
-        ...plan,
-        features: (plan.features as string[]) || [],
-        comparison_highlights: Array.isArray(plan.comparison_highlights)
-          ? (plan.comparison_highlights as unknown as PlanHighlight[])
-          : [],
-        pricing: (pricing || [])
-          .filter(p => p.plan_id === plan.id)
-          .map(p => ({
-            ...p,
-            period: p.period as 'monthly' | 'quarterly' | 'semiannual' | 'annual'
-          })),
-        included_biomarkers: (planBiomarkers || [])
-          .filter(pb => pb.plan_id === plan.id)
-          .map(pb => pb.biomarker_id)
-      }));
-
-      return plansWithPricing;
-    },
-  });
+}
 }
 
 export function calculateSavings(monthlyPrice: number, actualPrice: number, months: number) {
