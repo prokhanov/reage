@@ -48,7 +48,33 @@
     />
     <meta name="twitter:image" content="https://reage.life/og-image.jpg" />
 
+    <!--
+      Iterator Helpers polyfill guard.
+      pdfjs-dist@6 (и ряд других зависимостей) обращается к `Iterator.prototype`
+      напрямую, предполагая наличие глобального `Iterator` (ES2025 Iterator Helpers).
+      Он есть в Chrome 122+/Safari 18.4+/Firefox 131+, но отсутствует в:
+        - iOS/iPadOS Safari <= 17.x (например 17.5.1)
+        - старых Android WebView / Samsung Internet
+        - встроенных браузерах ряда мобильных приложений
+      Без этой заглушки бандл падает с `ReferenceError: Can't find variable: Iterator`
+      ещё до маунта React, и пользователь видит бесконечный лоадер.
+      Ставим МИНИМАЛЬНЫЙ shim: пустой конструктор с prototype — этого достаточно,
+      чтобы `Iterator.prototype.join = …` и подобные присваивания отработали.
+    -->
     <script>
+      (function () {
+        try {
+          if (typeof globalThis.Iterator === "undefined") {
+            var Shim = function Iterator() {};
+            Shim.prototype = Object.create(null);
+            globalThis.Iterator = Shim;
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <script>
+
       (function () {
         function isAssetCss(link) {
           return link && link.rel === "stylesheet" && link.href && link.href.indexOf("/assets/") !== -1;
