@@ -13,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ReportV2Editor } from "./ReportV2Editor";
 import type { LabReport } from "@/lib/reportLab/types";
-import { useReportPdf } from "@/hooks/useReportPdf";
-import { ReportPdfView } from "./ReportPdfView";
 
 interface Props {
   open: boolean;
