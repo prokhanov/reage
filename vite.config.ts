@@ -46,24 +46,32 @@ function beastiesPlugin() {
           preloadFonts: false,
           logLevel: "warn",
           reduceInlineStyles: true,
-          async readFile(filename: string) {
-            // Try to read from the Vite bundle first (source of truth during build).
-            const base = path.basename(filename);
-            const bundleKey = Object.keys(ctx.bundle).find(
-              (key) => key.endsWith(`.css`) && (key === base || key.endsWith(`/${base}`) || key.endsWith(`/${path.join("assets", base)}`))
-            );
-            if (bundleKey) {
-              const asset = ctx.bundle[bundleKey];
-              if (asset && (asset.type === "asset" || "source" in asset)) {
-                return String(asset.source);
-              }
-            }
-            // Fallback to disk for any additional stylesheets not in the bundle.
-            return fs.promises.readFile(filename, "utf-8");
-          },
         });
 
+        // Override file reading so beasties reads CSS from the in-memory Vite
+        // bundle rather than from disk. This avoids race conditions where the
+        // stylesheet has not been written yet during HTML post-processing.
+        const originalReadFile = beasties.readFile.bind(beasties);
+        beasties.readFile = async (filename: string) => {
+          const bundle = ctx.bundle;
+          if (!bundle) return originalReadFile(filename);
+          const base = path.basename(filename);
+          const bundleKey = Object.keys(bundle).find(
+            (key) =>
+              key.endsWith(".css") &&
+              (key === base || key.endsWith(`/${base}`) || key.endsWith(`/assets/${base}`))
+          );
+          if (bundleKey) {
+            const asset = bundle[bundleKey];
+            if (asset && (asset.type === "asset" || "source" in asset)) {
+              return String(asset.source);
+            }
+          }
+          return originalReadFile(filename);
+        };
+
         return await beasties.process(html);
+
       },
     },
   };
