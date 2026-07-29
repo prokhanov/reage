@@ -119,18 +119,19 @@ export function ReportSection({
         ) : null;
 
         if (!bio) {
+          // В просмотре/PDF технические плейсхолдеры не показываем.
           return (
             <div key={i}>
               {insertBefore}
-              <div
-                className="rl-prose"
-                style={{ opacity: 0.5, fontSize: "9pt" }}
-              >
-                [биомаркер «{b.code}» не найден в снапшоте]
-              </div>
+              {isEdit && (
+                <div className="rl-prose" style={{ opacity: 0.5, fontSize: "9pt" }}>
+                  [биомаркер «{b.code}» не найден в снапшоте]
+                </div>
+              )}
             </div>
           );
         }
+
         return (
           <div key={i}>
             {insertBefore}
