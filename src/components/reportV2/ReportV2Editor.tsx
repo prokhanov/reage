@@ -12,7 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { notify as toast } from "@/lib/toast";
-import { PagedReportPreview, ReportDocument } from "@/lib/reportLab/renderer";
+import { PagedReportPreview } from "@/lib/reportLab/renderer";
 import { ReportEditorShell, ReportEditorToolbar } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
@@ -922,17 +922,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Alert>
         )}
         {withNav(
-          paginated ? (
-            <PagedReportPreview
-              report={report}
-              editable={false}
-              drafts={EMPTY_DRAFTS}
-              onEditChange={() => {}}
-              height={fullHeight ? "100%" : "85vh"}
-            />
-          ) : (
-            <ReportDocument report={report} />
-          ),
+          <PagedReportPreview
+            report={report}
+            layout="flow"
+            editable={false}
+            drafts={EMPTY_DRAFTS}
+            onEditChange={() => {}}
+            height={fullHeight ? "100%" : "85vh"}
+          />,
         )}
       </div>
     );
@@ -1041,7 +1038,7 @@ function EditablePreview({
   height?: string | number;
 }) {
   const ctx = useReportEditor();
-  if (!paginated) return <ReportDocument report={report} />;
+  void paginated;
   // ВАЖНО: во время набора мы НЕ обновляем React-состояние drafts,
   // иначе Paged.js перезапускает полную пагинацию на каждый keystroke
   // (курсор прыгает, ощутимые лаги). Правки уже видны в DOM
@@ -1050,6 +1047,7 @@ function EditablePreview({
   return (
     <PagedReportPreview
       report={report}
+      layout="flow"
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
       onEditChange={() => {
