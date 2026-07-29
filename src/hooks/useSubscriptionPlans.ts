@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getLandingBootstrap } from "@/lib/landingBootstrap";
 
 export interface PlanHighlight {
   label: string;
