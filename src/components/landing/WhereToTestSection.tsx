@@ -75,6 +75,22 @@ export function WhereToTestSection() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const boot = getLandingBootstrap();
+      if (boot) {
+        try {
+          const b = await boot;
+          if (cancelled) return;
+          const locs = b.labLocations as unknown as LabMapItem[];
+          setItems(locs);
+          const c = (b.labMapContext ?? null) as unknown as LandingContext | null;
+          setCtx(c);
+          if (c?.default_city === "spb") setCity("spb");
+          setLoading(false);
+          return;
+        } catch {
+          // fallback ниже
+        }
+      }
       const [locsRes, ctxRes] = await Promise.all([
         supabase
           .from("lab_locations")
