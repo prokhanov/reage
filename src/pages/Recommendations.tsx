@@ -1015,10 +1015,6 @@ export default function Recommendations() {
               <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
                 Ваши отчёты скоро появятся здесь
               </h3>
-              <p className="text-muted-foreground text-center max-w-md leading-relaxed">
-                После добавления и анализа ваших медицинских показателей, 
-                система сгенерирует персональные отчёты для улучшения здоровья.
-              </p>
             </CardContent>
           </Card>
         ) : (
