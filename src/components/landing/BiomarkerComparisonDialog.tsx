@@ -94,15 +94,47 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
     enabled: open,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const [biomarkersRes, categoriesRes, planBiomarkersRes] = await Promise.all([
-        supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
-        supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
-        supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
-      ]);
+      let biomarkers: any[] = [];
+      let categories: any[] = [];
+      let planBiomarkers: any[] = [];
 
-      if (biomarkersRes.error) throw biomarkersRes.error;
-      if (categoriesRes.error) throw categoriesRes.error;
-      if (planBiomarkersRes.error) throw planBiomarkersRes.error;
+      const boot = getLandingBootstrap();
+      let useBoot = false;
+      if (boot) {
+        try {
+          const b = await boot;
+          biomarkers = b.biomarkers;
+          categories = b.biomarkerCategories;
+          planBiomarkers = b.planBiomarkers;
+          useBoot = true;
+        } catch {
+          // fallback below
+        }
+      }
+
+      if (!useBoot) {
+        const [biomarkersRes, categoriesRes, planBiomarkersRes] = await Promise.all([
+          supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
+          supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
+          supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+        ]);
+        if (biomarkersRes.error) throw biomarkersRes.error;
+        if (categoriesRes.error) throw categoriesRes.error;
+        if (planBiomarkersRes.error) throw planBiomarkersRes.error;
+        biomarkers = biomarkersRes.data ?? [];
+        categories = categoriesRes.data ?? [];
+        planBiomarkers = planBiomarkersRes.data ?? [];
+      }
+
+      const biomarkerToPlans = new Map<string, Set<string>>();
+      planBiomarkers.forEach((pb) => {
+        const set = biomarkerToPlans.get(pb.biomarker_id) ?? new Set<string>();
+        set.add(pb.plan_id);
+        biomarkerToPlans.set(pb.biomarker_id, set);
+      });
+
+      const categoryOrder = new Map<string, number>();
+      categories.forEach((c) => categoryOrder.set(c.name, c.display_order));
 
       const biomarkerToPlans = new Map<string, Set<string>>();
       (planBiomarkersRes.data ?? []).forEach((pb) => {
