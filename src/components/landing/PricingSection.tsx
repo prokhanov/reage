@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getLandingBootstrap } from "@/lib/landingBootstrap";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
