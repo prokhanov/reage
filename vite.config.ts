@@ -116,6 +116,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       beastiesPlugin(),
+      landingBootstrapPreconnectPlugin(backendUrl),
       // Must run in dev too — imports across the app use imagetools query params
       // (`?format=avif&quality=68&url`); without the plugin those requests return
       // raw PNG bytes and the browser rejects them as invalid JS modules.
