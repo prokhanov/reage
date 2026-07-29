@@ -54,6 +54,15 @@ export function ReportSection({
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
 
+  // Фолбэк: коды вида «D25OH» vs «25-OH D» — сравниваем по отсортированным символам.
+  const fuzzyKey = (code: string) => normalizeCode(code).split("").sort().join("");
+  const fuzzyIndex = new Map<string, ReportBiomarker>();
+  biomarkerByCode.forEach((bio, code) => {
+    const key = fuzzyKey(code);
+    if (!fuzzyIndex.has(key)) fuzzyIndex.set(key, bio);
+  });
+
+
   return (
     <section className="rl-page" data-section-id={`category-${index}`}>
       <header className="rl-section-header">
