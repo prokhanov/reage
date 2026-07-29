@@ -121,7 +121,6 @@ function buildPlansWithPricing(
           .map(pb => pb.biomarker_id)
       }));
 }
-}
 
 export function calculateSavings(monthlyPrice: number, actualPrice: number, months: number) {
   const totalMonthlyPrice = monthlyPrice * months;
