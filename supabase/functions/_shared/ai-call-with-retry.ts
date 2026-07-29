@@ -45,12 +45,20 @@ async function fetchOnce(body: string, apiKey: string) {
   });
 }
 
+/**
+ * Жёсткий потолок выходных токенов.
+ * Gemini 2.5 Pro принимает maxOutputTokens только до 65536 — при большем
+ * значении шлюз возвращает 400 и генерация секции падает.
+ */
+const MAX_OUTPUT_TOKENS_CAP = 65536;
+
 function buildBody(opts: AiCallOptions, reasoning: ReasoningEffort | undefined) {
   const payload: Record<string, unknown> = {
     model: opts.model,
     messages: opts.messages,
-    max_completion_tokens: opts.maxCompletionTokens,
+    max_completion_tokens: Math.min(opts.maxCompletionTokens, MAX_OUTPUT_TOKENS_CAP),
   };
+
   if (reasoning) payload.reasoning = { effort: reasoning };
   if (opts.temperature !== undefined) payload.temperature = opts.temperature;
   if (opts.tools) payload.tools = opts.tools;
