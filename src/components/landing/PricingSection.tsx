@@ -358,6 +358,20 @@ export function PricingSection() {
     queryKey: ["pricing-biomarkers"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
+      const boot = getLandingBootstrap();
+      if (boot) {
+        try {
+          const b = await boot;
+          const categoryOrder = new Map<string, number>();
+          b.biomarkerCategories.forEach((c) => categoryOrder.set(c.name, c.display_order));
+          return {
+            biomarkers: b.biomarkers as BiomarkerRow[],
+            categoryOrder,
+          };
+        } catch {
+          // fallback
+        }
+      }
       const [bRes, cRes] = await Promise.all([
         supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
         supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
