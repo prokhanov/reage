@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Home, Building2, MapPin, ChevronDown } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { getLandingBootstrap } from "@/lib/landingBootstrap";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import LabLocationsMap, {
   type LabMapItem,
