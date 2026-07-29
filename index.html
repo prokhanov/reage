@@ -65,6 +65,15 @@
           return link && link.rel === "stylesheet" && link.href && link.href.indexOf("/assets/") !== -1;
         }
 
+        function forceReloadOnce(reason) {
+          try {
+            if (sessionStorage.getItem("rl-chunk-reloaded") === "1") return;
+            sessionStorage.setItem("rl-chunk-reloaded", "1");
+          } catch (e) {}
+          console.warn("[RL] " + reason + " — reloading once");
+          location.reload();
+        }
+
         function retry(link) {
           if (link.dataset.rlRetried) return;
           link.dataset.rlRetried = "true";
@@ -75,6 +84,11 @@
             newLink.rel = "stylesheet";
             newLink.href = link.href + separator + "retry=" + Date.now();
             if (link.crossOrigin) newLink.crossOrigin = link.crossOrigin;
+            // Если ретрай тоже упал — значит asset реально удалён (deploy race,
+            // старый закешированный HTML). Форсируем reload, чтобы получить свежий index.html.
+            newLink.addEventListener("error", function () {
+              forceReloadOnce("CSS retry also failed for " + link.href);
+            }, { once: true });
             if (link.parentNode) link.parentNode.insertBefore(newLink, link.nextSibling);
           } catch (e) {
             // If retry fails, leave the original link for inspection.
@@ -86,6 +100,7 @@
           link.dataset.rlWatched = "true";
           link.addEventListener("error", function () { retry(link); }, { once: true });
         }
+
 
         var links = document.querySelectorAll('link[rel="stylesheet"]');
         for (var i = 0; i < links.length; i++) watch(links[i]);
