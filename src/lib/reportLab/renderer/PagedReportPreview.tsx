@@ -688,7 +688,8 @@ export function PagedReportPreview({
   // соответствовал видимому контенту, а горизонтальный не появлялся.
   const shellRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (chrome !== "framed") return;
+    if (chrome !== "framed" || layout === "flow") return;
+
     const shell = shellRef.current;
     const output = outputRef.current;
     if (!shell || !output) return;
