@@ -10,18 +10,29 @@
     />
     <meta name="author" content="ReAge" />
 
-    <!-- Yandex.Metrika counter -->
+    <!-- Yandex.Metrika counter (loader deferred to idle to keep FCP fast) -->
     <script type="text/javascript">
-      (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-      })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109706546', 'ym');
-
+      // Ставим stub сразу, чтобы `ym(...)` работал синхронно и очередил вызовы.
+      window.ym = window.ym || function () { (window.ym.a = window.ym.a || []).push(arguments); };
+      window.ym.l = 1 * new Date();
       ym(109706546, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+      (function () {
+        function loadYm() {
+          for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === 'https://mc.yandex.ru/metrika/tag.js?id=109706546') return; }
+          var s = document.createElement('script'); s.async = true; s.src = 'https://mc.yandex.ru/metrika/tag.js?id=109706546';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(s, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadYm, { timeout: 4000 });
+          else setTimeout(loadYm, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
     </script>
     <!-- /Yandex.Metrika counter -->
+
+
 
     <link rel="canonical" href="https://reage.life/" />
     <meta property="og:title" content="ReAge — Система наблюдения за здоровьем" />
@@ -126,10 +137,9 @@
       }
     </script>
 
-    <!-- Top.Mail.Ru counter -->
+    <!-- Top.Mail.Ru counter (loader deferred to idle) -->
     <script type="text/javascript">
       var _tmr = window._tmr || (window._tmr = []);
-      // [vk] debug wrapper — logs every _tmr.push (pageView, reachGoal, etc.)
       try {
         var __tmrOrigPush = _tmr.push.bind(_tmr);
         _tmr.push = function () {
@@ -138,24 +148,42 @@
         };
       } catch (e) { console.log("[vk] wrap _tmr.push failed", e); }
       _tmr.push({id: "3780512", type: "pageView", start: (new Date()).getTime()});
-      (function (d, w, id) {
-        if (d.getElementById(id)) return;
-        var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
-        ts.src = "https://top-fwz1.mail.ru/js/code.js";
-        var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
-        if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
-      })(document, window, "tmr-code");
+      (function () {
+        function loadTmr() {
+          if (document.getElementById('tmr-code')) return;
+          var ts = document.createElement('script'); ts.type = 'text/javascript'; ts.async = true; ts.id = 'tmr-code';
+          ts.src = 'https://top-fwz1.mail.ru/js/code.js';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(ts, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadTmr, { timeout: 4000 });
+          else setTimeout(loadTmr, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
     </script>
-
     <!-- /Top.Mail.Ru counter -->
 
-    <!-- Telegram Pixel -->
+    <!-- Telegram Pixel (deferred to idle) -->
     <script type="text/javascript">
-      (function(t,g,p){t.tgpTrackId=p;var s=g.createElement('script');s.async=1;
-      s.src='https://telegram.org/js/pixel.js';var f=g.getElementsByTagName('script')[0];
-      f.parentNode.insertBefore(s,f);})(window,document,'U8ii6Wnr');
+      (function () {
+        window.tgpTrackId = 'U8ii6Wnr';
+        function loadTgp() {
+          var s = document.createElement('script'); s.async = true; s.src = 'https://telegram.org/js/pixel.js';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(s, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadTgp, { timeout: 4000 });
+          else setTimeout(loadTgp, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
     </script>
     <!-- /Telegram Pixel -->
+
+
 
     <!-- Jivo (deferred to idle to keep landing fast) -->
     <script type="text/javascript">
