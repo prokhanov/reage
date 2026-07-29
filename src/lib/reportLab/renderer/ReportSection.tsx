@@ -181,7 +181,9 @@ export function ReportSection({
             />
           </div>
         );
-      })}
+        });
+      })()}
+
 
       {hasBiomarker && recommendationId && (
         <InsertSlot editableId={`rec:${recommendationId}#insert:${bioIndex}`} />
