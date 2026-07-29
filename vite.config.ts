@@ -19,6 +19,36 @@ function normalizeBackendUrl(rawUrl?: string) {
   }
 }
 
+/**
+ * Inlines critical CSS and converts the remaining stylesheet into an
+ * asynchronous preload+swap so the browser never blocks first paint on CSS.
+ */
+function beastiesPlugin() {
+  const beasties = new Beasties({
+    path: "dist",
+    publicPath: "/",
+    inlineThreshold: 14_000,
+    preload: "swap",
+    noscriptFallback: true,
+    fonts: false,
+    preloadFonts: false,
+    logLevel: "warn",
+    reduceInlineStyles: true,
+  });
+
+  return {
+    name: "beasties",
+    apply: "build" as const,
+    transformIndexHtml: {
+      enforce: "post" as const,
+      async transform(html: string, ctx: IndexHtmlTransformContext) {
+        if (!ctx?.bundle) return html;
+        return await beasties.process(html);
+      },
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -34,13 +64,14 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
-      injectMainCssPreload(),
+      beastiesPlugin(),
       // Must run in dev too — imports across the app use imagetools query params
       // (`?format=avif&quality=68&url`); without the plugin those requests return
       // raw PNG bytes and the browser rejects them as invalid JS modules.
       imagetools(),
       mode === "development" && componentTagger(),
     ].filter(Boolean),
+
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
