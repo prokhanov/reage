@@ -644,6 +644,18 @@ async function handleRegenerateSummary(supabase: any, body: any) {
       .eq("id", existing.id);
   }
 
+  // ВАЖНО: prescriptions.recommendation_id ссылается на «Общее резюме».
+  // Раньше здесь был прямой DELETE — он каскадно сносил ВСЕ нутрицевтики
+  // пациента. Сначала отвязываем назначения, только потом удаляем резюме.
+  const { error: unlinkErr } = await supabase
+    .from("prescriptions")
+    .update({ recommendation_id: null })
+    .eq("analysis_id", analysisId);
+  if (unlinkErr) {
+    console.error("[regenerate_summary] unlink prescriptions failed:", unlinkErr.message);
+    return json({ success: false, error: "Не удалось подготовить перегенерацию резюме" }, 500);
+  }
+
   // Удаляем старое общее резюме, чтобы finalize/summary сгенерировал заново.
   const { error: delErr } = await supabase
     .from("recommendations")
@@ -651,6 +663,7 @@ async function handleRegenerateSummary(supabase: any, body: any) {
     .eq("analysis_id", analysisId)
     .eq("type", "Общее резюме");
   if (delErr) console.warn("[regenerate_summary] delete old summary:", delErr.message);
+
 
   const steps: StepDef[] = [{
     id: "finalize:summary",
