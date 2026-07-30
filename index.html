@@ -233,7 +233,8 @@
         window.__RL_BOOT_DIAG__ = window.__RL_BOOT_DIAG__ || {
           events: [],
           record: recordDiagnostic,
-          show: showDiagnostic,
+          // Ручной вызов из консоли рисует панель сразу и на любом маршруте.
+          show: function (reason, detail) { return showDiagnostic(reason, detail, true); },
           payload: buildPayload,
           checkCss: checkCssApplied,
         };
