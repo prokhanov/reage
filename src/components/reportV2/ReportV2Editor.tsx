@@ -607,13 +607,88 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [analysisId, userId, regenCategory, reloadReport],
   );
 
-  // Клики по кнопкам [data-rl-regenerate-category] / [data-rl-regenerate-summary].
+  /**
+   * Перегенерация только раздела «Рекомендации» (назначения/нутрицевтики).
+   * Источник — показатели анализа + уже готовые категорийные разделы отчёта.
+   * Тексты резюме и категорий не трогаются.
+   */
+  const regeneratePrescriptions = useCallback(async () => {
+    if (regenCategory) {
+      toast.info("Уже идёт перегенерация", `Раздел «${regenCategory}»`);
+      return;
+    }
+    if (
+      !window.confirm(
+        "Перегенерировать раздел «Рекомендации»? Текущие назначения и нутрицевтики будут удалены и собраны ИИ заново на основе показателей анализа.",
+      )
+    ) {
+      return;
+    }
+    setRegenCategory("Рекомендации");
+    try {
+      const endpoint = edgeFunctionUrl("report-orchestrator");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const startRes = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: "regenerate_prescriptions", analysisId, userId }),
+      });
+      const startJson = await startRes.json().catch(() => ({}));
+      if (!startRes.ok || !startJson?.success) {
+        throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+      }
+      const jobId = startJson.jobId as string;
+      const deadline = Date.now() + 6 * 60_000;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        if (Date.now() > deadline) throw new Error("Таймаут ожидания генерации");
+        await new Promise((r) => setTimeout(r, 3000));
+        const statusRes = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ action: "status", jobId }),
+        });
+        const statusJson = await statusRes.json().catch(() => ({}));
+        const s = statusJson?.job?.status;
+        if (s === "completed" || s === "success" || s === "done") break;
+        if (s === "failed" || s === "error") {
+          throw new Error(statusJson?.job?.error || "Ошибка генерации");
+        }
+      }
+      await reloadReport(true);
+      toast.success("Рекомендации перегенерированы");
+    } catch (e) {
+      console.error("[ReportV2Editor] regeneratePrescriptions failed", e);
+      toast.error("Не удалось перегенерировать", e instanceof Error ? e.message : String(e));
+    } finally {
+      setRegenCategory(null);
+    }
+  }, [analysisId, userId, regenCategory, reloadReport]);
+
+  // Клики по кнопкам [data-rl-regenerate-category] / [data-rl-regenerate-summary] /
+  // [data-rl-regenerate-prescriptions].
   // Слушаем и на контейнере (capture), и на document (fallback на случай, когда
   // paged.js кладёт контент так, что событие не поднимается до контейнера).
   useEffect(() => {
     const el = previewContainerRef.current;
     const handler = (ev: MouseEvent) => {
       const target = ev.target as HTMLElement | null;
+      const rxBtn = target?.closest("[data-rl-regenerate-prescriptions]") as HTMLElement | null;
+      if (rxBtn) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        void regeneratePrescriptions();
+        return;
+      }
       const summaryBtn = target?.closest("[data-rl-regenerate-summary]") as HTMLElement | null;
       if (summaryBtn) {
         ev.preventDefault();
@@ -635,7 +710,8 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       el?.removeEventListener("click", handler, true);
       document.removeEventListener("click", handler, true);
     };
-  }, [regenerateCategory, regenerateSummary]);
+  }, [regenerateCategory, regenerateSummary, regeneratePrescriptions]);
+
 
 
 
