@@ -693,4 +693,90 @@ async function handleRegenerateSummary(supabase: any, body: any) {
   return json({ success: true, jobId: job.id, steps_total: 1 });
 }
 
+/**
+ * Перегенерация ТОЛЬКО раздела «Рекомендации» (назначения/нутрицевтики).
+ *
+ * Источник данных — сырые значения анализа (analysis_values) + уже готовые
+ * категорийные разделы отчёта из БД (их подхватывает analyze-biomarkers при
+ * skipCategories=true). Тексты общего резюме и категорий НЕ трогаются.
+ */
+async function handleRegeneratePrescriptions(supabase: any, body: any) {
+  const { analysisId, userId } = body;
+  const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  if (!analysisId || !userId) {
+    return json({ success: false, error: "analysisId, userId обязательны" }, 400);
+  }
+
+  // Не запускаем поверх активной джобы.
+  const { data: existing } = await supabase
+    .from("report_jobs")
+    .select("id, updated_at")
+    .eq("analysis_id", analysisId)
+    .in("status", ["queued", "running"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    const ageMs = Date.now() - new Date(existing.updated_at).getTime();
+    if (ageMs < STALE_RUNNING_THRESHOLD_MS) {
+      return json({ success: false, error: "Уже идёт генерация отчёта, дождитесь завершения" }, 409);
+    }
+    await supabase.from("report_jobs")
+      .update({ status: "failed", error: "stalled", finished_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  }
+
+  // Чистим прошлые назначения этого анализа: шаг идёт со skipDelete=true,
+  // сам analyze-biomarkers ничего не удаляет, иначе получим дубли.
+  const { error: rxDelErr } = await supabase
+    .from("prescriptions")
+    .delete()
+    .eq("analysis_id", analysisId);
+  if (rxDelErr) {
+    console.error("[regenerate_prescriptions] delete prescriptions failed:", rxDelErr.message);
+    return json({ success: false, error: "Не удалось очистить старые назначения" }, 500);
+  }
+
+  // И текстовый блок «Назначения» — он пересоберётся заново.
+  const { error: recDelErr } = await supabase
+    .from("recommendations")
+    .delete()
+    .eq("analysis_id", analysisId)
+    .eq("type", "Назначения");
+  if (recDelErr) console.warn("[regenerate_prescriptions] delete old block:", recDelErr.message);
+
+  const steps: StepDef[] = [{
+    id: "prescriptions",
+    label: "Рекомендации",
+    kind: "prescriptions",
+    payload: {
+      skipDelete: true,
+      skipCategories: true,
+      skipPrescriptions: false,
+      skipFinalize: true,
+    },
+  }];
+
+  const { data: job, error: insErr } = await supabase
+    .from("report_jobs")
+    .insert({
+      analysis_id: analysisId,
+      user_id: userId,
+      mode,
+      status: "running",
+      steps,
+      steps_total: 1,
+      steps_done: 0,
+      current_step: steps[0].id,
+      metadata: { started_via: "orchestrator", regenerate_prescriptions: true },
+    })
+    .select("*")
+    .single();
+  if (insErr) throw insErr;
+
+  scheduleTick(job.id);
+  return json({ success: true, jobId: job.id, steps_total: 1 });
+}
+
+
 
