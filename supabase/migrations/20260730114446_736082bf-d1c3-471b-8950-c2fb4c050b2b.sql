@@ -1,0 +1,2 @@
+ALTER TABLE public.prescriptions DROP CONSTRAINT prescriptions_recommendation_id_fkey;
+ALTER TABLE public.prescriptions ADD CONSTRAINT prescriptions_recommendation_id_fkey FOREIGN KEY (recommendation_id) REFERENCES public.recommendations(id) ON DELETE SET NULL;
