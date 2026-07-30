@@ -128,7 +128,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
 
   return (
     <section className="rl-page" data-section-id="prescriptions">
+      {editing && <RegeneratePrescriptionsButton />}
       <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
+
 
       {prescriptions.length > 0 && (
         <div style={{ marginBottom: "8mm" }}>
