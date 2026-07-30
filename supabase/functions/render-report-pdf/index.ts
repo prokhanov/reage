@@ -267,7 +267,7 @@ async function previewSupportsSnapshot(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PREVIEW_SUPPORT_TIMEOUT_MS);
   const MARKERS = ["fetch-report-snapshot", "snapshot_loaded"];
-  const MAX_ASSETS = 60;
+  const MAX_ASSETS = 400;
   try {
     const htmlRes = await fetch(`${previewBase}/internal/report-preview`, {
       headers: {
