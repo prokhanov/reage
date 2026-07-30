@@ -267,7 +267,7 @@ async function previewSupportsSnapshot(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PREVIEW_SUPPORT_TIMEOUT_MS);
   const MARKERS = ["fetch-report-snapshot", "snapshot_loaded"];
-  const MAX_ASSETS = 60;
+  const MAX_ASSETS = 400;
   try {
     const htmlRes = await fetch(`${previewBase}/internal/report-preview`, {
       headers: {
@@ -298,7 +298,9 @@ async function previewSupportsSnapshot(
       if (!url.startsWith(previewBase)) return;
       if (seen.has(url)) return;
       seen.add(url);
-      queue.push(url);
+      // Чанки страницы отчёта проверяем в первую очередь.
+      if (/report|preview|snapshot/i.test(url)) queue.unshift(url);
+      else queue.push(url);
     };
 
     for (const m of html.matchAll(/(?:src|href)=["']([^"']+\.js)["']/gi)) push(m[1]);
