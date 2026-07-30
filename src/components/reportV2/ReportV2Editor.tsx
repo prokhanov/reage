@@ -1093,6 +1093,38 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         }}
       />
 
+      <Dialog open={qaOpen} onOpenChange={(open) => { if (!qaRunning) setQaOpen(open); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {qaRunning ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
+              Проверка отчёта на валидность
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] space-y-1 overflow-auto rounded-md border bg-muted/30 p-3 text-xs">
+            {qaEvents.map((evt, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "whitespace-pre-wrap",
+                  evt.type === "error" && "text-destructive",
+                  evt.type === "done" && "font-medium text-foreground",
+                  evt.type !== "error" && evt.type !== "done" && "text-muted-foreground",
+                )}
+              >
+                {evt.message}
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
+
       <Dialog
         open={pdfPreviewOpen}
         onOpenChange={(open) => {
