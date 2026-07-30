@@ -823,6 +823,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       {canPublish && (
         <Button
           size="sm"
+          variant="outline"
+          onClick={runQaCheck}
+          disabled={qaRunning}
+          title="Прогнать отчёт через ИИ-валидатор и починить противоречия"
+        >
+          {qaRunning ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ShieldCheck className="mr-2 h-4 w-4" />
+          )}
+          Проверить на валидность
+        </Button>
+      )}
+      {canPublish && (
+        <Button
+          size="sm"
           variant={docStatus === "published" ? "outline" : "default"}
           onClick={publish}
           disabled={publishing || docStatus === "published"}
