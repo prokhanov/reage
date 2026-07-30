@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText } from "lucide-react";
+import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -210,6 +210,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  // QA-проверка отчёта («Проверить на валидность») — стрим событий из report-qa.
+  const [qaRunning, setQaRunning] = useState(false);
+  const [qaOpen, setQaOpen] = useState(false);
+  const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
   // Финальная пагинация считается на сервере — этот просмотр показывает то,
   // что реально увидит пациент (Paged.js в редакторе — только черновой ориентир).
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
@@ -299,6 +303,93 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     },
     [analysisId, userId, onSaved],
   );
+
+  /**
+   * «Проверить на валидность» — прогоняет отчёт через edge-функцию report-qa
+   * (стрим SSE-событий) и, если ИИ что-то починил, пересобирает документ
+   * из свежего черновика.
+   */
+  const runQaCheck = useCallback(async () => {
+    if (qaRunning) return;
+    setQaRunning(true);
+    setQaOpen(true);
+    setQaEvents([{ type: "status", message: "Запускаю проверку отчёта…" }]);
+    const abortController = new AbortController();
+    let lastEventAt = Date.now();
+    let qaFinished = false;
+    const hardTimeout = window.setTimeout(() => abortController.abort(), 10 * 60 * 1000);
+    const idleTimer = window.setInterval(() => {
+      if (Date.now() - lastEventAt > 90 * 1000) abortController.abort();
+    }, 5000);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Сессия не найдена. Обновите страницу и войдите снова.");
+      const resp = await fetch(edgeFunctionUrl("report-qa"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysisId }),
+        signal: abortController.signal,
+      });
+      if (!resp.ok || !resp.body) {
+        throw new Error(`QA failed: ${resp.status} ${await resp.text()}`);
+      }
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let streamDone = false;
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        lastEventAt = Date.now();
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, nl);
+          buf = buf.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            setQaEvents((prev) => [...prev, evt]);
+            if (evt.type === "done" || evt.type === "error") {
+              qaFinished = true;
+              streamDone = true;
+              if (evt.type === "error") toast.error("Ошибка проверки", evt.message);
+              break;
+            }
+          } catch {
+            // неполная строка — дособерём на следующей итерации
+          }
+        }
+      }
+      if (!qaFinished) {
+        throw new Error("Проверка прервалась без финального статуса. Запустите её ещё раз.");
+      }
+      // QA мог переписать текст разделов — пересобираем документ из свежих данных.
+      await reloadReport(true);
+      toast.success("Проверка завершена", "Отчёт перезагружен в редакторе.");
+    } catch (e) {
+      const message =
+        (e as { name?: string })?.name === "AbortError"
+          ? "Проверка не ответила вовремя. Запустите её ещё раз."
+          : e instanceof Error
+            ? e.message
+            : String(e);
+      setQaEvents((prev) => [...prev, { type: "error", message }]);
+      toast.error("Ошибка", message);
+    } finally {
+      window.clearTimeout(hardTimeout);
+      window.clearInterval(idleTimer);
+      setQaRunning(false);
+    }
+  }, [analysisId, qaRunning, reloadReport]);
+
+
 
   // ── Рекомендации: те же записи, что и в разделе ЛК «Рекомендации» ──────────
   const [rxEditRow, setRxEditRow] = useState<Record<string, unknown> | null>(null);
@@ -732,6 +823,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       {canPublish && (
         <Button
           size="sm"
+          variant="outline"
+          onClick={runQaCheck}
+          disabled={qaRunning}
+          title="Прогнать отчёт через ИИ-валидатор и починить противоречия"
+        >
+          {qaRunning ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ShieldCheck className="mr-2 h-4 w-4" />
+          )}
+          Проверить на валидность
+        </Button>
+      )}
+      {canPublish && (
+        <Button
+          size="sm"
           variant={docStatus === "published" ? "outline" : "default"}
           onClick={publish}
           disabled={publishing || docStatus === "published"}
@@ -814,6 +921,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
             <Send className="mr-2 h-4 w-4" />
             {publishLabel}
+          </DropdownMenuItem>
+        )}
+        {canPublish && (
+          <DropdownMenuItem onSelect={() => void runQaCheck()} disabled={qaRunning}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Проверить на валидность
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
@@ -979,6 +1092,38 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           void refreshPrescriptions();
         }}
       />
+
+      <Dialog open={qaOpen} onOpenChange={(open) => { if (!qaRunning) setQaOpen(open); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {qaRunning ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
+              Проверка отчёта на валидность
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] space-y-1 overflow-auto rounded-md border bg-muted/30 p-3 text-xs">
+            {qaEvents.map((evt, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "whitespace-pre-wrap",
+                  evt.type === "error" && "text-destructive",
+                  evt.type === "done" && "font-medium text-foreground",
+                  evt.type !== "error" && evt.type !== "done" && "text-muted-foreground",
+                )}
+              >
+                {evt.message}
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
 
       <Dialog
         open={pdfPreviewOpen}
