@@ -147,8 +147,14 @@
           return payload;
         }
 
-        function showDiagnostic(reason, detail) {
-          var payload = sendDiagnostic(reason, detail);
+        // Баннер показываем только на лендинге: во внутренних разделах он пугает
+        // пациентов и не несёт пользы (телеметрия при этом уходит везде).
+        function isLandingRoute() {
+          var path = location.pathname || '/';
+          return path === '/' || path === '/index.html';
+        }
+
+        function renderDiagnosticPanel(payload) {
           var panel = document.getElementById('rl-load-diagnostics');
           if (!panel) {
             panel = document.createElement('div');
@@ -158,6 +164,34 @@
             document.documentElement.appendChild(panel);
           }
           panel.textContent = 'ReAge: ошибка загрузки ' + payload.reason + ' • код ' + payload.code + ' • CSS ' + payload.css.length + ' • JS ' + payload.js.length + ' • ' + payload.connection;
+        }
+
+        // Через 5 секунд приложение обычно уже дорисовалось (ретрай CSS / медленная
+        // сеть). Показываем баннер только если проблема реально осталась.
+        function pageLooksBroken() {
+          var root = document.getElementById('root');
+          var rendered = !!(root && root.children && root.children.length > 0);
+          return !checkCssApplied(true) || !rendered;
+        }
+
+        var pendingPanelTimer = null;
+        var pendingPayload = null;
+
+        function showDiagnostic(reason, detail, immediate) {
+          var payload = sendDiagnostic(reason, detail);
+          if (!isLandingRoute() && !immediate) return payload;
+          if (immediate) {
+            renderDiagnosticPanel(payload);
+            return payload;
+          }
+          pendingPayload = payload;
+          if (pendingPanelTimer !== null) return payload;
+          pendingPanelTimer = setTimeout(function () {
+            pendingPanelTimer = null;
+            if (!pageLooksBroken()) return;
+            renderDiagnosticPanel(pendingPayload || payload);
+          }, 5000);
+          return payload;
         }
 
         function recordDiagnostic(type, detail, critical) {
@@ -174,7 +208,7 @@
           if (critical) showDiagnostic(event.type, event.detail);
         }
 
-        function checkCssApplied() {
+        function checkCssApplied(silent) {
           if (!document.body) return true;
           var probe = document.createElement('div');
           probe.className = 'hidden text-primary bg-background';
@@ -183,15 +217,17 @@
           var cssWorks = false;
           try { cssWorks = getComputedStyle(probe).display === 'none'; } catch (e) {}
           if (probe.parentNode) probe.parentNode.removeChild(probe);
-          if (!cssWorks) {
+          if (!cssWorks && !silent) {
             recordDiagnostic('CSS_MISSING', 'Tailwind utility classes are not applied', true);
           }
           return cssWorks;
         }
 
         function scheduleCssChecks() {
-          setTimeout(checkCssApplied, 2500);
-          setTimeout(checkCssApplied, 7000);
+          // Ранняя проверка — «тихая» (только запись события), чтобы не пугать
+          // пользователей на медленных сетях. Показ — только по поздней проверке.
+          setTimeout(function () { checkCssApplied(true); }, 2500);
+          setTimeout(function () { checkCssApplied(false); }, 7000);
         }
 
         window.__RL_BOOT_DIAG__ = window.__RL_BOOT_DIAG__ || {
