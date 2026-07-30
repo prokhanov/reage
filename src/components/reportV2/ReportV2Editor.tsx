@@ -304,6 +304,93 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     [analysisId, userId, onSaved],
   );
 
+  /**
+   * «Проверить на валидность» — прогоняет отчёт через edge-функцию report-qa
+   * (стрим SSE-событий) и, если ИИ что-то починил, пересобирает документ
+   * из свежего черновика.
+   */
+  const runQaCheck = useCallback(async () => {
+    if (qaRunning) return;
+    setQaRunning(true);
+    setQaOpen(true);
+    setQaEvents([{ type: "status", message: "Запускаю проверку отчёта…" }]);
+    const abortController = new AbortController();
+    let lastEventAt = Date.now();
+    let qaFinished = false;
+    const hardTimeout = window.setTimeout(() => abortController.abort(), 10 * 60 * 1000);
+    const idleTimer = window.setInterval(() => {
+      if (Date.now() - lastEventAt > 90 * 1000) abortController.abort();
+    }, 5000);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Сессия не найдена. Обновите страницу и войдите снова.");
+      const resp = await fetch(edgeFunctionUrl("report-qa"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysisId }),
+        signal: abortController.signal,
+      });
+      if (!resp.ok || !resp.body) {
+        throw new Error(`QA failed: ${resp.status} ${await resp.text()}`);
+      }
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let streamDone = false;
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        lastEventAt = Date.now();
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, nl);
+          buf = buf.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            setQaEvents((prev) => [...prev, evt]);
+            if (evt.type === "done" || evt.type === "error") {
+              qaFinished = true;
+              streamDone = true;
+              if (evt.type === "error") toast.error("Ошибка проверки", evt.message);
+              break;
+            }
+          } catch {
+            // неполная строка — дособерём на следующей итерации
+          }
+        }
+      }
+      if (!qaFinished) {
+        throw new Error("Проверка прервалась без финального статуса. Запустите её ещё раз.");
+      }
+      // QA мог переписать текст разделов — пересобираем документ из свежих данных.
+      await reloadReport(true);
+      toast.success("Проверка завершена", "Отчёт перезагружен в редакторе.");
+    } catch (e) {
+      const message =
+        (e as { name?: string })?.name === "AbortError"
+          ? "Проверка не ответила вовремя. Запустите её ещё раз."
+          : e instanceof Error
+            ? e.message
+            : String(e);
+      setQaEvents((prev) => [...prev, { type: "error", message }]);
+      toast.error("Ошибка", message);
+    } finally {
+      window.clearTimeout(hardTimeout);
+      window.clearInterval(idleTimer);
+      setQaRunning(false);
+    }
+  }, [analysisId, qaRunning, reloadReport]);
+
+
+
   // ── Рекомендации: те же записи, что и в разделе ЛК «Рекомендации» ──────────
   const [rxEditRow, setRxEditRow] = useState<Record<string, unknown> | null>(null);
   const [rxDialogOpen, setRxDialogOpen] = useState(false);
