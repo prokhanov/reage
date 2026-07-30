@@ -78,7 +78,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
   if (!hasStructuredContent && (plainText || entry?.bodyHtml)) {
     return (
       <section className="rl-page" data-section-id="prescriptions">
+        {editing && <RegeneratePrescriptionsButton />}
         <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
+
         <ProseMarkdown
           markdown={plainText}
           html={entry?.bodyHtml}
