@@ -266,6 +266,8 @@ async function previewSupportsSnapshot(
 ): Promise<{ ok: true } | { ok: false; reason: string; blocking: boolean }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PREVIEW_SUPPORT_TIMEOUT_MS);
+  const MARKERS = ["fetch-report-snapshot", "snapshot_loaded"];
+  const MAX_ASSETS = 60;
   try {
     const htmlRes = await fetch(`${previewBase}/internal/report-preview`, {
       headers: {
@@ -278,22 +280,57 @@ async function previewSupportsSnapshot(
       return { ok: false, reason: `preview_html_http_${htmlRes.status}`, blocking: false };
     }
     const html = await htmlRes.text();
-    const assetMatches = [...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))["']/gi)]
-      .map((m) => m[1])
-      .filter(Boolean)
-      .slice(0, 8);
-    if (html.includes("fetch-report-snapshot")) return { ok: true };
-    for (const asset of assetMatches) {
-      if (!asset.endsWith(".js")) continue;
-      const url = new URL(asset, previewBase).toString();
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) continue;
-      const js = await res.text();
-      if (js.includes("fetch-report-snapshot") || js.includes("snapshot_loaded")) {
-        return { ok: true };
+    if (MARKERS.some((m) => html.includes(m))) return { ok: true };
+
+    // Обходим не только скрипты из HTML, но и чанки, на которые они ссылаются:
+    // страница /internal/report-preview грузится лениво, поэтому маркер лежит
+    // в отдельном чанке, не упомянутом в index.html.
+    const queue: string[] = [];
+    const seen = new Set<string>();
+    const push = (raw: string) => {
+      if (!raw || !raw.endsWith(".js")) return;
+      let url: string;
+      try {
+        url = new URL(raw, previewBase).toString();
+      } catch {
+        return;
+      }
+      if (!url.startsWith(previewBase)) return;
+      if (seen.has(url)) return;
+      seen.add(url);
+      queue.push(url);
+    };
+
+    for (const m of html.matchAll(/(?:src|href)=["']([^"']+\.js)["']/gi)) push(m[1]);
+
+    let scanned = 0;
+    let fetched = 0;
+    while (queue.length && scanned < MAX_ASSETS) {
+      const url = queue.shift()!;
+      scanned++;
+      let js: string;
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) continue;
+        js = await res.text();
+        fetched++;
+      } catch {
+        continue;
+      }
+      if (MARKERS.some((m) => js.includes(m))) return { ok: true };
+      for (const m of js.matchAll(/["'`]((?:\.{0,2}\/)?[\w./-]*assets\/[\w.-]+\.js)["'`]/g)) {
+        push(m[1]);
       }
     }
-    return { ok: false, reason: "snapshot_loader_not_found_in_published_assets", blocking: true };
+
+    if (fetched === 0) {
+      return { ok: false, reason: "preview_assets_unreachable", blocking: false };
+    }
+    return {
+      ok: false,
+      reason: `snapshot_loader_not_found_in_published_assets (scanned ${scanned})`,
+      blocking: true,
+    };
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") {
       return { ok: false, reason: "preview_support_check_timeout", blocking: false };
@@ -303,6 +340,7 @@ async function previewSupportsSnapshot(
     clearTimeout(timeout);
   }
 }
+
 
 async function importKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
