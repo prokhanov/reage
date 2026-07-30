@@ -923,6 +923,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {publishLabel}
           </DropdownMenuItem>
         )}
+        {canPublish && (
+          <DropdownMenuItem onSelect={() => void runQaCheck()} disabled={qaRunning}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Проверить на валидность
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
 
