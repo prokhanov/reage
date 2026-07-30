@@ -10,6 +10,37 @@ import {
 } from "@/components/prescriptions/AdvisorySections";
 
 /**
+ * Кнопка перегенерации раздела «Рекомендации». Обработчик вешается
+ * делегированно в ReportV2Editor по data-атрибуту.
+ */
+function RegeneratePrescriptionsButton() {
+  return (
+    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+      <button
+        type="button"
+        data-rl-regenerate-prescriptions="true"
+        title="Пересобрать рекомендации через ИИ на основе показателей анализа"
+        style={{
+          padding: "6px 12px",
+          fontSize: "10pt",
+          border: "1px solid #6366f1",
+          background: "#eef2ff",
+          color: "#4338ca",
+          borderRadius: "6px",
+          cursor: "pointer",
+          pointerEvents: "auto",
+          position: "relative",
+          zIndex: 5,
+        }}
+      >
+        ↻ Перегенерировать рекомендации
+      </button>
+    </div>
+  );
+}
+
+
+/**
  * Кнопка правки блока рекомендаций. Рендер идёт через renderToStaticMarkup,
  * поэтому обработчик вешается делегированно в ReportV2Editor по data-атрибутам.
  */
@@ -78,7 +109,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
   if (!hasStructuredContent && (plainText || entry?.bodyHtml)) {
     return (
       <section className="rl-page" data-section-id="prescriptions">
+        {editing && <RegeneratePrescriptionsButton />}
         <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
+
         <ProseMarkdown
           markdown={plainText}
           html={entry?.bodyHtml}
@@ -128,7 +161,9 @@ export function ReportPrescriptions({ report, entry }: Props) {
 
   return (
     <section className="rl-page" data-section-id="prescriptions">
+      {editing && <RegeneratePrescriptionsButton />}
       <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
+
 
       {prescriptions.length > 0 && (
         <div style={{ marginBottom: "8mm" }}>
