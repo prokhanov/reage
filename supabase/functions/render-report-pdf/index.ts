@@ -298,7 +298,9 @@ async function previewSupportsSnapshot(
       if (!url.startsWith(previewBase)) return;
       if (seen.has(url)) return;
       seen.add(url);
-      queue.push(url);
+      // Чанки страницы отчёта проверяем в первую очередь.
+      if (/report|preview|snapshot/i.test(url)) queue.unshift(url);
+      else queue.push(url);
     };
 
     for (const m of html.matchAll(/(?:src|href)=["']([^"']+\.js)["']/gi)) push(m[1]);
