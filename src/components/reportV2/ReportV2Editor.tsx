@@ -210,6 +210,10 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   const [regenCategory, setRegenCategory] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  // QA-проверка отчёта («Проверить на валидность») — стрим событий из report-qa.
+  const [qaRunning, setQaRunning] = useState(false);
+  const [qaOpen, setQaOpen] = useState(false);
+  const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
   // Финальная пагинация считается на сервере — этот просмотр показывает то,
   // что реально увидит пациент (Paged.js в редакторе — только черновой ориентир).
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
