@@ -87,9 +87,9 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[minmax(300px,340px)_minmax(0,1fr)_minmax(300px,400px)] items-start gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[minmax(300px,340px)_minmax(0,1fr)_minmax(300px,400px)] items-stretch gap-4">
       {/* Left: Status card */}
-      <Card className="border-border bg-card overflow-hidden relative">
+      <Card className="border-border bg-card overflow-hidden relative h-full">
         {/* ambient glow */}
         <div
           className="pointer-events-none absolute -top-16 -left-16 w-56 h-56 rounded-full opacity-30 blur-3xl"
@@ -168,8 +168,8 @@ export function RejuvenationTrajectory({
       </Card>
 
       {/* Right: Trajectory chart card */}
-      <Card className="border-border bg-card overflow-hidden">
-        <CardContent className="pt-5 pb-4 md:pb-5 px-4 md:px-5 space-y-3">
+      <Card className="border-border bg-card overflow-hidden h-full">
+        <CardContent className="h-full flex flex-col pt-5 pb-4 md:pb-5 px-4 md:px-5 space-y-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
@@ -205,7 +205,7 @@ export function RejuvenationTrajectory({
             </div>
           </div>
 
-          <div className="h-[200px] md:h-[240px] xl:h-[260px] w-full min-w-0">
+          <div className="flex-1 min-h-[200px] md:min-h-[240px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
                 <defs>
@@ -294,7 +294,7 @@ export function RejuvenationTrajectory({
 
       {/* Right: Trajectory forecast */}
       {rationale && (
-        <Card className="border-primary/20 bg-primary/[0.04] overflow-hidden lg:col-span-2 2xl:col-span-1">
+        <Card className="border-primary/20 bg-primary/[0.04] overflow-hidden h-full lg:col-span-2 2xl:col-span-1">
           <CardContent className="p-4 md:p-5 flex flex-col gap-3 h-full">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary shrink-0" />
