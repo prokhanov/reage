@@ -1,3 +1,4 @@
+import { getUtm } from "@/lib/utm";
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -769,6 +770,7 @@ function ContactFooter({
         result: result as unknown as Record<string, unknown> | null,
         user_agent:
           typeof navigator !== "undefined" ? navigator.userAgent : null,
+        utm: getUtm(),
       };
       const { data, error } = await supabase.functions.invoke(
         "submit-lifestyle-quiz",

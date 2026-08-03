@@ -2,6 +2,8 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 // Импорт ради side-effect: валидирует VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY на старте.
 import "./lib/supabaseUrl";
+import { captureUtm } from "./lib/utm";
+if (typeof window !== "undefined") captureUtm();
 // Стартуем батч-запрос данных лендинга ПОСЛЕ первого paint, на idle:
 // эти данные нужны только блокам ниже первого экрана (Pricing, WhereToTest,
 // BiomarkerComparison), и запуск до mount React отнимал полосу у Hero/JS в

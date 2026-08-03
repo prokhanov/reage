@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
           sex: body.sex ?? null,
           age_band: body.age_band ?? null,
           result_summary: body.result?.toneHeadline ?? null,
+          utm: body.utm ?? null,
         },
       })
     } catch (e) {

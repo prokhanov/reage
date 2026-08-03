@@ -28,6 +28,32 @@ function formatDate(iso?: string): string {
   }
 }
 
+const UTM_LABELS: Record<string, string> = {
+  utm_source: "source",
+  utm_medium: "medium",
+  utm_campaign: "campaign",
+  utm_content: "content",
+  utm_term: "term",
+};
+
+function formatUtm(utm: unknown): string {
+  if (!utm || typeof utm !== "object") return "";
+  const u = utm as Record<string, unknown>;
+  const parts: string[] = [];
+  for (const [key, label] of Object.entries(UTM_LABELS)) {
+    const v = u[key];
+    if (v) parts.push(`${label}: ${escapeHtml(v)}`);
+  }
+  const extra: string[] = [];
+  if (u.landing_page) extra.push(`🔗 Вход: ${escapeHtml(u.landing_page)}`);
+  if (u.referrer) extra.push(`↩️ Реферер: ${escapeHtml(u.referrer)}`);
+  const lines: string[] = [];
+  if (parts.length) lines.push(`🏷 UTM: ${parts.join(" · ")}`);
+  else lines.push("🏷 UTM: — (прямой заход)");
+  lines.push(...extra);
+  return "\n" + lines.join("\n");
+}
+
 function formatAmount(n: unknown): string {
   const num = Number(n);
   if (!isFinite(num)) return String(n ?? "");
@@ -142,8 +168,9 @@ export function buildMessage(
         "✉️ <b>Новое сообщение с сайта</b>\n" +
         `👤 ${e(payload.name || "—")}\n` +
         `📧 ${e(payload.email || "—")}\n` +
-        `📱 ${e(payload.phone || "—")}\n\n` +
-        `💬 ${e(payload.message || "—")}`
+        `📱 ${e(payload.phone || "—")}` +
+        formatUtm(payload.utm) +
+        `\n\n💬 ${e(payload.message || "—")}`
       );
     }
     case "callback_requested": {
@@ -163,7 +190,8 @@ export function buildMessage(
         `👤 ${e(payload.name || "—")}\n` +
         `📧 ${e(payload.email || "—")}\n` +
         `📱 ${e(payload.phone || "—")}\n` +
-        `👥 ${e(payload.sex || "—")} · ${e(payload.age_band || "—")}\n` +
+        `👥 ${e(payload.sex || "—")} · ${e(payload.age_band || "—")}` +
+        formatUtm(payload.utm) +
         (payload.result_summary ? `\n💡 ${e(payload.result_summary)}` : "")
       );
     }

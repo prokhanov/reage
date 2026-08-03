@@ -1,3 +1,4 @@
+import { getUtm } from "@/lib/utm";
 import { useEffect, useState } from "react";
 import { Send, X, CheckCircle, Loader2, MessageSquare } from "lucide-react";
 import {
@@ -92,6 +93,7 @@ export function FeedbackDialog({ open, onOpenChange, title, description, default
           email: form.email.trim().toLowerCase(),
           phone: form.phone.trim(),
           message: form.message.trim(),
+          utm: getUtm(),
         },
       });
 
