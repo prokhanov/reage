@@ -1,3 +1,4 @@
+import { getUtm } from "@/lib/utm";
 import { useState } from "react";
 import { Send, CheckCircle, Loader2, Sparkles, Stethoscope, HelpCircle, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export function ConsultationCtaBlock() {
           message:
             "Запрос на бесплатную консультацию с лендинга. Расскажем о продукте, проведём демо, подберём программу, ответим на вопросы.",
           type: "consultation",
+          utm: getUtm(),
         },
       });
 

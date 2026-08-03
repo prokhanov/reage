@@ -1,3 +1,4 @@
+import { getUtm } from "@/lib/utm";
 import { useState } from "react";
 import { Send, X, CheckCircle, Loader2, FileText, Activity, HeartPulse, Dna, Sparkles, Target } from "lucide-react";
 import {
@@ -58,6 +59,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
           message:
             "Запрос примера персонального отчёта ReAge с лендинга. Пожалуйста, вышлите пример отчёта на указанный e-mail.",
           type: "example_report",
+          utm: getUtm(),
         },
       });
 
