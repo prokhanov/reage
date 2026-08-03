@@ -8,12 +8,13 @@ const FEEDBACK_SCHEMA = z.object({
   phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
   type: z.enum(['feedback', 'example_report', 'consultation']).optional().default('feedback'),
+  utm: z.record(z.string().max(500).nullable()).optional(),
 })
 
 async function sendTelegramFeedbackNotification(
   supabase: ReturnType<typeof createClient>,
   supabaseUrl: string,
-  payload: { name: string; email: string; phone?: string; message: string },
+  payload: { name: string; email: string; phone?: string; message: string; utm?: Record<string, string | null> | null },
 ): Promise<boolean> {
   try {
     const { data: settings, error: settingsError } = await supabase
@@ -109,6 +110,7 @@ Deno.serve(async (req) => {
   }
 
   const { name, email, message, type } = parsed.data
+  const utm = parsed.data.utm ?? null
   const phone = parsed.data.phone?.trim() || undefined
 
   try {
@@ -123,6 +125,7 @@ Deno.serve(async (req) => {
       email,
       phone,
       message,
+      utm,
     })
 
     const teamEmailPromise = supabase.functions.invoke('send-transactional-email', {
