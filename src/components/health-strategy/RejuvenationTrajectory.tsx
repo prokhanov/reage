@@ -219,8 +219,8 @@ export function RejuvenationTrajectory({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 4" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval={1} />
-                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={44} />
+                <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd" minTickGap={24} tickMargin={6} />
+                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={40} />
                 <Tooltip
                   cursor={{ stroke: axisColor, strokeWidth: 1, strokeDasharray: "4 4" }}
                   content={({ active, payload }) => {
