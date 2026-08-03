@@ -524,5 +524,30 @@
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Callibri call tracking (deferred to idle to keep landing fast) -->
+    <script type="text/javascript">
+      (function () {
+        var SRC = 'https://cdn.callibri.ru/callibri.js';
+        function loadCallibri() {
+          for (var i = 0; i < document.scripts.length; i++) {
+            if (document.scripts[i].src === SRC) return;
+          }
+          var s = document.createElement('script');
+          s.src = SRC;
+          s.type = 'text/javascript';
+          s.charset = 'utf-8';
+          s.defer = true;
+          document.body.appendChild(s);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadCallibri, { timeout: 4000 });
+          else setTimeout(loadCallibri, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
   </body>
+
 </html>
