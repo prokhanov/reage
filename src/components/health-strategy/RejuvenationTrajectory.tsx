@@ -205,7 +205,7 @@ export function RejuvenationTrajectory({
             </div>
           </div>
 
-          <div className="h-[200px] md:h-[220px]">
+          <div className="h-[200px] md:h-[240px] xl:h-[260px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
                 <defs>
