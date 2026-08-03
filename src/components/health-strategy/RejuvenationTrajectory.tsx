@@ -87,7 +87,7 @@ export function RejuvenationTrajectory({
   const goalDelta = currentBioAge - targetBioAge;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)_420px] items-start gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[minmax(300px,340px)_minmax(0,1fr)_minmax(300px,400px)] items-start gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden relative">
         {/* ambient glow */}
@@ -205,7 +205,7 @@ export function RejuvenationTrajectory({
             </div>
           </div>
 
-          <div className="h-[200px] md:h-[220px]">
+          <div className="h-[200px] md:h-[240px] xl:h-[260px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
                 <defs>
@@ -219,8 +219,8 @@ export function RejuvenationTrajectory({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 4" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval={1} />
-                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={44} />
+                <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd" minTickGap={24} tickMargin={6} />
+                <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={40} />
                 <Tooltip
                   cursor={{ stroke: axisColor, strokeWidth: 1, strokeDasharray: "4 4" }}
                   content={({ active, payload }) => {
@@ -294,7 +294,7 @@ export function RejuvenationTrajectory({
 
       {/* Right: Trajectory forecast */}
       {rationale && (
-        <Card className="border-primary/20 bg-primary/[0.04] overflow-hidden">
+        <Card className="border-primary/20 bg-primary/[0.04] overflow-hidden lg:col-span-2 2xl:col-span-1">
           <CardContent className="p-4 md:p-5 flex flex-col gap-3 h-full">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary shrink-0" />
