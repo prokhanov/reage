@@ -656,8 +656,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     setRegenCategory("Рекомендации");
     try {
       const endpoint = edgeFunctionUrl("report-orchestrator");
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      const token = await getFreshAccessToken();
       const startRes = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -667,9 +666,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         },
         body: JSON.stringify({ action: "regenerate_prescriptions", analysisId, userId }),
       });
-      const startJson = await startRes.json().catch(() => ({}));
+      const startJson = await readJsonSafe(startRes);
       if (!startRes.ok || !startJson?.success) {
-        throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+        throw new Error(describeHttpError(startRes, startJson));
       }
       const jobId = startJson.jobId as string;
       const deadline = Date.now() + 6 * 60_000;
