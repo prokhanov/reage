@@ -109,6 +109,37 @@ function applyDraftsToReport(source: LabReport, drafts: Record<string, string>):
  * В mode="edit" оборачиваем превью в `ReportEditorShell` (persist=true → пишет в те же
  * `recommendations.text`, что и классический редактор).
  */
+/** Возвращает актуальный access_token, обновляя протухшую сессию. */
+async function getFreshAccessToken(): Promise<string | undefined> {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+  if (!session) return undefined;
+  const expiresAt = (session.expires_at ?? 0) * 1000;
+  if (expiresAt && expiresAt - Date.now() < 60_000) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    return refreshed.session?.access_token ?? session.access_token;
+  }
+  return session.access_token;
+}
+
+async function readJsonSafe(res: Response): Promise<any> {
+  const raw = await res.text().catch(() => "");
+  try {
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return { __raw: raw };
+  }
+}
+
+function describeHttpError(res: Response, json: any): string {
+  if (json?.error) return String(json.error);
+  if (res.status === 401 || res.status === 403) {
+    return "Сессия устарела (HTTP " + res.status + "). Обновите страницу и войдите заново.";
+  }
+  const raw = typeof json?.__raw === "string" ? json.__raw.slice(0, 200) : "";
+  return `HTTP ${res.status}${raw ? ": " + raw : ""}`;
+}
+
 export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
@@ -481,8 +512,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setRegenCategory(category);
       try {
         const endpoint = edgeFunctionUrl("report-orchestrator");
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
+        const token = await getFreshAccessToken();
         const startRes = await fetch(endpoint, {
           method: "POST",
           headers: {
@@ -497,9 +527,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             category,
           }),
         });
-        const startJson = await startRes.json().catch(() => ({}));
+        const startJson = await readJsonSafe(startRes);
         if (!startRes.ok || !startJson?.success) {
-          throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+          throw new Error(describeHttpError(startRes, startJson));
         }
         const jobId = startJson.jobId as string;
         // Polling до завершения / ошибки. Таймаут — 4 минуты.
@@ -558,8 +588,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setRegenCategory("Общее резюме");
       try {
         const endpoint = edgeFunctionUrl("report-orchestrator");
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
+        const token = await getFreshAccessToken();
         const startRes = await fetch(endpoint, {
           method: "POST",
           headers: {
@@ -569,9 +598,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           },
           body: JSON.stringify({ action: "regenerate_summary", analysisId, userId }),
         });
-        const startJson = await startRes.json().catch(() => ({}));
+        const startJson = await readJsonSafe(startRes);
         if (!startRes.ok || !startJson?.success) {
-          throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+          throw new Error(describeHttpError(startRes, startJson));
         }
         const jobId = startJson.jobId as string;
         const deadline = Date.now() + 4 * 60_000;
@@ -627,8 +656,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     setRegenCategory("Рекомендации");
     try {
       const endpoint = edgeFunctionUrl("report-orchestrator");
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      const token = await getFreshAccessToken();
       const startRes = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -638,9 +666,9 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         },
         body: JSON.stringify({ action: "regenerate_prescriptions", analysisId, userId }),
       });
-      const startJson = await startRes.json().catch(() => ({}));
+      const startJson = await readJsonSafe(startRes);
       if (!startRes.ok || !startJson?.success) {
-        throw new Error(startJson?.error || `HTTP ${startRes.status}`);
+        throw new Error(describeHttpError(startRes, startJson));
       }
       const jobId = startJson.jobId as string;
       const deadline = Date.now() + 6 * 60_000;
