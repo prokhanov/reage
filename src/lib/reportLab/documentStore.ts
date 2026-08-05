@@ -219,3 +219,21 @@ export async function publishReportDocument(analysisId: string, doc?: ReportDoc)
   }
 }
 
+/**
+ * Снятие с публикации: опубликованный снимок удаляется, документ снова
+ * становится черновиком, анализ возвращается в статус «На проверке» —
+ * пациент отчёт не видит. Рабочая версия (blocks) сохраняется.
+ */
+export async function unpublishReportDocument(analysisId: string): Promise<void> {
+  const { error } = await (supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message?: string; code?: string } | null }>;
+  }).rpc("unpublish_report_document", { p_analysis_id: analysisId });
+  if (error) {
+    const code = error.code ? ` [${error.code}]` : "";
+    throw new Error(`${error.message ?? "Ошибка снятия с публикации"}${code}`);
+  }
+}
+

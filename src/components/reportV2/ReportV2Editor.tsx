@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText, ShieldCheck } from "lucide-react";
+import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText, ShieldCheck, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +31,7 @@ import {
 
 
   publishReportDocument,
+  unpublishReportDocument,
   replaceReportDocument,
   saveReportDocument,
 } from "@/lib/reportLab/documentStore";
@@ -299,7 +300,22 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     }
   }, [analysisId, report, onSaved]);
 
-
+  /** Снимает отчёт с публикации: пациент перестаёт его видеть. */
+  const unpublish = useCallback(async () => {
+    if (!report) return;
+    setPublishing(true);
+    try {
+      await unpublishReportDocument(analysisId);
+      setReport((prev) => (prev ? { ...prev, docStatus: "draft" } : prev));
+      toast.success("Отчёт скрыт", "Пациент больше не видит эту версию");
+      onSaved?.();
+    } catch (e) {
+      console.error("[ReportV2Editor] unpublish failed", e);
+      toast.error("Не удалось скрыть отчёт", e instanceof Error ? e.message : String(e));
+    } finally {
+      setPublishing(false);
+    }
+  }, [analysisId, report, onSaved]);
 
   /**
    * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
@@ -960,6 +976,18 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           {publishLabel}
         </Button>
       )}
+      {canPublish && docStatus === "published" && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={unpublish}
+          disabled={publishing}
+          title="Скрыть отчёт от пациента и вернуть его в статус «На проверке»"
+        >
+          <EyeOff className="mr-2 h-4 w-4" />
+          Скрыть от пациента
+        </Button>
+      )}
       {canPublish && (
 
         <Button
@@ -1025,6 +1053,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
             <Send className="mr-2 h-4 w-4" />
             {publishLabel}
+          </DropdownMenuItem>
+        )}
+        {canPublish && docStatus === "published" && (
+          <DropdownMenuItem onSelect={() => void unpublish()} disabled={publishing}>
+            <EyeOff className="mr-2 h-4 w-4" />
+            Скрыть от пациента
           </DropdownMenuItem>
         )}
         {canPublish && (
