@@ -71,6 +71,7 @@ describe("buildLabReportFromDb", () => {
     expect(report.recommendations).toEqual([]);
     expect(report.prescriptions).toEqual([]);
     expect(report.patient.first_name).toBe("");
+    expect(report.docEditedAt).toBeNull();
   });
 
   it("маппит биомаркеры, рекомендации и назначения", async () => {

@@ -184,8 +184,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         }
 
         // Ленивая миграция: у старых отчётов сохранённого документа нет —
-        // собираем его один раз и фиксируем как черновик.
-        if (!r.doc) {
+        // собираем его один раз и фиксируем как черновик. Нетронутые системные
+        // черновики также пересобираем: они могли быть сохранены старой версией
+        // парсера с ошибочно сдвинутыми границами карточек. Документы с ручными
+        // правками (edited_at != null) никогда автоматически не перезаписываем.
+        const shouldRebuildSystemDraft =
+          Boolean(r.doc) && r.docStatus === "draft" && r.docEditedAt == null;
+        if (!r.doc || shouldRebuildSystemDraft) {
           const built = buildDocFromReport(r);
           r.doc = built;
           const status = await ensureReportDocument(analysisId, userId, built);

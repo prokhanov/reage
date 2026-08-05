@@ -237,6 +237,7 @@ export async function buildLabReportFromDb(
     coverOverrides,
     doc: null,
     docStatus: null,
+    docEditedAt: null,
   };
 
   // Сохранённый документ — источник истины для рендера. Если его ещё нет
@@ -246,6 +247,7 @@ export async function buildLabReportFromDb(
     if (stored) {
       report.doc = stored.doc;
       report.docStatus = stored.status;
+      report.docEditedAt = stored.editedAt;
     }
   }
 
