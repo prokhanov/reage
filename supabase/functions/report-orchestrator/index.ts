@@ -330,19 +330,22 @@ async function tryRescueStep(
     : (step.payload as any)?.categoryFilter?.[0];
   if (!recType) return null;
 
-  const { data: rec } = await supabase
+  const { data: rec, error: recError } = await supabase
     .from("recommendations")
-    .select("content, content_json, updated_at")
-    .eq("user_id", j.user_id)
+    .select("text, updated_at")
+    .eq("analysis_id", j.analysis_id)
     .eq("type", recType)
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (recError) {
+    console.error(`[job ${j.id}] RESCUE query failed for analysis=${j.analysis_id}, type=${recType}: ${recError.message}`);
+    return null;
+  }
   const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
   const savedDuringStep = savedAt >= stepStartedAt - 5000;
-  const contentLen = (rec?.content ?? "").length;
-  const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
-  if (!savedDuringStep || (contentLen <= 500 && !hasJson)) return null;
+  const contentLen = (rec?.text ?? "").length;
+  if (!savedDuringStep || contentLen <= 500) return null;
 
   const steps = [...j.steps] as any[];
   if (steps[stepIdx]) {
