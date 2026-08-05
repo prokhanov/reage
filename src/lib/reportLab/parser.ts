@@ -831,9 +831,14 @@ function injectHeadingBiomarkerAnchors(
     if (/^[-*•>]/.test(para)) continue;
     if (/^\d+[.)]\s/.test(para)) continue;
     if (/[:：]$/.test(para)) continue;
+    // Абзац с фразой «Ваш показатель …» — это интерпретация ПРЕДЫДУЩЕГО
+    // маркера, а не вводка к текущему. Забирать его нельзя, иначе весь
+    // отчёт «съезжает» на один абзац вперёд.
+    if (i > 0 && hasPatientValueContext(para)) continue;
     // Короткие «заголовочные» строки (без точки в конце) — не intro.
     if (para.length < 40 && !/[.!?…»)]$/.test(para)) continue;
     cur.start = paraStart;
+
   }
 
 
