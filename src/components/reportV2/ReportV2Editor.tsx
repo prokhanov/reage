@@ -976,7 +976,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           {publishLabel}
         </Button>
       )}
-      {canPublish && docStatus === "published" && (
+      {canPublish && (docStatus === "published" || docStatus === "edited") && (
         <Button
           size="sm"
           variant="outline"
@@ -1055,7 +1055,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
             {publishLabel}
           </DropdownMenuItem>
         )}
-        {canPublish && docStatus === "published" && (
+        {canPublish && (docStatus === "published" || docStatus === "edited") && (
           <DropdownMenuItem onSelect={() => void unpublish()} disabled={publishing}>
             <EyeOff className="mr-2 h-4 w-4" />
             Скрыть от пациента
