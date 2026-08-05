@@ -208,7 +208,7 @@ describe("reportLab parser — восстановление сдвинутых �
     expect(byCode.get("alb")).not.toContain("11 мкмоль/л");
   });
 
-  it("переносит intro следующего биомаркера из хвоста предыдущей карточки", () => {
+  it("не переносит текст между карточками даже при ошибочных legacy-якорях", () => {
     const bios = [
       { ...mkBio("TP", "Общий белок"), value: 63.2 },
       { ...mkBio("ALT", "Аланинаминотрансфераза"), value: 10 },
@@ -253,13 +253,11 @@ describe("reportLab parser — восстановление сдвинутых �
 
     const byCode = new Map(cards.map((b) => [normalizeCode(b.code), b.commentary]));
 
-    expect(byCode.get("tp")).toContain("Общий белок Это суммарное количество");
-    expect(byCode.get("tp")).not.toContain("Аланинаминотрансфераза");
-    expect(byCode.get("alt")).toContain("Аланинаминотрансфераза (АЛТ)");
-    expect(byCode.get("alt")).not.toContain("Аспартатаминотрансфераза");
-    expect(byCode.get("ast")).toContain("Аспартатаминотрансфераза (АСТ)");
-    expect(byCode.get("ast")).not.toContain("Гамма-глутамилтрансфераза");
-    expect(byCode.get("ggt")).toContain("Гамма-глутамилтрансфераза (ГГТ)");
+    expect(byCode.get("tp")).toContain("Ваш показатель 63.2 г/л");
+    expect(byCode.get("tp")).toContain("Аланинаминотрансфераза (АЛТ)");
+    expect(byCode.get("alt")).toContain("Аспартатаминотрансфераза (АСТ)");
+    expect(byCode.get("ast")).toContain("Гамма-глутамилтрансфераза (ГГТ)");
+    expect(byCode.get("ggt")).toContain("Ваш уровень 14 Ед/л");
   });
 
   it("не переносит ручной текст из MONO обратно в MONO-ABS при сохранении", () => {
