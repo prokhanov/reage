@@ -533,7 +533,14 @@ async function handleTick(supabase: any, body: any) {
     console.log(
       `[job ${j.id}] ✅ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" OK за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS})${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
     );
+    const doneSteps = [...runningSteps] as any[];
+    if (doneSteps[stepIdx]) {
+      doneSteps[stepIdx] = { ...doneSteps[stepIdx] };
+      delete doneSteps[stepIdx].rescueUntil;
+      delete doneSteps[stepIdx].rescueStartedAt;
+    }
     await supabase.from("report_jobs").update({
+      steps: doneSteps,
       steps_done: newDone,
       attempts: 0,
       current_step: isLast ? null : j.steps[newDone].id,
@@ -541,6 +548,7 @@ async function handleTick(supabase: any, body: any) {
       finished_at: isLast ? new Date().toISOString() : null,
       error: null,
     }).eq("id", j.id);
+
     if (!isLast) scheduleTick(j.id);
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
