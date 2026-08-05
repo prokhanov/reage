@@ -313,7 +313,63 @@ async function handleCancel(supabase: any, body: any) {
   return json({ success: true, canceled: true, jobId: job.id });
 }
 
+/**
+ * Проверяет, не сохранил ли analyze-biomarkers результат шага в БД
+ * (он мог доработать в фоне после того как шлюз оборвал HTTP на 150s).
+ * Если да — помечает шаг выполненным и двигает job дальше.
+ */
+async function tryRescueStep(
+  supabase: any,
+  j: Job,
+  stepIdx: number,
+  stepStartedAt: number,
+): Promise<Response | null> {
+  const step = j.steps[stepIdx] as any;
+  const recType = step.kind === "prescriptions"
+    ? "Назначения"
+    : (step.payload as any)?.categoryFilter?.[0];
+  if (!recType) return null;
+
+  const { data: rec } = await supabase
+    .from("recommendations")
+    .select("content, content_json, updated_at")
+    .eq("user_id", j.user_id)
+    .eq("type", recType)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
+  const savedDuringStep = savedAt >= stepStartedAt - 5000;
+  const contentLen = (rec?.content ?? "").length;
+  const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
+  if (!savedDuringStep || (contentLen <= 500 && !hasJson)) return null;
+
+  const steps = [...j.steps] as any[];
+  if (steps[stepIdx]) {
+    steps[stepIdx] = { ...steps[stepIdx] };
+    delete steps[stepIdx].rescueUntil;
+    delete steps[stepIdx].rescueStartedAt;
+  }
+  const newDone = stepIdx + 1;
+  const isLast = newDone >= j.steps.length;
+  console.warn(
+    `[job ${j.id}] 🛟 RESCUE "${step.label}": результат найден в БД (len=${contentLen}, updated_at=${rec.updated_at}), шаг OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+  );
+  await supabase.from("report_jobs").update({
+    steps,
+    steps_done: newDone,
+    attempts: 0,
+    current_step: isLast ? null : j.steps[newDone].id,
+    status: isLast ? "done" : "running",
+    finished_at: isLast ? new Date().toISOString() : null,
+    error: null,
+  }).eq("id", j.id);
+  if (!isLast) scheduleTick(j.id);
+  return json({ success: true, rescued: true, step: step.id, done: newDone, total: j.steps.length });
+}
+
 async function handleTick(supabase: any, body: any) {
+
   const { jobId } = body;
   if (!jobId) return json({ success: false, error: "jobId обязателен" }, 400);
 
@@ -335,10 +391,43 @@ async function handleTick(supabase: any, body: any) {
   }
 
   const step = j.steps[stepIdx];
+
+  // Отложенная RESCUE-проверка: предыдущий тик упёрся в IDLE_TIMEOUT, но
+  // analyze-biomarkers мог дописать результат в фоне. Проверяем БД до того,
+  // как жечь новую генерацию.
+  const rescueUntil = (step as any).rescueUntil as number | undefined;
+  if (rescueUntil) {
+    const rescueStartedAt = ((step as any).rescueStartedAt as number | undefined) ?? 0;
+    const rescued = await tryRescueStep(supabase, j, stepIdx, rescueStartedAt);
+    if (rescued) return rescued;
+    if (Date.now() < rescueUntil) {
+      console.log(`[job ${j.id}] ⏳ "${step.label}" — фонового результата пока нет, ждём ещё 30s`);
+      scheduleTick(j.id, 30_000);
+      return json({ success: false, waiting: true });
+    }
+    const steps = [...j.steps] as any[];
+    delete steps[stepIdx].rescueUntil;
+    delete steps[stepIdx].rescueStartedAt;
+    steps[stepIdx] = { ...steps[stepIdx] };
+    const newAttempts = j.attempts + 1;
+    if (newAttempts >= MAX_ATTEMPTS) {
+      const err = (j.error ?? "idle_timeout") as string;
+      console.error(`[job ${j.id}] 💀 STEP "${step.label}" ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${err}`);
+      await supabase.from("report_jobs").update({
+        steps, status: "failed", error: err, finished_at: new Date().toISOString(),
+      }).eq("id", j.id);
+      return json({ success: false, terminal: true, error: err });
+    }
+    await supabase.from("report_jobs").update({ steps, attempts: newAttempts }).eq("id", j.id);
+    scheduleTick(j.id, 1000);
+    return json({ success: false, retrying: true });
+  }
+
   const attemptNo = j.attempts + 1;
   console.log(
     `[job ${j.id}] ▶ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" (id=${step.id}, kind=${step.kind}, attempt ${attemptNo}/${MAX_ATTEMPTS}, mode=${j.mode})`,
   );
+
 
   await supabase.from("report_jobs").update({
     status: "running",
@@ -448,40 +537,26 @@ async function handleTick(supabase: any, body: any) {
   // успеть сохранить рекомендацию в БД до того как edge убил соединение.
   // Проверяем — если контент есть, считаем шаг успешным и идём дальше.
   if (idle && (step.kind === "category" || step.kind === "prescriptions")) {
-    const recType = step.kind === "prescriptions"
-      ? "Назначения"
-      : (step.payload as any)?.categoryFilter?.[0];
-    if (recType) {
-      const { data: rec } = await supabase
-        .from("recommendations")
-        .select("content, content_json, updated_at")
-        .eq("user_id", j.user_id)
-        .eq("type", recType)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
-      const savedDuringStep = savedAt >= stepStartedAt - 5000;
-      const contentLen = (rec?.content ?? "").length;
-      const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
-      if (savedDuringStep && (contentLen > 500 || hasJson)) {
-        const newDone = stepIdx + 1;
-        const isLast = newDone >= j.steps.length;
-        console.warn(
-          `[job ${j.id}] 🛟 RESCUE "${step.label}" после IDLE_TIMEOUT: рекомендация сохранена в БД (len=${contentLen}, updated_at=${rec.updated_at}), помечаем шаг как OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
-        );
-        await supabase.from("report_jobs").update({
-          steps_done: newDone,
-          attempts: 0,
-          current_step: isLast ? null : j.steps[newDone].id,
-          status: isLast ? "done" : "running",
-          finished_at: isLast ? new Date().toISOString() : null,
-          error: null,
-        }).eq("id", j.id);
-        if (!isLast) scheduleTick(j.id);
-        return json({ success: true, rescued: true, step: step.id, done: newDone, total: j.steps.length });
-      }
-    }
+    const rescued = await tryRescueStep(supabase, j, stepIdx, stepStartedAt);
+    if (rescued) return rescued;
+
+    // Не нашли — но analyze-biomarkers часто продолжает работать в фоне
+    // (ретрай с reasoning=medium добавляет ещё 40–90s) и сохраняет результат
+    // уже ПОСЛЕ того, как шлюз оборвал наш HTTP-вызов на 150s. Поэтому вместо
+    // мгновенного ретрая ждём отложенными тиками: следующий tick сначала
+    // перепроверит БД. Так мы не жжём лишнюю дорогую генерацию.
+    const steps = [...j.steps] as any[];
+    steps[stepIdx] = {
+      ...steps[stepIdx],
+      rescueStartedAt: stepStartedAt,
+      rescueUntil: Date.now() + 150_000,
+    };
+    console.warn(
+      `[job ${j.id}] ⏳ "${step.label}" IDLE_TIMEOUT — ждём фоновое завершение analyze-biomarkers до 150s перед ретраем`,
+    );
+    await supabase.from("report_jobs").update({ steps, error: markedError }).eq("id", j.id);
+    scheduleTick(j.id, 30_000);
+    return json({ success: false, waiting: true, error: markedError });
   }
 
   const newAttempts = j.attempts + 1;
@@ -497,6 +572,7 @@ async function handleTick(supabase: any, body: any) {
     scheduleTick(j.id, 2000); // короткая пауза перед ретраем
     return json({ success: false, retrying: true, error: markedError });
   }
+
 
   console.error(`[job ${j.id}] 💀 STEP "${step.label}" (kind=${step.kind}) ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${markedError}`);
   await supabase.from("report_jobs").update({
