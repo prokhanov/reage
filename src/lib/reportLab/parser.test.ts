@@ -166,6 +166,48 @@ describe("reportLab parser — валидация покрытия", () => {
 });
 
 describe("reportLab parser — восстановление сдвинутых интро", () => {
+  it("не переносит значение фолиевой кислоты в карточку цинка", () => {
+    const bios = [
+      { ...mkBio("B9", "Фолиевая кислота"), value: 18.2, unit: "нг/мл" },
+      { ...mkBio("ZN", "Цинк"), value: 11, unit: "мкмоль/л" },
+      { ...mkBio("ALB", "Альбумин"), value: 47, unit: "г/л" },
+    ];
+    const index = buildBiomarkerIndex(mkReport(bios));
+    const text = `
+Фолиевая кислота (B9)
+
+Этот витамин группы В необходим для создания новых клеток, включая эритроциты, синтеза ДНК и правильной работы нервной системы.
+
+Ваш уровень 18.2 нг/мл находится в допустимом диапазоне, на самой верхней границе оптимума.
+
+Цинк (Zn)
+
+Этот микроэлемент играет центральную роль в работе иммунной системы, заживлении ран, синтезе белка и защите клеток от окислительного стресса.
+
+Ваш показатель 11 мкмоль/л находится в допустимом диапазоне, но ниже оптимальных значений.
+
+Альбумин (ALB)
+
+Это основной белок плазмы крови, который синтезируется в печени.
+
+Ваш уровень 47 г/л находится в допустимом диапазоне.
+`;
+
+    const parsed = parseCategory("Энергия и восстановление", text, index);
+    const byCode = new Map(
+      parsed.blocks
+        .filter((b): b is { kind: "biomarker"; code: string; commentary: string } => b.kind === "biomarker")
+        .map((b) => [normalizeCode(b.code), b.commentary]),
+    );
+
+    expect(byCode.get("b9")).toContain("Ваш уровень 18.2 нг/мл");
+    expect(byCode.get("b9")).not.toContain("Цинк");
+    expect(byCode.get("zn")).toContain("Ваш показатель 11 мкмоль/л");
+    expect(byCode.get("zn")).not.toContain("18.2 нг/мл");
+    expect(byCode.get("alb")).toContain("Ваш уровень 47 г/л");
+    expect(byCode.get("alb")).not.toContain("11 мкмоль/л");
+  });
+
   it("переносит intro следующего биомаркера из хвоста предыдущей карточки", () => {
     const bios = [
       { ...mkBio("TP", "Общий белок"), value: 63.2 },
