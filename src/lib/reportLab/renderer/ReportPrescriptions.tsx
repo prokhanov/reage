@@ -242,16 +242,21 @@ export function ReportPrescriptions({ report, entry }: Props) {
             {editing && <RxEditButton target="advisory:followups" label="Изменить" />}
           </h3>
           {followUps.map((f, i) => (
-            <div key={i} className="rl-rx">
-              <div className="rl-rx-title">{f.specialist || "Специалист"}</div>
-              {f.trigger && <div className="rl-rx-meta">{f.trigger}</div>}
+            <div key={i} className="rl-rx rl-nutri">
+              <div className="rl-nutri-title">{f.specialist || "Специалист"}</div>
               {f.goal && (
-                <div className="rl-rx-desc">
-                  <ProseMarkdown markdown={f.goal} />
+                <div className="rl-nutri-row">
+                  <span className="rl-nutri-label">Цель:</span> {f.goal}
+                </div>
+              )}
+              {f.trigger && (
+                <div className="rl-nutri-row">
+                  <span className="rl-nutri-label">Основание:</span> {f.trigger}
                 </div>
               )}
             </div>
           ))}
+
         </>
       )}
 
