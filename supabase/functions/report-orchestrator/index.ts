@@ -445,7 +445,10 @@ async function handleTick(supabase: any, body: any) {
     runningSteps[stepIdx] = {
       ...runningSteps[stepIdx],
       rescueStartedAt: stepStartedAt,
-      rescueUntil: stepStartedAt + 150_000,
+      // Тяжёлая категория с валидацией и повтором модели легко выходит за
+      // 150s idle-лимит шлюза, поэтому шаг выполняется в фоне, а мы ждём
+      // появления результата в БД до 10 минут.
+      rescueUntil: stepStartedAt + 600_000,
     };
   }
 
@@ -462,12 +465,14 @@ async function handleTick(supabase: any, body: any) {
 
   try {
     if (step.kind === "category" || step.kind === "prescriptions") {
-      // Синхронный вызов analyze-biomarkers (НЕ background — нам нужен результат шага).
-      // analyze-biomarkers/standard ветка выполняет работу синхронно.
+      // Шаг запускается в фоне (async): analyze-biomarkers сразу отвечает 202
+      // и доделывает работу в waitUntil. Так шлюз не рвёт соединение на 150s.
+      // Готовность шага определяем rescue-поллингом по БД.
       const url = `${SUPABASE_URL}/functions/v1/analyze-biomarkers`;
       const payload = {
         analysisId: j.analysis_id,
         mode: j.mode,
+        async: true,
         ...step.payload,
       };
       const r = await fetchWithTimeout(url, {
@@ -478,16 +483,22 @@ async function handleTick(supabase: any, body: any) {
           apikey: SERVICE_KEY,
         },
         body: JSON.stringify(payload),
-      }, 380_000); // меньше edge-лимита, оставляем запас
+      }, 60_000);
       const text = await r.text();
       let parsed: any = null;
       try { parsed = JSON.parse(text); } catch { /* ignore */ }
-      if (!r.ok || !parsed?.success) {
+      if (!r.ok || !(parsed?.success || parsed?.accepted)) {
         stepError = `analyze-biomarkers status=${r.status} body=${text.slice(0, 400)}`;
+      } else if (parsed?.async) {
+        // Работа принята в фон — ждём результат через rescue-поллинг.
+        console.log(`[job ${j.id}] ⏳ "${step.label}" запущен в фоне, ждём результат в БД`);
+        scheduleTick(j.id, 30_000);
+        return json({ success: true, accepted: true, waiting: true, step: step.id });
       } else {
         stepOk = true;
       }
     } else if (step.kind === "finalize") {
+
       // Каждая фаза finalize (summary / bioage) делает один тяжёлый AI-вызов
       // и укладывается в 150с idle timeout. Вызываем синхронно и ждём ответ.
       const url = `${SUPABASE_URL}/functions/v1/finalize-analysis`;
