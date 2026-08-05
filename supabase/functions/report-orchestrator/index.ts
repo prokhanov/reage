@@ -335,10 +335,43 @@ async function handleTick(supabase: any, body: any) {
   }
 
   const step = j.steps[stepIdx];
+
+  // Отложенная RESCUE-проверка: предыдущий тик упёрся в IDLE_TIMEOUT, но
+  // analyze-biomarkers мог дописать результат в фоне. Проверяем БД до того,
+  // как жечь новую генерацию.
+  const rescueUntil = (step as any).rescueUntil as number | undefined;
+  if (rescueUntil) {
+    const rescueStartedAt = ((step as any).rescueStartedAt as number | undefined) ?? 0;
+    const rescued = await tryRescueStep(supabase, j, stepIdx, rescueStartedAt);
+    if (rescued) return rescued;
+    if (Date.now() < rescueUntil) {
+      console.log(`[job ${j.id}] ⏳ "${step.label}" — фонового результата пока нет, ждём ещё 30s`);
+      scheduleTick(j.id, 30_000);
+      return json({ success: false, waiting: true });
+    }
+    const steps = [...j.steps] as any[];
+    delete steps[stepIdx].rescueUntil;
+    delete steps[stepIdx].rescueStartedAt;
+    steps[stepIdx] = { ...steps[stepIdx] };
+    const newAttempts = j.attempts + 1;
+    if (newAttempts >= MAX_ATTEMPTS) {
+      const err = (j.error ?? "idle_timeout") as string;
+      console.error(`[job ${j.id}] 💀 STEP "${step.label}" ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${err}`);
+      await supabase.from("report_jobs").update({
+        steps, status: "failed", error: err, finished_at: new Date().toISOString(),
+      }).eq("id", j.id);
+      return json({ success: false, terminal: true, error: err });
+    }
+    await supabase.from("report_jobs").update({ steps, attempts: newAttempts }).eq("id", j.id);
+    scheduleTick(j.id, 1000);
+    return json({ success: false, retrying: true });
+  }
+
   const attemptNo = j.attempts + 1;
   console.log(
     `[job ${j.id}] ▶ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" (id=${step.id}, kind=${step.kind}, attempt ${attemptNo}/${MAX_ATTEMPTS}, mode=${j.mode})`,
   );
+
 
   await supabase.from("report_jobs").update({
     status: "running",
