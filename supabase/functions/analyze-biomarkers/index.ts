@@ -64,6 +64,8 @@ serve(async (req) => {
     analysisId?: string;
     mode?: unknown;
     background?: boolean;
+    async?: boolean;
+
     categoryFilter?: string[];
     skipCategories?: boolean;
     skipPrescriptions?: boolean;
