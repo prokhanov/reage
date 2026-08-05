@@ -41,6 +41,7 @@ type Job = {
   steps_total: number;
   steps_done: number;
   attempts: number;
+  updated_at: string;
 };
 
 // Единый бюджет ретраев для всех шагов (category / prescriptions / finalize).
@@ -332,7 +333,7 @@ async function tryRescueStep(
 
   const { data: rec, error: recError } = await supabase
     .from("recommendations")
-    .select("text, created_at")
+    .select("text, content_json, created_at")
     .eq("analysis_id", j.analysis_id)
     .eq("type", recType)
     .order("created_at", { ascending: false })
@@ -345,7 +346,30 @@ async function tryRescueStep(
   const savedAt = rec?.created_at ? new Date(rec.created_at).getTime() : 0;
   const savedDuringStep = savedAt >= stepStartedAt - 5000;
   const contentLen = (rec?.text ?? "").length;
-  if (!savedDuringStep || contentLen <= 500) return null;
+  // Категорийный отчёт — большой текст. У «Назначений» поле text намеренно
+  // содержит только короткое резюме, а фактический результат находится в
+  // content_json и таблице prescriptions. Старый общий порог >500 символов
+  // поэтому навечно оставлял успешно сохранённые назначения в waiting.
+  let resultReady = contentLen > 500;
+  if (step.kind === "prescriptions") {
+    const content = rec?.content_json;
+    const lifestyle = content?.lifestyle;
+    const hasLifestyle = ["nutrition", "activity", "sleep"].some(
+      (key) => Array.isArray(lifestyle?.[key]) && lifestyle[key].length > 0,
+    );
+    const hasFollowUps = Array.isArray(content?.follow_ups) && content.follow_ups.length > 0;
+    const hasRawMarkdown = typeof content?.raw_markdown === "string" && content.raw_markdown.trim().length > 0;
+    const { count: prescriptionCount, error: countError } = await supabase
+      .from("prescriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("analysis_id", j.analysis_id);
+    if (countError) {
+      console.error(`[job ${j.id}] RESCUE prescriptions count failed: ${countError.message}`);
+      return null;
+    }
+    resultReady = hasLifestyle || hasFollowUps || hasRawMarkdown || (prescriptionCount ?? 0) > 0;
+  }
+  if (!savedDuringStep || !resultReady) return null;
 
   const steps = [...j.steps] as any[];
   if (steps[stepIdx]) {
@@ -358,7 +382,9 @@ async function tryRescueStep(
   console.warn(
     `[job ${j.id}] 🛟 RESCUE "${step.label}": результат найден в БД (len=${contentLen}, created_at=${rec.created_at}), шаг OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
   );
-  await supabase.from("report_jobs").update({
+  // CAS по updated_at: два параллельных rescue-тика не должны оба продвинуть
+  // один шаг и запланировать два запуска следующего.
+  const { data: advanced, error: advanceError } = await supabase.from("report_jobs").update({
     steps,
     steps_done: newDone,
     attempts: 0,
@@ -366,7 +392,12 @@ async function tryRescueStep(
     status: isLast ? "done" : "running",
     finished_at: isLast ? new Date().toISOString() : null,
     error: null,
-  }).eq("id", j.id);
+  }).eq("id", j.id).eq("updated_at", j.updated_at).select("id").maybeSingle();
+  if (advanceError) throw advanceError;
+  if (!advanced) {
+    console.log(`[job ${j.id}] RESCUE уже обработан параллельным тиком`);
+    return json({ success: true, concurrent: true, waiting: true });
+  }
   if (!isLast) scheduleTick(j.id);
   return json({ success: true, rescued: true, step: step.id, done: newDone, total: j.steps.length });
 }
@@ -452,12 +483,25 @@ async function handleTick(supabase: any, body: any) {
     };
   }
 
-  await supabase.from("report_jobs").update({
+  const dispatchToken = crypto.randomUUID();
+  runningSteps[stepIdx] = {
+    ...runningSteps[stepIdx],
+    dispatchToken,
+  };
+  // Захватываем право запуска шага атомарно. Без CAS два одновременных tick
+  // читали один steps_done и оба отправляли дорогой AI-вызов.
+  const { data: claimed, error: claimError } = await supabase.from("report_jobs").update({
     status: "running",
     current_step: step.id,
     attempts: j.attempts,
     steps: runningSteps,
-  }).eq("id", j.id);
+  }).eq("id", j.id).eq("updated_at", j.updated_at).select("id").maybeSingle();
+  if (claimError) throw claimError;
+  if (!claimed) {
+    console.log(`[job ${j.id}] STEP "${step.label}" уже захвачен параллельным тиком`);
+    scheduleTick(j.id, 30_000);
+    return json({ success: true, concurrent: true, waiting: true });
+  }
 
 
   let stepOk = false;
