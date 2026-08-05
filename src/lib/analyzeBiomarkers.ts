@@ -90,13 +90,17 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
   // 2. Поллинг через report_jobs (RLS: пользователь видит свои задачи)
   const POLL_INTERVAL_MS = 3000;
   const MAX_WAIT_MS = 25 * 60 * 1000; // 25 минут — даём deep с ретраями
+  // Если job не обновлялся дольше этого времени — цепочка тиков умерла
+  // (edge-инвокацию оркестратора убил шлюз на длинном шаге). Пинаем tick.
+  const STALL_MS = 120_000;
   const deadline = Date.now() + MAX_WAIT_MS;
+  let lastReviveAt = 0;
 
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     const { data: job, error: jobErr } = await supabase
       .from("report_jobs")
-      .select("status, error, steps, steps_done, steps_total, current_step")
+      .select("status, error, steps, steps_done, steps_total, current_step, updated_at")
       .eq("id", jobId)
       .maybeSingle();
     if (jobErr) {
@@ -129,6 +133,23 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
     if (job.status === "failed") {
       throw new Error(job.error || "Генерация отчёта завершилась ошибкой");
     }
+
+    // Watchdog: job «завис» без обновлений — оживляем цепочку тиков.
+    const updatedAt = job.updated_at ? new Date(job.updated_at).getTime() : 0;
+    if (
+      updatedAt &&
+      Date.now() - updatedAt > STALL_MS &&
+      Date.now() - lastReviveAt > STALL_MS
+    ) {
+      lastReviveAt = Date.now();
+      console.warn("report_jobs stalled — sending revive tick");
+      fetch(baseUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "tick", jobId }),
+      }).catch(() => {});
+    }
   }
   throw new Error("accepted_background");
 }
+

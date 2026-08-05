@@ -432,25 +432,47 @@ async function handleTick(supabase: any, body: any) {
   );
 
 
+  const stepStartedAt = Date.now();
+
+  // ВАЖНО: помечаем шаг «в работе» с rescue-маркерами ДО тяжёлого вызова.
+  // Если саму orchestrator-инвокацию убьёт шлюз (499/wall-clock) прямо во
+  // время ожидания analyze-biomarkers, следующий tick (в т.ч. оживляющий,
+  // присланный клиентом) сначала перепроверит БД и подхватит результат,
+  // который фоновый analyze-biomarkers всё-таки успел сохранить, вместо
+  // того чтобы висеть в running навсегда.
+  const runningSteps = [...j.steps] as any[];
+  if (step.kind === "category" || step.kind === "prescriptions") {
+    runningSteps[stepIdx] = {
+      ...runningSteps[stepIdx],
+      rescueStartedAt: stepStartedAt,
+      // Тяжёлая категория с валидацией и повтором модели легко выходит за
+      // 150s idle-лимит шлюза, поэтому шаг выполняется в фоне, а мы ждём
+      // появления результата в БД до 10 минут.
+      rescueUntil: stepStartedAt + 600_000,
+    };
+  }
+
   await supabase.from("report_jobs").update({
     status: "running",
     current_step: step.id,
     attempts: j.attempts,
+    steps: runningSteps,
   }).eq("id", j.id);
 
-  const stepStartedAt = Date.now();
 
   let stepOk = false;
   let stepError: string | null = null;
 
   try {
     if (step.kind === "category" || step.kind === "prescriptions") {
-      // Синхронный вызов analyze-biomarkers (НЕ background — нам нужен результат шага).
-      // analyze-biomarkers/standard ветка выполняет работу синхронно.
+      // Шаг запускается в фоне (async): analyze-biomarkers сразу отвечает 202
+      // и доделывает работу в waitUntil. Так шлюз не рвёт соединение на 150s.
+      // Готовность шага определяем rescue-поллингом по БД.
       const url = `${SUPABASE_URL}/functions/v1/analyze-biomarkers`;
       const payload = {
         analysisId: j.analysis_id,
         mode: j.mode,
+        async: true,
         ...step.payload,
       };
       const r = await fetchWithTimeout(url, {
@@ -461,16 +483,22 @@ async function handleTick(supabase: any, body: any) {
           apikey: SERVICE_KEY,
         },
         body: JSON.stringify(payload),
-      }, 380_000); // меньше edge-лимита, оставляем запас
+      }, 60_000);
       const text = await r.text();
       let parsed: any = null;
       try { parsed = JSON.parse(text); } catch { /* ignore */ }
-      if (!r.ok || !parsed?.success) {
+      if (!r.ok || !(parsed?.success || parsed?.accepted)) {
         stepError = `analyze-biomarkers status=${r.status} body=${text.slice(0, 400)}`;
+      } else if (parsed?.async) {
+        // Работа принята в фон — ждём результат через rescue-поллинг.
+        console.log(`[job ${j.id}] ⏳ "${step.label}" запущен в фоне, ждём результат в БД`);
+        scheduleTick(j.id, 30_000);
+        return json({ success: true, accepted: true, waiting: true, step: step.id });
       } else {
         stepOk = true;
       }
     } else if (step.kind === "finalize") {
+
       // Каждая фаза finalize (summary / bioage) делает один тяжёлый AI-вызов
       // и укладывается в 150с idle timeout. Вызываем синхронно и ждём ответ.
       const url = `${SUPABASE_URL}/functions/v1/finalize-analysis`;
@@ -516,7 +544,14 @@ async function handleTick(supabase: any, body: any) {
     console.log(
       `[job ${j.id}] ✅ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" OK за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS})${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
     );
+    const doneSteps = [...runningSteps] as any[];
+    if (doneSteps[stepIdx]) {
+      doneSteps[stepIdx] = { ...doneSteps[stepIdx] };
+      delete doneSteps[stepIdx].rescueUntil;
+      delete doneSteps[stepIdx].rescueStartedAt;
+    }
     await supabase.from("report_jobs").update({
+      steps: doneSteps,
       steps_done: newDone,
       attempts: 0,
       current_step: isLast ? null : j.steps[newDone].id,
@@ -524,6 +559,7 @@ async function handleTick(supabase: any, body: any) {
       finished_at: isLast ? new Date().toISOString() : null,
       error: null,
     }).eq("id", j.id);
+
     if (!isLast) scheduleTick(j.id);
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }

@@ -64,6 +64,8 @@ serve(async (req) => {
     analysisId?: string;
     mode?: unknown;
     background?: boolean;
+    async?: boolean;
+
     categoryFilter?: string[];
     skipCategories?: boolean;
     skipPrescriptions?: boolean;
@@ -106,6 +108,30 @@ serve(async (req) => {
     return startDeepViaOrchestrator(body.analysisId!);
   }
 
+  // Async-режим (шаг под управлением orchestrator): берём работу в waitUntil и
+  // сразу отвечаем 202. Иначе тяжёлая категория (AI-вызов + валидация + повтор)
+  // выходит за 150s idle-лимит шлюза и шаг падает по IDLE_TIMEOUT.
+  if (body.async === true && isStepRequest) {
+    const work = processAnalysis({
+      analysisId: body.analysisId,
+      rawMode: body.mode,
+      categoryFilter: body.categoryFilter,
+      skipCategories: body.skipCategories,
+      skipPrescriptions: body.skipPrescriptions,
+      skipFinalize: body.skipFinalize,
+      skipDelete: body.skipDelete,
+    }).catch((e) => {
+      console.error("async step failed:", e?.message ?? e);
+      return null;
+    });
+    const rt = globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } };
+    if (rt.EdgeRuntime?.waitUntil) rt.EdgeRuntime.waitUntil(work);
+    return new Response(
+      JSON.stringify({ success: true, accepted: true, async: true, analysisId: body.analysisId }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   // Step-режим (под управлением orchestrator) или standard — выполняем синхронно и возвращаем результат.
   return processAnalysis({
     analysisId: body.analysisId,
@@ -117,6 +143,7 @@ serve(async (req) => {
     skipDelete: body.skipDelete,
   });
 });
+
 
 async function startDeepViaOrchestrator(analysisId: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
