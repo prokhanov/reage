@@ -3456,6 +3456,10 @@ export type Database = {
         Args: { p_date: string; p_time_slot: string }
         Returns: Json
       }
+      unpublish_report_document: {
+        Args: { p_analysis_id: string }
+        Returns: string
+      }
       upsert_slot_override: {
         Args: {
           p_date: string
