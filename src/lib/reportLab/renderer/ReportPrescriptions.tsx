@@ -246,14 +246,12 @@ export function ReportPrescriptions({ report, entry }: Props) {
               <div className="rl-nutri-title">{f.specialist || "Специалист"}</div>
               {f.goal && (
                 <div className="rl-nutri-row">
-                  <span className="rl-nutri-label">Цель:</span>{" "}
-                  <ProseMarkdown markdown={f.goal} inline />
+                  <span className="rl-nutri-label">Цель:</span> {f.goal}
                 </div>
               )}
               {f.trigger && (
                 <div className="rl-nutri-row">
-                  <span className="rl-nutri-label">Основание:</span>{" "}
-                  <ProseMarkdown markdown={f.trigger} inline />
+                  <span className="rl-nutri-label">Основание:</span> {f.trigger}
                 </div>
               )}
             </div>
