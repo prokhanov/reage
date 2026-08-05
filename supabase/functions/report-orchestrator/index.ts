@@ -432,13 +432,30 @@ async function handleTick(supabase: any, body: any) {
   );
 
 
+  const stepStartedAt = Date.now();
+
+  // ВАЖНО: помечаем шаг «в работе» с rescue-маркерами ДО тяжёлого вызова.
+  // Если саму orchestrator-инвокацию убьёт шлюз (499/wall-clock) прямо во
+  // время ожидания analyze-biomarkers, следующий tick (в т.ч. оживляющий,
+  // присланный клиентом) сначала перепроверит БД и подхватит результат,
+  // который фоновый analyze-biomarkers всё-таки успел сохранить, вместо
+  // того чтобы висеть в running навсегда.
+  const runningSteps = [...j.steps] as any[];
+  if (step.kind === "category" || step.kind === "prescriptions") {
+    runningSteps[stepIdx] = {
+      ...runningSteps[stepIdx],
+      rescueStartedAt: stepStartedAt,
+      rescueUntil: stepStartedAt + 150_000,
+    };
+  }
+
   await supabase.from("report_jobs").update({
     status: "running",
     current_step: step.id,
     attempts: j.attempts,
+    steps: runningSteps,
   }).eq("id", j.id);
 
-  const stepStartedAt = Date.now();
 
   let stepOk = false;
   let stepError: string | null = null;
