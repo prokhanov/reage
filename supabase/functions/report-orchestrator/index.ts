@@ -313,7 +313,63 @@ async function handleCancel(supabase: any, body: any) {
   return json({ success: true, canceled: true, jobId: job.id });
 }
 
+/**
+ * Проверяет, не сохранил ли analyze-biomarkers результат шага в БД
+ * (он мог доработать в фоне после того как шлюз оборвал HTTP на 150s).
+ * Если да — помечает шаг выполненным и двигает job дальше.
+ */
+async function tryRescueStep(
+  supabase: any,
+  j: Job,
+  stepIdx: number,
+  stepStartedAt: number,
+): Promise<Response | null> {
+  const step = j.steps[stepIdx] as any;
+  const recType = step.kind === "prescriptions"
+    ? "Назначения"
+    : (step.payload as any)?.categoryFilter?.[0];
+  if (!recType) return null;
+
+  const { data: rec } = await supabase
+    .from("recommendations")
+    .select("content, content_json, updated_at")
+    .eq("user_id", j.user_id)
+    .eq("type", recType)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
+  const savedDuringStep = savedAt >= stepStartedAt - 5000;
+  const contentLen = (rec?.content ?? "").length;
+  const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
+  if (!savedDuringStep || (contentLen <= 500 && !hasJson)) return null;
+
+  const steps = [...j.steps] as any[];
+  if (steps[stepIdx]) {
+    steps[stepIdx] = { ...steps[stepIdx] };
+    delete steps[stepIdx].rescueUntil;
+    delete steps[stepIdx].rescueStartedAt;
+  }
+  const newDone = stepIdx + 1;
+  const isLast = newDone >= j.steps.length;
+  console.warn(
+    `[job ${j.id}] 🛟 RESCUE "${step.label}": результат найден в БД (len=${contentLen}, updated_at=${rec.updated_at}), шаг OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+  );
+  await supabase.from("report_jobs").update({
+    steps,
+    steps_done: newDone,
+    attempts: 0,
+    current_step: isLast ? null : j.steps[newDone].id,
+    status: isLast ? "done" : "running",
+    finished_at: isLast ? new Date().toISOString() : null,
+    error: null,
+  }).eq("id", j.id);
+  if (!isLast) scheduleTick(j.id);
+  return json({ success: true, rescued: true, step: step.id, done: newDone, total: j.steps.length });
+}
+
 async function handleTick(supabase: any, body: any) {
+
   const { jobId } = body;
   if (!jobId) return json({ success: false, error: "jobId обязателен" }, 400);
 
