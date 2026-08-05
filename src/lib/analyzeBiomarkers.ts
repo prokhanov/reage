@@ -92,7 +92,9 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
   const MAX_WAIT_MS = 25 * 60 * 1000; // 25 минут — даём deep с ретраями
   // Если job не обновлялся дольше этого времени — цепочка тиков умерла
   // (edge-инвокацию оркестратора убил шлюз на длинном шаге). Пинаем tick.
-  const STALL_MS = 120_000;
+  // Серверный finalize может законно занимать до 145 секунд. Более ранний
+  // watchdog создавал параллельный вызов той же AI-фазы.
+  const STALL_MS = 180_000;
   const deadline = Date.now() + MAX_WAIT_MS;
   let lastReviveAt = 0;
 

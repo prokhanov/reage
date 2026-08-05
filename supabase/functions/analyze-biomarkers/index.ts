@@ -112,6 +112,14 @@ serve(async (req) => {
   // сразу отвечаем 202. Иначе тяжёлая категория (AI-вызов + валидация + повтор)
   // выходит за 150s idle-лимит шлюза и шаг падает по IDLE_TIMEOUT.
   if (body.async === true && isStepRequest) {
+    const rt = globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } };
+    if (!rt.EdgeRuntime?.waitUntil) {
+      console.error("async step rejected: EdgeRuntime.waitUntil is unavailable");
+      return new Response(
+        JSON.stringify({ success: false, error: "background_runtime_unavailable" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     const work = processAnalysis({
       analysisId: body.analysisId,
       rawMode: body.mode,
@@ -124,8 +132,7 @@ serve(async (req) => {
       console.error("async step failed:", e?.message ?? e);
       return null;
     });
-    const rt = globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } };
-    if (rt.EdgeRuntime?.waitUntil) rt.EdgeRuntime.waitUntil(work);
+    rt.EdgeRuntime.waitUntil(work);
     return new Response(
       JSON.stringify({ success: true, accepted: true, async: true, analysisId: body.analysisId }),
       { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -327,7 +334,7 @@ async function processAnalysis({
     // Получаем профиль пользователя и последний вес из weight_history
     const [{ data: profile }, { data: latestWeightRecord }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", analysis.user_id).single(),
-      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).single()
+      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).maybeSingle()
     ]);
 
     // Актуальный вес: приоритет weight_history, fallback на profiles.weight
@@ -2183,6 +2190,16 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     }
 
     // ====== СОХРАНЯЕМ НАЗНАЧЕНИЯ В БД СРАЗУ (до summary/snapshot/bio-age — те делает finalize-analysis) ======
+    // Повтор шага должен быть идемпотентным: предыдущая попытка могла успеть
+    // частично записать строки перед остановкой воркера.
+    if (skipCategories) {
+      const [{ error: clearPrescriptionsError }, { error: clearRecommendationError }] = await Promise.all([
+        supabase.from("prescriptions").delete().eq("analysis_id", analysisId),
+        supabase.from("recommendations").delete().eq("analysis_id", analysisId).eq("type", "Назначения"),
+      ]);
+      if (clearPrescriptionsError) console.error("Error clearing prescriptions retry state:", clearPrescriptionsError);
+      if (clearRecommendationError) console.error("Error clearing recommendations retry state:", clearRecommendationError);
+    }
     if (prescriptionsToCreateFinal.length > 0) {
       const analysisDate = new Date(analysis.date);
       for (const prescription of prescriptionsToCreateFinal) {
@@ -2226,7 +2243,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     const hasFollowUps = followUpsFinal.length > 0;
     const hasMarkdownFallback = prescriptionsStatus === "markdown_fallback" && prescriptionsRawContent.trim().length > 0;
 
-    if (hasLifestyle || hasFollowUps || hasMarkdownFallback) {
+    // Маркер завершения пишем всегда, даже когда ИИ обоснованно не назначил
+    // нутрицевтики/обследования. Иначе orchestrator не может отличить
+    // «успешно, рекомендаций нет» от «фоновая задача ещё не закончилась».
+    {
       const summaryParts: string[] = [];
       if (hasLifestyle) {
         const totalBullets =
@@ -2239,7 +2259,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       if (hasMarkdownFallback) {
         summaryParts.push("Назначения сохранены в текстовом формате");
       }
-      const summaryText = summaryParts.join(". ") + ".";
+      const summaryText = summaryParts.length > 0
+        ? summaryParts.join(". ") + "."
+        : "Дополнительные рекомендации по результатам анализа не требуются.";
       const cleanedPrescriptionsText = sanitizeReportTextForPatient(
         hasMarkdownFallback ? prescriptionsRawContent : summaryText,
       );
