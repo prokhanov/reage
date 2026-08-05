@@ -452,23 +452,37 @@ async function handleTick(supabase: any, body: any) {
       ? "Назначения"
       : (step.payload as any)?.categoryFilter?.[0];
     if (recType) {
-      const { data: rec } = await supabase
-        .from("recommendations")
-        .select("content, content_json, updated_at")
-        .eq("user_id", j.user_id)
-        .eq("type", recType)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
-      const savedDuringStep = savedAt >= stepStartedAt - 5000;
-      const contentLen = (rec?.content ?? "").length;
-      const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
-      if (savedDuringStep && (contentLen > 500 || hasJson)) {
+      // Шлюз рвёт соединение на 150s, но analyze-biomarkers продолжает работать
+      // в фоне (ретрай с reasoning=medium занимает ещё ~40-60s). Поэтому не
+      // сдаёмся сразу, а поллим БД до 120s — вдруг результат вот-вот появится.
+      const RESCUE_POLL_MS = 120_000;
+      const rescueDeadline = Date.now() + RESCUE_POLL_MS;
+      let rescued: { content: string | null; content_json: any; updated_at: string } | null = null;
+      while (Date.now() < rescueDeadline) {
+        const { data: rec } = await supabase
+          .from("recommendations")
+          .select("content, content_json, updated_at")
+          .eq("user_id", j.user_id)
+          .eq("type", recType)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
+        const savedDuringStep = savedAt >= stepStartedAt - 5000;
+        const contentLen = (rec?.content ?? "").length;
+        const hasJson = rec?.content_json && Object.keys(rec.content_json).length > 0;
+        if (savedDuringStep && (contentLen > 500 || hasJson)) {
+          rescued = rec as any;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      if (rescued) {
+        const contentLen = (rescued.content ?? "").length;
         const newDone = stepIdx + 1;
         const isLast = newDone >= j.steps.length;
         console.warn(
-          `[job ${j.id}] 🛟 RESCUE "${step.label}" после IDLE_TIMEOUT: рекомендация сохранена в БД (len=${contentLen}, updated_at=${rec.updated_at}), помечаем шаг как OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+          `[job ${j.id}] 🛟 RESCUE "${step.label}" после IDLE_TIMEOUT: рекомендация сохранена в БД (len=${contentLen}, updated_at=${rescued.updated_at}), помечаем шаг как OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
         );
         await supabase.from("report_jobs").update({
           steps_done: newDone,
@@ -483,6 +497,7 @@ async function handleTick(supabase: any, body: any) {
       }
     }
   }
+
 
   const newAttempts = j.attempts + 1;
   if (newAttempts < MAX_ATTEMPTS) {
