@@ -332,17 +332,17 @@ async function tryRescueStep(
 
   const { data: rec, error: recError } = await supabase
     .from("recommendations")
-    .select("text, updated_at")
+    .select("text, created_at")
     .eq("analysis_id", j.analysis_id)
     .eq("type", recType)
-    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (recError) {
     console.error(`[job ${j.id}] RESCUE query failed for analysis=${j.analysis_id}, type=${recType}: ${recError.message}`);
     return null;
   }
-  const savedAt = rec?.updated_at ? new Date(rec.updated_at).getTime() : 0;
+  const savedAt = rec?.created_at ? new Date(rec.created_at).getTime() : 0;
   const savedDuringStep = savedAt >= stepStartedAt - 5000;
   const contentLen = (rec?.text ?? "").length;
   if (!savedDuringStep || contentLen <= 500) return null;
@@ -356,7 +356,7 @@ async function tryRescueStep(
   const newDone = stepIdx + 1;
   const isLast = newDone >= j.steps.length;
   console.warn(
-    `[job ${j.id}] 🛟 RESCUE "${step.label}": результат найден в БД (len=${contentLen}, updated_at=${rec.updated_at}), шаг OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+    `[job ${j.id}] 🛟 RESCUE "${step.label}": результат найден в БД (len=${contentLen}, created_at=${rec.created_at}), шаг OK${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
   );
   await supabase.from("report_jobs").update({
     steps,
