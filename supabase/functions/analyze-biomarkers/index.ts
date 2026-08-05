@@ -112,6 +112,14 @@ serve(async (req) => {
   // сразу отвечаем 202. Иначе тяжёлая категория (AI-вызов + валидация + повтор)
   // выходит за 150s idle-лимит шлюза и шаг падает по IDLE_TIMEOUT.
   if (body.async === true && isStepRequest) {
+    const rt = globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } };
+    if (!rt.EdgeRuntime?.waitUntil) {
+      console.error("async step rejected: EdgeRuntime.waitUntil is unavailable");
+      return new Response(
+        JSON.stringify({ success: false, error: "background_runtime_unavailable" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     const work = processAnalysis({
       analysisId: body.analysisId,
       rawMode: body.mode,
@@ -124,8 +132,7 @@ serve(async (req) => {
       console.error("async step failed:", e?.message ?? e);
       return null;
     });
-    const rt = globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } };
-    if (rt.EdgeRuntime?.waitUntil) rt.EdgeRuntime.waitUntil(work);
+    rt.EdgeRuntime.waitUntil(work);
     return new Response(
       JSON.stringify({ success: true, accepted: true, async: true, analysisId: body.analysisId }),
       { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -327,7 +334,7 @@ async function processAnalysis({
     // Получаем профиль пользователя и последний вес из weight_history
     const [{ data: profile }, { data: latestWeightRecord }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", analysis.user_id).single(),
-      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).single()
+      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).maybeSingle()
     ]);
 
     // Актуальный вес: приоритет weight_history, fallback на profiles.weight

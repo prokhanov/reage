@@ -457,6 +457,18 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: false, retrying: true });
   }
 
+  // Второй tick может прийти от клиентского watchdog, пока первый всё ещё
+  // ждёт синхронный finalize-analysis. Не запускаем ту же фазу параллельно.
+  // Lease ограничен: если исходную инвокацию действительно убило, после
+  // 170 секунд шаг станет доступен для штатного retry.
+  const dispatchStartedAt = (step as any).dispatchStartedAt as number | undefined;
+  if ((step as any).dispatchToken && dispatchStartedAt && Date.now() - dispatchStartedAt < 170_000) {
+    const waitMs = Math.max(5_000, 170_000 - (Date.now() - dispatchStartedAt));
+    console.log(`[job ${j.id}] ⏳ "${step.label}" уже выполняется, повторный dispatch отложен`);
+    scheduleTick(j.id, Math.min(waitMs, 30_000));
+    return json({ success: true, concurrent: true, waiting: true });
+  }
+
   const attemptNo = j.attempts + 1;
   console.log(
     `[job ${j.id}] ▶ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" (id=${step.id}, kind=${step.kind}, attempt ${attemptNo}/${MAX_ATTEMPTS}, mode=${j.mode})`,
@@ -487,6 +499,7 @@ async function handleTick(supabase: any, body: any) {
   runningSteps[stepIdx] = {
     ...runningSteps[stepIdx],
     dispatchToken,
+    dispatchStartedAt: stepStartedAt,
   };
   // Захватываем право запуска шага атомарно. Без CAS два одновременных tick
   // читали один steps_done и оба отправляли дорогой AI-вызов.
@@ -593,6 +606,8 @@ async function handleTick(supabase: any, body: any) {
       doneSteps[stepIdx] = { ...doneSteps[stepIdx] };
       delete doneSteps[stepIdx].rescueUntil;
       delete doneSteps[stepIdx].rescueStartedAt;
+      delete doneSteps[stepIdx].dispatchToken;
+      delete doneSteps[stepIdx].dispatchStartedAt;
     }
     await supabase.from("report_jobs").update({
       steps: doneSteps,
@@ -643,12 +658,17 @@ async function handleTick(supabase: any, body: any) {
   }
 
   const newAttempts = j.attempts + 1;
+  const retrySteps = [...runningSteps] as any[];
+  retrySteps[stepIdx] = { ...retrySteps[stepIdx] };
+  delete retrySteps[stepIdx].dispatchToken;
+  delete retrySteps[stepIdx].dispatchStartedAt;
   if (newAttempts < MAX_ATTEMPTS) {
     const reason = idle ? "IDLE_TIMEOUT" : "ERROR";
     console.warn(
       `[job ${j.id}] 🔁 RETRY "${step.label}" (kind=${step.kind}, ${reason}) → попытка ${newAttempts + 1}/${MAX_ATTEMPTS} через 2s: ${stepError}`,
     );
     await supabase.from("report_jobs").update({
+      steps: retrySteps,
       attempts: newAttempts,
       error: markedError,
     }).eq("id", j.id);
@@ -659,8 +679,10 @@ async function handleTick(supabase: any, body: any) {
 
   console.error(`[job ${j.id}] 💀 STEP "${step.label}" (kind=${step.kind}) ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${markedError}`);
   await supabase.from("report_jobs").update({
+    steps: retrySteps,
     status: "failed",
     error: markedError,
+    attempts: newAttempts,
     finished_at: new Date().toISOString(),
   }).eq("id", j.id);
   return json({ success: false, terminal: true, error: markedError });

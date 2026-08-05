@@ -324,41 +324,20 @@ ${symptomsText}
     // ранее сгенерированные нутрицевтики этого анализа. Используем UPDATE
     // существующей записи, либо INSERT, если её ещё нет.
     if (summaryReport) {
-      const { data: existing } = await supabase
+      const { data: savedSummary, error: saveSummaryError } = await supabase
         .from("recommendations")
+        .upsert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Общее резюме",
+          text: sanitizeReportTextForPatient(summaryReport),
+        }, { onConflict: "analysis_id,type" })
         .select("id")
-        .eq("analysis_id", analysisId)
-        .eq("type", "Общее резюме")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (existing?.id) {
-        summaryRecommendationId = existing.id;
-        // @ts-ignore — content_json обновим ниже, здесь только text
-        const { error: updErr } = await supabase
-          .from("recommendations")
-          .update({ text: sanitizeReportTextForPatient(summaryReport) })
-          .eq("id", existing.id);
-        if (updErr) console.error("Error updating summary:", updErr);
-        else console.log(`Updated: Общее резюме (id: ${summaryRecommendationId})`);
-      } else {
-        const { data: inserted, error: insErr } = await supabase
-          .from("recommendations")
-          .insert({
-            user_id: analysis.user_id,
-            analysis_id: analysisId,
-            type: "Общее резюме",
-            text: sanitizeReportTextForPatient(summaryReport),
-          })
-          .select("id")
-          .single();
-        if (insErr) {
-          console.error("Error inserting summary:", insErr);
-        } else {
-          summaryRecommendationId = inserted?.id || null;
-          console.log(`Inserted: Общее резюме (id: ${summaryRecommendationId})`);
-        }
+        .single();
+      if (saveSummaryError) console.error("Error upserting summary:", saveSummaryError);
+      else {
+        summaryRecommendationId = savedSummary?.id || null;
+        console.log(`Upserted: Общее резюме (id: ${summaryRecommendationId})`);
       }
 
       // Связываем уже сохранённые prescriptions с этой записью (если ещё не связаны)
@@ -627,12 +606,12 @@ ${symptomsText}
       if (finalSnapshot && !summaryRecommendationId) {
         const { data: created, error: createErr } = await supabase
           .from("recommendations")
-          .insert({
+          .upsert({
             user_id: analysis.user_id,
             analysis_id: analysisId,
             type: "Общее резюме",
             text: sanitizeReportTextForPatient(summaryReport) || "Резюме недоступно — отчёт сформирован в режиме fallback.",
-          })
+          }, { onConflict: "analysis_id,type" })
           .select("id")
           .single();
         if (createErr) console.error("Fallback summary insert error:", createErr.message);
@@ -666,11 +645,12 @@ ${symptomsText}
     let health_index: number | null = null;
     let biological_age: number | null = null;
     let biomarkers_metadata: any = null;
+    let totalValues = 0;
 
     if (doBioAge) {
     // Композитные биомаркеры (окно 4 месяца)
     const compositeBiomarkers = buildCompositeBiomarkers(analysis, previousAnalyses || [], 4);
-    const totalValues = compositeBiomarkers.values.length;
+    totalValues = compositeBiomarkers.values.length;
 
     if (totalValues > 0) {
       let planBiomarkersCount: number | null = null;
@@ -1011,7 +991,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
     } // end if (doBioAge)
 
     // ===== 7. Сохраняем результаты =====
-    if (doBioAge) {
+    if (doBioAge && totalValues > 0) {
       await supabase
         .from("analyses")
         .update({ health_index, biological_age, biomarkers_metadata })
