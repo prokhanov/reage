@@ -253,7 +253,7 @@ describe("reportLab parser — восстановление сдвинутых �
 
     const byCode = new Map(cards.map((b) => [normalizeCode(b.code), b.commentary]));
 
-    expect(byCode.get("tp")).toContain("Общий белок Это суммарное количество");
+    expect(byCode.get("tp")).toContain("Ваш показатель 63.2 г/л");
     expect(byCode.get("tp")).toContain("Аланинаминотрансфераза (АЛТ)");
     expect(byCode.get("alt")).toContain("Аспартатаминотрансфераза (АСТ)");
     expect(byCode.get("ast")).toContain("Гамма-глутамилтрансфераза (ГГТ)");
