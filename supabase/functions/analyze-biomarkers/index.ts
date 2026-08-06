@@ -369,6 +369,39 @@ async function processAnalysis({
       .order("date", { ascending: false })
       .limit(5);
 
+    // === Гендерные диапазоны имеют приоритет над общими ===
+    // Если у биомаркера range_mode = 'gender' и пол пациента известен,
+    // общие колонки перезаписываются гендерными, чтобы весь код ниже
+    // (включая тексты промптов) работал с корректным диапазоном.
+    // Общие значения остаются фоллбэком только при неизвестном поле.
+    const patientSexForRanges: 'male' | 'female' | null =
+      profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
+
+    function applyGenderRanges(bm: any) {
+      if (!bm || !patientSexForRanges) return;
+      if (bm.range_mode !== 'gender') return;
+      const s = patientSexForRanges;
+      const pairs: Array<[string, string]> = [
+        ['normal_min', `normal_min_${s}`],
+        ['normal_max', `normal_max_${s}`],
+        ['optimal_min', `optimal_min_${s}`],
+        ['optimal_max', `optimal_max_${s}`],
+        ['critical_min', `critical_min_${s}`],
+        ['critical_max', `critical_max_${s}`],
+      ];
+      for (const [general, specific] of pairs) {
+        if (bm[specific] !== null && bm[specific] !== undefined) bm[general] = bm[specific];
+      }
+    }
+
+    function normalizeAnalysisRanges(a: any) {
+      a?.analysis_values?.forEach((av: any) => applyGenderRanges(av?.biomarkers));
+    }
+
+    normalizeAnalysisRanges(analysis);
+    (previousAnalyses || []).forEach(normalizeAnalysisRanges);
+
+
     // Функция для создания композитного набора биомаркеров (накопительный подход)
     function buildCompositeBiomarkers(
       currentAnalysis: any,
