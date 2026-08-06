@@ -1127,6 +1127,7 @@ Deno.serve(async (req) => {
           // 5. AI repair for blocks missing educational text
           const reportContext = text.slice(0, 4000);
           const reasonByCode = new Map<string, string>();
+          const zoneMismatchByCode = new Map<string, string>();
           const blocksToFix = blocks.filter((b, idx) => {
             if (!knownCodesNorm.has(normalizeBiomarkerCode(b.code))) return false;
             const prevEnd = idx > 0 ? blocks[idx - 1].end : 0;
@@ -1136,9 +1137,27 @@ Deno.serve(async (req) => {
                 normalizeBiomarkerCode(bb.code) === normalizeBiomarkerCode(b.code),
             );
             const diag = diagnoseBiomarkerCard(b.content, precedingProse, bm);
-            if (!diag.ok) reasonByCode.set(b.code, diag.reason);
-            return !diag.ok;
+            if (!diag.ok) {
+              reasonByCode.set(b.code, diag.reason);
+              return true;
+            }
+            // Противоречие текста фактической зоне по нашим референсам —
+            // карточку перегенерируем с явным указанием зоны.
+            const zi = zoneByCode.get(normalizeBiomarkerCode(b.code));
+            if (zi) {
+              const contradiction = detectZoneContradiction(b.content, zi);
+              if (contradiction) {
+                reasonByCode.set(b.code, "zone_mismatch");
+                zoneMismatchByCode.set(b.code, contradiction);
+                const wmsg = `[${sectionLabel}] ⚠ Несоответствие зоны у ${b.code}: ${contradiction}`;
+                fixes.push(wmsg);
+                send({ type: "warn", message: wmsg });
+                return true;
+              }
+            }
+            return false;
           });
+
           if (blocksToFix.length > 0) {
             const reasonSummary = Array.from(reasonByCode.entries())
               .map(([c, r]) => `${c}:${r}`)
