@@ -913,14 +913,14 @@ Deno.serve(async (req) => {
         // Load analysis + biomarker dictionary + analysis_values
         const { data: analysis, error: aErr } = await admin
           .from("analyses")
-          .select("id, biomarkers_metadata")
+          .select("id, user_id, date, biomarkers_metadata")
           .eq("id", analysisId)
           .single();
         if (aErr) throw aErr;
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
+          .select("biomarker_id, value, unit_override, biomarkers!inner(*)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
@@ -932,6 +932,51 @@ Deno.serve(async (req) => {
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
         );
+
+        // Пол/возраст пациента — нужны для корректного разрешения референсов.
+        let patientGender: string | null = null;
+        let patientAge: number | null = null;
+        {
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("gender, birth_date")
+            .eq("id", (analysis as any)?.user_id)
+            .maybeSingle();
+          patientGender = (prof as any)?.gender ?? null;
+          const bd = (prof as any)?.birth_date;
+          if (bd) {
+            const ref = new Date((analysis as any)?.date || Date.now());
+            const b = new Date(bd);
+            let age = ref.getFullYear() - b.getFullYear();
+            const m = ref.getMonth() - b.getMonth();
+            if (m < 0 || (m === 0 && ref.getDate() < b.getDate())) age--;
+            if (Number.isFinite(age) && age > 0 && age < 130) patientAge = age;
+          }
+        }
+
+        // Фактическая зона каждого маркера по нашим референсам.
+        const zoneByCode = new Map<string, ZoneInfo>();
+        for (const r of (avRows || []) as any[]) {
+          const b = r.biomarkers;
+          const v = Number(r.value);
+          if (!b?.code || !Number.isFinite(v)) continue;
+          const range = resolveRange(b, patientAge, patientGender);
+          const zone = classifyZone(v, range);
+          let side: ZoneInfo["side"] = "in";
+          if (range.optimal_max != null && v > range.optimal_max) side = "high";
+          else if (range.optimal_min != null && v < range.optimal_min) side = "low";
+          else if (range.normal_max != null && v > range.normal_max) side = "high";
+          else if (range.normal_min != null && v < range.normal_min) side = "low";
+          const unit = r.unit_override ?? b.unit ?? null;
+          zoneByCode.set(normalizeBiomarkerCode(b.code), {
+            zone,
+            side,
+            value: v,
+            unit,
+            label: zoneLabelRu(zone, side),
+          });
+        }
+
 
         // Load ALL biomarker codes from the dictionary (not just this analysis)
         // so the English-artifact detector never flags valid biomarker codes,
