@@ -1241,6 +1241,8 @@ Deno.serve(async (req) => {
                     REPAIR_MODEL,
                     reportContext,
                     generalDesc,
+                    t.zoneHint,
+
                   );
                 } catch (_e) {
                   t.result = null;
