@@ -1181,6 +1181,7 @@ Deno.serve(async (req) => {
               blk: { code: string; content: string; start: number; end: number };
               bm: { code: string; name: string; general_description?: string | null };
               valueLine: string;
+              zoneHint: string | null;
               replaceEnd: number;
               result?: string | null;
             };
@@ -1192,11 +1193,20 @@ Deno.serve(async (req) => {
                   normalizeBiomarkerCode(blk.code),
               );
               if (!bm) continue;
+              const zi = zoneByCode.get(normalizeBiomarkerCode(blk.code));
+              const zoneHint = zi
+                ? `${zi.value}${zi.unit ? " " + zi.unit : ""} — ${zi.label}`
+                : null;
+              const isZoneFix = zoneMismatchByCode.has(blk.code);
               const valueMatch =
                 /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-              const valueLine = valueMatch
-                ? valueMatch[0].trim()
-                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              // При исправлении зоны старую строку значения не переиспользуем —
+              // именно в ней обычно и живёт неверное утверждение.
+              const valueLine = isZoneFix && zi
+                ? `Ваш показатель ${bm.name} — ${zi.value}${zi.unit ? " " + zi.unit : ""} — ${zi.label}.`
+                : valueMatch
+                  ? valueMatch[0].trim()
+                  : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
               // Поиск конца блока в текущем text
               const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
               endRegex.lastIndex = blk.end;
@@ -1204,8 +1214,9 @@ Deno.serve(async (req) => {
               const replaceEnd = endMatch
                 ? endMatch.index + endMatch[0].length
                 : blk.end;
-              tasks.push({ blk, bm, valueLine, replaceEnd });
+              tasks.push({ blk, bm, valueLine, zoneHint, replaceEnd });
             }
+
 
             // Параллельно, но с ограничением concurrency и глобальным таймаутом
             let cursor = 0;
