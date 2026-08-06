@@ -12,6 +12,9 @@
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { resolveRange } from "../_shared/health-model/adapter.ts";
+import { classifyZone } from "../_shared/health-model/m1-normalize.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
