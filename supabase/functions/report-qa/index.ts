@@ -371,6 +371,91 @@ function isBiomarkerMissingEducation(
   return !diagnoseBiomarkerCard(content, precedingProse, biomarker).ok;
 }
 
+// ──────────────── Проверка соответствия текста реальной зоне ────────────────
+
+export type ZoneInfo = {
+  zone: "optimal" | "normal" | "risk" | "critical" | "unknown";
+  side: "low" | "high" | "in";
+  value: number;
+  unit: string | null;
+  label: string;
+};
+
+export function zoneLabelRu(zone: ZoneInfo["zone"], side: ZoneInfo["side"]): string {
+  const dir = side === "low" ? "ниже" : "выше";
+  switch (zone) {
+    case "optimal":
+      return "оптимальный диапазон";
+    case "normal":
+      return `в пределах нормы, но ${dir} оптимума`;
+    case "risk":
+      return `зона риска ${dir} нормы`;
+    case "critical":
+      return `критическая зона ${dir} нормы`;
+    default:
+      return "зона не определена";
+  }
+}
+
+/**
+ * Ищет в ПЕРСОНАЛЬНОЙ части карточки утверждения о зоне и сравнивает их
+ * с фактической зоной, посчитанной по нашим референсам.
+ * Возвращает описание противоречия либо null.
+ */
+export function detectZoneContradiction(
+  content: string,
+  info: ZoneInfo,
+): string | null {
+  if (!content || info.zone === "unknown") return null;
+
+  const stripped = content
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/^\s*#{1,6}\s+.*$/gm, " ");
+  const vm = VALUE_LINE_REGEX.exec(stripped);
+  // Анализируем только персональный разбор — образовательная часть может
+  // законно упоминать «критически низкий уровень бывает при…».
+  const personal = vm ? stripped.slice(vm.index) : stripped;
+
+  // «критически важен / критически значим» — не про зону.
+  const claimsCritical =
+    /критическ\w*(?!\s+(?:важ|значим|необходим|зависим))/i.test(
+      personal.replace(/критическ\w*\s+(важ|значим|необходим|зависим)\w*/gi, " "),
+    );
+  const claimsRisk = /(?:в\s+)?зон[аеуы]\s+риска|зоне\s+риска/i.test(personal);
+  const claimsOutOfNormal =
+    /(?:ниже|выше)\s+нормы|за\s+пределами\s+нормы|выходит\s+за\s+границ\w*\s+нормы|вне\s+нормы/i.test(
+      personal,
+    );
+  const claimsOptimal = /оптимальн\w*\s+(?:диапазон|зон|значен|уровн|коридор)/i.test(
+    personal,
+  );
+  const claimsNormal =
+    /в\s+пределах\s+(?:референс\w*\s+)?норм\w*|в\s+норме|нормальн\w*\s+(?:значен|уровн|показател)/i.test(
+      personal,
+    );
+
+  const actual = info.zone;
+  const truth = `${info.value}${info.unit ? " " + info.unit : ""} — ${info.label}`;
+
+  if (claimsCritical && actual !== "critical") {
+    return `текст называет значение критическим, фактически: ${truth}`;
+  }
+  if (claimsRisk && actual !== "risk" && actual !== "critical") {
+    return `текст называет значение зоной риска, фактически: ${truth}`;
+  }
+  if (claimsOutOfNormal && (actual === "optimal" || actual === "normal")) {
+    return `текст утверждает выход за пределы нормы, фактически: ${truth}`;
+  }
+  if (claimsOptimal && (actual === "risk" || actual === "critical")) {
+    return `текст называет значение оптимальным, фактически: ${truth}`;
+  }
+  if (claimsNormal && (actual === "risk" || actual === "critical")) {
+    return `текст называет значение нормальным, фактически: ${truth}`;
+  }
+  return null;
+}
+
+
 // ──────────────────── Trailing transition detection ────────────────────
 
 /**
