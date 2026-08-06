@@ -733,6 +733,7 @@ async function generateBiomarkerEducation(
   model: string,
   reportContext: string,
   generalDescription: string | null,
+  zoneHint?: string | null,
 ): Promise<string | null> {
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
@@ -751,11 +752,17 @@ ${valueLine}
     ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
     : "";
 
+  const zoneBlock = zoneHint
+    ? `\n\nФАКТИЧЕСКАЯ ЗОНА ПО НАШИМ РЕФЕРЕНСАМ (единственный источник истины): ${zoneHint}.
+Категорически запрещено называть значение иначе, чем указано выше: не пиши «критическое», «в зоне риска», «выше/ниже нормы», если этого нет в строке выше. Не используй общелабораторные референсы из своих знаний.\n`
+    : "";
+
   const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${reportContext.slice(0, 2000)}${knowledge}
+${reportContext.slice(0, 2000)}${knowledge}${zoneBlock}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
 
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
