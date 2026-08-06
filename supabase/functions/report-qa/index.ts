@@ -12,6 +12,9 @@
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { resolveRange } from "../_shared/health-model/adapter.ts";
+import { classifyZone } from "../_shared/health-model/m1-normalize.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -371,6 +374,91 @@ function isBiomarkerMissingEducation(
   return !diagnoseBiomarkerCard(content, precedingProse, biomarker).ok;
 }
 
+// ──────────────── Проверка соответствия текста реальной зоне ────────────────
+
+export type ZoneInfo = {
+  zone: "optimal" | "normal" | "risk" | "critical" | "unknown";
+  side: "low" | "high" | "in";
+  value: number;
+  unit: string | null;
+  label: string;
+};
+
+export function zoneLabelRu(zone: ZoneInfo["zone"], side: ZoneInfo["side"]): string {
+  const dir = side === "low" ? "ниже" : "выше";
+  switch (zone) {
+    case "optimal":
+      return "оптимальный диапазон";
+    case "normal":
+      return `в пределах нормы, но ${dir} оптимума`;
+    case "risk":
+      return `зона риска ${dir} нормы`;
+    case "critical":
+      return `критическая зона ${dir} нормы`;
+    default:
+      return "зона не определена";
+  }
+}
+
+/**
+ * Ищет в ПЕРСОНАЛЬНОЙ части карточки утверждения о зоне и сравнивает их
+ * с фактической зоной, посчитанной по нашим референсам.
+ * Возвращает описание противоречия либо null.
+ */
+export function detectZoneContradiction(
+  content: string,
+  info: ZoneInfo,
+): string | null {
+  if (!content || info.zone === "unknown") return null;
+
+  const stripped = content
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/^\s*#{1,6}\s+.*$/gm, " ");
+  const vm = VALUE_LINE_REGEX.exec(stripped);
+  // Анализируем только персональный разбор — образовательная часть может
+  // законно упоминать «критически низкий уровень бывает при…».
+  const personal = vm ? stripped.slice(vm.index) : stripped;
+
+  // «критически важен / критически значим» — не про зону.
+  const claimsCritical =
+    /критическ\w*(?!\s+(?:важ|значим|необходим|зависим))/i.test(
+      personal.replace(/критическ\w*\s+(важ|значим|необходим|зависим)\w*/gi, " "),
+    );
+  const claimsRisk = /(?:в\s+)?зон[аеуы]\s+риска|зоне\s+риска/i.test(personal);
+  const claimsOutOfNormal =
+    /(?:ниже|выше)\s+нормы|за\s+пределами\s+нормы|выходит\s+за\s+границ\w*\s+нормы|вне\s+нормы/i.test(
+      personal,
+    );
+  const claimsOptimal = /оптимальн\w*\s+(?:диапазон|зон|значен|уровн|коридор)/i.test(
+    personal,
+  );
+  const claimsNormal =
+    /в\s+пределах\s+(?:референс\w*\s+)?норм\w*|в\s+норме|нормальн\w*\s+(?:значен|уровн|показател)/i.test(
+      personal,
+    );
+
+  const actual = info.zone;
+  const truth = `${info.value}${info.unit ? " " + info.unit : ""} — ${info.label}`;
+
+  if (claimsCritical && actual !== "critical") {
+    return `текст называет значение критическим, фактически: ${truth}`;
+  }
+  if (claimsRisk && actual !== "risk" && actual !== "critical") {
+    return `текст называет значение зоной риска, фактически: ${truth}`;
+  }
+  if (claimsOutOfNormal && (actual === "optimal" || actual === "normal")) {
+    return `текст утверждает выход за пределы нормы, фактически: ${truth}`;
+  }
+  if (claimsOptimal && (actual === "risk" || actual === "critical")) {
+    return `текст называет значение оптимальным, фактически: ${truth}`;
+  }
+  if (claimsNormal && (actual === "risk" || actual === "critical")) {
+    return `текст называет значение нормальным, фактически: ${truth}`;
+  }
+  return null;
+}
+
+
 // ──────────────────── Trailing transition detection ────────────────────
 
 /**
@@ -648,6 +736,7 @@ async function generateBiomarkerEducation(
   model: string,
   reportContext: string,
   generalDescription: string | null,
+  zoneHint?: string | null,
 ): Promise<string | null> {
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
@@ -666,11 +755,17 @@ ${valueLine}
     ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
     : "";
 
+  const zoneBlock = zoneHint
+    ? `\n\nФАКТИЧЕСКАЯ ЗОНА ПО НАШИМ РЕФЕРЕНСАМ (единственный источник истины): ${zoneHint}.
+Категорически запрещено называть значение иначе, чем указано выше: не пиши «критическое», «в зоне риска», «выше/ниже нормы», если этого нет в строке выше. Не используй общелабораторные референсы из своих знаний.\n`
+    : "";
+
   const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${reportContext.slice(0, 2000)}${knowledge}
+${reportContext.slice(0, 2000)}${knowledge}${zoneBlock}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
 
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
@@ -821,14 +916,14 @@ Deno.serve(async (req) => {
         // Load analysis + biomarker dictionary + analysis_values
         const { data: analysis, error: aErr } = await admin
           .from("analyses")
-          .select("id, biomarkers_metadata")
+          .select("id, user_id, date, biomarkers_metadata")
           .eq("id", analysisId)
           .single();
         if (aErr) throw aErr;
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
+          .select("biomarker_id, value, unit_override, biomarkers!inner(*)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
@@ -840,6 +935,51 @@ Deno.serve(async (req) => {
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
         );
+
+        // Пол/возраст пациента — нужны для корректного разрешения референсов.
+        let patientGender: string | null = null;
+        let patientAge: number | null = null;
+        {
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("gender, birth_date")
+            .eq("id", (analysis as any)?.user_id)
+            .maybeSingle();
+          patientGender = (prof as any)?.gender ?? null;
+          const bd = (prof as any)?.birth_date;
+          if (bd) {
+            const ref = new Date((analysis as any)?.date || Date.now());
+            const b = new Date(bd);
+            let age = ref.getFullYear() - b.getFullYear();
+            const m = ref.getMonth() - b.getMonth();
+            if (m < 0 || (m === 0 && ref.getDate() < b.getDate())) age--;
+            if (Number.isFinite(age) && age > 0 && age < 130) patientAge = age;
+          }
+        }
+
+        // Фактическая зона каждого маркера по нашим референсам.
+        const zoneByCode = new Map<string, ZoneInfo>();
+        for (const r of (avRows || []) as any[]) {
+          const b = r.biomarkers;
+          const v = Number(r.value);
+          if (!b?.code || !Number.isFinite(v)) continue;
+          const range = resolveRange(b, patientAge, patientGender);
+          const zone = classifyZone(v, range);
+          let side: ZoneInfo["side"] = "in";
+          if (range.optimal_max != null && v > range.optimal_max) side = "high";
+          else if (range.optimal_min != null && v < range.optimal_min) side = "low";
+          else if (range.normal_max != null && v > range.normal_max) side = "high";
+          else if (range.normal_min != null && v < range.normal_min) side = "low";
+          const unit = r.unit_override ?? b.unit ?? null;
+          zoneByCode.set(normalizeBiomarkerCode(b.code), {
+            zone,
+            side,
+            value: v,
+            unit,
+            label: zoneLabelRu(zone, side),
+          });
+        }
+
 
         // Load ALL biomarker codes from the dictionary (not just this analysis)
         // so the English-artifact detector never flags valid biomarker codes,
@@ -990,6 +1130,7 @@ Deno.serve(async (req) => {
           // 5. AI repair for blocks missing educational text
           const reportContext = text.slice(0, 4000);
           const reasonByCode = new Map<string, string>();
+          const zoneMismatchByCode = new Map<string, string>();
           const blocksToFix = blocks.filter((b, idx) => {
             if (!knownCodesNorm.has(normalizeBiomarkerCode(b.code))) return false;
             const prevEnd = idx > 0 ? blocks[idx - 1].end : 0;
@@ -999,9 +1140,27 @@ Deno.serve(async (req) => {
                 normalizeBiomarkerCode(bb.code) === normalizeBiomarkerCode(b.code),
             );
             const diag = diagnoseBiomarkerCard(b.content, precedingProse, bm);
-            if (!diag.ok) reasonByCode.set(b.code, diag.reason);
-            return !diag.ok;
+            if (!diag.ok) {
+              reasonByCode.set(b.code, diag.reason);
+              return true;
+            }
+            // Противоречие текста фактической зоне по нашим референсам —
+            // карточку перегенерируем с явным указанием зоны.
+            const zi = zoneByCode.get(normalizeBiomarkerCode(b.code));
+            if (zi) {
+              const contradiction = detectZoneContradiction(b.content, zi);
+              if (contradiction) {
+                reasonByCode.set(b.code, "zone_mismatch");
+                zoneMismatchByCode.set(b.code, contradiction);
+                const wmsg = `[${sectionLabel}] ⚠ Несоответствие зоны у ${b.code}: ${contradiction}`;
+                fixes.push(wmsg);
+                send({ type: "warn", message: wmsg });
+                return true;
+              }
+            }
+            return false;
           });
+
           if (blocksToFix.length > 0) {
             const reasonSummary = Array.from(reasonByCode.entries())
               .map(([c, r]) => `${c}:${r}`)
@@ -1025,6 +1184,7 @@ Deno.serve(async (req) => {
               blk: { code: string; content: string; start: number; end: number };
               bm: { code: string; name: string; general_description?: string | null };
               valueLine: string;
+              zoneHint: string | null;
               replaceEnd: number;
               result?: string | null;
             };
@@ -1036,11 +1196,20 @@ Deno.serve(async (req) => {
                   normalizeBiomarkerCode(blk.code),
               );
               if (!bm) continue;
+              const zi = zoneByCode.get(normalizeBiomarkerCode(blk.code));
+              const zoneHint = zi
+                ? `${zi.value}${zi.unit ? " " + zi.unit : ""} — ${zi.label}`
+                : null;
+              const isZoneFix = zoneMismatchByCode.has(blk.code);
               const valueMatch =
                 /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-              const valueLine = valueMatch
-                ? valueMatch[0].trim()
-                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              // При исправлении зоны старую строку значения не переиспользуем —
+              // именно в ней обычно и живёт неверное утверждение.
+              const valueLine = isZoneFix && zi
+                ? `Ваш показатель ${bm.name} — ${zi.value}${zi.unit ? " " + zi.unit : ""} — ${zi.label}.`
+                : valueMatch
+                  ? valueMatch[0].trim()
+                  : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
               // Поиск конца блока в текущем text
               const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
               endRegex.lastIndex = blk.end;
@@ -1048,8 +1217,9 @@ Deno.serve(async (req) => {
               const replaceEnd = endMatch
                 ? endMatch.index + endMatch[0].length
                 : blk.end;
-              tasks.push({ blk, bm, valueLine, replaceEnd });
+              tasks.push({ blk, bm, valueLine, zoneHint, replaceEnd });
             }
+
 
             // Параллельно, но с ограничением concurrency и глобальным таймаутом
             let cursor = 0;
@@ -1074,6 +1244,8 @@ Deno.serve(async (req) => {
                     REPAIR_MODEL,
                     reportContext,
                     generalDesc,
+                    t.zoneHint,
+
                   );
                 } catch (_e) {
                   t.result = null;
