@@ -64,6 +64,8 @@ interface Props {
   mode: "view" | "edit";
   /** Колбэк после успешного сейва — чтобы родитель мог перечитать данные. */
   onSaved?: () => void;
+  /** Колбэк смены статуса публикации — чтобы список обновился без релоада. */
+  onDocStatusChange?: (status: "draft" | "edited" | "published") => void;
   /**
    * Компактный режим для ЛК пациента / view-as-patient:
    * скрывает служебную мета-строку, подсказку и переключатели пагинации,
@@ -153,7 +155,7 @@ function describeHttpError(res: Response, json: any): string {
   return `HTTP ${res.status}${raw ? ": " + raw : ""}`;
 }
 
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusChange, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
@@ -286,6 +288,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       await publishReportDocument(analysisId, publishedDoc);
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
+      onDocStatusChange?.("published");
       onSaved?.();
 
       // Серверный рендер PDF — единый источник пагинации для всех ролей.
@@ -315,7 +318,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     } finally {
       setPublishing(false);
     }
-  }, [analysisId, report, onSaved]);
+  }, [analysisId, report, onSaved, onDocStatusChange]);
 
   /** Снимает отчёт с публикации: пациент перестаёт его видеть. */
   const unpublish = useCallback(async () => {
@@ -325,6 +328,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       await unpublishReportDocument(analysisId);
       setReport((prev) => (prev ? { ...prev, docStatus: "draft" } : prev));
       toast.success("Отчёт скрыт", "Пациент больше не видит эту версию");
+      onDocStatusChange?.("draft");
       onSaved?.();
     } catch (e) {
       console.error("[ReportV2Editor] unpublish failed", e);
@@ -332,7 +336,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     } finally {
       setPublishing(false);
     }
-  }, [analysisId, report, onSaved]);
+  }, [analysisId, report, onSaved, onDocStatusChange]);
 
   /** Подтверждение смены статуса публикации: null — диалог закрыт. */
   const [pendingPublishAction, setPendingPublishAction] = useState<null | "publish" | "unpublish">(

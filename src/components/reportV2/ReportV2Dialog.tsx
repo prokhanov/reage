@@ -34,6 +34,8 @@ interface Props {
    * финальный PDF, что видит пациент (через issue-report-pdf-url).
    */
   staffPdfPreview?: boolean;
+  /** Смена статуса публикации внутри редактора — для мгновенного апдейта списка. */
+  onDocStatusChange?: (status: "draft" | "edited" | "published") => void;
 }
 
 /**
@@ -41,7 +43,7 @@ interface Props {
  * (Beta-иконки в списке). В ЛК пациента и режиме «Просмотр как пациент»
  * используется компактная панель без служебных подписей.
  */
-export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished }: Props) {
+export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, initialReport, hideDownload, requirePublished, onDocStatusChange }: Props) {
   const hasSource = initialReport || (analysisId && userId);
   // Просмотр отчёта (и у персонала, и у пациента) — HTML-верстка.
   // Серверный PDF доступен только по кнопке «Скачать PDF».
@@ -127,7 +129,9 @@ export function ReportV2Dialog({ open, onOpenChange, analysisId, userId, mode, i
                 initialReport={initialReport}
                 hideDownload={hideDownload}
                 requirePublished={requirePublished}
+                onDocStatusChange={onDocStatusChange}
               />
+
             ) : (
               <div className="text-sm text-muted-foreground">Не удалось определить пациента/анализ.</div>
             )}

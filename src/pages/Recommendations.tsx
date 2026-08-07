@@ -1483,7 +1483,15 @@ export default function Recommendations() {
             hideDownload={demoMode}
             requirePublished={!demoMode && !isViewMode}
             staffPdfPreview={!demoMode && isViewMode}
+            onDocStatusChange={(status) => {
+              const id = reportV2State.analysisId;
+              if (!id) return;
+              setReports((prev) =>
+                prev.map((r) => (r.analysisId === id ? { ...r, documentStatus: status } : r)),
+              );
+            }}
           />
+
         )}
 
 
