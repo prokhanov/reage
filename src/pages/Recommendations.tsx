@@ -21,7 +21,6 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { ReportV2Dialog } from "@/components/reportV2/ReportV2Dialog";
 import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
@@ -69,6 +68,7 @@ interface RecommendationReport {
   recommendations: Recommendation[];
   count: number;
   analysisId: string | null;
+  documentStatus: "draft" | "edited" | "published" | null;
 }
 
 interface Prescription {
@@ -319,6 +319,7 @@ export default function Recommendations() {
             recommendations,
             count: recommendations.length,
             analysisId: `demo-analysis-${analysisIndex}`,
+            documentStatus: "published" as const,
           };
         })
         .filter(Boolean) as RecommendationReport[];
@@ -381,22 +382,29 @@ export default function Recommendations() {
         recommendations: recs,
         count: recs.length,
         analysisId: recs[0]?.analysis_id || null,
+        documentStatus: null,
       })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-      // Пациент видит отчёт только после публикации врачом.
-      // Персонал (в т.ч. режим «просмотр как пациент») видит всё.
+      // Единственный источник статуса отчёта — состояние публикации документа.
+      // analyses.status отражает этап обработки анализа и не определяет видимость.
+      const ids = Array.from(
+        new Set(reportsList.map((r) => r.analysisId).filter(Boolean) as string[]),
+      );
+      const statuses = await Promise.all(
+        ids.map(async (id) => [id, await fetchReportDocumentStatus(id)] as const),
+      );
+      const statusByAnalysisId = new Map(statuses);
+      const reportsWithStatus = reportsList.map((report) => ({
+        ...report,
+        documentStatus: report.analysisId
+          ? statusByAnalysisId.get(report.analysisId) ?? null
+          : null,
+      }));
+
+      // Пациент видит только опубликованные отчёты; персонал — все.
       if (!isViewMode) {
-        const ids = Array.from(
-          new Set(reportsList.map((r) => r.analysisId).filter(Boolean) as string[]),
-        );
-        const statuses = await Promise.all(
-          ids.map(async (id) => [id, await fetchReportDocumentStatus(id)] as const),
-        );
-        const publishedIds = new Set(
-          statuses.filter(([, s]) => s === "published").map(([id]) => id),
-        );
-        const visible = reportsList.filter(
-          (r) => r.analysisId && publishedIds.has(r.analysisId),
+        const visible = reportsWithStatus.filter(
+          (report) => report.documentStatus === "published",
         );
         setReports(visible);
         const visibleIds = new Set(visible.map((r) => r.analysisId));
@@ -406,7 +414,7 @@ export default function Recommendations() {
         return;
       }
 
-      setReports(reportsList);
+      setReports(reportsWithStatus);
 
     } catch (error: any) {
       console.error("Error loading recommendations:", error);
@@ -1025,7 +1033,6 @@ export default function Recommendations() {
                 const dateLabel = report.date && !isNaN(new Date(report.date).getTime())
                   ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
                   : "Дата не указана";
-                const status = report.recommendations[0]?.analysis_status;
                 return (
                   <div
                     key={report.date}
@@ -1035,7 +1042,9 @@ export default function Recommendations() {
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
                         <span className="text-base font-semibold text-foreground">{dateLabel}</span>
-                        {status && <AnalysisStatusBadge status={status} />}
+                        <Badge variant={report.documentStatus === "published" ? "default" : "secondary"}>
+                          {report.documentStatus === "published" ? "Опубликован" : "Не опубликован"}
+                        </Badge>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">
@@ -1113,9 +1122,9 @@ export default function Recommendations() {
                         {report.date && !isNaN(new Date(report.date).getTime()) 
                           ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
                           : "Дата не указана"}
-                        {report.recommendations[0]?.analysis_status && (
-                          <AnalysisStatusBadge status={report.recommendations[0].analysis_status} />
-                        )}
+                        <Badge variant={report.documentStatus === "published" ? "default" : "secondary"}>
+                          {report.documentStatus === "published" ? "Опубликован" : "Не опубликован"}
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell>
