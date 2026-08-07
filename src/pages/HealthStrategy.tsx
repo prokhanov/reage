@@ -133,38 +133,33 @@ export default function HealthStrategy() {
 
 
 
-      const [{ data: prof }, { data: cats }] = await Promise.all([
+      // Пациент только читает сохранённые данные. Никакой генерации на его стороне:
+      // стратегию считает и публикует администратор по кнопке.
+      const [
+        { data: prof },
+        { data: cats },
+        { data: analyses },
+        { data: allAnalysesData },
+        { data: nextBooking },
+        { data: rz },
+        { data: pres },
+        { data: snaps },
+      ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
         supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
-      ]);
-      setProfile(prof);
-      const catNames = (cats || []).map((c) => c.name);
-      setCategories(catNames);
-
-      const { data: analyses } = await supabase
-        .from("analyses")
-        .select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode))")
-        .eq("user_id", userId)
-        .eq("status", "processed")
-        .order("date", { ascending: false })
-        .limit(2);
-
-      const { data: allAnalysesData } = await supabase
-        .from("analyses")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("status", "processed")
-        .order("date", { ascending: false });
-
-      setAllAnalyses(allAnalysesData || []);
-
-      const latest = analyses?.[0];
-      const prev = analyses?.[1];
-      setAnalysis(latest);
-      setPreviousAnalysis(prev || null);
-      setHasAnalyses(!!latest);
-
-      const [{ data: nextBooking }, { data: rz }, { data: pres }] = await Promise.all([
+        supabase
+          .from("analyses")
+          .select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode))")
+          .eq("user_id", userId)
+          .eq("status", "processed")
+          .order("date", { ascending: false })
+          .limit(2),
+        supabase
+          .from("analyses")
+          .select("id, date, health_index, biological_age")
+          .eq("user_id", userId)
+          .eq("status", "processed")
+          .order("date", { ascending: false }),
         supabase
           .from("analysis_bookings")
           .select("booking_date, next_analysis_date")
@@ -185,36 +180,35 @@ export default function HealthStrategy() {
           .select("id, name, category, reason, effect, status")
           .eq("user_id", userId)
           .eq("is_archived", false),
+        supabase
+          .from("health_strategy_snapshots")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(5),
       ]);
+
+      setProfile(prof);
+      setCategories((cats || []).map((c) => c.name));
+      setAllAnalyses(allAnalysesData || []);
+
+      const latest = analyses?.[0];
+      const prev = analyses?.[1];
+      setAnalysis(latest);
+      setPreviousAnalysis(prev || null);
+      setHasAnalyses(!!latest);
 
       setNextCheckup(nextBooking?.booking_date || nextBooking?.next_analysis_date || null);
       setRiskZone(rz || null);
       setPrescriptions(pres || []);
 
-      const { data: snaps } = await supabase
-        .from("health_strategy_snapshots")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(5);
+      // Показываем последний сохранённый снапшот как есть — без сверки с отчётом,
+      // Health Index и без требований к заполненности блоков.
+      const current = (snaps || [])[0] || null;
+      const previous = (snaps || []).find((s: any) => prev && s.analysis_id === prev.id && s.id !== current?.id);
+      setSnapshot((current as any) || null);
+      setPreviousSnapshot((previous as any) || null);
 
-      const matched = (snaps || []).find((s: any) => {
-        if (!latest || s.analysis_id !== latest.id) return false;
-        const snapHi = s.health_index == null ? null : Math.round(Number(s.health_index));
-        const latestHi = latest.health_index == null ? null : Math.round(Number(latest.health_index));
-        // Если числовая модель анализа уже пересчитана, не показываем старый
-        // снапшот стратегии с прежним Health Index (например 81 вместо 74).
-        return latestHi == null || snapHi === latestHi;
-      });
-      const previous = (snaps || []).find((s: any) => prev && s.analysis_id === prev.id);
-
-      if (matched) {
-        setSnapshot(matched as any);
-        setPreviousSnapshot((previous as any) || null);
-      } else if (latest) {
-        await generate(false);
-        setPreviousSnapshot((previous as any) || null);
-      }
     } catch (e) {
       console.error(e);
     } finally {
