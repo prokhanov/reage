@@ -334,6 +334,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
     }
   }, [analysisId, report, onSaved]);
 
+  /** Подтверждение смены статуса публикации: null — диалог закрыт. */
+  const [pendingPublishAction, setPendingPublishAction] = useState<null | "publish" | "unpublish">(
+    null,
+  );
+
+
+
   /**
    * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
    * пересобирается из нового черновика ИИ и полностью перезаписывает
