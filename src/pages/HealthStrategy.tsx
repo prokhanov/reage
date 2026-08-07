@@ -322,11 +322,14 @@ export default function HealthStrategy() {
 
           <Card className="border-dashed bg-card/40 backdrop-blur-xl">
             <CardContent className="py-16 text-center">
-              <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-              <h3 className="text-lg font-semibold mb-2">Готовим вашу стратегию</h3>
-              <p className="text-muted-foreground">Анализируем биомаркеры и назначения…</p>
+              <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Стратегия готовится врачом</h3>
+              <p className="text-muted-foreground">
+                Персональный план появится здесь после того, как врач сформирует его по вашим анализам.
+              </p>
             </CardContent>
           </Card>
+
         ) : (
           <div className="space-y-4 md:space-y-6">
             {/* 1. Траектория омоложения */}
