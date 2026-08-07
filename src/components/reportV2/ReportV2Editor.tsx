@@ -1148,8 +1148,44 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Button>
         )}
       </div>
+
+      <AlertDialog
+        open={pendingPublishAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingPublishAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingPublishAction === "unpublish"
+                ? "Снять отчёт с публикации?"
+                : "Опубликовать отчёт?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingPublishAction === "unpublish"
+                ? "Пациент перестанет видеть отчёт в личном кабинете."
+                : "Текущая версия отчёта станет видна пациенту в личном кабинете."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const action = pendingPublishAction;
+                setPendingPublishAction(null);
+                if (action === "unpublish") void unpublish();
+                else if (action === "publish") void publish();
+              }}
+            >
+              {pendingPublishAction === "unpublish" ? "Скрыть" : "Опубликовать"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
+
 
 
   const withNav = (children: React.ReactNode) => (
