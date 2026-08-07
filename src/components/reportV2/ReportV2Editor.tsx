@@ -288,6 +288,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
       await publishReportDocument(analysisId, publishedDoc);
       setReport((prev) => (prev ? { ...prev, docStatus: "published" } : prev));
       toast.success("Отчёт опубликован", "Пациент видит актуальную версию");
+      onDocStatusChange?.("published");
       onSaved?.();
 
       // Серверный рендер PDF — единый источник пагинации для всех ролей.
