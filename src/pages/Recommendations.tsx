@@ -320,6 +320,7 @@ export default function Recommendations() {
             recommendations,
             count: recommendations.length,
             analysisId: `demo-analysis-${analysisIndex}`,
+            documentStatus: "published" as const,
           };
         })
         .filter(Boolean) as RecommendationReport[];
