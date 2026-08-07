@@ -42,6 +42,18 @@ import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 import { ReportPdfView } from "./ReportPdfView";
 import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 
@@ -321,6 +333,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
       setPublishing(false);
     }
   }, [analysisId, report, onSaved]);
+
+  /** Подтверждение смены статуса публикации: null — диалог закрыт. */
+  const [pendingPublishAction, setPendingPublishAction] = useState<null | "publish" | "unpublish">(
+    null,
+  );
+
+
 
   /**
    * Перечитывает отчёт. `rebuildDoc = true` — после перегенерации: документ
@@ -932,12 +951,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
 
   // Действия для десктопной панели (inline-кнопки).
   const docStatus = report.docStatus ?? "draft";
-  const publishLabel =
-    docStatus === "published"
-      ? "Опубликован"
-      : docStatus === "edited"
-        ? "Опубликовать изменения"
-        : "Опубликовать";
+  const isPublished = docStatus === "published" || docStatus === "edited";
 
   // Публикация доступна персоналу (режим редактирования), в т.ч. в диалоге
   // (compact) — раньше кнопка пропадала и опубликовать было нечем.
@@ -962,37 +976,44 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
         </Button>
       )}
       {canPublish && (
-        <Button
-          size="sm"
-          variant={docStatus === "published" ? "outline" : "default"}
-          onClick={publish}
-          disabled={publishing || docStatus === "published"}
+        <div
+          className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5"
           title={
-            docStatus === "published"
-              ? "Пациент видит эту версию отчёта"
-              : "Сделать текущую версию видимой пациенту"
+            isPublished
+              ? "Пациент видит этот отчёт"
+              : "Сделать отчёт видимым пациенту"
           }
         >
           {publishing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Send className="mr-2 h-4 w-4" />
+            <Switch
+              id="report-publish-toggle"
+              checked={isPublished}
+              disabled={publishing}
+              onCheckedChange={(next) =>
+                setPendingPublishAction(next ? "publish" : "unpublish")
+              }
+            />
           )}
-          {publishLabel}
-        </Button>
+          <Label htmlFor="report-publish-toggle" className="cursor-pointer text-sm">
+            {isPublished ? "Опубликован" : "Не опубликован"}
+          </Label>
+        </div>
       )}
-      {canPublish && (docStatus === "published" || docStatus === "edited") && (
+      {canPublish && docStatus === "edited" && (
         <Button
           size="sm"
-          variant="outline"
-          onClick={unpublish}
+          variant="default"
+          onClick={() => setPendingPublishAction("publish")}
           disabled={publishing}
-          title="Скрыть отчёт от пациента и вернуть его в статус «На проверке»"
+          title="Опубликовать внесённые изменения"
         >
-          <EyeOff className="mr-2 h-4 w-4" />
-          Скрыть от пациента
+          <Send className="mr-2 h-4 w-4" />
+          Опубликовать изменения
         </Button>
       )}
+
       {canPublish && (
 
         <Button
@@ -1055,17 +1076,25 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </DropdownMenuItem>
         )}
         {canPublish && (
-          <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+          <DropdownMenuItem
+            onSelect={() => setPendingPublishAction(isPublished ? "unpublish" : "publish")}
+            disabled={publishing}
+          >
+            {isPublished ? (
+              <EyeOff className="mr-2 h-4 w-4" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            {isPublished ? "Снять с публикации" : "Опубликовать"}
+          </DropdownMenuItem>
+        )}
+        {canPublish && docStatus === "edited" && (
+          <DropdownMenuItem onSelect={() => setPendingPublishAction("publish")} disabled={publishing}>
             <Send className="mr-2 h-4 w-4" />
-            {publishLabel}
+            Опубликовать изменения
           </DropdownMenuItem>
         )}
-        {canPublish && (docStatus === "published" || docStatus === "edited") && (
-          <DropdownMenuItem onSelect={() => void unpublish()} disabled={publishing}>
-            <EyeOff className="mr-2 h-4 w-4" />
-            Скрыть от пациента
-          </DropdownMenuItem>
-        )}
+
         {canPublish && (
           <DropdownMenuItem onSelect={() => void runQaCheck()} disabled={qaRunning}>
             <ShieldCheck className="mr-2 h-4 w-4" />
@@ -1119,8 +1148,44 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </Button>
         )}
       </div>
+
+      <AlertDialog
+        open={pendingPublishAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingPublishAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingPublishAction === "unpublish"
+                ? "Снять отчёт с публикации?"
+                : "Опубликовать отчёт?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingPublishAction === "unpublish"
+                ? "Пациент перестанет видеть отчёт в личном кабинете."
+                : "Текущая версия отчёта станет видна пациенту в личном кабинете."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const action = pendingPublishAction;
+                setPendingPublishAction(null);
+                if (action === "unpublish") void unpublish();
+                else if (action === "publish") void publish();
+              }}
+            >
+              {pendingPublishAction === "unpublish" ? "Скрыть" : "Опубликовать"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
+
 
 
   const withNav = (children: React.ReactNode) => (
