@@ -21,7 +21,6 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { ReportV2Dialog } from "@/components/reportV2/ReportV2Dialog";
 import { buildLabReportFromExample } from "@/lib/reportLab/buildFromExample";
