@@ -318,7 +318,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
     } finally {
       setPublishing(false);
     }
-  }, [analysisId, report, onSaved]);
+  }, [analysisId, report, onSaved, onDocStatusChange]);
 
   /** Снимает отчёт с публикации: пациент перестаёт его видеть. */
   const unpublish = useCallback(async () => {
@@ -328,6 +328,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
       await unpublishReportDocument(analysisId);
       setReport((prev) => (prev ? { ...prev, docStatus: "draft" } : prev));
       toast.success("Отчёт скрыт", "Пациент больше не видит эту версию");
+      onDocStatusChange?.("draft");
       onSaved?.();
     } catch (e) {
       console.error("[ReportV2Editor] unpublish failed", e);
@@ -335,7 +336,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
     } finally {
       setPublishing(false);
     }
-  }, [analysisId, report, onSaved]);
+  }, [analysisId, report, onSaved, onDocStatusChange]);
 
   /** Подтверждение смены статуса публикации: null — диалог закрыт. */
   const [pendingPublishAction, setPendingPublishAction] = useState<null | "publish" | "unpublish">(
