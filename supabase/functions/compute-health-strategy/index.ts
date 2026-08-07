@@ -217,26 +217,23 @@ serve(async (req) => {
       });
     }
 
-    if (!force && !preview && latestAnalysisRow) {
+    // Генерация запускается ТОЛЬКО явной командой администратора
+    // (force / preview / publish). Любой другой вызов отдаёт сохранённый
+    // в БД снапшот и никогда не запускает расчёт.
+    if (!force && !preview) {
       const { data: cached } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
         .eq("user_id", targetUserId)
-        .eq("analysis_id", latestAnalysisRow.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      const cachedHi = cached?.health_index == null ? null : Math.round(Number(cached.health_index));
-      const latestHi = (latestAnalysisRow as any)?.health_index == null ? null : Math.round(Number((latestAnalysisRow as any).health_index));
-      const cacheMatchesLatestHealthModel = latestHi == null || cachedHi === latestHi;
-      // Снимок, созданный до последней публикации отчёта, устарел: назначения
-      // могли быть отредактированы врачом — пересчитываем.
-      const cacheNewerThanPublication =
-        !reportPublishedAt || (cached?.created_at && new Date(cached.created_at) >= new Date(reportPublishedAt));
-      if (cached && cacheMatchesLatestHealthModel && cacheNewerThanPublication && cached.roadmap && cached.key_biomarkers && Array.isArray(cached.expectations) && cached.expectations.length > 0 && !hasLegacyRoadmap(cached.roadmap)) {
-        return new Response(JSON.stringify(cached), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+      return new Response(JSON.stringify(cached ?? { error: "no_snapshot" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
 
 
     const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes, medHistoryRes] = await Promise.all([
