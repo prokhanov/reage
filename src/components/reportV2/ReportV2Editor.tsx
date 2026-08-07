@@ -155,7 +155,7 @@ function describeHttpError(res: Response, json: any): string {
   return `HTTP ${res.status}${raw ? ": " + raw : ""}`;
 }
 
-export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
+export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusChange, compact = false, onClose, initialReport, hideDownload = false, hideToolbar = false, fullHeight = false, sidebarFooter, bottomAction, requirePublished = false }: Props) {
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<LabReport | null>(initialReport ?? null);
