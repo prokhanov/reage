@@ -42,6 +42,18 @@ import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 import { ReportPdfView } from "./ReportPdfView";
 import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 
