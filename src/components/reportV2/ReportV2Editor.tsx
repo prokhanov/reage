@@ -1076,17 +1076,25 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, compact = fa
           </DropdownMenuItem>
         )}
         {canPublish && (
-          <DropdownMenuItem onSelect={publish} disabled={publishing || docStatus === "published"}>
+          <DropdownMenuItem
+            onSelect={() => setPendingPublishAction(isPublished ? "unpublish" : "publish")}
+            disabled={publishing}
+          >
+            {isPublished ? (
+              <EyeOff className="mr-2 h-4 w-4" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            {isPublished ? "Снять с публикации" : "Опубликовать"}
+          </DropdownMenuItem>
+        )}
+        {canPublish && docStatus === "edited" && (
+          <DropdownMenuItem onSelect={() => setPendingPublishAction("publish")} disabled={publishing}>
             <Send className="mr-2 h-4 w-4" />
-            {publishLabel}
+            Опубликовать изменения
           </DropdownMenuItem>
         )}
-        {canPublish && (docStatus === "published" || docStatus === "edited") && (
-          <DropdownMenuItem onSelect={() => void unpublish()} disabled={publishing}>
-            <EyeOff className="mr-2 h-4 w-4" />
-            Скрыть от пациента
-          </DropdownMenuItem>
-        )}
+
         {canPublish && (
           <DropdownMenuItem onSelect={() => void runQaCheck()} disabled={qaRunning}>
             <ShieldCheck className="mr-2 h-4 w-4" />
