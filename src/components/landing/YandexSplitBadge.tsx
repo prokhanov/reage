@@ -12,7 +12,7 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2.5 rounded-full px-3.5 py-2",
+        "inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 overflow-hidden",
         "bg-background/80 border border-border/60 shadow-sm",
         "hover:border-border/90 transition-colors",
         className
