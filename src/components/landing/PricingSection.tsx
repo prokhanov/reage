@@ -1,4 +1,5 @@
 import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
+import { YandexSplitBadge } from "./YandexSplitBadge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
@@ -79,9 +80,14 @@ interface PricingCardProps {
   badge?: string;
   delay: number;
   onSelect: () => void;
+  splitBadge?: {
+    amount: number;
+    payments: number;
+  };
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
+
   return (
     <div
       className="group relative h-full animate-fade-in"
@@ -111,6 +117,12 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
             </span>
             <span className="text-muted-foreground whitespace-nowrap">/{period}</span>
           </div>
+
+          {splitBadge && (
+            <div className="mt-3 flex justify-center">
+              <YandexSplitBadge amount={splitBadge.amount} payments={splitBadge.payments} />
+            </div>
+          )}
         </div>
 
         <div className="space-y-3 mb-6">
@@ -329,6 +341,11 @@ function planToCard(
       : "basic";
   const audience = getPlanAudience(slugKey);
 
+  // Сплит-оплата только для базового тарифа: 69 990 ₽/год → 17 500 × 4 платежа.
+  const splitBadge = slugKey === "basic"
+    ? { amount: 17500, payments: 4 }
+    : undefined;
+
   return {
     id: plan.id,
     name: plan.display_name,
@@ -345,6 +362,7 @@ function planToCard(
     gain: audience.gain,
     glowColor: glowByPlanSlug[slug] ?? defaultGlow,
     delay: 0.1 + index * 0.1,
+    splitBadge,
   };
 }
 
