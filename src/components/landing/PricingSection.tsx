@@ -1,5 +1,5 @@
 import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
-import { YandexSplitBadge } from "./YandexSplitBadge";
+import { YandexSplitBadge, calculateSplitPayment } from "./YandexSplitBadge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
@@ -341,10 +341,9 @@ function planToCard(
       : "basic";
   const audience = getPlanAudience(slugKey);
 
-  // Сплит-оплата только для базового тарифа: 69 990 ₽/год → 17 500 × 4 платежа.
-  const splitBadge = slugKey === "basic"
-    ? { amount: 17500, payments: 4 }
-    : undefined;
+  // Рассчитываем ежеквартальный платёж по Яндекс Сплит для любого годового тарифа.
+  const splitPayment = calculateSplitPayment(amount);
+  const splitBadge = { amount: splitPayment, payments: 4 };
 
   return {
     id: plan.id,

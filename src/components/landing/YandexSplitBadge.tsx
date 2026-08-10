@@ -7,11 +7,11 @@ interface YandexSplitLogoProps {
 function YandexSplitLogo({ className }: YandexSplitLogoProps) {
   return (
     <svg
-      viewBox="0 0 130 24"
+      viewBox="0 0 128 24"
       className={cn("h-5 w-auto", className)}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Yandex Split"
+      aria-label="Яндекс Сплит"
     >
       <defs>
         <linearGradient id="splitGradient" x1="0" y1="0" x2="1" y2="0">
@@ -19,38 +19,41 @@ function YandexSplitLogo({ className }: YandexSplitLogoProps) {
           <stop offset="100%" stopColor="#FF4F9F" />
         </linearGradient>
       </defs>
-      {/* Yandex red circle */}
+
+      {/* Яндекс красный круг с буквой «Я» */}
       <circle cx="11" cy="12" r="10" fill="#FC3F1D" />
       <text
         x="11"
-        y="16.5"
+        y="16.8"
         textAnchor="middle"
         fontSize="13"
         fontWeight="700"
         fill="white"
-        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       >
-        Y
+        Я
       </text>
-      {/* Yandex text */}
+
+      {/* «ндекс» — продолжение слова «Яндекс» */}
       <text
-        x="26"
+        x="24"
         y="17"
         fontSize="13"
         fontWeight="500"
         fill="currentColor"
-        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       >
-        Yandex
+        ндекс
       </text>
-      {/* Split text with gradient */}
+
+      {/* Split — фирменный градиент */}
       <text
-        x="72"
+        x="66"
         y="17"
         fontSize="13"
         fontWeight="700"
         fill="url(#splitGradient)"
-        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       >
         Split
       </text>
@@ -70,8 +73,8 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
     <div
       className={cn(
         "inline-flex flex-col items-center gap-1 rounded-xl px-3 py-2",
-        "bg-gradient-to-br from-[#7B61FF]/10 to-[#FF4F9F]/10",
-        "border border-[#7B61FF]/20",
+        "bg-gradient-to-br from-[#7B61FF]/12 to-[#FF4F9F]/12",
+        "border border-[#7B61FF]/25",
         className
       )}
     >
@@ -81,4 +84,12 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
       </span>
     </div>
   );
+}
+
+/**
+ * Рассчитывает сумму одного платежа при разбиении годовой цены на 4 части.
+ * Округляет до ближайших 100 ₽ для аккуратного отображения.
+ */
+export function calculateSplitPayment(annualAmount: number): number {
+  return Math.round(annualAmount / 4 / 100) * 100;
 }
