@@ -81,7 +81,7 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
         className
       )}
     >
-      <YandexSplitLogo className="h-4.5" />
+      <YandexSplitLogo className="h-[18px]" />
       <div className="flex flex-col items-start leading-none">
         <span className="text-[13px] font-semibold text-foreground">
           {formatted} ₽ × {payments} платежа
