@@ -35,8 +35,8 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
 
 /**
  * Рассчитывает сумму одного платежа при разбиении годовой цены на 4 части.
- * Округляет до ближайших 100 ₽ для аккуратного отображения.
+ * Округляет до целого рубля, без искусственного округления до 100 ₽.
  */
 export function calculateSplitPayment(annualAmount: number): number {
-  return Math.round(annualAmount / 4 / 100) * 100;
+  return Math.round(annualAmount / 4);
 }
