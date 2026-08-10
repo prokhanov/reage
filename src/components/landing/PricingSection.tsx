@@ -79,9 +79,14 @@ interface PricingCardProps {
   badge?: string;
   delay: number;
   onSelect: () => void;
+  splitBadge?: {
+    amount: number;
+    payments: number;
+  };
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
+
   return (
     <div
       className="group relative h-full animate-fade-in"
