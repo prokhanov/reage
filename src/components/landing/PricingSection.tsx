@@ -1,5 +1,5 @@
 import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
-import { YandexSplitBadge } from "./YandexSplitBadge";
+import { YandexSplitBadge, calculateSplitPayment } from "./YandexSplitBadge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
