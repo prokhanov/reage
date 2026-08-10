@@ -21,7 +21,7 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
       <img
         src={yandexSplitLogo}
         alt="Яндекс Сплит"
-        className="h-5 w-auto object-contain"
+        className="h-5 w-auto object-contain rounded-md"
       />
       <div className="flex flex-col items-start leading-none">
         <span className="text-[13px] font-semibold text-foreground">
