@@ -109,6 +109,11 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
         }
 
         <div className="text-center mb-6">
+          {splitBadge && (
+            <div className="mb-4 flex justify-center">
+              <YandexSplitBadge amount={splitBadge.amount} payments={splitBadge.payments} />
+            </div>
+          )}
           <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
 
           <div className="flex items-baseline justify-center gap-1">
@@ -117,12 +122,6 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
             </span>
             <span className="text-muted-foreground whitespace-nowrap">/{period}</span>
           </div>
-
-          {splitBadge && (
-            <div className="mt-3 flex justify-center">
-              <YandexSplitBadge amount={splitBadge.amount} payments={splitBadge.payments} />
-            </div>
-          )}
         </div>
 
         <div className="space-y-3 mb-6">
