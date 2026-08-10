@@ -7,55 +7,58 @@ interface YandexSplitLogoProps {
 function YandexSplitLogo({ className }: YandexSplitLogoProps) {
   return (
     <svg
-      viewBox="0 0 128 24"
+      viewBox="0 0 120 24"
       className={cn("h-5 w-auto", className)}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Яндекс Сплит"
     >
-      <defs>
-        <linearGradient id="splitGradient" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#7B61FF" />
-          <stop offset="100%" stopColor="#FF4F9F" />
-        </linearGradient>
-      </defs>
-
-      {/* Яндекс красный круг с буквой «Я» */}
-      <circle cx="11" cy="12" r="10" fill="#FC3F1D" />
+      {/* Яндекс: чёрный круг с белой буквой «Я» */}
+      <circle cx="10" cy="12" r="10" fill="#000000" />
       <text
-        x="11"
+        x="10"
         y="16.8"
         textAnchor="middle"
         fontSize="13"
         fontWeight="700"
         fill="white"
-        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       >
         Я
       </text>
 
-      {/* «ндекс» — продолжение слова «Яндекс» */}
-      <text
-        x="24"
-        y="17"
-        fontSize="13"
-        fontWeight="500"
-        fill="currentColor"
-        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-      >
-        ндекс
-      </text>
+      {/* Сплит: арбуз — зелёный круг с вырезанным куском и красной мякотью */}
+      <g transform="translate(24, 2)">
+        {/* Зелёный круг */}
+        <circle cx="10" cy="10" r="9.5" fill="#00C853" />
+        {/* Красная мякоть внутри вырезанного сектора */}
+        <path
+          d="M 10 10 L 17 3 A 9.5 9.5 0 0 1 17 17 Z"
+          fill="#FF5252"
+        />
+        {/* Тонкая белая/светлая корочка поверх красной части */}
+        <path
+          d="M 10 10 L 16.5 3.5 A 9 9 0 0 1 16.5 16.5 Z"
+          fill="#FF5252"
+          opacity="0.85"
+        />
+        {/* Вырез — полупрозрачный зелёный сектор, чтобы создать эффект «укуса» */}
+        <path
+          d="M 10 10 L 17 2 A 9.5 9.5 0 0 1 17 18 Z"
+          fill="#00C853"
+        />
+      </g>
 
-      {/* Split — фирменный градиент */}
+      {/* Текст «Сплит» */}
       <text
-        x="66"
+        x="48"
         y="17"
-        fontSize="13"
-        fontWeight="700"
-        fill="url(#splitGradient)"
-        fontFamily="'Yandex Sans Text', 'Yandex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontSize="14"
+        fontWeight="600"
+        fill="#000000"
+        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       >
-        Split
+        Сплит
       </text>
     </svg>
   );
@@ -72,16 +75,19 @@ export function YandexSplitBadge({ amount, payments, className }: YandexSplitBad
   return (
     <div
       className={cn(
-        "inline-flex flex-col items-center gap-1 rounded-xl px-3 py-2",
-        "bg-gradient-to-br from-[#7B61FF]/12 to-[#FF4F9F]/12",
-        "border border-[#7B61FF]/25",
+        "inline-flex items-center gap-2.5 rounded-full px-3.5 py-2",
+        "bg-background/80 border border-border/60 shadow-sm",
+        "hover:border-border/90 transition-colors",
         className
       )}
     >
-      <YandexSplitLogo />
-      <span className="text-sm font-semibold text-foreground whitespace-nowrap">
-        {formatted} ₽ × {payments} платежа
-      </span>
+      <YandexSplitLogo className="h-[18px]" />
+      <div className="flex flex-col items-start leading-none">
+        <span className="text-[13px] font-semibold text-foreground">
+          {formatted} ₽ × {payments} платежа
+        </span>
+        <span className="text-[10px] text-muted-foreground mt-0.5">Рассрочка без переплат</span>
+      </div>
     </div>
   );
 }
