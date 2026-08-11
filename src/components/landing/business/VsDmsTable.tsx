@@ -46,9 +46,10 @@ function Cell({ value, highlight }: { value: Mark | string; highlight?: boolean 
       </div>
     );
   return (
-    <span className={`text-sm ${highlight ? "text-primary font-medium" : "text-muted-foreground"}`}>
+    <span className={`text-xs md:text-sm leading-snug ${highlight ? "text-primary font-medium" : "text-muted-foreground"}`}>
       {value}
     </span>
+
   );
 }
 
@@ -67,8 +68,8 @@ export function VsDmsTable() {
           </p>
         </div>
 
-        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
-          <div className="relative min-w-[900px]">
+        <div>
+          <div className="relative w-full">
             <div
               aria-hidden
               className="absolute bg-primary/5 rounded-3xl border border-primary/10"
@@ -77,28 +78,29 @@ export function VsDmsTable() {
 
             <div className="relative grid grid-cols-[34%_16.5%_16.5%_16.5%_16.5%] mb-2">
               <div />
-              <div className="text-center py-6 text-lg font-bold text-primary">ReAge</div>
-              <div className="text-center py-6 text-lg font-bold text-foreground">ДМС</div>
-              <div className="text-center py-6 text-lg font-bold text-foreground">Корп. чекап</div>
-              <div className="text-center py-6 text-lg font-bold text-foreground">Ничего</div>
+              <div className="text-center py-4 md:py-6 text-sm md:text-lg font-bold text-primary">ReAge</div>
+              <div className="text-center py-4 md:py-6 text-sm md:text-lg font-bold text-foreground">ДМС</div>
+              <div className="text-center py-4 md:py-6 text-sm md:text-lg font-bold text-foreground">Корп. чекап</div>
+              <div className="text-center py-4 md:py-6 text-sm md:text-lg font-bold text-foreground">Ничего</div>
             </div>
 
-            <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 px-6">
+            <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 px-3 md:px-6">
               {rows.map((r) => (
                 <div
                   key={r.feature}
-                  className="grid grid-cols-[34%_16.5%_16.5%_16.5%_16.5%] py-5 border-b border-border/50 last:border-0 items-center"
+                  className="grid grid-cols-[34%_16.5%_16.5%_16.5%_16.5%] py-4 md:py-5 border-b border-border/50 last:border-0 items-center"
                 >
-                  <div className="text-sm font-medium text-foreground pr-4">{r.feature}</div>
-                  <div className="text-center"><Cell value={r.reage} highlight /></div>
-                  <div className="text-center"><Cell value={r.dms} /></div>
-                  <div className="text-center"><Cell value={r.checkup} /></div>
-                  <div className="text-center"><Cell value={r.none} /></div>
+                  <div className="text-xs md:text-sm font-medium text-foreground pr-2 md:pr-4 leading-snug">{r.feature}</div>
+                  <div className="text-center px-1"><Cell value={r.reage} highlight /></div>
+                  <div className="text-center px-1"><Cell value={r.dms} /></div>
+                  <div className="text-center px-1"><Cell value={r.checkup} /></div>
+                  <div className="text-center px-1"><Cell value={r.none} /></div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
