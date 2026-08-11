@@ -54,21 +54,20 @@ function Cell({ value, highlight }: { value: Mark | string; highlight?: boolean 
 
 export function VsDmsTable() {
   return (
-    <section className="relative py-16 md:py-24">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <div className="max-w-3xl mb-12">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-            <span className="text-foreground">Почему это не заменяет ДМС</span>
-            <br />
+    <section className="relative py-12 md:py-16 overflow-hidden">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Почему это не заменяет ДМС </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">и не повторяет чекап</span>
           </h2>
-          <p className="mt-5 text-lg text-muted-foreground">
+          <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
             ДМС покрывает лечение, когда проблема уже есть. Корпоративный чекап фиксирует
             состояние один раз в год. ReAge работает в промежутке — там, где риск ещё управляем.
           </p>
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0">
+        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
           <div className="relative min-w-[900px]">
             <div
               aria-hidden

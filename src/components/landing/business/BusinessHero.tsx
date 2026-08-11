@@ -30,7 +30,7 @@ export function BusinessHero({ onCta }: { onCta: () => void }) {
         }}
       />
 
-      <header className="relative z-20 container mx-auto px-6 max-w-7xl flex items-center justify-between gap-3 pt-5">
+      <header className="relative z-20 container mx-auto px-4 flex items-center justify-between gap-3 pt-5">
         <a href="/" className="shrink-0" aria-label="ReAge — на главную">
           <ThemedLogo className="h-9 md:h-11 w-auto" />
         </a>
@@ -57,7 +57,7 @@ export function BusinessHero({ onCta }: { onCta: () => void }) {
         </div>
       </header>
 
-      <div className="relative z-10 container mx-auto px-6 max-w-7xl pt-14 pb-16 md:pt-24 md:pb-24">
+      <div className="relative z-10 container mx-auto px-4 pt-12 pb-14 md:pt-20 md:pb-20">
         <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-16 items-end">
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-7 animate-fade-in">
