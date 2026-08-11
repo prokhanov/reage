@@ -28,7 +28,6 @@ export default function Business() {
         canonical="/business"
       />
       <main>
-        <h1 className="sr-only">ReAge для бизнеса: программа здоровья сотрудников</h1>
         <BusinessHero onCta={scrollToCta} />
         <CostOfInactionBlock />
         <BusinessValueBlock />

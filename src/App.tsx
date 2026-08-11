@@ -34,6 +34,7 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const LifestyleTest = lazy(() => import("./pages/LifestyleTest"));
 const AnalysisPrep = lazy(() => import("./pages/AnalysisPrep"));
 const Faq = lazy(() => import("./pages/Faq"));
+const Business = lazy(() => import("./pages/Business"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 // Patient area
@@ -140,6 +141,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/prep" element={<AnalysisPrep />} />
             <Route path="/faq" element={<Faq />} />
+            <Route path="/business" element={<Business />} />
             <Route path="/lifestyle-test" element={<LifestyleTest />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/:step" element={<Register />} />
