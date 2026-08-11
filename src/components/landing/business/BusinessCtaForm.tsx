@@ -87,7 +87,7 @@ export function BusinessCtaForm({ id = "business-cta" }: { id?: string }) {
             "radial-gradient(ellipse 70% 60% at 50% 100%, hsl(210 85% 45% / 0.18) 0%, transparent 70%)",
         }}
       />
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-5xl mx-auto rounded-3xl border border-border/50 bg-card/70 backdrop-blur-sm p-8 md:p-12">
           <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10">
             <div>

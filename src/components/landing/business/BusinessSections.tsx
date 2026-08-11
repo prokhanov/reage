@@ -31,7 +31,7 @@ const inaction = [
 export function CostOfInactionBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4 grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
+      <div className="relative z-10 container mx-auto px-4 grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
         <div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Компания платит за незамеченные отклонения — </span>
@@ -91,7 +91,7 @@ const values = [
 export function BusinessValueBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Что это даёт </span>
@@ -145,7 +145,7 @@ const personas = [
 export function PersonasBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Кому внутри компании </span>
@@ -187,7 +187,7 @@ const companyItems = [
 export function CompanyVsEmployeeBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Сотрудник видит всё. </span>
@@ -266,7 +266,7 @@ const formats = [
 export function ProgramFormatsBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Форматы </span>
@@ -314,7 +314,7 @@ const steps = [
 export function OnboardingTimeline() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Как </span>
@@ -356,7 +356,7 @@ const trust = [
 export function TrustComplianceBlock() {
   return (
     <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-12">
           <div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
