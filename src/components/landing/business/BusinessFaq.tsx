@@ -37,7 +37,7 @@ export function BusinessFaq() {
   const [open, setOpen] = useState<string>();
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-4">
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Частые </span>
