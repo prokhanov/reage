@@ -30,13 +30,14 @@ const inaction = [
 
 export function CostOfInactionBlock() {
   return (
-    <section className="relative py-16 md:py-24 border-y border-border/40 bg-muted/10">
-      <div className="container mx-auto px-6 max-w-7xl grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
+    <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
+      <div className="relative z-10 container mx-auto px-4 grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
         <div>
-          <h2 className="text-3xl md:text-4xl font-bold leading-tight text-foreground">
-            Компания платит за незамеченные отклонения — просто не видит эту строку в бюджете
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
+            <span className="text-foreground">Компания платит за незамеченные отклонения — </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">просто не видит эту строку в бюджете</span>
           </h2>
-          <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in leading-relaxed">
             Выгорание ключевых людей, длительные больничные, падение продуктивности и внезапно
             найденные состояния у топ-менеджмента — это не медицинская, а операционная проблема.
           </p>
@@ -89,12 +90,14 @@ const values = [
 
 export function BusinessValueBlock() {
   return (
-    <section className="relative py-16 md:py-24">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl mb-12">
-          <span className="text-foreground">Что это даёт </span>
-          <span className="bg-gradient-hero bg-clip-text text-transparent">бизнесу</span>
-        </h2>
+    <section className="relative py-12 md:py-16 overflow-hidden">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Что это даёт </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">бизнесу</span>
+          </h2>
+        </div>
         <div className="grid md:grid-cols-2 gap-6">
           {values.map((v, i) => (
             <div
@@ -141,12 +144,14 @@ const personas = [
 
 export function PersonasBlock() {
   return (
-    <section className="relative py-16 md:py-24 border-y border-border/40 bg-muted/10">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl mb-12">
-          <span className="text-foreground">Кому внутри компании </span>
-          <span className="bg-gradient-hero bg-clip-text text-transparent">это нужно</span>
-        </h2>
+    <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Кому внутри компании </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">это нужно</span>
+          </h2>
+        </div>
         <div className="grid md:grid-cols-3 gap-6">
           {personas.map((p) => (
             <div key={p.role} className="p-8 rounded-3xl bg-card/60 border border-border/50 backdrop-blur-sm">
@@ -181,16 +186,18 @@ const companyItems = [
 
 export function CompanyVsEmployeeBlock() {
   return (
-    <section className="relative py-16 md:py-24">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl mb-4">
-          <span className="text-foreground">Сотрудник видит всё. </span>
-          <span className="bg-gradient-hero bg-clip-text text-transparent">Компания — только цифры по группе</span>
-        </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mb-12">
+    <section className="relative py-12 md:py-16 overflow-hidden">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Сотрудник видит всё. </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">Компания — только цифры по группе</span>
+          </h2>
+          <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
           Это условие, без которого программа не работает: люди участвуют только тогда, когда
-          уверены, что результаты не попадут к работодателю.
-        </p>
+            уверены, что результаты не попадут к работодателю.
+          </p>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="p-8 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-sm">
@@ -258,15 +265,17 @@ const formats = [
 
 export function ProgramFormatsBlock() {
   return (
-    <section className="relative py-16 md:py-24 border-y border-border/40 bg-muted/10">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl mb-4">
-          <span className="text-foreground">Форматы </span>
-          <span className="bg-gradient-hero bg-clip-text text-transparent">программы</span>
-        </h2>
-        <p className="text-lg text-muted-foreground mb-12">
-          Стоимость зависит от объёма и состава панели — рассчитаем под вашу команду.
-        </p>
+    <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Форматы </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">программы</span>
+          </h2>
+          <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
+            Стоимость зависит от объёма и состава панели — рассчитаем под вашу команду.
+          </p>
+        </div>
         <div className="grid md:grid-cols-3 gap-6">
           {formats.map((f) => (
             <div
@@ -304,12 +313,14 @@ const steps = [
 
 export function OnboardingTimeline() {
   return (
-    <section className="relative py-16 md:py-24">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl mb-12">
-          <span className="text-foreground">Как </span>
-          <span className="bg-gradient-hero bg-clip-text text-transparent">запускаем</span>
-        </h2>
+    <section className="relative py-12 md:py-16 overflow-hidden">
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <span className="text-foreground">Как </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">запускаем</span>
+          </h2>
+        </div>
         <div className="grid md:grid-cols-4 gap-6 relative">
           <div
             aria-hidden
@@ -344,14 +355,15 @@ const trust = [
 
 export function TrustComplianceBlock() {
   return (
-    <section className="relative py-16 md:py-24 border-y border-border/40 bg-muted/10">
-      <div className="container mx-auto px-6 max-w-7xl">
+    <section className="relative py-12 md:py-16 overflow-hidden border-y border-border/40 bg-muted/10">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-12">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold leading-tight text-foreground">
-              Безопасность данных и документы для юрлица
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
+              <span className="text-foreground">Безопасность данных и </span>
+              <span className="bg-gradient-hero bg-clip-text text-transparent">документы для юрлица</span>
             </h2>
-            <p className="mt-5 text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in leading-relaxed">
               Работаем по договору с ООО «Реэйдж», предоставляем закрывающие документы.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
