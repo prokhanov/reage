@@ -146,6 +146,19 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Nav */}
+        <div className="border-t border-border/40 py-6 flex flex-wrap gap-x-8 gap-y-3">
+          <a href="/business" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+            Для бизнеса
+          </a>
+          <a href="/faq" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+            Вопросы и ответы
+          </a>
+          <a href="/prep" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+            Подготовка к анализам
+          </a>
+        </div>
+
         {/* Disclaimer: full width */}
         <div className="border-t border-border/40 py-10 text-sm text-foreground/70 leading-relaxed space-y-3">
           <p>ReAge (ООО «Реэйдж», ИНН 9704271028) является информационно-аналитическим сервисом и не осуществляет медицинскую деятельность.</p>
