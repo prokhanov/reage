@@ -46,9 +46,10 @@ function Cell({ value, highlight }: { value: Mark | string; highlight?: boolean 
       </div>
     );
   return (
-    <span className={`text-sm ${highlight ? "text-primary font-medium" : "text-muted-foreground"}`}>
+    <span className={`text-xs md:text-sm leading-snug ${highlight ? "text-primary font-medium" : "text-muted-foreground"}`}>
       {value}
     </span>
+
   );
 }
 
