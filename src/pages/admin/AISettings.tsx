@@ -56,6 +56,14 @@ const pairedSections = [
     description: 'Промпты для расчёта биологического возраста на основе биомаркеров',
     systemKey: 'biological_age_system',
     userKey: 'biological_age_user'
+  },
+  {
+    id: 'health_strategy',
+    name: 'Стратегия здоровья',
+    icon: MapIcon as LucideIcon,
+    description: 'Промпты для генерации годовой стратегии: roadmap, цели по системам, таймлайн ожиданий',
+    systemKey: 'health_strategy_system',
+    userKey: 'health_strategy_user'
   }
 ];
 
