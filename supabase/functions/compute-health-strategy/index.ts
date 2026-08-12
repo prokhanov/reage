@@ -10,6 +10,7 @@ import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
 import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
 import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
 import { buildAnketaContextAsync } from "../_shared/anketaContext.ts";
+import { DEFAULT_HEALTH_STRATEGY_SYSTEM, DEFAULT_HEALTH_STRATEGY_USER, renderPrompt } from "./prompts.ts";
 
 // Обратная карта SystemKey → русское имя категории (для матчинга с biomarker_categories)
 const SYSTEM_TO_CATEGORY: Record<string, string> = {
