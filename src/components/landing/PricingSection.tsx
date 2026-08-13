@@ -88,7 +88,7 @@ interface PricingCardProps {
   };
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, biomarkersLabel, ctaLabel, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
 
   return (
     <div
