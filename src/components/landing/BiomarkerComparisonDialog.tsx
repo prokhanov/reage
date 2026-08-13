@@ -1,12 +1,14 @@
 import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Check, Minus, Loader2 } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Check, Minus, Loader2, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getLandingBootstrap } from "@/lib/landingBootstrap";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
-import { getPlanAudience } from "./PricingSection";
+import { getPlanAudience, STARTER_CARD } from "./PricingSection";
+import { YandexSplitBadge, calculateSplitPayment } from "./YandexSplitBadge";
 
 interface BiomarkerComparisonDialogProps {
   open: boolean;
