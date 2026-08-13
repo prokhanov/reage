@@ -128,7 +128,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
         </div>
 
         <div className="space-y-3 mb-6">
-          <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
+          <BiomarkersMetricRow biomarkers={biomarkers} label={biomarkersLabel} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
