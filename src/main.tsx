@@ -9,7 +9,10 @@ if (typeof window !== "undefined") captureUtm();
 // BiomarkerComparison), и запуск до mount React отнимал полосу у Hero/JS в
 // LCP-окне на мобильных сетях.
 import { preloadLandingBootstrap } from "./lib/landingBootstrap";
-if (typeof window !== "undefined" && window.location.pathname === "/") {
+if (
+  typeof window !== "undefined" &&
+  (window.location.pathname === "/" || window.location.pathname === "/landing-v2")
+) {
   const kick = () => {
     preloadLandingBootstrap().catch(() => {
       /* fallback внутри queryFn каждого хука */
