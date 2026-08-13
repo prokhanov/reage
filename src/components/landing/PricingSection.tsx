@@ -70,6 +70,8 @@ interface PricingCardProps {
   period: string;
   description: string;
   biomarkers: string;
+  biomarkersLabel?: string;
+  ctaLabel?: string;
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
@@ -86,7 +88,7 @@ interface PricingCardProps {
   };
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, biomarkersLabel, ctaLabel, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect, splitBadge }: PricingCardProps) {
 
   return (
     <div
@@ -115,7 +117,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
             <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
               {price}
             </span>
-            <span className="text-muted-foreground whitespace-nowrap">/{period}</span>
+            {period && <span className="text-muted-foreground whitespace-nowrap">/{period}</span>}
           </div>
 
           {splitBadge && (
@@ -126,7 +128,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
         </div>
 
         <div className="space-y-3 mb-6">
-          <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
+          <BiomarkersMetricRow biomarkers={biomarkers} label={biomarkersLabel} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
@@ -155,14 +157,14 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
-          Выбрать план
+          {ctaLabel ?? "Выбрать план"}
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
     </div>);
 }
 
-function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean }) {
+function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular, label }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean; label?: string }) {
   const hasData = biomarkersBySystem.length > 0;
   return (
     <Popover>
@@ -170,7 +172,7 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
         <button className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left" disabled={!hasData}>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FlaskConical className="w-4 h-4" />
-            <span>Биомаркеров</span>
+            <span>{label ?? "Биомаркеров"}</span>
           </div>
           <div className="flex items-center gap-1">
             <span className={`text-sm font-bold ${isPopular ? "text-primary" : "text-foreground"}`}>{biomarkers}</span>
@@ -365,7 +367,78 @@ function planToCard(
   };
 }
 
-export function PricingSection() {
+// Разовый продукт «ReAge Старт» — не подписка, без автопродления и цикличности.
+// Состав фиксирован (1 анализ + 1 консультация), поэтому карточка статична.
+const STARTER_CARD = {
+  id: "reage-start-one-time",
+  name: "ReAge Старт",
+  price: "9 990 ₽",
+  period: "",
+  badge: "Разово",
+  isPopular: false,
+  ctaLabel: "Попробовать",
+  biomarkersLabel: "Входит",
+  biomarkers: "58",
+  analyses: "1",
+  consultations: "1",
+  description: "Полноценная консультация врача по результатам — как в старших тарифах.",
+  who:
+    "Тем, кто хочет разово проверить ключевые показатели и на практике посмотреть, как работает ReAge, прежде чем переходить на регулярный мониторинг",
+  gain:
+    "Срез по ключевым системам — кровь, моча, обмен веществ, щитовидная железа — с разбором врача, личным кабинетом и отчётом ReAge",
+  glowColor: "linear-gradient(135deg, hsl(var(--muted-foreground) / 0.5), hsl(var(--primary) / 0.35))",
+  delay: 0.05,
+  biomarkersBySystem: [
+    {
+      icon: Droplet,
+      name: "Общий анализ мочи с микроскопией",
+      markers: [
+        "pH мочи", "Относительная плотность мочи", "Белок мочи", "Глюкоза мочи", "Кетоны мочи",
+        "Уробилиноген", "Билирубин мочи", "Гемоглобин мочи", "Нитриты мочи", "Лейкоцитарная эстераза мочи",
+        "Лейкоциты мочи", "Эритроциты мочи", "Эпителий плоский в моче", "Эпителий переходный в моче",
+        "Эпителий почечный в моче", "Цилиндры гиалиновые в моче", "Цилиндры патологические в моче",
+        "Слизь в моче", "Бактерии в моче", "Дрожжеподобные клетки в моче", "Кристаллы солей в моче",
+      ],
+    },
+    {
+      icon: Droplet,
+      name: "Общий анализ крови с СОЭ и лейкоцитарной формулой",
+      markers: [
+        "Гемоглобин", "Эритроциты", "Гематокрит", "Средний объём эритроцита",
+        "Среднее содержание гемоглобина в эритроците", "Средняя концентрация гемоглобина в эритроците",
+        "Ширина распределения эритроцитов", "Тромбоциты", "Средний объём тромбоцита", "Тромбокрит",
+        "Ширина распределения тромбоцитов", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты",
+        "Эозинофилы", "Базофилы", "Скорость оседания эритроцитов",
+      ],
+    },
+    {
+      icon: RefreshCw,
+      name: "Обмен веществ",
+      markers: ["Глюкоза в плазме", "Креатинин", "СКФ (расчётная скорость клубочковой фильтрации)"],
+    },
+    { icon: Zap, name: "Витамин D", markers: ["Витамин D, 25-OH"] },
+    {
+      icon: Heart,
+      name: "Липидограмма",
+      markers: [
+        "Холестерин общий", "Холестерин ЛПВП", "Холестерин ЛПНП", "Холестерин ЛПОНП",
+        "Триглицериды", "Коэффициент атерогенности", "Холестерин не-ЛПВП",
+      ],
+    },
+    {
+      icon: HormoneMoleculeIcon,
+      name: "Щитовидная железа",
+      markers: ["Т4 свободный", "ТТГ", "Антитела к ТПО"],
+    },
+    {
+      icon: Shield,
+      name: "Печень и поджелудочная железа",
+      markers: ["АЛТ", "Гамма-ГТ (ГГТ)", "Липаза", "Амилаза", "Билирубин общий"],
+    },
+  ] as BiomarkerCategory[],
+};
+
+export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: boolean } = {}) {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const navigate = useNavigate();
   const { requestRegister } = useRegisterGuard();
@@ -444,9 +517,15 @@ export function PricingSection() {
 
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-md md:max-w-xl lg:max-w-5xl mx-auto">
+        <div
+          className={`grid grid-cols-1 gap-6 lg:gap-8 mx-auto ${
+            showStarterPlan
+              ? "lg:grid-cols-2 xl:grid-cols-4 max-w-md md:max-w-xl lg:max-w-4xl xl:max-w-[84rem]"
+              : "lg:grid-cols-3 max-w-md md:max-w-xl lg:max-w-5xl"
+          }`}
+        >
           {isLoading ? (
-            [0, 1, 2].map((i) => (
+            (showStarterPlan ? [0, 1, 2, 3] : [0, 1, 2]).map((i) => (
               <Skeleton key={i} className="h-[520px] rounded-3xl" />
             ))
           ) : cards.length === 0 ? (
@@ -454,9 +533,14 @@ export function PricingSection() {
               Тарифы временно недоступны. Загляните позже.
             </div>
           ) : (
-            cards.map((card) => (
-              <PricingCard key={card.id} {...card} onSelect={requestRegister} />
-            ))
+            <>
+              {showStarterPlan && (
+                <PricingCard key={STARTER_CARD.id} {...STARTER_CARD} onSelect={requestRegister} />
+              )}
+              {cards.map((card) => (
+                <PricingCard key={card.id} {...card} onSelect={requestRegister} />
+              ))}
+            </>
           )}
         </div>
 
