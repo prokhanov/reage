@@ -154,7 +154,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
 
 
         <Button
-          className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
+          className={`w-full mt-auto ${isPopular ? "shadow-neon-primary" : ""}`}
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
