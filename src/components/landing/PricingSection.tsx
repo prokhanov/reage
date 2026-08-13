@@ -157,7 +157,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
-          Выбрать план
+          {ctaLabel ?? "Выбрать план"}
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
