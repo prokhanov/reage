@@ -134,7 +134,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
         </div>
 
         {(who || gain) && (
-          <div className="mb-5 space-y-3 rounded-2xl border border-border/40 bg-muted/30 p-4">
+          <div className="mb-5 space-y-3 rounded-2xl border border-border/40 bg-muted/30 p-4 flex-1">
             {who && (
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Кому подойдёт</div>
@@ -150,10 +150,11 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
           </div>
         )}
 
-        {description && <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>}
+        {description && <p className="text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line">{description}</p>}
+
 
         <Button
-          className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
+          className={`w-full mt-auto ${isPopular ? "shadow-neon-primary" : ""}`}
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
@@ -388,6 +389,7 @@ const STARTER_CARD = {
     "Срез по ключевым системам — кровь, моча, обмен веществ, щитовидная железа — с разбором врача, личным кабинетом и отчётом ReAge",
   glowColor: "linear-gradient(135deg, hsl(var(--muted-foreground) / 0.5), hsl(var(--primary) / 0.35))",
   delay: 0.05,
+  splitBadge: { amount: calculateSplitPayment(9990), payments: 4 },
   biomarkersBySystem: [
     {
       icon: Droplet,
