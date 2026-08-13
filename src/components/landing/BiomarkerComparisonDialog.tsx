@@ -234,9 +234,10 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
           </div>
         ) : (
           <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col">
-            <TabsList className="self-start">
+            <TabsList className="self-start flex-wrap">
               <TabsTrigger value="overview">Что отслеживаем</TabsTrigger>
               <TabsTrigger value="biomarkers">Биомаркеры</TabsTrigger>
+              <TabsTrigger value="start">ReAge Старт</TabsTrigger>
             </TabsList>
 
             {/* ===== Tab 1: Overview ===== */}
