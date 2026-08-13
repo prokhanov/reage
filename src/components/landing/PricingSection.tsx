@@ -164,7 +164,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
     </div>);
 }
 
-function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean }) {
+function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular, label }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean; label?: string }) {
   const hasData = biomarkersBySystem.length > 0;
   return (
     <Popover>
