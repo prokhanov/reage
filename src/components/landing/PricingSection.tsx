@@ -370,7 +370,7 @@ function planToCard(
 
 // Разовый продукт «ReAge Старт» — не подписка, без автопродления и цикличности.
 // Состав фиксирован (1 анализ + 1 консультация), поэтому карточка статична.
-const STARTER_CARD = {
+export const STARTER_CARD = {
   id: "reage-start-one-time",
   name: "ReAge Старт",
   price: "9 990 ₽",
@@ -378,7 +378,7 @@ const STARTER_CARD = {
   badge: "Разово",
   isPopular: false,
   ctaLabel: "Попробовать",
-  biomarkersLabel: "Входит",
+  biomarkersLabel: "Биомаркеров",
   biomarkers: "58",
   analyses: "1",
   consultations: "1",

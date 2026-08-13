@@ -1,12 +1,14 @@
 import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Check, Minus, Loader2 } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Check, Minus, Loader2, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getLandingBootstrap } from "@/lib/landingBootstrap";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
-import { getPlanAudience } from "./PricingSection";
+import { getPlanAudience, STARTER_CARD } from "./PricingSection";
+import { YandexSplitBadge, calculateSplitPayment } from "./YandexSplitBadge";
 
 interface BiomarkerComparisonDialogProps {
   open: boolean;
@@ -232,9 +234,10 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
           </div>
         ) : (
           <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col">
-            <TabsList className="self-start">
+            <TabsList className="self-start flex-wrap">
               <TabsTrigger value="overview">Что отслеживаем</TabsTrigger>
               <TabsTrigger value="biomarkers">Биомаркеры</TabsTrigger>
+              <TabsTrigger value="start">ReAge Старт</TabsTrigger>
             </TabsList>
 
             {/* ===== Tab 1: Overview ===== */}
@@ -405,6 +408,86 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                   ))}
                 </tbody>
               </table>
+            </TabsContent>
+
+            {/* ===== Tab 3: ReAge Старт (one-time) ===== */}
+            <TabsContent value="start" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+              <div className="relative rounded-3xl border border-primary/30 p-6 bg-gradient-to-b from-card to-card/80 shadow-xl mb-6">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground">
+                  Разово
+                </div>
+
+                <div className="text-center mb-4 pt-2">
+                  <h3 className="text-xl font-bold text-foreground mb-4">{STARTER_CARD.name}</h3>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl md:text-4xl font-bold text-foreground">{STARTER_CARD.price}</span>
+                  </div>
+                  <div className="mt-3 flex justify-center">
+                    <YandexSplitBadge amount={calculateSplitPayment(9990)} payments={4} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                  <div className="rounded-xl bg-muted/50 border border-border/30 p-3 text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Анализов</div>
+                    <div className="text-lg font-bold text-foreground">{STARTER_CARD.analyses}</div>
+                  </div>
+                  <div className="rounded-xl bg-muted/50 border border-border/30 p-3 text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Консультаций</div>
+                    <div className="text-lg font-bold text-foreground">{STARTER_CARD.consultations}</div>
+                  </div>
+                  <div className="rounded-xl bg-muted/50 border border-border/30 p-3 text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Биомаркеров</div>
+                    <div className="text-lg font-bold text-foreground">{STARTER_CARD.biomarkers}</div>
+                  </div>
+                </div>
+
+                {(STARTER_CARD.who || STARTER_CARD.gain) && (
+                  <div className="rounded-2xl border border-border/40 bg-muted/30 p-4 mb-5 space-y-3">
+                    {STARTER_CARD.who && (
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Кому подойдёт</div>
+                        <p className="text-sm text-foreground/90 leading-relaxed">{STARTER_CARD.who}</p>
+                      </div>
+                    )}
+                    {STARTER_CARD.gain && (
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Что даст</div>
+                        <p className="text-sm text-foreground/90 leading-relaxed">{STARTER_CARD.gain}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold text-foreground mb-2">Биомаркеры по системам</h4>
+                  {STARTER_CARD.biomarkersBySystem.map((cat, i) => (
+                    <Collapsible key={i} defaultOpen={false}>
+                      <CollapsibleTrigger asChild>
+                        <button className="group w-full flex items-center justify-between gap-2 py-2 px-2 rounded-lg text-left transition-colors hover:bg-muted/60">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <cat.icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
+                            <span className="text-xs font-semibold text-foreground truncate">{cat.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
+                            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </div>
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="flex flex-wrap gap-1 pb-3 pl-7">
+                          {cat.markers.map((m, j) => (
+                            <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         )}
