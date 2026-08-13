@@ -117,7 +117,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
             <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
               {price}
             </span>
-            <span className="text-muted-foreground whitespace-nowrap">/{period}</span>
+            {period && <span className="text-muted-foreground whitespace-nowrap">/{period}</span>}
           </div>
 
           {splitBadge && (
