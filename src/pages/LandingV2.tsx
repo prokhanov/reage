@@ -12,6 +12,7 @@ import {
   REPORT_COLLAGE_STORAGE_KEY,
 } from "@/components/landing/v2/ReportCollageBlock";
 import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
+import { PricingSection } from "@/components/landing/PricingSection";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
@@ -149,6 +150,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <ReportShowcaseSection />
+        </Block>
+        <Block>
+          <PricingSection />
         </Block>
         <Block>
           <ConsultationCtaBlock />
