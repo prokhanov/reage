@@ -468,7 +468,7 @@ export function HeroPortraitClassic() {
             <div className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
               <MapPin className="w-3.5 h-3.5 text-primary" />
               <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
-                Попробуй за 9990
+                Москва и Санкт-Петербург
               </span>
             </div>
           </div>
