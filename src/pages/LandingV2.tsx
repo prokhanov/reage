@@ -152,7 +152,7 @@ const LandingV2 = () => {
           <ReportShowcaseSection />
         </Block>
         <Block>
-          <PricingSection />
+          <PricingSection showStarterPlan />
         </Block>
         <Block>
           <ConsultationCtaBlock />
