@@ -70,6 +70,8 @@ interface PricingCardProps {
   period: string;
   description: string;
   biomarkers: string;
+  biomarkersLabel?: string;
+  ctaLabel?: string;
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
