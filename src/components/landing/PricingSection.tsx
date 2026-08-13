@@ -517,9 +517,15 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
 
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-md md:max-w-xl lg:max-w-5xl mx-auto">
+        <div
+          className={`grid grid-cols-1 gap-6 lg:gap-8 mx-auto ${
+            showStarterPlan
+              ? "lg:grid-cols-2 xl:grid-cols-4 max-w-md md:max-w-xl lg:max-w-4xl xl:max-w-[84rem]"
+              : "lg:grid-cols-3 max-w-md md:max-w-xl lg:max-w-5xl"
+          }`}
+        >
           {isLoading ? (
-            [0, 1, 2].map((i) => (
+            (showStarterPlan ? [0, 1, 2, 3] : [0, 1, 2]).map((i) => (
               <Skeleton key={i} className="h-[520px] rounded-3xl" />
             ))
           ) : cards.length === 0 ? (
@@ -527,9 +533,14 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
               Тарифы временно недоступны. Загляните позже.
             </div>
           ) : (
-            cards.map((card) => (
-              <PricingCard key={card.id} {...card} onSelect={requestRegister} />
-            ))
+            <>
+              {showStarterPlan && (
+                <PricingCard key={STARTER_CARD.id} {...STARTER_CARD} onSelect={requestRegister} />
+              )}
+              {cards.map((card) => (
+                <PricingCard key={card.id} {...card} onSelect={requestRegister} />
+              ))}
+            </>
           )}
         </div>
 
