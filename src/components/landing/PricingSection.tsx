@@ -389,6 +389,7 @@ const STARTER_CARD = {
     "Срез по ключевым системам — кровь, моча, обмен веществ, щитовидная железа — с разбором врача, личным кабинетом и отчётом ReAge",
   glowColor: "linear-gradient(135deg, hsl(var(--muted-foreground) / 0.5), hsl(var(--primary) / 0.35))",
   delay: 0.05,
+  splitBadge: { amount: calculateSplitPayment(9990), payments: 4 },
   biomarkersBySystem: [
     {
       icon: Droplet,
