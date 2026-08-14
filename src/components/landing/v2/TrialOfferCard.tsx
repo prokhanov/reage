@@ -14,7 +14,8 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
 
   return (
     <div
-      className={`${card} p-3 sm:p-4 w-full max-w-xl animate-fade-in ${className ?? ""}`}
+      className={`${card} p-3 sm:p-4 w-full max-w-lg animate-fade-in ${className ?? ""}`}
+
 
       style={{ animationDelay: "0.45s" }}
     >
@@ -28,8 +29,9 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
               Пробная сдача ReAge
             </div>
             <div className="text-xs text-muted-foreground leading-snug mt-0.5">
-              50 биомаркеров · 1 сдача базовых показателей · консультация врача входит
+              50 маркеров · 1 сдача · консультация врача
             </div>
+
           </div>
         </div>
 
