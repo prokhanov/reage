@@ -14,9 +14,7 @@ import {
   Sun,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
-import { TrialOfferCard } from "./TrialOfferCard";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-
 import heroMan from "@/assets/landing-v2/hero-couple-v8.webp";
 
 const glass =
@@ -725,8 +723,6 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
                 Оставить заявку
               </Button>
             </div>
-            <TrialOfferCard onAction={requestRegister} className="hidden lg:block mt-4" />
-
           </div>
 
           <div className="order-2 relative w-full flex justify-center lg:justify-end">
@@ -758,8 +754,6 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
                 Оставить заявку
               </Button>
             </div>
-            <TrialOfferCard onAction={requestRegister} className="lg:hidden w-full max-w-xl" />
-
           </div>
         </div>
       </div>
