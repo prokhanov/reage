@@ -4,7 +4,9 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun, LogIn } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { TrialOfferCard } from "@/components/landing/v2/TrialOfferCard";
 import { useRegisterGuard } from "@/components/RegisterGuard";
+
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
@@ -521,6 +523,8 @@ export function HeroPortrait() {
                 Посмотреть демо-аккаунт
               </Button>
             </div>
+            <TrialOfferCard onAction={requestRegister} className="hidden lg:block mt-4" />
+
           </div>
 
           <div className="order-2 relative w-full flex justify-center lg:justify-end">
@@ -552,6 +556,8 @@ export function HeroPortrait() {
                 Посмотреть демо-аккаунт
               </Button>
             </div>
+            <TrialOfferCard onAction={requestRegister} className="lg:hidden w-full max-w-xl" />
+
           </div>
         </div>
       </div>
