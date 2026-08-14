@@ -27,9 +27,10 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
               Пробная сдача ReAge
             </div>
 
-            <div className="text-xs text-muted-foreground leading-snug mt-0.5">
+            <div className="text-xs text-muted-foreground leading-snug mt-0.5 whitespace-nowrap">
               50 маркеров · 1 сдача · консультация врача
             </div>
+
           </div>
         </div>
 
