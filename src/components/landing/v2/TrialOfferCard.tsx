@@ -15,8 +15,6 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
   return (
     <div
       className={`${card} p-3 sm:p-4 w-full max-w-lg animate-fade-in ${className ?? ""}`}
-
-
       style={{ animationDelay: "0.45s" }}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
@@ -31,11 +29,10 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
             <div className="text-xs text-muted-foreground leading-snug mt-0.5">
               50 маркеров · 1 сдача · консультация врача
             </div>
-
           </div>
         </div>
 
-        <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto">
+        <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto sm:ml-auto">
           <div className="flex flex-col items-start sm:items-end">
             <span className="text-lg font-bold text-foreground tracking-tight">9 990 ₽</span>
             <span className="text-[11px] text-muted-foreground">
