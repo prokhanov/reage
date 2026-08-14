@@ -14,7 +14,7 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
 
   return (
     <div
-      className={`${card} p-3 sm:p-4 w-full max-w-lg animate-fade-in ${className ?? ""}`}
+      className={`${card} p-3 sm:p-4 w-full max-w-xl animate-fade-in ${className ?? ""}`}
       style={{ animationDelay: "0.45s" }}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
@@ -23,9 +23,10 @@ export function TrialOfferCard({ onAction, className }: TrialOfferCardProps) {
             <FlaskConical className="w-5 h-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-foreground leading-tight">
+            <div className="text-sm font-semibold text-foreground leading-tight whitespace-nowrap">
               Пробная сдача ReAge
             </div>
+
             <div className="text-xs text-muted-foreground leading-snug mt-0.5">
               50 маркеров · 1 сдача · консультация врача
             </div>
