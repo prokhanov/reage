@@ -92,7 +92,7 @@ export function TrialOfferStrip() {
               </p>
             </div>
 
-            <div className="flex shrink-0 flex-col items-center gap-2 sm:items-end">
+            <div className="flex shrink-0 flex-col items-center sm:items-end">
               <Button
                 onClick={() => setOpen(true)}
                 className="h-11 rounded-xl px-6 font-semibold"
@@ -100,7 +100,6 @@ export function TrialOfferStrip() {
                 Подробнее
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <YandexSplitBadge amount={calculateSplitPayment(9990)} payments={4} />
             </div>
           </div>
         </div>
@@ -124,9 +123,6 @@ export function TrialOfferStrip() {
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold text-foreground">9 990 ₽</span>
                   <span className="text-sm text-muted-foreground">разово</span>
-                </div>
-                <div className="mt-2">
-                  <YandexSplitBadge amount={calculateSplitPayment(9990)} payments={4} />
                 </div>
               </div>
 
