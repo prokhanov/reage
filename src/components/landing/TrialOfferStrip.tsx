@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { reachGoal, tgpEvent, tmrEvent } from "@/lib/yandexMetrika";
-import { YandexSplitBadge, calculateSplitPayment } from "./YandexSplitBadge";
 
 const includes = [
   { icon: FlaskConical, title: "58 биомаркеров", text: "Кровь, моча, метаболизм, щитовидная железа" },
