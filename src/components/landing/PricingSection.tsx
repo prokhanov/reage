@@ -514,6 +514,9 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
 
         </div>
 
+        <TrialOfferStrip />
+
+
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
 
 
