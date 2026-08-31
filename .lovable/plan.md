@@ -28,6 +28,24 @@ https://ai.gateway.lovable.dev/v1/chat/completions   (Lovable AI)
 - `reage.life` — Coolify/nginx; `api.reage.life` — отдельный reverse proxy (обход блокировок РКН), апстрим — бэкенд-хост Lovable Cloud.
 - Непосредственно в Lovable Cloud выполняются: Edge Functions, БД, авторизация, хранилище и все вызовы AI.
 
+### Когда именно задействован `api.reage.life`
+
+| Окружение | `VITE_SUPABASE_URL` | Куда ходит фронт |
+|-----------|---------------------|------------------|
+| Локальная разработка (`.env` в репо) | `https://ilxgodhosirhhkffqryw.supabase.co` | Напрямую в Supabase |
+| `test.reage.life` (Lovable Publish) | не задан / прямой Supabase URL | Напрямую в Supabase (осознанный компромисс) |
+| `reage.life` (Coolify production) | `https://api.reage.life` | Через Fly reverse proxy |
+
+Важные детали:
+
+1. `src/integrations/supabase/client.ts` использует `import.meta.env.VITE_SUPABASE_URL` как есть — без нормализации.
+2. `src/lib/supabaseUrl.ts` и `vite.config.ts` нормализуют URL: если он заканчивается на `.supabase.co` или не задан, подставляется `https://api.reage.life`. Этот helper используется для вызовов Edge Functions.
+3. В production Coolify явно задан `VITE_SUPABASE_URL=https://api.reage.life` (`README.md`, раздел «Переменные окружения Coolify»), поэтому весь фронт боевого домена работает через прокси.
+4. Некоторые Edge Functions хардкодят `https://api.reage.life` для внешних callback/webhook (например, `auth-email-hook`, email-шаблоны со ссылками на storage, `robokassa-result`).
+5. Файл `deploy/fly-proxy/server.js` в текущей конфигурации проксирует `api-test.reage.life`, но архитектура README и `vite.config.ts` описывают боевой `api.reage.life`.
+
+Вывод: `api.reage.life` — это production-only прокси для `reage.life`, задаваемый на уровне переменных окружения Coolify. В тесте и в локальной разработке он не используется.
+
 ## 2. Точные цепочки
 
 ### A. AI-ассистент
