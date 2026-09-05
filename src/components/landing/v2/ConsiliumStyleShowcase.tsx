@@ -1,6 +1,5 @@
 import { ArrowRight, Check, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 
 const capabilities = [
@@ -63,7 +62,9 @@ export function ConsiliumStyleShowcase() {
 
       <header className="border-b border-[hsl(var(--cv2-line))]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-6">
-          <ThemedLogo className="h-9 w-auto" />
+          <span className="cv2-display text-3xl text-[hsl(var(--cv2-ink))]" aria-label="ReAge">
+            Re<span className="text-[hsl(var(--cv2-ochre))]">Age</span>
+          </span>
           <Button
             variant="outline"
             onClick={() => window.location.assign("/auth")}
