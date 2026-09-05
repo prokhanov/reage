@@ -14,7 +14,6 @@ import {
 import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
-import { ConsiliumStyleShowcase } from "@/components/landing/v2/ConsiliumStyleShowcase";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 
@@ -125,9 +124,6 @@ const LandingV2 = () => {
         </button>
       </div>
       <Blocks>
-        <Block>
-          <ConsiliumStyleShowcase />
-        </Block>
         <Block>
           <HeroBlockPortrait editMode={editOn} />
         </Block>
