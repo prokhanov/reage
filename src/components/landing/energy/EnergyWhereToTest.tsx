@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { MapPin, Search } from "lucide-react";
+import { Map as MapIcon, MapPin, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +32,14 @@ export function EnergyWhereToTest() {
   const [city, setCity] = useState<CityKey>(detectCity);
   const [cityTouched, setCityTouched] = useState(false);
   const [mapHeight, setMapHeight] = useState(420);
+  const [showMap, setShowMap] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      setMapHeight(w < 640 ? Math.max(260, Math.round(window.innerHeight * 0.45)) : w < 1024 ? 380 : 420);
+      setMapHeight(w < 640 ? 320 : w < 1024 ? 380 : 420);
+      setIsDesktop(w >= 1024);
     };
     update();
     window.addEventListener("resize", update);
@@ -220,6 +223,7 @@ export function EnergyWhereToTest() {
             }`}
           >
             <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
+              {(showMap || isDesktop) && (
               <LabLocationsMap
                 key={city}
                 items={filtered}
@@ -235,6 +239,7 @@ export function EnergyWhereToTest() {
                 focusZoom={15}
                 onSelect={(item) => setSelectedId(item.id)}
               />
+              )}
             </Suspense>
           </div>
         </div>
