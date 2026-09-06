@@ -12,7 +12,6 @@
   }
   .font-display {
     font-family: var(--font-display);
-    font-feature-settings: "kern";
   }
   .font-mono-tech {
     font-family: var(--font-mono);
@@ -20,7 +19,6 @@
   }
   .font-heading {
     font-family: var(--font-display);
-    font-feature-settings: "kern";
   }
 
   .logo-display {
@@ -224,18 +222,16 @@ All colors MUST be HSL.
 
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    font-feature-settings: "kern";
+    font-weight: 400 !important;
+    letter-spacing: -0.015em !important;
   }
 }
 
 @layer utilities {
   .label-mono {
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: 0.14em;
+    font-size: 11px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: hsl(var(--muted-foreground));
   }
@@ -253,18 +249,19 @@ All colors MUST be HSL.
   }
 
   .field {
-    min-height: var(--control-md);
     width: 100%;
-    border: 1px solid hsl(var(--input));
-    border-radius: var(--radius-sm);
-    background: hsl(var(--background));
-    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(var(--border-strong));
+    border-radius: var(--radius);
+    background: hsl(var(--input));
+    padding: 0.8rem 0.95rem;
+    font-size: 15px;
     color: hsl(var(--foreground));
-    transition: border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+    transition: var(--transition-smooth);
   }
 
-  .field:hover { border-color: hsl(var(--border-strong)); }
-  .field:focus-visible { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 1px hsl(var(--ring)); }
+  .field::placeholder { color: hsl(var(--muted-foreground) / 0.7); }
+  .field:hover { border-color: hsl(var(--primary) / 0.45); }
+  .field:focus-visible { outline: none; border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.14); }
 
   .content-narrow { width: min(100%, var(--content-narrow)); margin-inline: auto; }
   .content-default { width: min(100%, var(--content-default)); margin-inline: auto; }
