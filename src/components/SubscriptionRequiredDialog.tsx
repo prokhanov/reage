@@ -115,7 +115,7 @@ export function SubscriptionRequiredDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto" aria-describedby="subscription-description">
+      <DialogContent className="max-w-5xl" aria-describedby="subscription-description">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl md:text-3xl">
             Для записи на анализы требуется подписка

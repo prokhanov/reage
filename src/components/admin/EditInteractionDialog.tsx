@@ -160,13 +160,13 @@ export function EditInteractionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Редактировать взаимодействие: {patientName}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Тип взаимодействия*</Label>
               <Select 
@@ -216,7 +216,7 @@ export function EditInteractionDialog({
             <Textarea {...register('description')} rows={4} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Дата взаимодействия*</Label>
               <Popover>
@@ -270,7 +270,7 @@ export function EditInteractionDialog({
             <Textarea {...register('outcome')} rows={3} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Связанный анализ</Label>
               <Select 

@@ -75,7 +75,7 @@ function ScaleUnit({ value, compact = false }: { value: number; compact?: boolea
       </div>
       <ArrowS pos={valuePos} />
       <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
-      <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
+      <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
         Оптимальный диапазон:{" "}
         <span className="font-mono font-medium text-foreground tabular-nums">
@@ -208,7 +208,7 @@ export default function ScaleLabelsPreview() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="bg-card text-foreground rounded-lg p-6 max-w-[520px] mx-auto space-y-4 border shadow-sm">
+          <div className="bg-card text-foreground rounded-lg p-6 max-w-lg mx-auto space-y-4 border shadow-sm">
             <div className="text-center text-xs text-muted-foreground uppercase tracking-wider">PDF preview</div>
             {SCENARIOS.map((s) => <PdfRow key={s.label} value={s.value} />)}
           </div>

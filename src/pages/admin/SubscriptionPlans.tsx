@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,16 +24,12 @@ export default function SubscriptionPlans() {
   const selectedPlan = plans?.find((p) => p.id === selectedPlanId);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Управление тарифами</h1>
-          <p className="text-muted-foreground mt-1">
-            Настройка планов подписки и цен
-          </p>
-        </div>
-        <CreatePlanDialog />
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader
+        title="Управление тарифами"
+        description="Настройка планов подписки и цен"
+        actions={<CreatePlanDialog />}
+      />
 
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

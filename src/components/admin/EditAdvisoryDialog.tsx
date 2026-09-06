@@ -307,7 +307,7 @@ export function EditAdvisoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Редактировать образ жизни и консультации</DialogTitle>
           <DialogDescription>

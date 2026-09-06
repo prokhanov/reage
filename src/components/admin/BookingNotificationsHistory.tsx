@@ -147,7 +147,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
                     </span>
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{e.template}</td>
-                  <td className="px-3 py-2 max-w-[200px] truncate" title={e.recipient}>
+                  <td className="px-3 py-2 max-w-md truncate" title={e.recipient}>
                     {e.recipient}
                   </td>
                   <td className="px-3 py-2">
@@ -160,7 +160,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
                         {badge.label}
                       </Badge>
                       {e.errorMessage && (
-                        <div className="text-[11px] text-destructive dark:text-destructive max-w-[260px] break-words">
+                        <div className="text-xs text-destructive dark:text-destructive max-w-md break-words">
                           {e.errorMessage}
                         </div>
                       )}

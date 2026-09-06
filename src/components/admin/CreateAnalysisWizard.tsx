@@ -423,7 +423,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden [&>*]:min-w-0">
+        <DialogContent className="w-[95vw] sm:max-w-4xl overflow-x-hidden [&>*]:min-w-0">
           <DialogHeader>
             <DialogTitle>
               {step1Mode === "auto" && currentStep === 1

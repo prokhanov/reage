@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -464,20 +465,15 @@ export default function UserManagement() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Управление пользователями</h1>
-        <p className="text-muted-foreground mt-1">
-          Управление ролями и доступами пользователей
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Управление пользователями" description="Управление ролями и доступами пользователей" />
 
       <Tabs defaultValue="users" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">

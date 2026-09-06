@@ -665,7 +665,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
           </div>
         </label>
         {mergeMode && readyCount > 0 && (
-          <div className="grid grid-cols-2 gap-2 pl-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
             <div>
               <Label className="text-xs">Общая дата сдачи</Label>
               <Input
@@ -813,7 +813,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
 
             {entry.status === "done" && entry.result && (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs">Дата сдачи</Label>
                     <Input
@@ -879,7 +879,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                               <div className="flex items-center gap-1">
                                 <button
                                   type="button"
-                                  className={`px-1.5 py-0.5 rounded border text-[10px] ${r.use_expected_unit ? "bg-primary text-primary-foreground" : ""}`}
+                                  className={`px-1.5 py-0.5 rounded border text-xs ${r.use_expected_unit ? "bg-primary text-primary-foreground" : ""}`}
                                   onClick={() => {
                                     const next = !r.use_expected_unit;
                                     const newVal = next && r.value_converted !== null
@@ -893,7 +893,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                                   {r.expected_unit}
                                 </button>
                                 {!r.unit_matches && (
-                                  <span className="text-[10px] text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground">
                                     / {r.unit_raw || "—"}
                                   </span>
                                 )}
@@ -939,7 +939,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                           </tbody>
                         </table>
                       </div>
-                      <div className="text-[10px] text-muted-foreground mt-1 px-1">
+                      <div className="text-xs text-muted-foreground mt-1 px-1">
                         Эти показатели в файле есть, но в нашей панели биомаркеров их пока нет — они не импортируются.
                       </div>
                     </CollapsibleContent>

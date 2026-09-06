@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { useEffect, useRef, useState } from "react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
@@ -307,47 +308,37 @@ export default function LabLocations() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Лаборатории</h1>
-          <p className="text-muted-foreground mt-1">
-            Справочник адресов пунктов забора (LabQuest и другие провайдеры).
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
-          />
-          <Button
-            variant="outline"
-            onClick={handleSyncLabquest}
-            disabled={syncing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Обновление..." : "Обновить клиники LabQuest"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {importing ? "Импорт..." : "Загрузить JSON"}
-          </Button>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить
-          </Button>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader
+        title="Лаборатории"
+        description="Справочник адресов пунктов забора (LabQuest и другие провайдеры)."
+        actions={
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+              }}
+            />
+            <Button variant="outline" onClick={handleSyncLabquest} disabled={syncing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Обновление..." : "Обновить клиники LabQuest"}
+            </Button>
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? "Импорт..." : "Загрузить JSON"}
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить
+            </Button>
+          </>
+        }
+      />
 
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">
@@ -400,10 +391,9 @@ export default function LabLocations() {
 
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>Всего: {items.length}</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-success font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            <Badge variant="success" size="sm" dot>
               Активно: {items.filter((i) => i.is_active).length}
-            </span>
+            </Badge>
             <span>Показано: {filtered.length}</span>
           </div>
 
@@ -520,7 +510,7 @@ export default function LabLocations() {
       </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Редактировать адрес" : "Новый адрес"}</DialogTitle>
             <DialogDescription>

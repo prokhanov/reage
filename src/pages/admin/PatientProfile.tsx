@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -256,22 +257,24 @@ export default function PatientProfile() {
 
   return (
     <>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Профиль пациента</h1>
-              <p className="text-muted-foreground">Просмотр данных пациента</p>
-            </div>
-          </div>
-          <Button onClick={() => setShowPrescriptionDialog(true)}>
-            <FileText className="w-4 h-4 mr-2" />
-            Добавить назначение
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+        <AdminPageHeader
+          breadcrumbs={[{ label: "Пациенты", to: "/admin/patients" }, { label: profile.name || "Профиль пациента" }]}
+          title="Профиль пациента"
+          description="Просмотр данных пациента"
+          actions={
+            <>
+              <Button variant="outline" onClick={() => navigate("/admin/patients")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                К списку
+              </Button>
+              <Button onClick={() => setShowPrescriptionDialog(true)}>
+                <FileText className="w-4 h-4 mr-2" />
+                Добавить назначение
+              </Button>
+            </>
+          }
+        />
 
         {/* Header Card */}
         <Card>
@@ -284,10 +287,10 @@ export default function PatientProfile() {
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold">{profile.name || "Без имени"}</h2>
+                  <h2 className="text-2xl tracking-tight">{profile.name || "Без имени"}</h2>
                   <Badge variant="outline">{profile.gender === "male" ? "Мужчина" : "Женщина"}</Badge>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <div>

@@ -426,7 +426,7 @@ function ReportMockup({
 
       {/* A4 page frame (1 : √2) */}
       <div
-        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-xl overflow-hidden flex flex-col"
+        className="relative mx-auto w-full max-w-md max-w-md lg:max-w-lg rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-xl overflow-hidden flex flex-col"
         style={{ aspectRatio: "1 / 1.4142" }}
       >
         {/* Page header */}
@@ -515,7 +515,7 @@ function PreviewCardsRow() {
       <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-3xl pointer-events-none" />
 
       <div
-        className="relative w-full max-w-[640px] mx-auto"
+        className="relative w-full max-w-xl mx-auto"
         style={{ aspectRatio: "1 / 1.35" }}
       >
         {shots.map((s, i) => {

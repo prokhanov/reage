@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -67,18 +68,15 @@ export default function PaymentGatewaySettings() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Платёжный шлюз</h1>
-        <p className="text-muted-foreground mt-1">Настройки интеграции с Robokassa</p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Платёжный шлюз" description="Настройки интеграции с Robokassa" />
 
       {settings?.test_mode ? (
         <Alert variant="destructive">

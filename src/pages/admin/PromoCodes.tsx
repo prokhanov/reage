@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -144,25 +145,23 @@ export default function PromoCodes() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Промокоды</h1>
-          <p className="text-muted-foreground mt-1">
-            Генерация, управление и аналитика промокодов
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Создать
-          </Button>
-          <Button onClick={() => setGenerateOpen(true)}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            Массовая генерация
-          </Button>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader
+        title="Промокоды"
+        description="Генерация, управление и аналитика промокодов"
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Создать
+            </Button>
+            <Button onClick={() => setGenerateOpen(true)}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Массовая генерация
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader className="pb-3">

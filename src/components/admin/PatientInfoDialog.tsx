@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
@@ -214,36 +215,30 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   };
 
   const getSubscriptionBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; className: string }> = {
-      active: { label: "Активна", className: "bg-primary text-primary-foreground" },
-      pending: { label: "Ожидает оплаты", className: "bg-secondary text-secondary-foreground" },
-      expired: { label: "Истекла", className: "bg-destructive text-destructive-foreground" },
-      cancelled: { label: "Отменена", className: "border-border" },
+    const labels: Record<string, string> = {
+      active: "Активна",
+      pending: "Ожидает оплаты",
+      expired: "Истекла",
+      cancelled: "Отменена",
     };
-    const config = statusConfig[status] || statusConfig.pending;
-    return (
-      <Badge variant={status === "active" ? "default" : "outline"} className={config.className}>
-        {config.label}
-      </Badge>
-    );
+    return <StatusBadge status={status} label={labels[status] || labels.pending} />;
   };
 
   const getBookingBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-      not_scheduled: { label: "Не назначен", variant: "secondary" },
-      scheduled: { label: "Назначен", variant: "outline" },
-      collected: { label: "Получен", variant: "default" },
-      uploaded: { label: "Загружен", variant: "default" },
+    const labels: Record<string, string> = {
+      not_scheduled: "Не назначен",
+      scheduled: "Назначен",
+      collected: "Получен",
+      uploaded: "Загружен",
     };
-    const config = statusConfig[status] || statusConfig.not_scheduled;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <StatusBadge status={status || "not_scheduled"} label={labels[status] || labels.not_scheduled} size="sm" />;
   };
 
   if (!patientId) return null;
 
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Информация о пациенте</DialogTitle>
           <DialogDescription>

@@ -156,7 +156,7 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Редактировать приглашение</DialogTitle>
           <DialogDescription>

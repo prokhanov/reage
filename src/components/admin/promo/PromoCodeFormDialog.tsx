@@ -116,7 +116,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Редактировать промокод" : "Создать промокод"}</DialogTitle>
           <DialogDescription>
@@ -143,7 +143,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Тип скидки</Label>
               <Select value={discountType} onValueChange={(v) => setDiscountType(v as PromoDiscountType)}>
@@ -201,7 +201,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Лимит использований</Label>
               <Input
@@ -220,7 +220,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Действует с</Label>
               <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />

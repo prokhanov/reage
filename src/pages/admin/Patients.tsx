@@ -1,3 +1,5 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -360,36 +362,26 @@ export default function Patients() {
 
 
   const getBookingBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      not_scheduled: { label: "Не назначен", variant: "secondary" },
-      scheduled: { label: "Назначен", variant: "outline" },
-      collected: { label: "Получен", variant: "default" },
-      uploaded: { label: "Загружен", variant: "default" },
+    const labels: Record<string, string> = {
+      not_scheduled: "Не назначен",
+      scheduled: "Назначен",
+      collected: "Получен",
+      uploaded: "Загружен",
     };
-    const config = statusConfig[status] || statusConfig.not_scheduled;
-    return (
-      <Badge variant={config.variant} className="text-xs">
-        {config.label}
-      </Badge>
-    );
+    return <StatusBadge status={status || "not_scheduled"} label={labels[status] || labels.not_scheduled} size="sm" />;
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Пациенты</h1>
-        <p className="text-muted-foreground mt-1">
-          Список всех зарегистрированных пользователей
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Пациенты" description="Список всех зарегистрированных пользователей" />
 
         <Card>
           <CardHeader>

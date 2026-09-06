@@ -123,7 +123,7 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl flex flex-col">
         <DialogHeader>
           <DialogTitle>Добавить пациентов в серию</DialogTitle>
           <p className="text-sm text-muted-foreground">{seriesName}</p>
@@ -195,9 +195,9 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
                       <td className="p-2 text-muted-foreground">{p.email}</td>
                       <td className="p-2">
                         <div className="flex flex-wrap gap-1">
-                          {p.enrolled && <Badge variant="secondary" className="text-[10px]"><CheckCircle2 className="w-3 h-3 mr-1" />в серии</Badge>}
-                          {p.unsubscribed && <Badge variant="destructive" className="text-[10px]"><AlertCircle className="w-3 h-3 mr-1" />отписался</Badge>}
-                          {p.has_active_subscription && <Badge variant="default" className="text-[10px]">подписка</Badge>}
+                          {p.enrolled && <Badge variant="secondary" className="text-xs"><CheckCircle2 className="w-3 h-3 mr-1" />в серии</Badge>}
+                          {p.unsubscribed && <Badge variant="destructive" className="text-xs"><AlertCircle className="w-3 h-3 mr-1" />отписался</Badge>}
+                          {p.has_active_subscription && <Badge variant="default" className="text-xs">подписка</Badge>}
                         </div>
                       </td>
                     </tr>

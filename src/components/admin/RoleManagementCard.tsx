@@ -355,7 +355,7 @@ export function RoleManagementCard() {
         setEditingRole(null);
         setFormData({ name: "", display_name: "", description: "", permissions: [] });
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl flex flex-col p-0">
           <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
             <DialogHeader className="px-6 pt-6">
               <DialogTitle>{editingRole ? "Редактировать роль" : "Создать роль"}</DialogTitle>

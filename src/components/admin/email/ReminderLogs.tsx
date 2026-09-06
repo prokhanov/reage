@@ -108,7 +108,7 @@ export default function ReminderLogs() {
                     <div className="flex items-center gap-2">
                       {TYPE_LABELS[r.template_name] || r.template_name}
                       {r.metadata?.test && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
+                        <Badge variant="outline" className="text-xs px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
                           Тест
                         </Badge>
                       )}
@@ -119,7 +119,7 @@ export default function ReminderLogs() {
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(r.created_at).toLocaleString("ru-RU")}
                   </TableCell>
-                  <TableCell className="text-xs text-destructive max-w-[280px] truncate" title={r.error_message ?? ""}>
+                  <TableCell className="text-xs text-destructive max-w-md truncate" title={r.error_message ?? ""}>
                     {r.error_message ?? ""}
                   </TableCell>
                 </TableRow>

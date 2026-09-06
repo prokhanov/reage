@@ -329,7 +329,7 @@ export function CallbackRequestDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="sm:max-w-[640px] max-h-[92vh] overflow-y-auto p-5 sm:p-6 gap-4">
+      <DialogContent className="max-w-xl max-h-[92vh] p-5 sm:p-6 gap-4">
         <DialogHeader className="text-left space-y-1.5">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Phone className="h-5 w-5 text-primary" />

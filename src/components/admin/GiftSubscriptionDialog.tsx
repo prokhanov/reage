@@ -270,7 +270,7 @@ export function GiftSubscriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5" />
@@ -324,7 +324,7 @@ export function GiftSubscriptionDialog({
               </SelectContent>
             </Select>
             {preset === "custom" && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Input
                   type="number"
                   min={1}

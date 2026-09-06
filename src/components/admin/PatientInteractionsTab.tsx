@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,13 +47,6 @@ const interactionStatusLabels: Record<string, string> = {
   in_progress: 'В процессе'
 };
 
-const statusColors: Record<string, string> = {
-  completed: 'bg-success-soft text-success border-success',
-  scheduled: 'bg-info-soft text-info border-info',
-  cancelled: 'bg-destructive/10 text-destructive border-destructive',
-  pending: 'bg-warning-soft text-warning border-warning',
-  in_progress: 'bg-primary text-primary border-primary'
-};
 
 const getInteractionIcon = (type: string) => {
   const iconClass = "w-5 h-5";
@@ -149,7 +143,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   return (
     <div className="space-y-4">
       {/* Statistics */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{totalInteractions}</div>
@@ -230,9 +224,10 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className={statusColors[interaction.status]}>
-                              {interactionStatusLabels[interaction.status]}
-                            </Badge>
+                            <StatusBadge
+                              status={interaction.status}
+                              label={interactionStatusLabels[interaction.status]}
+                            />
                             <Button
                               variant="ghost"
                               size="icon"

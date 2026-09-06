@@ -187,7 +187,7 @@ export function EditSubscriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {subscription?.id ? "Редактировать подписку" : "Создать подписку"}
@@ -248,7 +248,7 @@ export function EditSubscriptionDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start_date">Дата начала</Label>
               <Input

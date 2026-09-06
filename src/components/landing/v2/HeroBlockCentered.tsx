@@ -120,7 +120,7 @@ export function HeroBlockCentered() {
 
           {/* RIGHT: widgets collage from Block 1 */}
           <div
-            className="w-full max-w-[540px] mx-auto lg:mr-0 animate-fade-in"
+            className="w-full max-w-lg mx-auto lg:mr-0 animate-fade-in"
             style={{ animationDelay: "0.35s" }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">

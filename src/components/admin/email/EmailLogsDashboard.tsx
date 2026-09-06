@@ -193,7 +193,7 @@ export function EmailLogsDashboard() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <StatCard label="Всего писем" value={stats.total} />
             <StatCard label="Отправлено" value={stats.sent} accent="text-success dark:text-success" />
             <StatCard label="В очереди" value={stats.pending} accent="text-info dark:text-info" />
@@ -233,7 +233,7 @@ export function EmailLogsDashboard() {
                           <div className="flex items-center gap-2">
                             {TEMPLATE_LABELS[r.template_name] || r.template_name}
                             {r.metadata?.is_test && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
+                              <Badge variant="outline" className="text-xs px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
                                 Тест
                               </Badge>
                             )}
@@ -244,7 +244,7 @@ export function EmailLogsDashboard() {
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(r.created_at).toLocaleString("ru-RU")}
                         </TableCell>
-                        <TableCell className="text-xs text-destructive max-w-[280px] truncate" title={r.error_message ?? ""}>
+                        <TableCell className="text-xs text-destructive max-w-md truncate" title={r.error_message ?? ""}>
                           {r.error_message ?? ""}
                         </TableCell>
                       </TableRow>

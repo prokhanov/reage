@@ -341,12 +341,12 @@ export function MedicationsTab() {
                         )}
                       </TableCell>
                       <TableCell className="text-sm">{m.drug_class}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[220px]">
+                      <TableCell className="text-sm text-muted-foreground max-w-md">
                         {m.brand_names.slice(0, 4).join(", ")}
                         {m.brand_names.length > 4 && ` +${m.brand_names.length - 4}`}
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-[320px]">
+                        <div className="flex flex-wrap gap-1 max-w-md">
                           {(m.lab_effects || []).map((e, i) => (
                             <Badge
                               key={`${m.id}-${e.biomarker_code}-${i}`}
@@ -422,7 +422,7 @@ export function MedicationsTab() {
 
       {/* Редактирование препарата */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing?.inn}</DialogTitle>
             <DialogDescription>Данные препарата в справочнике</DialogDescription>

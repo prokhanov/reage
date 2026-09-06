@@ -98,7 +98,7 @@ export function EditDaySlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>
             Управление слотами на {format(date, "d MMMM yyyy", { locale: ru })}

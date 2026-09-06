@@ -208,7 +208,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Новая запись на анализ</DialogTitle>
           <DialogDescription>
@@ -298,7 +298,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Дата</Label>
               <Popover>

@@ -216,7 +216,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl">Сравнение тарифов</DialogTitle>
           <DialogDescription>

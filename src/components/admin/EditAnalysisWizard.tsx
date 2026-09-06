@@ -330,7 +330,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">

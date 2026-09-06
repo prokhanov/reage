@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Fragment, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -91,16 +92,6 @@ const statusLabels: Record<BookingStatus, string> = {
   report_ready: "Отчёт загружен",
 };
 
-const statusColors: Record<BookingStatus, string> = {
-  waiting_call: "bg-warning-soft text-warning border-warning",
-  no_answer: "bg-warning-soft text-warning border-warning",
-  not_scheduled: "bg-muted text-foreground border-border",
-  scheduled: "bg-info-soft text-info border-info",
-  application_submitted: "bg-info-soft text-info border-info",
-  collected: "bg-success-soft text-success border-success",
-  report_pending: "bg-primary text-primary border-primary",
-  report_ready: "bg-success text-primary-foreground border-success",
-};
 
 type TemplateKey =
   | "scheduled"
@@ -411,7 +402,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             </div>
                           </button>
                         </TableCell>
-                        <TableCell className="max-w-[240px]">
+                        <TableCell className="max-w-md">
                           <button
                             onClick={() => setEditing(b)}
                             className="block max-w-full text-left hover:text-primary"
@@ -457,12 +448,11 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             }}
                           >
                             <SelectTrigger className="h-control-sm w-auto gap-1 border-none p-0 bg-transparent shadow-none">
-                              <Badge
-                                variant="outline"
-                                className={cn("font-normal cursor-pointer", statusColors[b.status])}
-                              >
-                                {statusLabels[b.status]}
-                              </Badge>
+                              <StatusBadge
+                                status={b.status}
+                                label={statusLabels[b.status]}
+                                className="cursor-pointer font-normal"
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               {(Object.keys(statusLabels) as BookingStatus[]).map((s) => (
@@ -702,12 +692,12 @@ function CreateBookingForPatientDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Новая запись на анализ</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Дата</Label>
               <Popover>
@@ -902,7 +892,7 @@ function SendRemindersDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Отправить напоминания</DialogTitle>
         </DialogHeader>
@@ -954,7 +944,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {emailOn && emailChanged && (
-              <p className="text-[11px] text-warning dark:text-warning">
+              <p className="text-xs text-warning dark:text-warning">
                 Адрес отличается от email пациента — письмо уйдёт разово на указанный адрес,
                 профиль пациента не изменится.
               </p>
@@ -984,7 +974,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {smsOn && phoneChanged && (
-              <p className="text-[11px] text-warning dark:text-warning">
+              <p className="text-xs text-warning dark:text-warning">
                 Номер отличается от телефона пациента — SMS уйдёт разово на указанный номер,
                 профиль пациента не изменится.
               </p>
@@ -1035,7 +1025,7 @@ function RequestNumberDialog({
   const trimmed = value.trim();
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Заявка ЛабКвест оформлена</DialogTitle>
         </DialogHeader>

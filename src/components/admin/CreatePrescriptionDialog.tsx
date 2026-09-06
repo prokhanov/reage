@@ -108,7 +108,7 @@ export function CreatePrescriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Добавить назначение</DialogTitle>
           <DialogDescription>

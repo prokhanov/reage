@@ -1345,7 +1345,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
         }}
 
       >
-        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogContent className="max-w-5xl flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle>Предпросмотр как PDF</DialogTitle>
           </DialogHeader>

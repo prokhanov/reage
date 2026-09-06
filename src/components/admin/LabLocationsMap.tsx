@@ -614,7 +614,7 @@ export default function LabLocationsMap({
           />
         </MapContainer>
         {!hideAttribution && (
-          <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
             <span>{style.attribution}</span>
           </div>
         )}

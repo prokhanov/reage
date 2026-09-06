@@ -96,7 +96,7 @@ export function PassportDataDialog({ open, onOpenChange, onSaved }: PassportData
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 gap-4">
+      <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] sm: p-5 sm:p-6 gap-4">
         <DialogHeader className="text-left space-y-1.5">
           <DialogTitle className="text-lg">Паспортные данные</DialogTitle>
           <DialogDescription className="text-sm">

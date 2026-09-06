@@ -1,3 +1,5 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,13 +73,6 @@ const statusLabels: Record<BookingStatus, string> = {
   report_ready: bookingStatusLabels.report_ready,
 };
 
-const statusColors: Record<BookingStatus, string> = {
-  scheduled: bookingStatusColors.scheduled,
-  application_submitted: bookingStatusColors.application_submitted,
-  collected: bookingStatusColors.collected,
-  report_pending: bookingStatusColors.report_pending,
-  report_ready: bookingStatusColors.report_ready,
-};
 
 
 export default function MyAssignments() {
@@ -217,20 +212,15 @@ export default function MyAssignments() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Назначены мне</h1>
-        <p className="text-muted-foreground mt-1">
-          Анализы, назначенные мне для забора
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Назначены мне" description="Анализы, назначенные мне для забора" />
 
       <Card>
         <CardHeader>
@@ -320,7 +310,7 @@ export default function MyAssignments() {
                         </div>
                       </button>
                     </TableCell>
-                    <TableCell className="max-w-[200px]">
+                    <TableCell className="max-w-md">
                       <button
                         onClick={() => setEditingBooking({
                           id: booking.id,
@@ -354,12 +344,7 @@ export default function MyAssignments() {
                       </button>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={statusColors[booking.status]}
-                      >
-                        {statusLabels[booking.status]}
-                      </Badge>
+                      <StatusBadge status={booking.status} label={statusLabels[booking.status]} />
                     </TableCell>
                     <TableCell>
                       {format(new Date(booking.created_at), "d MMM yyyy", { locale: ru })}

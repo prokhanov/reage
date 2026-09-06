@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -208,12 +209,12 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
 
   const getStatusBadge = (token: any) => {
     if (token.used_at) {
-      return <Badge variant="secondary">Использован</Badge>;
+      return <StatusBadge status="used" label="Использован" />;
     }
     if (token.expires_at && new Date(token.expires_at) < new Date()) {
-      return <Badge variant="destructive">Истёк</Badge>;
+      return <StatusBadge status="expired" label="Истёк" />;
     }
-    return <Badge variant="default">Активен</Badge>;
+    return <StatusBadge status="active" label="Активен" />;
   };
 
   return (

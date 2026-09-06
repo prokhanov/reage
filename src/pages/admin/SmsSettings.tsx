@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBanner } from "@/components/admin/StatusBanner";
@@ -292,13 +293,8 @@ export default function SmsSettings() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">SMS рассылки</h1>
-        <p className="text-muted-foreground mt-1">
-          Отправитель, шаблоны и тестовая отправка через SMS Aero
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="SMS рассылки" description="Отправитель, шаблоны и тестовая отправка через SMS Aero" />
 
       <Tabs defaultValue="sender" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">
@@ -471,7 +467,7 @@ export default function SmsSettings() {
                                 <span>·</span>
                                 <span>Переменные:</span>
                                 {t.variables.map((v) => (
-                                  <Badge key={v} variant="secondary" className="text-[10px]">{`{{${v}}}`}</Badge>
+                                  <Badge key={v} variant="secondary" className="text-xs">{`{{${v}}}`}</Badge>
                                 ))}
                               </>
                             )}

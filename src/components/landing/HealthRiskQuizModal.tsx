@@ -786,7 +786,7 @@ function ScreenBasics({
 
         {/* Age */}
         <FieldBlock label="Возраст">
-          <div className="relative max-w-[280px]">
+          <div className="relative max-w-md">
             <NumberField
               value={a.age}
               min={18}
@@ -951,7 +951,7 @@ function ScreenHeart({
         {/* Q4 — SBP value (optional) */}
         <FieldBlock label="Знаете ли Вы своё текущее систолическое (верхнее) давление?">
           <HintText>Если нет — оставьте пустым, мы используем усреднённое значение.</HintText>
-          <div className="mt-2 max-w-[240px]">
+          <div className="mt-2 max-w-md">
             <NumberField
               value={a.sbpValue}
               min={80}
@@ -983,7 +983,7 @@ function ScreenHeart({
                   placeholder="Например, 5.1"
                   ariaLabel="Общий холестерин"
                   onChange={(v) => update({ cholesterolValue: v })}
-                  className="max-w-[220px]"
+                  className="max-w-md"
                 />
                 <HintText>Норма — до 5,2 ммоль/л.</HintText>
               </div>

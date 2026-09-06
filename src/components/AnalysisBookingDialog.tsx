@@ -356,7 +356,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-lg flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary mb-4">

@@ -254,7 +254,7 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = f
 
   return (
     <Dialog open={!!userId} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Настройка прав доступа</DialogTitle>
           <DialogDescription>
