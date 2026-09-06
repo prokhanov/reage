@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle, Trash2, Building2, Home } from "lucide-react";
+import { Eye, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle, Trash2, Building2, Home } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -36,14 +36,16 @@ import { useToast } from "@/hooks/use-toast";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  DataTableShell,
+  RowActionItem,
+  RowActions,
+  TableEmpty,
+  TablePagination,
+  TableSearch,
+  TableToolbar,
+  TableToolbarActions,
+} from "@/components/ui/data-table";
+import { RoleBadge } from "@/components/admin/RoleBadge";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -309,22 +311,6 @@ export default function Patients() {
       .slice(0, 2);
   };
 
-  const getRoleBadge = (role: string) => {
-    const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
-      superadmin: { label: "Суперадмин", variant: "destructive" },
-      admin: { label: "Админ", variant: "default" },
-      doctor: { label: "Врач", variant: "default" },
-      user: { label: "Пользователь", variant: "secondary" },
-      patient: { label: "Пациент", variant: "secondary" },
-    };
-    const config = roleConfig[role] || roleConfig.patient;
-    return (
-      <Badge variant={config.variant} className="text-xs">
-        {config.label}
-      </Badge>
-    );
-  };
-
   const getSubscriptionBadge = (status: string, endDate: string | null) => {
     const formatDate = (d: string) =>
       new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -404,17 +390,18 @@ export default function Patients() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Поиск по имени, email или телефону..."
+            <TableToolbar>
+              <TableSearch
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                onValueChange={setSearchQuery}
+                placeholder="Поиск по имени, email или телефону…"
               />
-            </div>
+              <TableToolbarActions>
+                <span className="label-mono">Найдено: {filteredPatients?.length || 0}</span>
+              </TableToolbarActions>
+            </TableToolbar>
 
-            <div className="border hairline overflow-x-auto">
+            <DataTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -435,7 +422,7 @@ export default function Patients() {
                       paginatedPatients.map((patient) => (
                         <TableRow
                           key={patient.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          className="cursor-pointer"
                           onClick={() => setSelectedPatientForInfo(patient.id)}
                         >
                           <TableCell>
@@ -574,81 +561,32 @@ export default function Patients() {
                           <TableCell className="text-center">
                             {patient.analysisCount}
                           </TableCell>
-                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeletePatientId(patient.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
+                            <RowActions label={`Действия: ${patient.name || patient.email}`}>
+                              <RowActionItem icon={Eye} onSelect={() => setSelectedPatientForInfo(patient.id)}>
+                                Открыть профиль
+                              </RowActionItem>
+                              <RowActionItem icon={Trash2} destructive onSelect={() => setDeletePatientId(patient.id)}>
+                                Удалить пациента
+                              </RowActionItem>
+                            </RowActions>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow>
-                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                          Пациенты не найдены
-                        </TableCell>
-                      </TableRow>
+                      <TableEmpty colSpan={10}>Пациенты не найдены</TableEmpty>
                     )}
                   </TableBody>
                 </Table>
-              </div>
+              </DataTableShell>
 
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center pt-4">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        // Show first page, last page, current page, and pages around current
-                        const showPage = page === 1 || 
-                                        page === totalPages || 
-                                        Math.abs(page - currentPage) <= 1;
-                        
-                        if (!showPage) {
-                          // Show ellipsis before/after current range
-                          if (page === currentPage - 2 || page === currentPage + 2) {
-                            return (
-                              <PaginationItem key={page}>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            );
-                          }
-                          return null;
-                        }
-
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
+              <TablePagination
+                page={currentPage}
+                pageCount={totalPages}
+                onPageChange={setCurrentPage}
+                total={filteredPatients?.length || 0}
+                className="border-t border-x-0 border-b-0"
+              />
           </CardContent>
         </Card>
 
