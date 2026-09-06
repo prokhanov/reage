@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +38,6 @@ import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
 import {
-import { AdminPageHeader } from "@/components/admin/AdminPage";
   bookingStatusLabels,
   bookingStatusColors,
   type BookingStatus as AllBookingStatus,

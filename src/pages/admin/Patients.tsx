@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +35,6 @@ import { useToast } from "@/hooks/use-toast";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import {
-import { AdminPageHeader } from "@/components/admin/AdminPage";
   Pagination,
   PaginationContent,
   PaginationEllipsis,

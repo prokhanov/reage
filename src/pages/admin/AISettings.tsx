@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -19,7 +20,6 @@ import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { getCategoryKey } from "@/lib/categoryKeyMap";
 import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import type { Tables } from "@/integrations/supabase/types";
-import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 interface PromptFormData {
   description: string;

@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
-import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");

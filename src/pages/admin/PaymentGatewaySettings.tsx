@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,6 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
 import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
-import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 interface GatewaySettings {
   id: string;

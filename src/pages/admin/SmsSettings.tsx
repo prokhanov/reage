@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBanner } from "@/components/admin/StatusBanner";
@@ -18,7 +19,6 @@ import {
   MessageSquare, Send, CheckCircle, AlertCircle, Save, User, Activity, Wifi, Eye, EyeOff, KeyRound,
 } from "lucide-react";
 import { SmsLogsDashboard } from "@/components/admin/sms/SmsLogsDashboard";
-import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 type SmsTemplate = {
   id: string;

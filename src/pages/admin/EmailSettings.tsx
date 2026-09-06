@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBanner } from "@/components/admin/StatusBanner";
@@ -15,7 +16,6 @@ import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone, 
 import { EmailLogsDashboard } from "@/components/admin/email/EmailLogsDashboard";
 import DripCampaigns from "@/components/admin/email/DripCampaigns";
 import ConfirmationReminders from "@/components/admin/email/ConfirmationReminders";
-import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 interface EmailTemplate {
   id?: string;
