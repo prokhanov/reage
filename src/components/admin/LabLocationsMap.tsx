@@ -627,6 +627,8 @@ export default function LabLocationsMap({
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
+          {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
+
           <ClusterLayer
             items={items}
             showPartnerButton={showPartnerButton}
