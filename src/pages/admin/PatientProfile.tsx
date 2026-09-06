@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -286,7 +287,7 @@ export default function PatientProfile() {
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold">{profile.name || "Без имени"}</h2>
+                  <h2 className="text-2xl tracking-tight">{profile.name || "Без имени"}</h2>
                   <Badge variant="outline">{profile.gender === "male" ? "Мужчина" : "Женщина"}</Badge>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
