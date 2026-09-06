@@ -94,7 +94,7 @@ export default function ResetPassword() {
           <p className="text-muted-foreground text-lg">Введите новый пароль для вашего аккаунта</p>
         </div>
 
-        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
+        <Card className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
           <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
           <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
@@ -125,7 +125,7 @@ export default function ResetPassword() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-12 bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
@@ -139,7 +139,7 @@ export default function ResetPassword() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-12 bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 <Button

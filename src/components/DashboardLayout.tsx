@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-14 border-b border-border/60 bg-background">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-14 border-b border-border bg-background">
         <div className="flex h-full items-center justify-between px-3">
           <Button
             variant="ghost"

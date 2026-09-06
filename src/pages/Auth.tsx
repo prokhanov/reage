@@ -144,7 +144,7 @@ export default function Auth() {
         </div>
 
         <Card
-          className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-xl relative overflow-hidden animate-fade-in"
+          className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in"
           style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}
         >
           <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
@@ -163,7 +163,7 @@ export default function Auth() {
                 onValueChange={(v) => setAuthMethod(v as "email" | "phone")}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background/40 border border-border/50">
+                <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background border border-border">
                   <TabsTrigger
                     value="email"
                     className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"

@@ -163,7 +163,7 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
 
       <div className={cn(
         "flex items-start gap-3 rounded-lg border bg-muted/30 p-4",
-        displayErrors && errors.agreed ? "border-destructive" : "border-border/60"
+        displayErrors && errors.agreed ? "border-destructive" : "border-border"
       )}>
         <Checkbox
           id="agree"

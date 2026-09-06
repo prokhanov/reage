@@ -87,7 +87,7 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
 
   if (priorities.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="h-5 w-5 dark:text-primary text-destructive" />
@@ -100,7 +100,7 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+    <Card className="bg-card border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Target className="h-5 w-5 dark:text-primary text-destructive" />

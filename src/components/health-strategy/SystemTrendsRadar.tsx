@@ -25,7 +25,7 @@ export function SystemTrendsRadar({ currentScores, previousScores, categoryOrder
 
   if (data.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Hexagon className="h-5 w-5 dark:text-primary text-info" />
@@ -43,7 +43,7 @@ export function SystemTrendsRadar({ currentScores, previousScores, categoryOrder
   const prevColor = isDark ? "rgba(148,163,184,0.7)" : "rgba(100,116,139,0.6)";
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+    <Card className="bg-card border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Hexagon className="h-5 w-5 dark:text-primary text-info" />

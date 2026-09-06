@@ -232,7 +232,7 @@ export default function Analyses() {
         </div>
 
         {displayAnalyses.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
+          <Card className="border-dashed border-2 border-primary/30 bg-card shadow-lg">
             <CardContent className="flex flex-col items-center justify-center py-16 px-6">
               <div className="relative mb-6">
                 <FlaskConical className="h-20 w-20 text-primary/40" />
@@ -248,11 +248,11 @@ export default function Analyses() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-primary/20 bg-card/80 backdrop-blur-sm">
+          <Card className="border-primary/20 bg-card">
             <div className="rounded-md border-0 overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent border-b border-border/50">
+                  <TableRow className="hover:bg-transparent border-b border-border">
                     <TableHead className="font-semibold">Дата</TableHead>
                     <TableHead className="font-semibold">Лаборатория</TableHead>
                     <TableHead className="font-semibold text-center">Маркеров</TableHead>
@@ -268,7 +268,7 @@ export default function Analyses() {
                   {displayAnalyses.map((analysis) => (
                     <TableRow
                       key={analysis.id}
-                      className="cursor-pointer hover:bg-primary/5 transition-colors border-b border-border/30"
+                      className="cursor-pointer hover:bg-primary/5 transition-colors border-b border-border"
                       onClick={() => {
                         if (isViewMode) {
                           setSimPath(`/analyses/${analysis.id}`);

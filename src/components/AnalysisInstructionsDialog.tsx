@@ -114,7 +114,7 @@ export function AnalysisInstructionsDialog({
             </ul>
           </section>
 
-          <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-muted-foreground space-y-1.5">
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-muted-foreground space-y-1.5">
             <p className="text-xs">
               Нужно изменить или перенести запись — свяжитесь с нами по
               телефону{" "}

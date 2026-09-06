@@ -110,7 +110,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
   const nextIdx = items.findIndex((e) => isBefore(today, new Date(e.date_iso)));
 
   return (
-    <Card className="border border-border/60 bg-card/80 backdrop-blur-xl overflow-hidden">
+    <Card className="border border-border bg-card overflow-hidden">
       <CardHeader className="pb-4 md:pb-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1.5 min-w-0">
@@ -189,7 +189,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                             ? "bg-muted/40 border-border/80"
                             : isNext
                             ? "bg-primary/[0.04] border-primary/30 shadow-sm shadow-primary/5"
-                            : "bg-card/60 border-border/60",
+                            : "bg-card border-border",
                         ].join(" ")}
                       >
                         {/* Status accent strip */}
@@ -323,7 +323,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
           })}
         </div>
 
-        <p className="mt-5 md:mt-6 text-[11px] md:text-xs text-muted-foreground leading-relaxed border-t border-border/60 pt-4">
+        <p className="mt-5 md:mt-6 text-[11px] md:text-xs text-muted-foreground leading-relaxed border-t border-border pt-4">
           Прогноз ориентировочный, основан на ваших биомаркерах и активных назначениях. Реальные сроки могут отличаться
           в зависимости от приверженности приёму и образа жизни.
         </p>

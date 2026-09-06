@@ -533,7 +533,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         </div>
 
 
-        <div className="shrink-0 flex gap-3 px-6 pb-6 pt-2 border-t border-border/50">
+        <div className="shrink-0 flex gap-3 px-6 pb-6 pt-2 border-t border-border">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

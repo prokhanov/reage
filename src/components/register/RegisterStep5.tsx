@@ -171,7 +171,7 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left"
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left"
           disabled={!hasData}
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -209,7 +209,7 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
                 <CollapsibleContent>
                   <div className="flex flex-wrap gap-1 pb-3 pl-7">
                     {cat.markers.map((m, j) => (
-                      <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
+                      <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground">{m}</span>
                     ))}
                   </div>
                 </CollapsibleContent>
@@ -224,7 +224,7 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
 
 function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; label: string; value: string; isPopular?: boolean; }) {
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30">
+    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>
@@ -239,7 +239,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
     <div className="group relative h-full">
       <div
         className={cn(
-          "absolute -inset-0.5 rounded-3xl blur-xl transition-opacity duration-300",
+          "absolute -inset-0.5 rounded-xl blur-xl transition-opacity duration-300",
           isSelected ? "opacity-70" : "opacity-30"
         )}
         style={{ background: card.glowColor }}
@@ -247,7 +247,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
       <div
         onClick={onSelect}
         className={cn(
-          "relative h-full rounded-3xl border p-6 transition-all duration-300 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-xl cursor-pointer",
+          "relative h-full rounded-xl border p-6 transition-all duration-300 flex flex-col bg-surface shadow-xl cursor-pointer",
           isSelected
             ? "border-primary ring-2 ring-primary/40 shadow-md"
             : "border-primary/30 hover:border-primary/60"
@@ -256,7 +256,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
         {card.badge && (
           <div className={cn(
             "absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap",
-            card.isPopular ? "bg-gradient-to-r from-primary to-accent text-primary-foreground" : "bg-muted text-muted-foreground"
+            card.isPopular ? "bg-surface text-primary-foreground" : "bg-muted text-muted-foreground"
           )}>
             {card.isPopular && <Sparkles className="inline h-3 w-3 mr-1" />}
             {card.badge}
@@ -438,7 +438,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 min-h-[480px]">
           {[0, 1, 2].map((i) => (
             <div key={i} className="min-w-0 h-full">
-              <Skeleton className="h-[460px] w-full rounded-3xl" />
+              <Skeleton className="h-[460px] w-full rounded-xl" />
             </div>
           ))}
         </div>

@@ -107,7 +107,7 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
     return (
       <div className="space-y-2">
         <Label>Телефон</Label>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md border border-border/50 bg-background/40 px-3 py-2.5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md border border-border bg-background px-3 py-2.5">
           {currentPhone ? (
             <>
               <span className="font-medium break-all">{formatDisplay(currentPhone)}</span>
@@ -177,7 +177,7 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <PhoneInput value={phone} onChange={setPhone} className="h-control-xl bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+          <PhoneInput value={phone} onChange={setPhone} className="h-control-xl bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
         </div>
         {stage === "edit" && (
           <Button

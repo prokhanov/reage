@@ -197,7 +197,7 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
 
               {/* Predicted improvements */}
               {level.data.focus.predicted_improvements?.length > 0 && (
-                <div className="p-4 bg-secondary/50 rounded-lg space-y-3">
+                <div className="p-4 bg-surface rounded-lg space-y-3">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Ожидаемые улучшения показателей
                   </span>
@@ -206,7 +206,7 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
                       const timeline = formatTimeline(pred.timeline_days);
                       const hint = getMetricHint(pred.metric);
                       return (
-                        <div key={idx} className="space-y-1 pb-2 last:pb-0 border-b last:border-b-0 border-border/50">
+                        <div key={idx} className="space-y-1 pb-2 last:pb-0 border-b last:border-b-0 border-border">
                           <div className="text-sm font-medium text-foreground">
                             {pred.metric}
                             {hint && (

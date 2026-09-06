@@ -71,7 +71,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
 
   return (
     <TooltipProvider>
-      <Card className="border-border bg-card backdrop-blur-sm">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-primary" />
@@ -99,7 +99,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
             return (
               <div
                 key={idx}
-                className="p-4 rounded-lg border border-border bg-background/50 animate-fade-in"
+                className="p-4 rounded-lg border border-border bg-background animate-fade-in"
                 style={{ animationDelay: `${idx * 80}ms` }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-3 md:gap-2 items-start">

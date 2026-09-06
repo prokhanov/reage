@@ -172,7 +172,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
           </div>
           <div className="space-y-4">
             {hasNutrition && (
-              <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none">
+              <div className="rounded-lg border border-border bg-card p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
                   <Utensils className="h-4 w-4 text-primary" />
                   Питание
@@ -185,7 +185,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
               </div>
             )}
             {hasActivity && (
-              <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none">
+              <div className="rounded-lg border border-border bg-card p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
                   <Activity className="h-4 w-4 text-primary" />
                   Физическая активность
@@ -198,7 +198,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
               </div>
             )}
             {hasSleep && (
-              <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none">
+              <div className="rounded-lg border border-border bg-card p-6 max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
                   <Moon className="h-4 w-4 text-primary" />
                   Сон и режим
@@ -226,7 +226,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             {mergedFollowUps.map((f, i) => (
               <div
                 key={`fu-${i}`}
-                className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none"
+                className="rounded-lg border border-border bg-card p-5 max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none"
               >
                 <div className="flex items-start gap-3">
                   <Stethoscope className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />

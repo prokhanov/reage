@@ -26,7 +26,7 @@ export function AgingBlockersStrategy({ blockers }: Props) {
 
   if (top.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Ban className="h-5 w-5 text-status-danger" />
@@ -41,7 +41,7 @@ export function AgingBlockersStrategy({ blockers }: Props) {
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+    <Card className="bg-card border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Ban className="h-5 w-5 text-status-danger" />

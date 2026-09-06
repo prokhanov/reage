@@ -347,7 +347,7 @@ export default function Trends() {
         </div>
 
         {biomarkers.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50">
+          <Card className="border-dashed border-2 border-primary/30 bg-card">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <TrendingUp className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных для анализа</h3>
@@ -359,7 +359,7 @@ export default function Trends() {
         ) : (
           <div className="space-y-6">
             {/* Controls */}
-            <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+            <Card className="border-primary/20 bg-surface">
               <CardContent className="pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -406,7 +406,7 @@ export default function Trends() {
             {/* Chart */}
             {trendData.length > 0 ? (
               <>
-                <Card className="border-primary/30 shadow-md bg-gradient-to-br from-card to-card/50">
+                <Card className="border-primary/30 shadow-md bg-surface">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
@@ -565,7 +565,7 @@ export default function Trends() {
 
               </>
             ) : (
-              <Card className="border-dashed border-2 border-accent/30 bg-card/50">
+              <Card className="border-dashed border-2 border-accent/30 bg-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <p className="text-muted-foreground text-center">
                     Недостаточно данных для построения графика.

@@ -352,7 +352,7 @@ export function AnalysisBookingBanner() {
         requestNumber={bookingInfo?.labquest_request_number ?? null}
         callbackPhone={callbackPhone}
       />
-      <div className="relative rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5 animate-fade-in">
+      <div className="relative rounded-xl border border-primary/25 bg-primary/5 p-4 sm:p-5 animate-fade-in">
         <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">

@@ -110,7 +110,7 @@ export function PhoneLoginForm() {
             onChange={(v) => { setPhone(v); if (phoneError) setPhoneError(null); }}
             placeholder="+7 (999) 123-45-67"
             className="w-full"
-            inputClassName="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+            inputClassName="h-12 bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           />
           {phoneError ? (
             <p className="text-xs text-destructive pt-1">{phoneError}</p>
@@ -155,10 +155,10 @@ export function PhoneLoginForm() {
         <div className="flex justify-center pt-2">
           <InputOTP maxLength={4} value={otp} onChange={setOtp} autoFocus>
             <InputOTPGroup>
-              <InputOTPSlot index={0} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
-              <InputOTPSlot index={1} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
-              <InputOTPSlot index={2} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
-              <InputOTPSlot index={3} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
+              <InputOTPSlot index={0} className="h-14 w-14 text-2xl border-border bg-background" />
+              <InputOTPSlot index={1} className="h-14 w-14 text-2xl border-border bg-background" />
+              <InputOTPSlot index={2} className="h-14 w-14 text-2xl border-border bg-background" />
+              <InputOTPSlot index={3} className="h-14 w-14 text-2xl border-border bg-background" />
             </InputOTPGroup>
           </InputOTP>
         </div>

@@ -55,7 +55,7 @@ export function ForgotPasswordForm({ initialEmail = "", onBack }: Props) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="h-control-xl bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          className="h-control-xl bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </div>
       <Button

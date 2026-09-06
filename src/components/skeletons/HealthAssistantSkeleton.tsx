@@ -19,7 +19,7 @@ export function HealthAssistantSkeleton() {
       </div>
 
       {/* Chat area */}
-      <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
+      <Card className="flex flex-col flex-1 min-h-0 bg-card border-border">
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="space-y-6">
             {/* Assistant message skeleton */}
@@ -53,7 +53,7 @@ export function HealthAssistantSkeleton() {
         </div>
 
         {/* Input area */}
-        <div className="p-4 border-t border-border/30">
+        <div className="p-4 border-t border-border">
           <div className="flex gap-2">
             <Skeleton className="flex-1 h-[60px]" />
             <Skeleton className="h-[60px] w-[60px]" />

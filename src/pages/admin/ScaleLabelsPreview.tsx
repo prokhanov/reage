@@ -98,7 +98,7 @@ function PreviewScenario({ value }: { value: number }) {
 // ─── Контекст 2: карточка биомаркера в веб-отчёте ─────────────────────────
 function ReportCard({ value }: { value: number }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-card/50 shadow-sm p-4">
+    <div className="rounded-xl border border-border bg-card shadow-sm p-4">
       <ScaleUnit value={value} />
     </div>
   );
@@ -118,7 +118,7 @@ function PatientTableRow({ value }: { value: number }) {
 // ─── Контекст 4: ввод в Analysis Wizard (админка) ─────────────────────────
 function WizardRow({ value }: { value: number }) {
   return (
-    <div className="grid grid-cols-[140px_1fr] gap-4 items-center py-3 border-b border-border/40">
+    <div className="grid grid-cols-[140px_1fr] gap-4 items-center py-3 border-b border-border">
       <input
         type="text"
         readOnly

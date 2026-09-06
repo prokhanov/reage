@@ -66,7 +66,7 @@ export function HealthIndexTrendChart({ analyses }: HealthIndexTrendChartProps) 
     const changeSign = data.change > 0 ? '+' : '';
 
     return (
-      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
+      <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
         <p className="font-medium text-foreground mb-2">{data.dateFormatted}</p>
         <div className="space-y-1 text-sm">
           <p className="text-primary">

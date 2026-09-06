@@ -36,7 +36,7 @@ export const DemoBanner = ({ onDismiss, onToggleDemoMode }: DemoBannerProps) => 
 
   return (
     <>
-      <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md py-3">
+      <Alert className="mb-4 border-primary/50 bg-background py-3">
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 text-xs sm:text-sm leading-snug">

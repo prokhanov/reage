@@ -294,7 +294,7 @@ export default function AnalysesPrint() {
   return (
     <div className="print-root min-h-screen bg-background text-foreground">
       {/* Панель действий — скрыта при печати */}
-      <div className="no-print sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border">
+      <div className="no-print sticky top-0 z-10 bg-card border-b border-border">
         <div className="max-w-[210mm] mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-1.5" /> Назад
@@ -380,7 +380,7 @@ export default function AnalysesPrint() {
                           return (
                             <div
                               key={v.id}
-                              className="biomarker-row grid grid-cols-12 gap-2 items-center py-2 px-3 rounded-md border border-border/60 bg-card/40"
+                              className="biomarker-row grid grid-cols-12 gap-2 items-center py-2 px-3 rounded-md border border-border bg-card"
                             >
                               <div className="col-span-3">
                                 <div className="font-medium text-sm leading-tight">

@@ -301,7 +301,7 @@ export default function HealthStrategy() {
 
 
         {!hasAnalyses ? (
-          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+          <Card className="border-dashed bg-card">
             <CardContent className="py-16 text-center">
               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Нет данных анализов</h3>
@@ -309,7 +309,7 @@ export default function HealthStrategy() {
             </CardContent>
           </Card>
         ) : awaitingReport ? (
-          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+          <Card className="border-dashed bg-card">
             <CardContent className="py-16 text-center">
               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Отчёт на проверке у врача</h3>
@@ -320,7 +320,7 @@ export default function HealthStrategy() {
           </Card>
         ) : !snapshot ? (
 
-          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+          <Card className="border-dashed bg-card">
             <CardContent className="py-16 text-center">
               <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Стратегия готовится врачом</h3>

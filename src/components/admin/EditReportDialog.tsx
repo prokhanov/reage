@@ -699,7 +699,7 @@ export function EditReportDialog({
                               const statusLabel = prescription.status === "confirmed" ? "Подтверждено" : "На проверке";
 
                               return (
-                              <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
+                              <div key={prescription.id} className="p-4 bg-card rounded-xl border border-border">
                                 <div className="space-y-3 mb-4">
                                   <p className="text-sm text-muted-foreground leading-relaxed">
                                     <span className="font-medium text-foreground">Название:</span> {idx + 1}. {title || "—"}
@@ -769,7 +769,7 @@ export function EditReportDialog({
                         ) => {
                           const items = advisory.lifestyle[key] || [];
                           return (
-                            <div className="p-4 bg-card/50 rounded-xl border border-border">
+                            <div className="p-4 bg-card rounded-xl border border-border">
                               <h4 className="font-medium mb-3 flex items-center gap-2">
                                 <Icon className="h-4 w-4 text-primary" />
                                 {label}
@@ -832,7 +832,7 @@ export function EditReportDialog({
                                   <p className="text-xs text-muted-foreground italic">Консультаций пока нет</p>
                                 )}
                                 {advisory.followUps.map((f, i) => (
-                                  <div key={i} className="p-4 bg-card/50 rounded-xl border border-border space-y-2">
+                                  <div key={i} className="p-4 bg-card rounded-xl border border-border space-y-2">
                                     <div className="flex items-start gap-2">
                                       <div className="flex-1 space-y-2">
                                         <div>
@@ -888,7 +888,7 @@ export function EditReportDialog({
                             Текст назначений
                           </h2>
                           <div
-                            className="prose prose-sm dark:prose-invert max-w-none p-4 bg-card/50 rounded-xl border border-border"
+                            className="prose prose-sm dark:prose-invert max-w-none p-4 bg-card rounded-xl border border-border"
                             dangerouslySetInnerHTML={{
                               __html: marked.parse(cleanMarkdownArtifacts(advisory.rawMarkdown)) as string,
                             }}
@@ -956,7 +956,7 @@ export function EditReportDialog({
 
 
           {(qaRunning || qaEvents.length > 0) && (
-            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+            <div className="absolute inset-0 z-50 bg-background flex items-center justify-center p-6">
               <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-3 border-b">
                   <div className="flex items-center gap-2">

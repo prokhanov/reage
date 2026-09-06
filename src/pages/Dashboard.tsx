@@ -584,7 +584,7 @@ export default function Dashboard() {
         )}
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
-        <Card className="border-border bg-card backdrop-blur-sm overflow-hidden">
+        <Card className="border-border bg-card overflow-hidden">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
             <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
           </CardHeader>
@@ -631,7 +631,7 @@ export default function Dashboard() {
                   {/* Right: Unified Metrics Grid */}
                   <div className="grid grid-cols-2 gap-3 md:gap-4">
                     {/* Health Index - Highlighted Large Card */}
-                    <div className="col-span-2 p-4 md:p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                    <div className="col-span-2 p-4 md:p-6 rounded-xl bg-surface border border-primary/20">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-muted-foreground mb-2">Индекс здоровья</div>
@@ -669,13 +669,13 @@ export default function Dashboard() {
                     </div>
 
                     {/* Compact Metric Cards - equal height */}
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
                       <Activity className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Анализов</div>
                       <div className="text-3xl font-bold text-foreground tabular-nums mt-auto">{displayAnalysesCount}</div>
                     </div>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -695,7 +695,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -715,7 +715,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
                       <Calendar className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
                       {nextBooking ? (
@@ -733,7 +733,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Health Percentile */}
-                    <div className="col-span-2 p-4 rounded-2xl bg-background/50 border border-border/50">
+                    <div className="col-span-2 p-4 rounded-xl bg-background border border-border">
                       {(() => {
                         if (!displayBiologicalAge || !chronologicalAge || !bioPercentile) {
                           return (
