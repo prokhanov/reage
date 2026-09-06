@@ -8,11 +8,69 @@ import type { LabMapItem } from "@/components/admin/LabLocationsMap";
 
 const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap"));
 
+type CityKey = "msk" | "spb";
+
+const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
+  { key: "msk", label: "Москва и МО", center: [55.7558, 37.6173], zoom: 10 },
+  { key: "spb", label: "Санкт-Петербург", center: [59.9386, 30.3141], zoom: 11 },
+];
+
+const cityOf = (item: LabMapItem): CityKey => (item.lat > 58 ? "spb" : "msk");
+
+function detectCity(): CityKey {
+  if (typeof window === "undefined") return "msk";
+  const saved = window.localStorage.getItem("energy_city");
+  if (saved === "msk" || saved === "spb") return saved;
+  return "msk";
+}
+
 export function EnergyWhereToTest() {
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [city, setCity] = useState<CityKey>(detectCity);
+  const [cityTouched, setCityTouched] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("energy_city")) return;
+    let cancelled = false;
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), 2000);
+    (async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
+        const geo = (await res.json()) as { region?: string; city?: string; latitude?: number };
+        if (cancelled) return;
+        const text = `${geo.region ?? ""} ${geo.city ?? ""}`.toLowerCase();
+        const isSpb =
+          text.includes("petersburg") ||
+          text.includes("петербург") ||
+          text.includes("leningrad") ||
+          (typeof geo.latitude === "number" && geo.latitude > 58 && geo.latitude < 61);
+        if (isSpb) setCity((c) => (cityTouched ? c : "spb"));
+      } catch {
+        /* геолокация недоступна — остаёмся на Москве */
+      } finally {
+        window.clearTimeout(timer);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selectCity = (next: CityKey) => {
+    setCityTouched(true);
+    setCity(next);
+    setSelectedId(null);
+    setShowAll(false);
+    if (typeof window !== "undefined") window.localStorage.setItem("energy_city", next);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -31,15 +89,17 @@ export function EnergyWhereToTest() {
     };
   }, []);
 
+  const cityItems = useMemo(() => items.filter((i) => cityOf(i) === city), [items, city]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((i) =>
+    if (!q) return cityItems;
+    return cityItems.filter((i) =>
       [i.title, i.metro, i.city, i.address_short, i.full_address]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q)),
     );
-  }, [items, query]);
+  }, [cityItems, query]);
 
   const visible = showAll ? filtered : filtered.slice(0, 3);
 
@@ -51,14 +111,32 @@ export function EnergyWhereToTest() {
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 inline-flex rounded-xl border hairline bg-card p-1">
+          {CITIES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => selectCity(c.key)}
+              aria-pressed={city === c.key}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                city === c.key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Адрес или метро"
+                placeholder={city === "spb" ? "Адрес или метро в Санкт-Петербурге" : "Адрес или метро в Москве и МО"}
                 className="pl-9"
                 aria-label="Поиск отделения по адресу или метро"
               />
@@ -110,7 +188,10 @@ export function EnergyWhereToTest() {
           <div className="overflow-hidden rounded-xl border hairline bg-card">
             <Suspense fallback={<div className="h-[420px] w-full bg-muted/40" />}>
               <LabLocationsMap
+                key={city}
                 items={filtered}
+                center={CITIES.find((c) => c.key === city)!.center}
+                zoom={CITIES.find((c) => c.key === city)!.zoom}
                 height={420}
                 fitToItems
                 hideControls
