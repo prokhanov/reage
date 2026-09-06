@@ -9,6 +9,7 @@ import { EnergyHero } from "@/components/landing/energy/EnergyHero";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { EnergyIncluded } from "@/components/landing/energy/EnergyIncluded";
 import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherCheckups";
+import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { reachGoal } from "@/lib/yandexMetrika";
 
@@ -24,14 +25,14 @@ export default function Energy() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <PageMeta
         title="ReAge Energy — чекап при усталости: 6 анализов на энергию"
         description="Чекап ReAge Energy: ОАК, ферритин, витамин D, ТТГ, глюкоза и HbA1c за 5 990 ₽. Анализы в LabQuest, результаты с разбором в ReAge за 1–2 дня."
         canonical="/energy"
       />
       <EnergyHeader cartCount={cartCount} />
-      <main>
+      <main className="pb-20 lg:pb-0">
         <EnergyHero onAddToCart={handleAddToCart} />
         <EnergyIncluded />
         <EnergyWhereToTest />
@@ -39,7 +40,14 @@ export default function Energy() {
         <EnergyHowItWorks />
         <EnergyOtherCheckups />
       </main>
+      <div id="energy-page-end" />
       <EnergyFooter />
+      <EnergyStickyCta
+        cartCount={cartCount}
+        onAddToCart={handleAddToCart}
+        anchorId="energy-hero-cta"
+        hideNearId="energy-page-end"
+      />
     </div>
   );
 }

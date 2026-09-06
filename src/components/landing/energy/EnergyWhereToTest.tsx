@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { MapPin, Search } from "lucide-react";
+import { Map as MapIcon, MapPin, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +32,14 @@ export function EnergyWhereToTest() {
   const [city, setCity] = useState<CityKey>(detectCity);
   const [cityTouched, setCityTouched] = useState(false);
   const [mapHeight, setMapHeight] = useState(420);
+  const [showMap, setShowMap] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      setMapHeight(w < 640 ? Math.max(260, Math.round(window.innerHeight * 0.45)) : w < 1024 ? 380 : 420);
+      setMapHeight(w < 640 ? 320 : w < 1024 ? 380 : 420);
+      setIsDesktop(w >= 1024);
     };
     update();
     window.addEventListener("resize", update);
@@ -116,20 +119,22 @@ export function EnergyWhereToTest() {
 
   return (
     <section className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto w-full max-w-[72rem] px-4 py-12 md:px-6 md:py-16">
-        <h2 className="font-display text-2xl text-foreground md:text-3xl">Где сдавать анализы</h2>
+      <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
+        <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
+          Где сдавать анализы
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground md:text-base">
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        <div className="mt-6 inline-flex rounded-xl border hairline bg-card p-1">
+        <div className="mt-5 inline-flex rounded-xl border hairline bg-card p-1 md:mt-6">
           {CITIES.map((c) => (
             <button
               key={c.key}
               type="button"
               onClick={() => selectCity(c.key)}
               aria-pressed={city === c.key}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              className={`min-h-11 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 city === c.key
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -140,28 +145,30 @@ export function EnergyWhereToTest() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-5 grid gap-5 md:mt-6 md:gap-6 lg:grid-cols-2">
           <div className="min-w-0">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={city === "spb" ? "Адрес или метро в Санкт-Петербурге" : "Адрес или метро в Москве и МО"}
-                className="pl-9"
+                placeholder={city === "spb" ? "Адрес или метро" : "Адрес или метро"}
+                className="h-12 pl-9 text-base md:h-10 md:text-sm"
                 aria-label="Поиск отделения по адресу или метро"
               />
             </div>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-2 md:space-y-3">
               {visible.map((loc) => (
                 <li
                   key={loc.id}
-                  className="flex items-start justify-between gap-3 rounded-xl border hairline bg-card p-4"
+                  className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border hairline bg-card px-4 py-3 md:items-start md:p-4"
                 >
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-foreground">{loc.title}</div>
-                    <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <div className="truncate text-[15px] font-medium text-foreground md:text-sm">
+                      {loc.title}
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground md:mt-1">
                       <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                       <span className="truncate">
                         {loc.metro ? `м. ${loc.metro} · ` : ""}
@@ -172,7 +179,7 @@ export function EnergyWhereToTest() {
                   <Button
                     variant={selectedId === loc.id ? "default" : "outline"}
                     size="sm"
-                    className="shrink-0"
+                    className="h-11 shrink-0 md:h-9"
                     onClick={() => setSelectedId(loc.id)}
                   >
                     {selectedId === loc.id ? "Выбрано" : "Выбрать"}
@@ -190,15 +197,33 @@ export function EnergyWhereToTest() {
               <button
                 type="button"
                 onClick={() => setShowAll((v) => !v)}
-                className="mt-4 text-sm font-medium text-primary hover:underline"
+                className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
               >
                 {showAll ? "Свернуть список" : `Показать все адреса (${filtered.length})`}
               </button>
             )}
+
+            {/* Мобильный переключатель карты — карта не грузится, пока её не открыли */}
+            {!showMap && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowMap(true)}
+                className="mt-3 h-12 w-full gap-2 text-base lg:hidden"
+              >
+                <MapIcon className="h-4 w-4" aria-hidden />
+                Показать на карте
+              </Button>
+            )}
           </div>
 
-          <div className="min-w-0 overflow-hidden rounded-xl border hairline bg-card">
+          <div
+            className={`min-w-0 overflow-hidden rounded-xl border hairline bg-card ${
+              showMap ? "" : "hidden lg:block"
+            }`}
+          >
             <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
+              {(showMap || isDesktop) && (
               <LabLocationsMap
                 key={city}
                 items={filtered}
@@ -213,13 +238,13 @@ export function EnergyWhereToTest() {
                 focusOnSelected
                 focusZoom={15}
                 onSelect={(item) => setSelectedId(item.id)}
-
-
               />
+              )}
             </Suspense>
           </div>
         </div>
       </div>
     </section>
   );
+
 }

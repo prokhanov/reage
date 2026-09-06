@@ -15,29 +15,23 @@ interface Props {
 
 export function EnergyHero({ onAddToCart }: Props) {
   return (
-    <section className="relative flex flex-col-reverse overflow-hidden border-b hairline bg-background lg:block lg:min-h-[640px] xl:min-h-[700px]">
-      {/* Photo area — right side on desktop, below text on mobile/tablet */}
-      <div className="relative mt-8 aspect-[4/3] max-h-[420px] w-full overflow-hidden rounded-t-[2rem] sm:aspect-[16/9] lg:absolute lg:inset-y-0 lg:right-0 lg:mt-0 lg:aspect-auto lg:h-auto lg:max-h-none lg:w-[52%] lg:rounded-none">
-
+    <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
+      {/* Фото: на десктопе — справа абсолютом, на мобильном — под кнопкой (в потоке ниже) */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] overflow-hidden lg:block">
         <img
           src={heroWoman}
           alt="Девушка с закрытыми глазами на солнце"
           width={1024}
           height={1024}
-          sizes="(min-width: 1024px) 52vw, 100vw"
-          className="h-full w-full object-cover object-[50%_35%] lg:object-center"
-        />
-        {/* Soft organic curve blending photo into the light background */}
-        <div
-          className="pointer-events-none absolute -left-[16%] -top-[10%] hidden h-[120%] w-[34%] rounded-[100%] bg-background lg:block"
-          aria-hidden
+          sizes="52vw"
+          className="h-full w-full object-cover object-center"
         />
         <div
-          className="pointer-events-none absolute inset-x-0 -top-8 h-16 rounded-[100%] bg-background lg:hidden"
+          className="absolute -left-[16%] -top-[10%] h-[120%] w-[34%] rounded-[100%] bg-background"
           aria-hidden
         />
         <p
-          className="absolute right-3 top-6 hidden text-right text-[9px] sm:block font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 sm:top-10 sm:text-[10px] lg:right-10 lg:top-12 lg:text-xs"
+          className="absolute right-10 top-12 text-right text-xs font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80"
           style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
         >
           <span className="whitespace-nowrap">Больше энергии</span>
@@ -47,27 +41,40 @@ export function EnergyHero({ onAddToCart }: Props) {
         </p>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-10 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
         <div className="lg:w-[48%] lg:pr-8">
-
-          <span className="inline-flex items-center gap-2 rounded-full border hairline bg-card px-3 py-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border hairline bg-card px-3 py-1.5 text-[13px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             Анализы сдаются в LabQuest
           </span>
 
-          <h1 className="font-display mt-5 text-4xl leading-[1.05] text-foreground sm:mt-6 sm:text-5xl xl:text-6xl">
+          <h1 className="font-display mt-4 text-[2.35rem] leading-[1.05] text-foreground sm:mt-6 sm:text-5xl xl:text-6xl">
             ReAge Energy
           </h1>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground xl:text-lg">
+          <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-4 xl:text-lg">
             Чекап для тех, кто просыпается уставшим. Шесть анализов, которые чаще всего
             объясняют нехватку энергии.
           </p>
 
-          <dl className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {/* Мобильные чипсы: коротко, без тяжёлых карточек */}
+          <ul className="mt-5 flex flex-wrap gap-2 lg:hidden">
             {facts.map((f) => (
-              <div key={f.title} className="flex items-start gap-3 rounded-xl border hairline bg-card/70 p-4 sm:block">
+              <li
+                key={f.title}
+                className="inline-flex items-center gap-1.5 rounded-full border hairline bg-card px-3 py-1.5 text-[13px] text-foreground"
+              >
+                <f.icon className="h-3.5 w-3.5 text-primary" aria-hidden />
+                {f.title}
+              </li>
+            ))}
+          </ul>
+
+          {/* Десктопные карточки-факты — без изменений */}
+          <dl className="mt-7 hidden gap-3 lg:grid lg:grid-cols-3">
+            {facts.map((f) => (
+              <div key={f.title} className="rounded-xl border hairline bg-card/70 p-4">
                 <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-                <div className="sm:mt-2">
+                <div className="mt-2">
                   <dt className="text-sm font-medium text-foreground">{f.title}</dt>
                   <dd className="text-xs leading-snug text-muted-foreground">{f.text}</dd>
                 </div>
@@ -75,15 +82,34 @@ export function EnergyHero({ onAddToCart }: Props) {
             ))}
           </dl>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-5">
-            <div className="font-mono-tech text-3xl text-foreground sm:text-4xl">5 990 ₽</div>
-            <Button size="lg" onClick={onAddToCart} className="w-full gap-2 sm:w-auto">
+          <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
+            <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
+              5 990 ₽
+            </div>
+            <Button
+              id="energy-hero-cta"
+              size="lg"
+              onClick={onAddToCart}
+              className="h-[52px] w-full gap-2 text-base sm:h-11 sm:w-auto sm:text-sm"
+            >
               Добавить в корзину
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
 
           <p className="mt-3 text-sm text-muted-foreground">Результаты в ReAge</p>
+        </div>
+
+        {/* Фото на мобильном — после CTA */}
+        <div className="relative mt-7 h-[260px] w-full overflow-hidden rounded-2xl sm:h-[320px] lg:hidden">
+          <img
+            src={heroWoman}
+            alt="Девушка с закрытыми глазами на солнце"
+            width={1024}
+            height={1024}
+            sizes="100vw"
+            className="h-full w-full object-cover object-[50%_30%]"
+          />
         </div>
       </div>
     </section>
