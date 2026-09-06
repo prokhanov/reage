@@ -11,7 +11,7 @@ interface Props {
 export function EnergyHeader({ cartCount }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b hairline bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-[72rem] items-center justify-between px-page">
+      <div className="mx-auto flex h-16 w-full max-w-[72rem] items-center justify-between px-4 md:px-6">
         <Link to="/" aria-label="ReAge — на главную" className="flex items-center">
           <ThemedLogo className="h-7 w-auto" eager />
         </Link>
