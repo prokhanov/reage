@@ -117,7 +117,7 @@ export default function Auth() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden"
       style={rootStyle}
     >
       <Link
@@ -133,7 +133,7 @@ export default function Auth() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8 animate-fade-in">
           <Link to="/" className="inline-flex items-center gap-2 mb-2">
-            <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
+            <ThemedLogo eager className="h-32 w-auto" />
           </Link>
           <h1 className="text-3xl font-bold mb-2 text-foreground">
             {forgotMode ? "Сброс пароля" : "Добро пожаловать"}
@@ -147,9 +147,6 @@ export default function Auth() {
           className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in"
           style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}
         >
-          <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
-          <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-          <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
 
           <div className="relative z-10">
             {forgotMode ? (
@@ -166,14 +163,14 @@ export default function Auth() {
                 <TabsList className="mb-6">
                   <TabsTrigger
                     value="email"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
+                    className="h-full transition-all duration-300 gap-2"
                   >
                     <Mail className="h-4 w-4" />
                     Email
                   </TabsTrigger>
                   <TabsTrigger
                     value="phone"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
+                    className="h-full transition-all duration-300 gap-2"
                   >
                     <PhoneIcon className="h-4 w-4" />
                     Телефон

@@ -487,7 +487,7 @@ export default function Register() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
 
       <Link
@@ -527,7 +527,7 @@ export default function Register() {
                       <div
                         className={cn(
                           "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 select-none",
-                          isActive && "bg-gradient-primary text-primary-foreground scale-110 shadow-md",
+                          isActive && "bg-primary text-primary-foreground scale-110 shadow-md",
                           isCompleted && "bg-primary/20 text-primary scale-105",
                           !isActive && !isCompleted && "bg-muted text-muted-foreground",
                         )}
@@ -552,7 +552,7 @@ export default function Register() {
                     {index < steps.length - 1 && (
                       <div className="h-1 w-8 sm:w-16 md:w-24 mx-2 sm:mx-4 rounded-full bg-muted overflow-hidden">
                         <div className={cn(
-                          "h-full bg-gradient-primary transition-all duration-700 ease-out",
+                          "h-full bg-primary transition-all duration-700 ease-out",
                           isCompleted ? "w-full" : "w-0",
                         )} />
                       </div>
@@ -564,7 +564,7 @@ export default function Register() {
             <div className="relative">
               <Progress value={progress} className="h-3 shadow-lg" />
               <div
-                className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-700 shadow-md"
+                className="absolute top-0 left-0 h-3 bg-primary rounded-full transition-all duration-700 shadow-md"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -574,9 +574,6 @@ export default function Register() {
           {/* Steps Content */}
 
           <Card className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
-            <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
-            <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-            <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
 
             <div className="relative z-10">
               {currentStep === 1 && (

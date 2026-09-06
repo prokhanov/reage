@@ -68,7 +68,7 @@ function PatientViewShell({
   const { demoMode, toggleDemoMode } = useDemoMode();
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gradient-dark">
+    <div className="h-full w-full overflow-hidden bg-background">
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}

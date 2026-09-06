@@ -237,14 +237,14 @@ export default function Onboarding() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-dark">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-dark flex items-start justify-center p-4 py-8 md:py-12 relative">
+    <div className="min-h-screen bg-background flex items-start justify-center p-4 py-8 md:py-12 relative">
       <AuthBackground />
 
       <div className="w-full relative z-10 max-w-2xl">
@@ -271,7 +271,7 @@ export default function Onboarding() {
                   <div
                     className={cn(
                       "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-500",
-                      isActive && "bg-gradient-primary text-primary-foreground scale-110 shadow-md",
+                      isActive && "bg-primary text-primary-foreground scale-110 shadow-md",
                       isCompleted && "bg-primary/20 text-primary",
                       !isActive && !isCompleted && "bg-muted text-muted-foreground",
                     )}
@@ -282,7 +282,7 @@ export default function Onboarding() {
                     <div className="h-1 w-10 sm:w-16 mx-2 rounded-full bg-muted overflow-hidden">
                       <div
                         className={cn(
-                          "h-full bg-gradient-primary transition-all duration-700 ease-out",
+                          "h-full bg-primary transition-all duration-700 ease-out",
                           isCompleted ? "w-full" : "w-0",
                         )}
                       />

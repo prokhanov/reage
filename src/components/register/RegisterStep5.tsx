@@ -409,7 +409,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-control-lg">Назад</Button>
-          <Button type="button" onClick={handleSkip} className="flex-1 h-control-lg bg-gradient-primary shadow-md">
+          <Button type="button" onClick={handleSkip} className="flex-1 h-control-lg bg-primary shadow-md">
             Далее
             <Check className="ml-2 h-5 w-5" />
           </Button>
@@ -421,7 +421,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-primary mb-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary mb-2">
           <Rabbit className="h-7 w-7 text-primary-foreground" />
         </div>
         <h2 className="text-2xl font-bold text-foreground">
@@ -511,7 +511,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <Button
           onClick={handlePay}
           disabled={!selectedCard || isSubmitting || paying}
-          className="flex-1 min-w-[180px] h-control-xl bg-gradient-primary shadow-md"
+          className="flex-1 min-w-[180px] h-control-xl bg-primary shadow-md"
         >
           {paying ? (
             <>

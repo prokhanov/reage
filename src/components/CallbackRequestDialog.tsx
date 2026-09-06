@@ -534,7 +534,7 @@ export function CallbackRequestDialog({
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
-            className="h-11 rounded-xl bg-gradient-primary shadow-md w-full sm:w-auto"
+            className="h-11 rounded-xl bg-primary shadow-md w-full sm:w-auto"
           >
             {loading ? "Отправка..." : "Подтвердить"}
           </Button>

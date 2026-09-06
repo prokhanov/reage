@@ -129,7 +129,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
         <Button
           className={cn(
             "w-full h-12 text-sm md:text-base transition-all duration-300",
-            isRecommended ? "bg-gradient-primary shadow-md hover:shadow-md-lg" : ""
+            isRecommended ? "bg-primary shadow-md hover:shadow-md-lg" : ""
           )}
           variant={isRecommended ? "default" : "outline"}
           onClick={() => onSelect(plan.id, pricing.id)}

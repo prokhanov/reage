@@ -1053,7 +1053,7 @@ export default function Recommendations() {
                     <div className="flex items-center justify-between gap-2">
                       <Button
                         size="sm"
-                        className="h-9 rounded-xl bg-gradient-primary shadow-md"
+                        className="h-9 rounded-xl bg-primary shadow-md"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (report.analysisId) openReportV2(report, "view");
@@ -1403,7 +1403,7 @@ export default function Recommendations() {
                                     <h2 className="text-2xl font-bold text-foreground mb-2">
                                       {type}
                                     </h2>
-                                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                    <div className="h-1 w-20 bg-primary rounded-full" />
                                   </div>
                                   {recs.map((rec) => (
                                     <div key={rec.id} className="sm:p-6 sm:bg-card sm:rounded-xl sm:border sm:border-border sm:shadow-sm sm:hover:shadow-md sm:transition-shadow">
@@ -1422,7 +1422,7 @@ export default function Recommendations() {
                               <h2 className="text-2xl font-bold text-foreground mb-2">
                                 Рекомендации
                               </h2>
-                              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                              <div className="h-1 w-20 bg-primary rounded-full" />
                             </div>
 
                             {/* ── Нутрицевтики (единый компонент с разделом «Рекомендации») ── */}

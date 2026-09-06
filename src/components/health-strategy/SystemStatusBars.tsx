@@ -55,7 +55,6 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
 
   return (
     <Card className="relative overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full dark:bg-destructive/10 bg-destructive/30 blur-3xl pointer-events-none" />
       <CardContent className="relative p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>

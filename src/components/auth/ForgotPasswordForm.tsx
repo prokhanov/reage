@@ -60,7 +60,7 @@ export function ForgotPasswordForm({ initialEmail = "", onBack }: Props) {
       </div>
       <Button
         type="submit"
-        className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
+        className="w-full h-control-xl bg-primary hover:shadow-md transition-all duration-300 text-base font-medium"
         disabled={loading}
       >
         {loading ? (

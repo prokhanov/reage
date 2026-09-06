@@ -288,7 +288,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                     className={[
                       "relative w-11 h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
                       passed
-                        ? "bg-gradient-primary border-primary text-primary-foreground"
+                        ? "bg-primary border-primary text-primary-foreground"
                         : current
                         ? "bg-card border-primary text-primary ring-4 ring-primary/15"
                         : "bg-card border-border text-muted-foreground",

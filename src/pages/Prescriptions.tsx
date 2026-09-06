@@ -410,7 +410,7 @@ export default function Prescriptions() {
                         Нутрицевтики ({activePrescriptions.length})
 
                       </h2>
-                      <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                      <div className="h-1 w-20 bg-primary rounded-full" />
                     </div>
                     <PrescriptionTable prescriptions={activePrescriptions} />
                   </section>

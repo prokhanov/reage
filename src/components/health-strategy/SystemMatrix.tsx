@@ -59,8 +59,6 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
 
   return (
     <Card className="relative overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full dark:bg-destructive/15 bg-destructive/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full dark:bg-success/15 bg-success-soft/30 blur-3xl pointer-events-none" />
 
       <CardContent className="relative p-5 md:p-6 space-y-5">
         <div className="flex items-start justify-between gap-3">

@@ -168,7 +168,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
               Питание и коррекция образа жизни
             </h2>
-            <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+            <div className="h-1 w-20 bg-primary rounded-full" />
           </div>
           <div className="space-y-4">
             {hasNutrition && (
@@ -220,7 +220,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
               Дополнительные консультации и обследования
             </h2>
-            <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+            <div className="h-1 w-20 bg-primary rounded-full" />
           </div>
           <div className="space-y-3">
             {mergedFollowUps.map((f, i) => (
