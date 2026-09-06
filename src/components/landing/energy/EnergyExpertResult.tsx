@@ -115,7 +115,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 p-4 text-left"
+        className="flex min-h-[56px] w-full items-center justify-between gap-3 p-4 text-left"
       >
         <span className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-sm font-semibold text-foreground">{marker.name}</span>
@@ -160,7 +160,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 export function EnergyExpertResult() {
   return (
     <section className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <div className="flex min-w-0 gap-4 rounded-xl border hairline bg-card p-4 sm:gap-5 sm:p-5 lg:block lg:self-start">
           <img
             src={expertDoctor}
@@ -169,7 +169,7 @@ export function EnergyExpertResult() {
             height={896}
             loading="lazy"
             sizes="(min-width: 1024px) 320px, 40vw"
-            className="aspect-[4/5] w-28 shrink-0 rounded-lg object-cover object-top sm:w-40 lg:w-full"
+            className="aspect-[4/5] w-20 shrink-0 rounded-lg object-cover object-top sm:w-40 lg:w-full"
           />
           <div>
             <div className="mt-0 text-base font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</div>
@@ -182,7 +182,7 @@ export function EnergyExpertResult() {
 
 
         <div className="min-w-0">
-          <h2 className="font-display text-2xl text-foreground md:text-3xl">Пример результата</h2>
+          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
           </p>
