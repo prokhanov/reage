@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTableShell } from "@/components/ui/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -41,7 +42,7 @@ export function UserManagementSkeleton() {
                 <Skeleton className="h-10 w-48" />
               </div>
 
-              <div className="border hairline overflow-x-auto">
+              <DataTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -91,7 +92,7 @@ export function UserManagementSkeleton() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </DataTableShell>
             </CardContent>
           </Card>
         </TabsContent>

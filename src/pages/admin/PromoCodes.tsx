@@ -1,4 +1,5 @@
 import { AdminPageHeader } from "@/components/admin/AdminPage";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -278,7 +279,7 @@ export default function PromoCodes() {
               ) : (codes?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Промокоды не найдены</p>
               ) : (
-                <div className="border hairline overflow-x-auto">
+                <DataTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -373,7 +374,7 @@ export default function PromoCodes() {
                       })}
                     </TableBody>
                   </Table>
-                </div>
+                </DataTableShell>
               )}
             </CardContent>
           </Card>
@@ -392,7 +393,7 @@ export default function PromoCodes() {
               ) : (batches?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Партий нет</p>
               ) : (
-                <div className="border hairline overflow-x-auto">
+                <DataTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -448,7 +449,7 @@ export default function PromoCodes() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </DataTableShell>
               )}
             </CardContent>
           </Card>
@@ -467,7 +468,7 @@ export default function PromoCodes() {
               ) : (redemptions?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Активаций ещё не было</p>
               ) : (
-                <div className="border hairline overflow-x-auto">
+                <DataTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -500,7 +501,7 @@ export default function PromoCodes() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </DataTableShell>
               )}
             </CardContent>
           </Card>

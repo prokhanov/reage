@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -249,7 +250,7 @@ export default function Analyses() {
           </Card>
         ) : (
           <Card className="border-primary/20 bg-card">
-            <div className="rounded-md border-0 overflow-hidden">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-b border-border">
@@ -358,7 +359,7 @@ export default function Analyses() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           </Card>
         )}
         </>

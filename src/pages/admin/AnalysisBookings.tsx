@@ -25,12 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock, Settings, Plus } from "lucide-react";
+  DataTableShell,
+  EmptyState,
+  RowActionItem,
+  RowActions,
+  TableToolbar,
+  TableToolbarActions,
+  TableSearch,
+} from "@/components/ui/data-table";
+import { Calendar, Eye, Trash2, CalendarClock, Settings, Plus } from "lucide-react";
 import { BookingModeSettings } from "@/components/admin/BookingModeSettings";
 import { CreateBookingDialog } from "@/components/admin/CreateBookingDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -318,19 +321,15 @@ export default function AnalysisBookings() {
         <TabsContent value="bookings">
       <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Поиск по имени пациента..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <TableToolbar>
+          <TableSearch
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+            placeholder="Поиск по имени пациента…"
+          />
           
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Все статусы" />
             </SelectTrigger>
             <SelectContent>
@@ -347,7 +346,7 @@ export default function AnalysisBookings() {
           </Select>
 
           <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="w-full md:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Все сотрудники" />
             </SelectTrigger>
             <SelectContent>
@@ -361,24 +360,24 @@ export default function AnalysisBookings() {
             </SelectContent>
           </Select>
 
-          <Button onClick={() => setCreateOpen(true)} className="md:ml-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить запись
-          </Button>
-          </div>
+          <TableToolbarActions>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить запись
+            </Button>
+          </TableToolbarActions>
+          </TableToolbar>
         </CardHeader>
         
         <CardContent>
         {!bookings || bookings.length === 0 ? (
-          <div className="text-center py-12">
-            <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Записи не найдены</h3>
-            <p className="text-muted-foreground">
-              Записи на анализы появятся здесь
-            </p>
-          </div>
+          <EmptyState
+            icon={Calendar}
+            title="Записи не найдены"
+            description="Записи на анализы появятся здесь"
+          />
         ) : (
-          <div className="border hairline">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -395,7 +394,7 @@ export default function AnalysisBookings() {
                 {bookings.map((booking) => (
                   <TableRow
                     key={booking.id}
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer"
                     onClick={() => setSelectedPatientId(booking.user_id)}
                   >
                     <TableCell>
@@ -479,56 +478,35 @@ export default function AnalysisBookings() {
                     <TableCell>
                       {format(new Date(booking.created_at), "d MMM yyyy", { locale: ru })}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {Object.entries(statusLabels).map(([status, label]) => (
-                              <DropdownMenuItem
-                                key={status}
-                                onClick={() =>
-                                  updateStatusMutation.mutate({
-                                    bookingId: booking.id,
-                                    newStatus: status as BookingStatus,
-                                  })
-                                }
-                                disabled={booking.status === status}
-                              >
-                                {label}
-                              </DropdownMenuItem>
-                            ))}
-                            <DropdownMenuItem
-                              onClick={() => setBookingToDelete(booking.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Удалить
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPatientId(booking.user_id);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    <TableCell className="p-2 text-right">
+                      <RowActions label={`Действия: ${booking.patient.name}`}>
+                        <RowActionItem icon={Eye} onSelect={() => setSelectedPatientId(booking.user_id)}>
+                          Открыть пациента
+                        </RowActionItem>
+                        {Object.entries(statusLabels).map(([status, label]) => (
+                          <RowActionItem
+                            key={status}
+                            disabled={booking.status === status}
+                            onSelect={() =>
+                              updateStatusMutation.mutate({
+                                bookingId: booking.id,
+                                newStatus: status as BookingStatus,
+                              })
+                            }
+                          >
+                            {label}
+                          </RowActionItem>
+                        ))}
+                        <RowActionItem icon={Trash2} destructive onSelect={() => setBookingToDelete(booking.id)}>
+                          Удалить запись
+                        </RowActionItem>
+                      </RowActions>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         )}
         </CardContent>
       </Card>

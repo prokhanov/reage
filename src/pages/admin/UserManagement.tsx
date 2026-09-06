@@ -1,4 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/AdminPage";
+import { RoleBadge } from "@/components/admin/RoleBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -437,31 +439,6 @@ export default function UserManagement() {
     return moduleNames[moduleId] || moduleId;
   };
 
-  const getRoleBadge = (role: string, roleDisplayName?: string) => {
-    const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
-      superadmin: { label: "Суперадмин", variant: "destructive" },
-      admin: { label: "Админ", variant: "default" },
-      doctor: { label: "Врач", variant: "default" },
-      user: { label: "Пользователь", variant: "secondary" },
-      patient: { label: "Пациент", variant: "secondary" },
-    };
-    
-    // Если есть display_name для кастомной роли - используем его
-    if (roleDisplayName && !roleConfig[role]) {
-      return (
-        <Badge variant="default" className="text-xs">
-          {roleDisplayName}
-        </Badge>
-      );
-    }
-    
-    const config = roleConfig[role] || roleConfig.user;
-    return (
-      <Badge variant={config.variant} className="text-xs">
-        {config.label}
-      </Badge>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -532,7 +509,7 @@ export default function UserManagement() {
               {isLoading ? (
                 <AdminCenterLoader />
               ) : (
-                <div className="border hairline overflow-x-auto">
+                <DataTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -550,7 +527,7 @@ export default function UserManagement() {
                         filteredUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
+                            className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer"}
                             onClick={() => {
                               if (user.role !== "superadmin") {
                                 if (user.type === "pending") {
@@ -610,7 +587,7 @@ export default function UserManagement() {
                                   {user.custom_role.display_name}
                                 </Badge>
                               ) : (
-                                getRoleBadge(user.role, (user as any).role_display_name)
+                                <RoleBadge role={user.role} displayName={(user as { role_display_name?: string }).role_display_name} />
                               )}
                             </TableCell>
                             <TableCell>
@@ -864,7 +841,7 @@ export default function UserManagement() {
                       )}
                     </TableBody>
                   </Table>
-                </div>
+                </DataTableShell>
               )}
             </CardContent>
           </Card>

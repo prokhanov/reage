@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -1000,7 +1001,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                         </div>
 
                         {/* Desktop / tablet table */}
-                        <div className="hidden md:block mt-4 border rounded-lg overflow-x-auto">
+                        <DataTableShell className="hidden md:block mt-4">
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-surface">
@@ -1092,7 +1093,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               })}
                             </TableBody>
                           </Table>
-                        </div>
+                        </DataTableShell>
                       </AccordionContent>
                     </AccordionItem>
                   ))}

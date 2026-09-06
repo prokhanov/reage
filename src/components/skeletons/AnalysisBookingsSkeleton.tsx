@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { DataTableShell } from "@/components/ui/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -24,7 +25,7 @@ export default function AnalysisBookingsSkeleton() {
           <Skeleton className="h-10 w-full md:w-[200px]" />
         </div>
 
-        <div className="border hairline">
+        <DataTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -78,7 +79,7 @@ export default function AnalysisBookingsSkeleton() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </DataTableShell>
       </Card>
     </div>
   );

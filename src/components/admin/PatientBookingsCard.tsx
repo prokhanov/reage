@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { Fragment, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -71,26 +72,7 @@ import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { BookingNotificationsCell } from "@/components/admin/BookingNotificationsCell";
 import { BookingNotificationsHistory } from "@/components/admin/BookingNotificationsHistory";
 
-type BookingStatus =
-  | "waiting_call"
-  | "no_answer"
-  | "not_scheduled"
-  | "scheduled"
-  | "application_submitted"
-  | "collected"
-  | "report_pending"
-  | "report_ready";
-
-const statusLabels: Record<BookingStatus, string> = {
-  waiting_call: "Ожидает звонка",
-  no_answer: "Не дозвонились",
-  not_scheduled: "Не назначен",
-  scheduled: "Назначен",
-  application_submitted: "Заявка оформлена",
-  collected: "Анализ в работе",
-  report_pending: "Отчёт в работе",
-  report_ready: "Отчёт загружен",
-};
+import { bookingStatusLabels as statusLabels, type BookingStatus } from "@/lib/bookingStatusLabels";
 
 
 type TemplateKey =
@@ -370,7 +352,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
             У пациента нет записей на анализ
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -532,7 +514,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         )}
       </CardContent>
 

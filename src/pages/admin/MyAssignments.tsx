@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +45,8 @@ import {
   type BookingStatus as AllBookingStatus,
 } from "@/lib/bookingStatusLabels";
 
+const statusLabels = bookingStatusLabels;
+
 type BookingStatus = Extract<
   AllBookingStatus,
   "scheduled" | "application_submitted" | "collected" | "report_pending" | "report_ready"
@@ -65,13 +68,6 @@ interface BookingData {
   };
 }
 
-const statusLabels: Record<BookingStatus, string> = {
-  scheduled: bookingStatusLabels.scheduled,
-  application_submitted: bookingStatusLabels.application_submitted,
-  collected: bookingStatusLabels.collected,
-  report_pending: bookingStatusLabels.report_pending,
-  report_ready: bookingStatusLabels.report_ready,
-};
 
 
 
@@ -262,7 +258,7 @@ export default function MyAssignments() {
             </p>
           </div>
         ) : (
-          <div className="border hairline">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -388,7 +384,7 @@ export default function MyAssignments() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         )}
         </CardContent>
       </Card>
