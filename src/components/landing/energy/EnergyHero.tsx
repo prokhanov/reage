@@ -58,15 +58,15 @@ export function EnergyHero({ onAddToCart }: Props) {
             className="h-full w-full object-cover"
           />
           <figcaption
-            className="absolute top-4 right-4 max-w-[9rem] -rotate-6 text-right font-display text-sm font-light italic leading-snug text-foreground md:top-6 md:right-6 md:max-w-[11rem] md:text-base md:-rotate-3"
+            className="absolute top-6 right-6 text-right text-[10px] font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 md:top-10 md:right-10 md:text-xs"
             style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
           >
-            Больше энергии
+            <span className="whitespace-nowrap">Больше энергии</span>
             <br />
-            для важных
-            <br />
-            вещей
+            <span className="whitespace-nowrap">для важных вещей</span>
+            <span className="mt-3 ml-auto block h-px w-16 bg-foreground/30" />
           </figcaption>
+
         </figure>
       </div>
     </section>
