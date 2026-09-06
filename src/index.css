@@ -11,16 +11,16 @@
     display: none;
   }
   .font-display {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
+    font-family: 'Fraunces', Georgia, serif;
+    font-feature-settings: "kern";
   }
   .font-mono-tech {
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     font-feature-settings: "tnum", "zero";
   }
   .font-heading {
-    font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "ss01";
+    font-family: 'Fraunces', Georgia, serif;
+    font-feature-settings: "kern";
   }
 }
 
@@ -30,63 +30,81 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light Theme - Контрастная дневная тема */
-    --background: 0 0% 98%;
-    --foreground: 270 50% 15%;
+    /* ReAge editorial-clinical system, adapted from Consilium. */
+    --background: 45 33% 97%;
+    --foreground: 36 15% 16%;
+    --surface: 42 24% 94%;
+    --surface-foreground: 36 15% 16%;
     
     --card: 0 0% 100%;
-    --card-foreground: 270 45% 18%;
+    --card-foreground: 36 15% 16%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 270 45% 18%;
+    --popover-foreground: 36 15% 16%;
     
-    --primary: 270 90% 60%;
+    --primary: 151 31% 25%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 270 90% 55%;
-    --primary-glow: 270 100% 70%;
+    --primary-hover: 151 34% 20%;
+    --primary-glow: 151 24% 54%;
     
-    --secondary: 270 60% 96%;
-    --secondary-foreground: 270 50% 25%;
-    --secondary-hover: 270 60% 92%;
-    --secondary-glow: 270 70% 85%;
+    --secondary: 43 22% 92%;
+    --secondary-foreground: 36 15% 20%;
+    --secondary-hover: 42 20% 88%;
+    --secondary-glow: 42 16% 80%;
     
-    --accent: 320 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 320 100% 70%;
+    --accent: 31 65% 54%;
+    --accent-foreground: 35 20% 12%;
+    --accent-glow: 31 54% 72%;
     
-    --muted: 270 30% 94%;
-    --muted-foreground: 270 20% 45%;
+    --muted: 42 17% 92%;
+    --muted-foreground: 38 9% 44%;
     
-    --destructive: 0 85% 55%;
+    --destructive: 2 55% 48%;
     --destructive-foreground: 0 0% 100%;
     
-    --status-good: 142 76% 45%;
-    --status-warning: 38 92% 50%;
-    --status-danger: 0 85% 55%;
+    --status-good: 151 38% 37%;
+    --status-warning: 40 72% 45%;
+    --status-danger: 2 55% 48%;
     
-    --status-optimal: 142 76% 45%;
-    --status-acceptable: 55 80% 45%;
-    --status-risk: 25 90% 55%;
-    --status-critical: 0 85% 55%;
+    --status-optimal: 151 38% 37%;
+    --status-acceptable: 54 58% 42%;
+    --status-risk: 28 72% 49%;
+    --status-critical: 2 55% 48%;
     
-    --border: 270 25% 88%;
-    --input: 270 30% 96%;
-    --ring: 270 90% 60%;
+    --border: 38 15% 84%;
+    --border-strong: 37 13% 69%;
+    --input: 38 15% 78%;
+    --ring: 151 31% 25%;
     
     --radius: 0.5rem;
+    --radius-xs: 0.25rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --control-sm: 2rem;
+    --control-md: 2.25rem;
+    --control-lg: 2.5rem;
+    --space-page-x: clamp(1rem, 3vw, 2rem);
+    --space-section-y: clamp(2.5rem, 6vw, 4rem);
+    --content-narrow: 48rem;
+    --content-default: 64rem;
+    --content-wide: 72rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(270 90% 60%) 0%, hsl(320 100% 60%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(270 60% 96%) 0%, hsl(270 50% 98%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(270 90% 60%) 0%, hsl(320 100% 65%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(0 0% 98%) 0%, hsl(270 40% 97%) 100%);
+    /* Compatibility aliases: legacy gradient utilities now resolve to restrained surfaces. */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%);
+    --gradient-secondary: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--surface)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(151 28% 31%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--surface)) 100%);
     
-    --shadow-sm: 0 1px 2px 0 hsl(270 30% 20% / 0.08);
-    --shadow-md: 0 2px 6px 0 hsl(270 30% 20% / 0.12);
-    --shadow-lg: 0 4px 12px 0 hsl(270 30% 20% / 0.15);
-    --shadow-xl: 0 8px 24px 0 hsl(270 30% 20% / 0.2);
-    --shadow-neon-primary: 0 0 30px hsl(var(--primary) / 0.4);
-    --shadow-neon-secondary: 0 0 20px hsl(var(--secondary-glow) / 0.3);
-    --shadow-neon-accent: 0 0 30px hsl(var(--accent) / 0.4);
+    --shadow-sm: 0 1px 2px hsl(36 20% 12% / 0.05);
+    --shadow-md: 0 8px 24px -16px hsl(36 20% 12% / 0.2);
+    --shadow-lg: 0 18px 48px -28px hsl(36 20% 12% / 0.28);
+    --shadow-xl: 0 28px 64px -36px hsl(36 20% 12% / 0.32);
+    --shadow-card: 0 12px 36px -24px hsl(36 20% 12% / 0.22);
+    --shadow-overlay: 0 24px 72px -28px hsl(36 20% 12% / 0.35);
+    --shadow-neon-primary: var(--shadow-md);
+    --shadow-neon-secondary: var(--shadow-sm);
+    --shadow-neon-accent: var(--shadow-md);
 
     --hero-glass-bg: 0 0% 100%;
     --hero-glass-border: 270 40% 70%;
@@ -95,35 +113,41 @@ All colors MUST be HSL.
     --hero-glass-bg-alpha: 0.62;
     --hero-glass-blur: 36px;
     
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 220ms;
+    --duration-slow: 320ms;
+    --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+    --transition-smooth: all var(--duration-normal) var(--ease-standard);
   }
 
   .dark {
-    --background: 230 25% 4%;
-    --foreground: 280 20% 95%;
+    --background: 150 10% 9%;
+    --foreground: 42 20% 92%;
+    --surface: 150 9% 12%;
+    --surface-foreground: 42 20% 92%;
     
-    --card: 235 20% 8%;
-    --card-foreground: 280 15% 92%;
+    --card: 150 8% 13%;
+    --card-foreground: 42 20% 92%;
     
-    --popover: 235 20% 8%;
-    --popover-foreground: 280 15% 92%;
+    --popover: 150 8% 13%;
+    --popover-foreground: 42 20% 92%;
     
-    --primary: 270 85% 65%;
-    --primary-foreground: 280 5% 98%;
-    --primary-hover: 270 85% 72%;
-    --primary-glow: 270 90% 75%;
+    --primary: 145 26% 65%;
+    --primary-foreground: 150 16% 10%;
+    --primary-hover: 145 31% 72%;
+    --primary-glow: 145 22% 48%;
     
-    --secondary: 235 18% 12%;
-    --secondary-foreground: 280 15% 92%;
-    --secondary-hover: 235 20% 15%;
-    --secondary-glow: 270 40% 25%;
+    --secondary: 150 8% 17%;
+    --secondary-foreground: 42 20% 90%;
+    --secondary-hover: 150 8% 21%;
+    --secondary-glow: 150 8% 28%;
     
-    --accent: 330 75% 70%;
-    --accent-foreground: 280 5% 98%;
-    --accent-glow: 330 85% 78%;
+    --accent: 34 61% 62%;
+    --accent-foreground: 35 18% 11%;
+    --accent-glow: 34 45% 72%;
     
-    --muted: 235 15% 14%;
-    --muted-foreground: 260 10% 60%;
+    --muted: 150 7% 18%;
+    --muted-foreground: 42 9% 63%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 280 5% 98%;
@@ -137,9 +161,10 @@ All colors MUST be HSL.
     --status-risk: 25 90% 60%;
     --status-critical: 0 84% 60%;
     
-    --border: 260 20% 18%;
-    --input: 235 18% 12%;
-    --ring: 270 85% 65%;
+    --border: 150 7% 23%;
+    --border-strong: 150 6% 36%;
+    --input: 150 7% 31%;
+    --ring: 145 26% 65%;
     
     --gradient-primary: linear-gradient(135deg, hsl(270 85% 60%) 0%, hsl(330 75% 65%) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(235 20% 8%) 0%, hsl(260 25% 12%) 100%);
@@ -150,9 +175,11 @@ All colors MUST be HSL.
     --shadow-md: 0 2px 4px 0 hsl(270 20% 0% / 0.5);
     --shadow-lg: 0 4px 8px 0 hsl(270 20% 0% / 0.6);
     --shadow-xl: 0 8px 16px 0 hsl(270 20% 0% / 0.7);
-    --shadow-neon-primary: 0 0 20px hsl(var(--primary) / 0.5);
-    --shadow-neon-secondary: 0 0 15px hsl(var(--secondary-glow) / 0.4);
-    --shadow-neon-accent: 0 0 20px hsl(var(--accent) / 0.5);
+    --shadow-card: 0 14px 42px -22px hsl(150 20% 2% / 0.7);
+    --shadow-overlay: 0 28px 72px -24px hsl(150 20% 2% / 0.82);
+    --shadow-neon-primary: var(--shadow-md);
+    --shadow-neon-secondary: var(--shadow-sm);
+    --shadow-neon-accent: var(--shadow-md);
 
     --hero-glass-bg: 235 26% 6%;
     --hero-glass-border: 260 22% 42%;
@@ -170,10 +197,10 @@ All colors MUST be HSL.
 
   html {
     @apply bg-background text-foreground;
-    color-scheme: dark;
-  }
-  html.light {
     color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   html, body, #root {
     min-height: 100vh;
@@ -181,18 +208,63 @@ All colors MUST be HSL.
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
   }
   #root {
     background-color: hsl(var(--background));
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "ss01";
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-feature-settings: "kern";
   }
 }
 
 @layer utilities {
+  .label-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hairline {
+    border-color: hsl(var(--border) / 0.8);
+  }
+
+  .overlay-panel {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .field {
+    min-height: var(--control-md);
+    width: 100%;
+    border: 1px solid hsl(var(--input));
+    border-radius: var(--radius-sm);
+    background: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+    color: hsl(var(--foreground));
+    transition: border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .field:hover { border-color: hsl(var(--border-strong)); }
+  .field:focus-visible { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 1px hsl(var(--ring)); }
+
+  .content-narrow { width: min(100%, var(--content-narrow)); margin-inline: auto; }
+  .content-default { width: min(100%, var(--content-default)); margin-inline: auto; }
+  .content-wide { width: min(100%, var(--content-wide)); margin-inline: auto; }
+  .page-gutter { padding-inline: var(--space-page-x); }
+  .section-spacing { padding-block: var(--space-section-y); }
+
   .animate-fade-in {
     animation: fade-in 0.6s ease-out both;
   }
