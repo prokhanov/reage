@@ -80,7 +80,7 @@ function HealthDynamicsWidget() {
         ))}
       </ul>
 
-      <div className="w-full rounded-xl border border-border bg-white p-3">
+      <div className="w-full rounded-xl border border-border bg-card p-3">
         <div className="flex items-start justify-between mb-2">
           <span className="text-[11px] sm:text-xs font-medium text-muted-foreground">Витамин D</span>
           <div className="flex flex-col items-end">

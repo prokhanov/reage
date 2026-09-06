@@ -80,7 +80,7 @@ export function AgingBlockersStrategy({ blockers }: Props) {
                 </div>
               </div>
               {/* impact bar */}
-              <div className="mt-2 h-1 rounded-full dark:bg-white/10 bg-muted/70 overflow-hidden">
+              <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{ width: `${Math.min(100, (b.impact_score || 0) * 10)}%`, background: colorVar }}
