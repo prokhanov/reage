@@ -107,3 +107,33 @@ export function getStatusLabel(status: string | null | undefined): string {
   if (!status) return "—";
   return STATUS_LABELS[status] ?? status;
 }
+
+/** Роли пользователей — единая система подписей и тонов. */
+const ROLE_TONE: Record<string, StatusTone> = {
+  superadmin: "destructive",
+  admin: "accent",
+  doctor: "accent",
+  manager: "accent",
+  user: "neutral",
+  patient: "neutral",
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: "Суперадмин",
+  admin: "Админ",
+  doctor: "Врач",
+  manager: "Менеджер",
+  user: "Пользователь",
+  patient: "Пациент",
+};
+
+export function getRoleTone(role: string | null | undefined): StatusTone {
+  if (!role) return "neutral";
+  return ROLE_TONE[role] ?? "neutral";
+}
+
+export function getRoleLabel(role: string | null | undefined): string {
+  if (!role) return "—";
+  return ROLE_LABELS[role] ?? role;
+}
+
