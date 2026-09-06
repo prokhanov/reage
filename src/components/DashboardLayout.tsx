@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       {/* Main content */}
-      <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+      <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-[264px]' : 'lg:ml-[76px]'}`}>
         <div className="px-4 md:px-8 pt-4 md:pt-8 space-y-4">
           {canShowDemoBanner && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
           <AnalysisBookingBanner />

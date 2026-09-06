@@ -204,16 +204,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   </NavLink>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
                     title="Свернуть боковую панель"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={1.6} />
                   </button>
                 </div>
                 {viewAsUserId ? (
                   <>
-                    <p className="text-xs text-muted-foreground truncate mt-1">{patientEmail}</p>
-                    <p className="text-xs text-primary/70 font-medium mt-0.5">Пациент</p>
+                    <p className="mt-1 truncate text-[13px] text-muted-foreground">{patientEmail}</p>
+                    <p className="label-mono mt-1">Пациент</p>
                   </>
                 ) : (
                   <div className="space-y-1 mt-1">
@@ -261,24 +261,24 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                       )}
                     </div>
                     {/* Role */}
-                    <p className="text-xs text-primary/70 font-medium pt-0.5">{userRole}</p>
+                    <p className="label-mono pt-1">{userRole}</p>
                   </div>
                 )}
               </>
             ) : (
               <button
                 onClick={() => setIsOpen(true)}
-                className="w-full flex justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
                 title="Развернуть боковую панель"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-[18px] w-[18px]" strokeWidth={1.6} />
               </button>
             )}
           </div>
 
           {/* View Mode Badge */}
           {viewAsUserId && isOpen && (
-            <div className="px-4 py-3 bg-primary/10 border-b border-border">
+            <div className="border-b hairline bg-primary/[0.07] px-4 py-3">
               <Badge variant="default" className="w-full justify-start gap-2">
                 <Eye className="h-3 w-3" />
                 Просмотр: {patientName}
@@ -286,18 +286,18 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             </div>
           )}
           {viewAsUserId && !isOpen && (
-            <div className="flex justify-center py-2 bg-primary/10 border-b border-border" title="Режим просмотра пациента">
+            <div className="flex justify-center border-b hairline bg-primary/[0.07] py-2" title="Режим просмотра пациента">
               <Eye className="h-4 w-4 text-primary" />
             </div>
           )}
 
           {/* Navigation */}
-          <nav className={cn("flex-1 space-y-1 overflow-y-auto", isOpen ? "p-2" : "py-2 px-0")}>
+          <nav className={cn("flex-1 overflow-y-auto flex flex-col gap-1 py-4", isOpen ? "px-3" : "px-2")}>
             {isLoadingRoles ? (
               // Скелетон навигации
               <>
                 {[...Array(8)].map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-10 w-full rounded-md" />
                 ))}
               </>
             ) : (
@@ -380,7 +380,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* User Profile & Logout */}
-          <div className={cn("border-t border-border space-y-1", isOpen ? "p-2" : "py-2 px-0")}>
+          <div className={cn("mt-auto shrink-0 border-t hairline flex flex-col gap-1", isOpen ? "p-3" : "px-2 py-3")}>
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
@@ -450,8 +450,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
             {/* Theme Toggle */}
             <div className={cn(
-              "border-t border-border mt-1",
-              isOpen ? "pt-1" : "flex justify-center pt-2"
+              "mt-1 border-t hairline",
+              isOpen ? "pt-2" : "flex justify-center pt-2"
             )}>
               <ThemeToggle isOpen={isOpen} />
             </div>
