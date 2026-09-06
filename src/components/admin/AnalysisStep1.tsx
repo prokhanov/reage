@@ -355,7 +355,7 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
         )}
 
         <Dialog open={showHealthDialog} onOpenChange={setShowHealthDialog}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Генерация мок-данных</DialogTitle>
               <DialogDescription>
