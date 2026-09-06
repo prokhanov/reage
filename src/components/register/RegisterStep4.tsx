@@ -102,7 +102,7 @@ export function RegisterStep4({
                 variant={bookingTime === time ? "default" : "outline"}
                 className={cn(
                   "h-12 transition-all",
-                  bookingTime === time && "bg-gradient-primary shadow-neon-primary"
+                  bookingTime === time && "bg-gradient-primary shadow-md"
                 )}
                 onClick={() => onTimeChange(time)}
               >
@@ -148,7 +148,7 @@ export function RegisterStep4({
         <Button
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1 h-control-xl bg-gradient-primary shadow-neon-primary"
+          className="flex-1 h-control-xl bg-gradient-primary shadow-md"
         >
           Продолжить
           <ChevronRight className="ml-2 h-5 w-5" />

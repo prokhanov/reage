@@ -792,7 +792,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 <Button
                   onClick={() => handleAnalyze("standard")}
                   disabled={analyzing || values.length === 0}
-                  className="shadow-neon-accent rounded-r-none"
+                  className="shadow-md rounded-r-none"
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
                   {analyzing ? "Генерируем..." : "Перегенерировать"}
@@ -801,7 +801,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   <DropdownMenuTrigger asChild>
                     <Button
                       disabled={analyzing || values.length === 0}
-                      className="shadow-neon-accent rounded-l-none border-l border-primary-foreground/20 px-2"
+                      className="shadow-md rounded-l-none border-l border-primary-foreground/20 px-2"
                       aria-label="Выбрать режим генерации"
                     >
                       <ChevronDown className="h-4 w-4" />

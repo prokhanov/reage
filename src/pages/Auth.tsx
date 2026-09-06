@@ -166,14 +166,14 @@ export default function Auth() {
                 <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background/40 border border-border/50">
                   <TabsTrigger
                     value="email"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
                   >
                     <Mail className="h-4 w-4" />
                     Email
                   </TabsTrigger>
                   <TabsTrigger
                     value="phone"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
                   >
                     <PhoneIcon className="h-4 w-4" />
                     Телефон

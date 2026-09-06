@@ -709,7 +709,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -740,7 +740,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

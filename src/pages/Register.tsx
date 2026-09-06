@@ -527,7 +527,7 @@ export default function Register() {
                       <div
                         className={cn(
                           "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 select-none",
-                          isActive && "bg-gradient-primary text-primary-foreground scale-110 shadow-neon-primary",
+                          isActive && "bg-gradient-primary text-primary-foreground scale-110 shadow-md",
                           isCompleted && "bg-primary/20 text-primary scale-105",
                           !isActive && !isCompleted && "bg-muted text-muted-foreground",
                         )}
@@ -564,7 +564,7 @@ export default function Register() {
             <div className="relative">
               <Progress value={progress} className="h-3 shadow-lg" />
               <div
-                className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-700 shadow-neon-primary"
+                className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-700 shadow-md"
                 style={{ width: `${progress}%` }}
               />
             </div>

@@ -109,7 +109,7 @@ export function QuizCTASection() {
                       <Button
                         onClick={() => setOpen(true)}
                         size="lg"
-                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
                       >
                         Пройти тест
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

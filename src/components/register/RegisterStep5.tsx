@@ -249,7 +249,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
         className={cn(
           "relative h-full rounded-3xl border p-6 transition-all duration-300 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-xl cursor-pointer",
           isSelected
-            ? "border-primary ring-2 ring-primary/40 shadow-neon-primary"
+            ? "border-primary ring-2 ring-primary/40 shadow-md"
             : "border-primary/30 hover:border-primary/60"
         )}
       >
@@ -409,7 +409,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-control-lg">Назад</Button>
-          <Button type="button" onClick={handleSkip} className="flex-1 h-control-lg bg-gradient-primary shadow-neon-primary">
+          <Button type="button" onClick={handleSkip} className="flex-1 h-control-lg bg-gradient-primary shadow-md">
             Далее
             <Check className="ml-2 h-5 w-5" />
           </Button>
@@ -511,7 +511,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <Button
           onClick={handlePay}
           disabled={!selectedCard || isSubmitting || paying}
-          className="flex-1 min-w-[180px] h-control-xl bg-gradient-primary shadow-neon-primary"
+          className="flex-1 min-w-[180px] h-control-xl bg-gradient-primary shadow-md"
         >
           {paying ? (
             <>

@@ -49,7 +49,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
     <Card 
       className={cn(
         "relative transition-all duration-300 hover:shadow-lg",
-        isRecommended && "border-primary shadow-neon-primary"
+        isRecommended && "border-primary shadow-md"
       )}
     >
       {plan.badge_text && (
@@ -129,7 +129,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
         <Button
           className={cn(
             "w-full h-12 text-sm md:text-base transition-all duration-300",
-            isRecommended ? "bg-gradient-primary shadow-neon-primary hover:shadow-neon-primary-lg" : ""
+            isRecommended ? "bg-gradient-primary shadow-md hover:shadow-md-lg" : ""
           )}
           variant={isRecommended ? "default" : "outline"}
           onClick={() => onSelect(plan.id, pricing.id)}

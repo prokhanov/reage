@@ -122,7 +122,7 @@ export function PhoneLoginForm() {
         </div>
         <Button
           type="submit"
-          className="w-full h-control-xl bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium group"
+          className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium group"
           disabled={loading}
         >
           {loading ? (
@@ -166,7 +166,7 @@ export function PhoneLoginForm() {
 
       <Button
         type="submit"
-        className="w-full h-control-xl bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+        className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
         disabled={loading || otp.length !== 4}
       >
         {loading ? (

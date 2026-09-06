@@ -43,7 +43,7 @@ export function CTASection() {
                   <Button 
                     size="lg"
                     onClick={requestRegister}
-                    className="text-lg px-10 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                    className="text-lg px-10 py-6 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
                   >
                     Посмотреть демо-аккаунт
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -1053,7 +1053,7 @@ export default function Recommendations() {
                     <div className="flex items-center justify-between gap-2">
                       <Button
                         size="sm"
-                        className="h-9 rounded-xl bg-gradient-primary shadow-neon-primary"
+                        className="h-9 rounded-xl bg-gradient-primary shadow-md"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (report.analysisId) openReportV2(report, "view");

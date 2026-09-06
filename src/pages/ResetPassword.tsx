@@ -144,7 +144,7 @@ export default function ResetPassword() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+                  className="w-full h-12 bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
                   disabled={loading}
                 >
                   {loading ? (

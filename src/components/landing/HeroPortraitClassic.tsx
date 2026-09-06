@@ -456,7 +456,7 @@ export function HeroPortraitClassic() {
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
+                className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-md shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
               >
                 Оставить заявку
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -506,7 +506,7 @@ export function HeroPortraitClassic() {
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -537,7 +537,7 @@ export function HeroPortraitClassic() {
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -258,7 +258,7 @@ export function HeroBlock() {
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -267,7 +267,7 @@ export function HeroBlock() {
                 size="lg"
                 variant="outline"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300"
+                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground hover:shadow-md hover:scale-[1.02] transition-all duration-300"
               >
                 Оставить заявку
               </Button>

@@ -73,7 +73,7 @@ export function OnboardingReminderCard() {
         </div>
         <Button
           asChild
-          className="bg-gradient-primary shadow-neon-primary shrink-0 w-full sm:w-auto h-10 rounded-xl"
+          className="bg-gradient-primary shadow-md shrink-0 w-full sm:w-auto h-10 rounded-xl"
         >
           <Link to="/onboarding/personal">Заполнить →</Link>
         </Button>
