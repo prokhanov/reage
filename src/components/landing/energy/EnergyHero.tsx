@@ -15,9 +15,10 @@ interface Props {
 
 export function EnergyHero({ onAddToCart }: Props) {
   return (
-    <section className="relative overflow-hidden border-b hairline bg-background md:min-h-[700px]">
+    <section className="relative flex flex-col-reverse overflow-hidden border-b hairline bg-background md:block md:min-h-[700px]">
       {/* Photo area — right side on desktop, below text on mobile */}
-      <div className="relative order-2 mt-10 h-[300px] w-full overflow-hidden rounded-t-[2rem] md:absolute md:inset-y-0 md:right-0 md:mt-0 md:h-auto md:w-[54%] md:rounded-none">
+      <div className="relative mt-8 h-[300px] w-full overflow-hidden rounded-t-[2rem] md:absolute md:inset-y-0 md:right-0 md:mt-0 md:h-auto md:w-[54%] md:rounded-none">
+
         <img
           src={heroWoman}
           alt="Девушка с закрытыми глазами на солнце"
