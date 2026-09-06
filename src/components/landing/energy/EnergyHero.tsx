@@ -90,7 +90,7 @@ export function EnergyHero({ onAddToCart }: Props) {
               id="energy-hero-cta"
               size="lg"
               onClick={onAddToCart}
-              className="h-13 w-full gap-2 text-base sm:h-11 sm:w-auto sm:text-sm"
+              className="h-[52px] w-full gap-2 text-base sm:h-11 sm:w-auto sm:text-sm"
             >
               Добавить в корзину
               <ArrowRight className="h-4 w-4" aria-hidden />
