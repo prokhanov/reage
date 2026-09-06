@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 
 // Auth / public utilities
 const LandingV2 = lazy(() => import("./pages/LandingV2"));
+const Energy = lazy(() => import("./pages/Energy"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const RegisterStaff = lazy(() => import("./pages/RegisterStaff"));
@@ -126,6 +127,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
+            <Route path="/energy" element={<Energy />} />
             {/* Публичный пример отчёта — рендерится как Dialog поверх лендинга. */}
             <Route
               path="/example-report"
