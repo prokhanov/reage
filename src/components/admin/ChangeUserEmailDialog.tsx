@@ -122,9 +122,9 @@ export function ChangeUserEmailDialog({
             />
           </div>
 
-          <div className="flex gap-2 p-3 rounded-md bg-orange-500/10 text-sm">
-            <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-            <span className="text-orange-600 dark:text-orange-400">
+          <div className="flex gap-2 p-3 rounded-md bg-warning/10 text-sm">
+            <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+            <span className="text-warning dark:text-warning">
               После изменения пользователь должен войти, используя новый email.
               Старый адрес перестанет работать. Действие будет записано в историю.
             </span>

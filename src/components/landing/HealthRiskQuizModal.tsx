@@ -1632,7 +1632,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
               className={cn(
                 "rounded-2xl border p-5 flex flex-col gap-2 bg-card",
                 c.isElevated
-                  ? "border-amber-500/40 bg-amber-500/[0.04]"
+                  ? "border-warning/40 bg-warning/[0.04]"
                   : "border-border/60",
               )}
             >
@@ -1640,7 +1640,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    c.isElevated ? "text-amber-500" : "text-primary",
+                    c.isElevated ? "text-warning" : "text-primary",
                   )}
                 />
                 {c.system}
@@ -1649,7 +1649,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
               <div
                 className={cn(
                   "text-lg md:text-xl font-semibold leading-tight mt-1",
-                  c.isElevated ? "text-amber-600 dark:text-amber-400" : "text-foreground",
+                  c.isElevated ? "text-warning dark:text-warning" : "text-foreground",
                 )}
               >
                 {c.category}

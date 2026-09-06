@@ -113,7 +113,7 @@ export function BusinessCtaForm({ id = "business-cta" }: { id?: string }) {
 
             {status === "success" ? (
               <div className="flex flex-col items-center justify-center text-center gap-3 py-10">
-                <CheckCircle className="w-12 h-12 text-emerald-500" />
+                <CheckCircle className="w-12 h-12 text-success" />
                 <p className="text-lg font-semibold text-foreground">Заявка отправлена</p>
                 <p className="text-sm text-muted-foreground">
                   Свяжемся с вами в течение часа в рабочее время.

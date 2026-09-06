@@ -63,7 +63,7 @@ export function AdminPaymentTester() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm">
+      <div className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
         Это админская тест-оплата. Заказ пройдёт реальный путь через Робокассу,
         но <strong>подписка пользователя НЕ будет активирована</strong> — даже если
         шлюз в боевом режиме. В test-режиме шлюза реальные деньги не списываются.

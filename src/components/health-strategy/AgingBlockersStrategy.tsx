@@ -26,7 +26,7 @@ export function AgingBlockersStrategy({ blockers }: Props) {
 
   if (top.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-slate-200/60 dark:shadow-none shadow-xl shadow-slate-200/60">
+      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Ban className="h-5 w-5 text-status-danger" />
@@ -41,13 +41,13 @@ export function AgingBlockersStrategy({ blockers }: Props) {
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-slate-200/60 dark:shadow-none shadow-xl shadow-slate-200/60">
+    <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Ban className="h-5 w-5 text-status-danger" />
           Что мешает долголетию
         </CardTitle>
-        <p className="text-xs dark:text-white/50 text-slate-500">Топ-{top.length} факторов, которые сильнее всего «старят»</p>
+        <p className="text-xs dark:text-white/50 text-muted-foreground">Топ-{top.length} факторов, которые сильнее всего «старят»</p>
       </CardHeader>
       <CardContent className="space-y-2">
         {top.map((b, i) => {
@@ -57,15 +57,15 @@ export function AgingBlockersStrategy({ blockers }: Props) {
             <button
               key={i}
               onClick={() => navigate(`/biomarkers?focus=${encodeURIComponent(b.biomarker_code || b.name)}`)}
-              className="w-full text-left p-3 rounded-xl border dark:border-white/10 border-slate-200/70 dark:bg-white/[0.02] bg-white/60 hover:scale-[1.01] transition-transform group"
+              className="w-full text-left p-3 rounded-xl border dark:border-white/10 border-border/70 dark:bg-white/[0.02] bg-white/60 hover:scale-[1.01] transition-transform group"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2 min-w-0 flex-1">
                   <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: colorVar }} />
                   <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="font-medium text-sm dark:text-white text-indigo-900 truncate">{b.name}</div>
+                    <div className="font-medium text-sm dark:text-white text-info truncate">{b.name}</div>
                     {b.evidence && b.evidence[0] && (
-                      <div className="text-xs dark:text-white/60 text-slate-600 line-clamp-1">{b.evidence[0]}</div>
+                      <div className="text-xs dark:text-white/60 text-muted-foreground line-clamp-1">{b.evidence[0]}</div>
                     )}
                   </div>
                 </div>
@@ -76,11 +76,11 @@ export function AgingBlockersStrategy({ blockers }: Props) {
                   >
                     {b.impact_score}/10
                   </span>
-                  <ArrowRight className="h-3.5 w-3.5 dark:text-white/30 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="h-3.5 w-3.5 dark:text-white/30 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
               {/* impact bar */}
-              <div className="mt-2 h-1 rounded-full dark:bg-white/10 bg-slate-200/70 overflow-hidden">
+              <div className="mt-2 h-1 rounded-full dark:bg-white/10 bg-muted/70 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{ width: `${Math.min(100, (b.impact_score || 0) * 10)}%`, background: colorVar }}

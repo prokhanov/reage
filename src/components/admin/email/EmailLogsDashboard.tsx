@@ -50,11 +50,11 @@ const TEMPLATE_LABELS: Record<string, string> = {
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; className: string; icon: any }> = {
-    sent: { label: "Отправлено", className: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30", icon: CheckCircle2 },
-    pending: { label: "В очереди", className: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30", icon: Clock },
+    sent: { label: "Отправлено", className: "bg-success/15 text-success dark:text-success border-success/30", icon: CheckCircle2 },
+    pending: { label: "В очереди", className: "bg-info/15 text-info dark:text-info border-info/30", icon: Clock },
     dlq: { label: "Ошибка", className: "bg-destructive/15 text-destructive border-destructive/30", icon: AlertCircle },
     failed: { label: "Ошибка", className: "bg-destructive/15 text-destructive border-destructive/30", icon: AlertCircle },
-    suppressed: { label: "Заблокирован", className: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30", icon: AlertCircle },
+    suppressed: { label: "Заблокирован", className: "bg-warning/15 text-warning dark:text-warning border-warning/30", icon: AlertCircle },
   };
   const cfg = map[status] || { label: status, className: "bg-muted text-muted-foreground", icon: Mail };
   const Icon = cfg.icon;
@@ -195,8 +195,8 @@ export function EmailLogsDashboard() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StatCard label="Всего писем" value={stats.total} />
-            <StatCard label="Отправлено" value={stats.sent} accent="text-green-600 dark:text-green-400" />
-            <StatCard label="В очереди" value={stats.pending} accent="text-blue-600 dark:text-blue-400" />
+            <StatCard label="Отправлено" value={stats.sent} accent="text-success dark:text-success" />
+            <StatCard label="В очереди" value={stats.pending} accent="text-info dark:text-info" />
             <StatCard label="Ошибки" value={stats.failed} accent="text-destructive" />
           </div>
         </CardContent>
@@ -233,7 +233,7 @@ export function EmailLogsDashboard() {
                           <div className="flex items-center gap-2">
                             {TEMPLATE_LABELS[r.template_name] || r.template_name}
                             {r.metadata?.is_test && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
                                 Тест
                               </Badge>
                             )}

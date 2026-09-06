@@ -999,8 +999,8 @@ function ResultStep({
       )}
 
       {result.cleanDomains.length > 0 && (
-        <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-xl border border-success/20 bg-success/5 p-3">
+          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
           <div className="text-xs text-muted-foreground leading-relaxed">
             <span className="text-foreground font-medium">Что уже работает: </span>
             {result.cleanDomains.map((d) => d.label.toLowerCase()).join(", ")}. Это хорошая база — её и стоит удерживать.

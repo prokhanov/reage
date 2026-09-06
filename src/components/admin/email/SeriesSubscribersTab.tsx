@@ -160,7 +160,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   const summaryTiles = useMemo(() => ([
     { k: "active", l: "В процессе", c: "text-primary" },
-    { k: "completed", l: "Завершено", c: "text-green-500" },
+    { k: "completed", l: "Завершено", c: "text-success" },
     { k: "unsubscribed", l: "Отписались", c: "text-muted-foreground" },
     { k: "failed", l: "Ошибки", c: "text-destructive" },
     { k: "cancelled", l: "Отменено", c: "text-muted-foreground" },

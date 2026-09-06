@@ -88,7 +88,7 @@ export default function DripLogsTab() {
 
   const tiles = [
     { k: "total", l: "Всего", c: "text-foreground" },
-    { k: "sent", l: "Отправлено", c: "text-green-500" },
+    { k: "sent", l: "Отправлено", c: "text-success" },
     { k: "pending", l: "В очереди", c: "text-primary" },
     { k: "failed", l: "Ошибки", c: "text-destructive" },
     { k: "bounced", l: "Bounced", c: "text-destructive" },

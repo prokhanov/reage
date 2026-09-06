@@ -152,7 +152,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
           </TooltipTrigger>
           <TooltipContent>Телефон подтверждён</TooltipContent>
         </Tooltip>
@@ -174,7 +174,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
       ) : (
         <Badge
           variant="outline"
-          className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
+          className="text-xs cursor-pointer border-warning text-warning hover:bg-warning-soft dark:hover:bg-warning"
           onClick={openDialog}
         >
           <AlertCircle className="w-3 h-3 mr-1" />

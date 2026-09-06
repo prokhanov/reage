@@ -334,8 +334,8 @@ export default function MyAssignments() {
                           variant="outline"
                           className={
                             booking.location_type === "clinic"
-                              ? "bg-blue-50 text-blue-700 border-blue-200 mb-1"
-                              : "bg-emerald-50 text-emerald-700 border-emerald-200 mb-1"
+                              ? "bg-info-soft text-info border-info mb-1"
+                              : "bg-success-soft text-success border-success mb-1"
                           }
                         >
                           {booking.location_type === "clinic" ? (

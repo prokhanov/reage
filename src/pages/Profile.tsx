@@ -482,7 +482,7 @@ export default function Profile() {
                   </div>
                 </div>
                 <p className="sm:hidden flex items-center gap-2 text-xs text-muted-foreground mt-3">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success flex-shrink-0" />
                   Используются при записи на анализ
                 </p>
                 {/* Desktop grid */}
@@ -496,7 +496,7 @@ export default function Profile() {
                     <p className="text-lg font-medium tracking-wider">{profile.passport_number}</p>
                   </div>
                   <div className="md:col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                     Данные сохранены и используются при записи на анализ
                   </div>
                 </div>
@@ -606,8 +606,8 @@ export default function Profile() {
           {/* Security Card */}
           <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />
               </div>
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold leading-tight">Безопасность</h2>

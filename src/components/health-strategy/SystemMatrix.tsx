@@ -58,17 +58,17 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
   });
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-slate-200/60">
-      <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full dark:bg-rose-500/15 bg-rose-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full dark:bg-emerald-500/15 bg-emerald-200/30 blur-3xl pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-border/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-muted-foreground/60">
+      <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full dark:bg-destructive/15 bg-destructive/30 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full dark:bg-success/15 bg-success-soft/30 blur-3xl pointer-events-none" />
 
       <CardContent className="relative p-5 md:p-6 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900">Статус систем организма</h3>
-            <p className="text-xs dark:text-white/55 text-slate-500 mt-1">Средний статус биомаркеров и динамика</p>
+            <h3 className="text-lg md:text-xl font-bold dark:text-white text-foreground">Статус систем организма</h3>
+            <p className="text-xs dark:text-white/55 text-muted-foreground mt-1">Средний статус биомаркеров и динамика</p>
           </div>
-          <div className="flex items-center gap-2 text-[11px] dark:text-white/55 text-slate-500 shrink-0">
+          <div className="flex items-center gap-2 text-[11px] dark:text-white/55 text-muted-foreground shrink-0">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ background: isDark ? "#ff2d55" : "#fb7185" }} /> Risk
             </span>
@@ -89,19 +89,19 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
               s.delta == null
                 ? "text-muted-foreground/40"
                 : s.delta > 1
-                ? "text-emerald-500 dark:text-emerald-400"
+                ? "text-success dark:text-success"
                 : s.delta < -1
-                ? "text-rose-500 dark:text-rose-400"
+                ? "text-destructive dark:text-destructive"
                 : "text-muted-foreground/60";
 
             return (
               <div key={s.name} className="space-y-2">
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg dark:bg-white/5 bg-slate-100 flex items-center justify-center shrink-0">
-                      <Icon className="h-3.5 w-3.5 dark:text-white/80 text-slate-700" />
+                    <div className="w-7 h-7 rounded-lg dark:bg-white/5 bg-muted flex items-center justify-center shrink-0">
+                      <Icon className="h-3.5 w-3.5 dark:text-white/80 text-foreground" />
                     </div>
-                    <span className="font-medium truncate dark:text-white text-slate-900">{s.name}</span>
+                    <span className="font-medium truncate dark:text-white text-foreground">{s.name}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {s.delta != null && (
@@ -110,14 +110,14 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
                         {s.delta > 0 ? "+" : ""}{s.delta}
                       </span>
                     )}
-                    <span className="font-heading font-bold text-sm tabular-nums dark:text-white text-slate-900">
+                    <span className="font-heading font-bold text-sm tabular-nums dark:text-white text-foreground">
                       {hasData ? `${score}%` : "—"}
                     </span>
                   </div>
                 </div>
 
                 {/* Track: full gradient at low opacity, fill at full opacity clipped to score */}
-                <div className="relative h-2.5 rounded-full overflow-hidden dark:bg-white/5 bg-slate-200/60">
+                <div className="relative h-2.5 rounded-full overflow-hidden dark:bg-white/5 bg-muted/60">
                   <div
                     className="absolute inset-0"
                     style={{ background: trackGradient, opacity: isDark ? 0.18 : 0.25 }}
@@ -138,8 +138,8 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
                 </div>
 
                 {s.goal?.goal && (
-                  <p className="text-[11px] dark:text-white/55 text-slate-500 pl-9 leading-snug">
-                    <span className="dark:text-white/80 text-slate-700 font-medium">Цель:</span> {s.goal.goal}
+                  <p className="text-[11px] dark:text-white/55 text-muted-foreground pl-9 leading-snug">
+                    <span className="dark:text-white/80 text-foreground font-medium">Цель:</span> {s.goal.goal}
                   </p>
                 )}
               </div>

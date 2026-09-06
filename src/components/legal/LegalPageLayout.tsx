@@ -45,11 +45,11 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto print:text-sm print:text-neutral-700">
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto print:text-sm print:text-foreground">
                   {subtitle}
                 </p>
               )}
-              <div className="hidden print:block mt-3 text-xs text-neutral-500">
+              <div className="hidden print:block mt-3 text-xs text-muted-foreground">
                 ReAge · reage.life · {new Date().toLocaleDateString("ru-RU")}
               </div>
             </div>

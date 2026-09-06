@@ -30,7 +30,7 @@ function TestimonialCard({ quote, author, role, avatar, rating, highlight, delay
           {[...Array(5)].map((_, i) => (
             <Star 
               key={i} 
-              className={`w-4 h-4 ${i < rating ? "text-amber-400 fill-amber-400" : "text-muted"}`} 
+              className={`w-4 h-4 ${i < rating ? "text-warning fill-warning" : "text-muted"}`} 
             />
           ))}
         </div>

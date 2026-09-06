@@ -102,7 +102,7 @@ export default function ResetPassword() {
           <div className="relative z-10">
             {success ? (
               <div className="flex flex-col items-center gap-4 py-4">
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-success" />
                 <p className="text-center text-foreground font-medium">Пароль успешно изменён!</p>
                 <p className="text-sm text-muted-foreground">Перенаправляем на страницу входа...</p>
               </div>

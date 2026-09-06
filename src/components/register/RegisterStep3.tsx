@@ -50,7 +50,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
 
       <MedicalAnketaForm value={value} onChange={handleChange} />
 
-      <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+      <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning dark:text-warning">
         <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
         <span>Чем точнее и подробнее вы ответите, тем точнее будет ваш персональный отчет.</span>
       </div>

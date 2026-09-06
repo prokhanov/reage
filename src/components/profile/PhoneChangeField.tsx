@@ -113,7 +113,7 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
               <span className="font-medium break-all">{formatDisplay(currentPhone)}</span>
               <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
                 {isVerified ? (
-                  <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-500 border-emerald-500/30 whitespace-nowrap">
+                  <Badge variant="secondary" className="gap-1 bg-success/15 text-success border-success/30 whitespace-nowrap">
                     <ShieldCheck className="h-3 w-3" />
                     Подтверждён
                   </Badge>

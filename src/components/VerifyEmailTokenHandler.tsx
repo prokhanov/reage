@@ -91,7 +91,7 @@ export function VerifyEmailTokenHandler() {
 
         {state.kind === "success" && (
           <>
-            <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-500" />
+            <CheckCircle2 className="h-12 w-12 mx-auto text-success" />
             <div>
               <h2 className="text-2xl font-semibold mb-2">Email подтверждён</h2>
               <p className="text-muted-foreground text-sm">

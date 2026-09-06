@@ -54,7 +54,7 @@ const MarkerChip = ({
         {label}
       </span>
     </div>
-    <div className="relative h-1 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
+    <div className="relative h-1 rounded-full bg-gradient-to-r from-destructive/30 via-success/40 to-destructive/30">
       <div
         className="absolute -top-0.5 w-2 h-2 rounded-full border border-background"
         style={{ left: `${p}%`, background: color, transform: "translateX(-50%)" }}
@@ -206,7 +206,7 @@ const PageBioAge = () => (
         </div>
         <div className="text-right">
           <div className="text-[10px] text-muted-foreground mb-0.5">Моложе на</div>
-          <div className="text-xl font-bold text-emerald-500">−3.5 года</div>
+          <div className="text-xl font-bold text-success">−3.5 года</div>
           <div className="text-[10px] text-muted-foreground mt-0.5">Индекс здоровья 91/100</div>
         </div>
       </div>
@@ -327,7 +327,7 @@ const PagePrescriptions = () => (
             <div className="text-[12px] font-semibold">{r.t}</div>
             <div className="text-[11px] text-foreground/70 mt-0.5 leading-relaxed">{r.d}</div>
           </div>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
         </div>
       ))}
     </div>

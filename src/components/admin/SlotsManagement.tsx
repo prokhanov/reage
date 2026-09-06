@@ -120,9 +120,9 @@ export function SlotsManagement() {
                           <div className="text-xs mt-1 space-y-0.5">
                             <div className={cn(
                               "font-normal",
-                              info.percentage > 80 ? "text-red-600" :
-                              info.percentage > 50 ? "text-yellow-600" :
-                              "text-green-600"
+                              info.percentage > 80 ? "text-destructive" :
+                              info.percentage > 50 ? "text-warning" :
+                              "text-success"
                             )}>
                               {info.available}/{info.totalCapacity}
                             </div>
@@ -141,15 +141,15 @@ export function SlotsManagement() {
 
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-green-600" />
+                <div className="w-3 h-3 rounded bg-success" />
                 <span>Свободно (&lt;50%)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-yellow-600" />
+                <div className="w-3 h-3 rounded bg-warning" />
                 <span>Загружено (50-80%)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-red-600" />
+                <div className="w-3 h-3 rounded bg-destructive" />
                 <span>Почти занято (&gt;80%)</span>
               </div>
             </div>

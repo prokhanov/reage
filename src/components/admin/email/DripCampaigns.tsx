@@ -183,10 +183,10 @@ export default function DripCampaigns() {
         {scheduleStats && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
-              { k: 'pending', l: 'В очереди', c: 'text-blue-500' },
-              { k: 'sent', l: 'Отправлено', c: 'text-green-500' },
-              { k: 'skipped', l: 'Пропущено', c: 'text-yellow-500' },
-              { k: 'failed', l: 'Ошибки', c: 'text-red-500' },
+              { k: 'pending', l: 'В очереди', c: 'text-info' },
+              { k: 'sent', l: 'Отправлено', c: 'text-success' },
+              { k: 'skipped', l: 'Пропущено', c: 'text-warning' },
+              { k: 'failed', l: 'Ошибки', c: 'text-destructive' },
               { k: 'cancelled', l: 'Отменено', c: 'text-muted-foreground' },
             ].map(s => (
               <Card key={s.k}><CardContent className="p-4">

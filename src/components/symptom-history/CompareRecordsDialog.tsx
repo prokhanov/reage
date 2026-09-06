@@ -23,9 +23,9 @@ interface CompareRecordsDialogProps {
 
 const severityLevels = [
   { value: 0, label: "Нет", color: "text-muted-foreground" },
-  { value: 1, label: "Легко", color: "text-yellow-500" },
-  { value: 2, label: "Средне", color: "text-orange-500" },
-  { value: 3, label: "Сильно", color: "text-red-500" }
+  { value: 1, label: "Легко", color: "text-warning" },
+  { value: 2, label: "Средне", color: "text-warning" },
+  { value: 3, label: "Сильно", color: "text-destructive" }
 ];
 
 export function CompareRecordsDialog({ groupedByDate, sortedDates }: CompareRecordsDialogProps) {
@@ -74,8 +74,8 @@ export function CompareRecordsDialog({ groupedByDate, sortedDates }: CompareReco
   }, {} as Record<string, Array<{ symptom: string; severity1: number; severity2: number; change: number }>>);
 
   const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="h-4 w-4 text-red-500" />;
-    if (change < 0) return <TrendingDown className="h-4 w-4 text-green-500" />;
+    if (change > 0) return <TrendingUp className="h-4 w-4 text-destructive" />;
+    if (change < 0) return <TrendingDown className="h-4 w-4 text-success" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 

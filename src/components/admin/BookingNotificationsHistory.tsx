@@ -26,7 +26,7 @@ function statusBadge(status: SendStatus, channel: NotificationChannel) {
       icon: <Check className="w-3 h-3" />,
       label: "Доставлено",
       className:
-        "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
+        "bg-success-soft text-success border-success dark:bg-success/40 dark:text-success dark:border-success",
     };
   }
   if (status === "sent") {
@@ -36,8 +36,8 @@ function statusBadge(status: SendStatus, channel: NotificationChannel) {
       label: channel === "sms" ? "Отправлено" : "Доставлено",
       className:
         channel === "sms"
-          ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900"
-          : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
+          ? "bg-info-soft text-info border-info dark:bg-info/40 dark:text-info dark:border-info"
+          : "bg-success-soft text-success border-success dark:bg-success/40 dark:text-success dark:border-success",
     };
   }
   if (status === "pending" || status === "queued" || status === "moderation") {
@@ -45,7 +45,7 @@ function statusBadge(status: SendStatus, channel: NotificationChannel) {
       icon: <Clock className="w-3 h-3" />,
       label: status === "moderation" ? "Модерация" : "В очереди",
       className:
-        "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
+        "bg-warning-soft text-warning border-warning dark:bg-warning/40 dark:text-warning dark:border-warning",
     };
   }
   if (status === "suppressed" || status === "skipped") {
@@ -69,7 +69,7 @@ function statusBadge(status: SendStatus, channel: NotificationChannel) {
     icon: <X className="w-3 h-3" />,
     label: failLabels[status] ?? "Ошибка",
     className:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
+      "bg-destructive/10 text-destructive border-destructive dark:bg-destructive/40 dark:text-destructive dark:border-destructive",
   };
 }
 
@@ -160,7 +160,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
                         {badge.label}
                       </Badge>
                       {e.errorMessage && (
-                        <div className="text-[11px] text-red-600 dark:text-red-400 max-w-[260px] break-words">
+                        <div className="text-[11px] text-destructive dark:text-destructive max-w-[260px] break-words">
                           {e.errorMessage}
                         </div>
                       )}

@@ -199,7 +199,7 @@ export default function Unsubscribe() {
           )}
 
           {state.kind === "done" && (
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-success/10 text-success dark:text-success">
               <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
               <div className="text-sm">
                 Готово. {state.email ? <>Адрес <strong>{state.email}</strong> отписан.</> : <>Вы отписаны.</>}{" "}

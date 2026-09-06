@@ -570,9 +570,9 @@ export default function Dashboard() {
         )}
 
         {!demoMode && displayAnalysesCount > 0 && displayBioAge === null && (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
             <div className="flex items-start gap-3">
-              <Activity className="h-5 w-5 text-amber-500 mt-0.5" />
+              <Activity className="h-5 w-5 text-warning mt-0.5" />
               <div className="space-y-1">
                 <h3 className="font-medium text-foreground">Анализ без биомаркеров</h3>
                 <p className="text-sm text-muted-foreground">

@@ -992,8 +992,8 @@ export function EditReportDialog({
                       : evt.type === "done" ? CheckCircle2
                       : Info;
                     const color =
-                      evt.type === "fix" ? "text-emerald-600 dark:text-emerald-400"
-                      : evt.type === "warn" ? "text-amber-600 dark:text-amber-400"
+                      evt.type === "fix" ? "text-success dark:text-success"
+                      : evt.type === "warn" ? "text-warning dark:text-warning"
                       : evt.type === "error" ? "text-destructive"
                       : evt.type === "done" ? "text-primary"
                       : "text-muted-foreground";

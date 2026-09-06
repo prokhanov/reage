@@ -114,7 +114,7 @@ export default function SubscriptionSuccess() {
       )}
       {status === "active" && (
         <>
-          <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto mb-6" />
+          <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-6" />
           <h1 className="text-2xl md:text-3xl font-bold mb-3">Подписка активирована</h1>
           <p className="text-muted-foreground mb-8">
             Спасибо! Добро пожаловать в ReAge.
@@ -130,7 +130,7 @@ export default function SubscriptionSuccess() {
       )}
       {status === "admin_test" && (
         <>
-          <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto mb-6" />
+          <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-6" />
           <h1 className="text-2xl md:text-3xl font-bold mb-3">Подписка активирована</h1>
           <p className="text-muted-foreground mb-8">
             Спасибо! Добро пожаловать в ReAge.
@@ -142,7 +142,7 @@ export default function SubscriptionSuccess() {
       )}
       {status === "timeout" && (
         <>
-          <Clock className="h-14 w-14 text-yellow-500 mx-auto mb-6" />
+          <Clock className="h-14 w-14 text-warning mx-auto mb-6" />
           <h1 className="text-2xl md:text-3xl font-bold mb-3">Платёж в обработке</h1>
           <p className="text-muted-foreground mb-8">
             Оплата принята, но банк ещё не прислал подтверждение. Обычно это занимает до нескольких минут.

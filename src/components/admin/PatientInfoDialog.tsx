@@ -270,7 +270,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                       <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                       {patientData.profile.email ? (
                         (patientData.profile as any).email_verified ? (
-                          <span className="text-sm text-green-600 dark:text-green-400">{patientData.profile.email}</span>
+                          <span className="text-sm text-success dark:text-success">{patientData.profile.email}</span>
                         ) : (
                           <EmailConfirmationBadge
                             email={patientData.profile.email}
@@ -279,7 +279,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                             userId={patientData.profile.id}
                             onConfirmed={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
                             trigger={
-                              <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                              <span className="text-sm text-destructive dark:text-destructive hover:underline cursor-pointer">
                                 {patientData.profile.email}
                               </span>
                             }
@@ -293,7 +293,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                       <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                       {patientData.profile.phone ? (
                         (patientData.profile as any).phone_verified_at ? (
-                          <span className="text-sm text-green-600 dark:text-green-400">+{patientData.profile.phone}</span>
+                          <span className="text-sm text-success dark:text-success">+{patientData.profile.phone}</span>
                         ) : (
                           <PhoneConfirmationBadge
                             phone={patientData.profile.phone}
@@ -302,7 +302,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                             userId={patientData.profile.id}
                             onUpdated={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
                             trigger={
-                              <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                              <span className="text-sm text-destructive dark:text-destructive hover:underline cursor-pointer">
                                 +{patientData.profile.phone}
                               </span>
                             }
@@ -316,7 +316,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                           userId={patientData.profile.id}
                           onUpdated={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
                           trigger={
-                            <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                            <span className="text-sm text-destructive dark:text-destructive hover:underline cursor-pointer">
                               Телефон не указан
                             </span>
                           }

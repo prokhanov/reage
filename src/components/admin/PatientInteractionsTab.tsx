@@ -47,11 +47,11 @@ const interactionStatusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  completed: 'bg-green-100 text-green-800 border-green-200',
-  scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
-  cancelled: 'bg-red-100 text-red-800 border-red-200',
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  in_progress: 'bg-purple-100 text-purple-800 border-purple-200'
+  completed: 'bg-success-soft text-success border-success',
+  scheduled: 'bg-info-soft text-info border-info',
+  cancelled: 'bg-destructive/10 text-destructive border-destructive',
+  pending: 'bg-warning-soft text-warning border-warning',
+  in_progress: 'bg-primary text-primary border-primary'
 };
 
 const getInteractionIcon = (type: string) => {
@@ -158,13 +158,13 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">{scheduledCount}</div>
+            <div className="text-2xl font-bold text-info">{scheduledCount}</div>
             <div className="text-sm text-muted-foreground">Запланировано</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {lastConsultationDate ? format(new Date(lastConsultationDate), "dd.MM.yyyy") : "—"}
             </div>
             <div className="text-sm text-muted-foreground">Последняя консультация</div>
@@ -214,7 +214,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
                             <div>
                               <div className="flex items-center gap-2">
                                 <h4 className="font-semibold">{interaction.title}</h4>
-                                {interaction.is_important && <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />}
+                                {interaction.is_important && <Star className="w-4 h-4 fill-warning text-warning" />}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                 <span>{interactionTypeLabels[interaction.interaction_type]}</span>

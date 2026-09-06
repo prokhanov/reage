@@ -389,8 +389,8 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
     return (
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/15 mb-2">
-            <ShieldCheck className="h-7 w-7 text-green-500" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success/15 mb-2">
+            <ShieldCheck className="h-7 w-7 text-success" />
           </div>
           <h2 className="text-2xl font-bold">Вы уже оплатили подписку</h2>
           <p className="text-muted-foreground text-sm">
@@ -398,9 +398,9 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           </p>
         </div>
 
-        <Card className="p-6 border-green-500/30 bg-green-500/5">
+        <Card className="p-6 border-success/30 bg-success/5">
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-green-500" />
+            <Check className="h-5 w-5 text-success" />
             <p className="text-sm">
               Шаг оплаты пройден. Продолжите регистрацию — расскажите о себе на следующем шаге.
             </p>
