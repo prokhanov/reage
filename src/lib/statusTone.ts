@@ -73,3 +73,37 @@ export function getStatusTone(status: string | null | undefined): StatusTone {
   if (!status) return "neutral";
   return TONE_BY_STATUS[status] ?? "neutral";
 }
+
+/** Единые русские подписи статусов (подписки, письма, интеракции, токены). */
+const STATUS_LABELS: Record<string, string> = {
+  active: "Активна",
+  inactive: "Неактивна",
+  pending: "Ожидает",
+  expired: "Истекла",
+  cancelled: "Отменена",
+  canceled: "Отменена",
+  completed: "Завершено",
+  scheduled: "Запланировано",
+  in_progress: "В процессе",
+  draft: "Черновик",
+  published: "Опубликован",
+  blocked: "Заблокирован",
+  sent: "Отправлено",
+  failed: "Ошибка",
+  error: "Ошибка",
+  bounced: "Не доставлено",
+  complained: "Жалоба",
+  dlq: "Ошибка доставки",
+  unsubscribed: "Отписан",
+  skipped: "Пропущено",
+  queued: "В очереди",
+  not_scheduled: "Не назначен",
+  uploaded: "Загружен",
+  used: "Использован",
+  revoked: "Отозван",
+};
+
+export function getStatusLabel(status: string | null | undefined): string {
+  if (!status) return "—";
+  return STATUS_LABELS[status] ?? status;
+}
