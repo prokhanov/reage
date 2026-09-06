@@ -233,7 +233,7 @@ export function EmailConfirmationBadge({
                 Подтвердить без проверки
               </Button>
             )}
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-11">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-control-lg">
               Отмена
             </Button>
           </DialogFooter>

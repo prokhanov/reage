@@ -1607,30 +1607,30 @@ export default function DataManagement() {
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🔴 Крит. низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateMale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateMale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟠 Риск низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.min} onChange={(e) => updateMale('min', Number(e.target.value))} placeholder="Min" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.min} onChange={(e) => updateMale('min', Number(e.target.value))} placeholder="Min" />
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateMale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateMale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-optimal/30 bg-status-optimal/10 p-2 text-center">
                       <Label className="text-[10px] font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateMale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateMale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟠 Риск верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.max} onChange={(e) => updateMale('max', Number(e.target.value))} placeholder="Max" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.max} onChange={(e) => updateMale('max', Number(e.target.value))} placeholder="Max" />
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🔴 Крит. верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateMale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateMale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                   </div>
                   );
@@ -1671,30 +1671,30 @@ export default function DataManagement() {
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🔴 Крит. низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateFemale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateFemale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟠 Риск низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.min} onChange={(e) => updateFemale('min', Number(e.target.value))} placeholder="Min" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.min} onChange={(e) => updateFemale('min', Number(e.target.value))} placeholder="Min" />
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. низ</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateFemale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateFemale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-optimal/30 bg-status-optimal/10 p-2 text-center">
                       <Label className="text-[10px] font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateFemale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateFemale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🟠 Риск верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.max} onChange={(e) => updateFemale('max', Number(e.target.value))} placeholder="Max" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.max} onChange={(e) => updateFemale('max', Number(e.target.value))} placeholder="Max" />
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
                       <Label className="text-[10px] whitespace-nowrap">🔴 Крит. верх</Label>
-                      <Input className="h-8 text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateFemale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
+                      <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateFemale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                   </div>
                   );

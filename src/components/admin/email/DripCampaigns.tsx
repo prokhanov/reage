@@ -222,7 +222,7 @@ export default function DripCampaigns() {
                       <CardTitle className="text-lg">{sr.name}</CardTitle>
                       <Badge variant={sr.is_active ? 'default' : 'secondary'}>{sr.is_active ? 'Активна' : 'Выключена'}</Badge>
                       <Select value={sr.trigger_type} onValueChange={v => changeTrigger(sr.id, v)}>
-                        <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-[200px] h-control-sm text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="registration">При регистрации</SelectItem>
                           <SelectItem value="subscription_paid">При оплате подписки</SelectItem>

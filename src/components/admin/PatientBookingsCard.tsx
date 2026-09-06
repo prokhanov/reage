@@ -456,7 +456,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                               statusMutation.mutate({ id: b.id, status: next });
                             }}
                           >
-                            <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
+                            <SelectTrigger className="h-control-sm w-auto gap-1 border-none p-0 bg-transparent shadow-none">
                               <Badge
                                 variant="outline"
                                 className={cn("font-normal cursor-pointer", statusColors[b.status])}

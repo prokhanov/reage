@@ -259,7 +259,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
             {stage === "edit" ? (
               <>
-                <Button onClick={handleSend} disabled={!valid || sending} className="w-full h-12">
+                <Button onClick={handleSend} disabled={!valid || sending} className="w-full h-control-lg">
                   {sending ? <ButtonSpinner className="mr-2" /> : <Phone className="w-4 h-4 mr-2" />}
                   Отправить код
                 </Button>
@@ -274,7 +274,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                     Подтвердить без проверки
                   </Button>
                 )}
-                <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-11">
+                <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-control-lg">
                   Отмена
                 </Button>
               </>

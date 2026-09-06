@@ -690,7 +690,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         <div className="flex items-center gap-2">
           <Label className="text-xs whitespace-nowrap">Сверка с тарифом</Label>
           <Select value={selectedPlanId || "__none__"} onValueChange={(v) => setSelectedPlanId(v === "__none__" ? "" : v)}>
-            <SelectTrigger className="h-8">
+            <SelectTrigger className="h-control-sm">
               <SelectValue placeholder="Без сверки" />
             </SelectTrigger>
             <SelectContent>
@@ -721,7 +721,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               {planComparison.willCalculate.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                       <ChevronDown className="h-3 w-3 mr-1" />
                       Показать расчётные ({planComparison.willCalculate.length})
                     </Button>
@@ -741,7 +741,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               {planComparison.missing.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                       <ChevronDown className="h-3 w-3 mr-1" />
                       Показать недостающие ({planComparison.missing.length})
                     </Button>
@@ -911,7 +911,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                 {entry.result.unknown.length > 0 && (
                   <Collapsible>
                     <CollapsibleTrigger asChild>
-                      <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                         <ChevronDown className="h-3 w-3 mr-1" />
                         Не сопоставлено с панелью ({entry.result.unknown.length})
                       </Button>

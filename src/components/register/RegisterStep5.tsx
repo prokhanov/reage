@@ -408,8 +408,8 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         </Card>
 
         <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Назад</Button>
-          <Button type="button" onClick={handleSkip} className="flex-1 h-12 bg-gradient-primary shadow-neon-primary">
+          <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-control-lg">Назад</Button>
+          <Button type="button" onClick={handleSkip} className="flex-1 h-control-lg bg-gradient-primary shadow-neon-primary">
             Далее
             <Check className="ml-2 h-5 w-5" />
           </Button>
