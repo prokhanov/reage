@@ -63,7 +63,7 @@ export function EnergyHero({ onAddToCart }: Props) {
             объясняют нехватку энергии.
           </p>
 
-          <dl className="mt-7 grid grid-cols-1 gap-3 xs:grid-cols-3 sm:grid-cols-3">
+          <dl className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {facts.map((f) => (
               <div key={f.title} className="flex items-start gap-3 rounded-xl border hairline bg-card/70 p-4 sm:block">
                 <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
