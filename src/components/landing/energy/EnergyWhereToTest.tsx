@@ -211,6 +211,8 @@ export function EnergyWhereToTest() {
                 selectedId={selectedId ?? undefined}
                 focusOnSelected
                 focusZoom={15}
+                onSelect={(item) => setSelectedId(item.id)}
+
 
               />
             </Suspense>
