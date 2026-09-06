@@ -388,6 +388,9 @@ export default function LabLocationsMap({
   hideControls?: boolean;
   hideAttribution?: boolean;
   scrollWheelZoomDelay?: number;
+  focusOnSelected?: boolean;
+  focusZoom?: number;
+
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
