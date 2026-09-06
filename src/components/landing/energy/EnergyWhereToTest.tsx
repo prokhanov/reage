@@ -115,7 +115,7 @@ export function EnergyWhereToTest() {
   const visible = showAll ? filtered : filtered.slice(0, 3);
 
   return (
-    <section className="border-b hairline">
+    <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-12 md:px-6 md:py-16">
         <h2 className="font-display text-2xl text-foreground md:text-3xl">Где сдавать анализы</h2>
         <p className="mt-2 text-sm text-muted-foreground md:text-base">
@@ -141,7 +141,7 @@ export function EnergyWhereToTest() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -157,7 +157,7 @@ export function EnergyWhereToTest() {
               {visible.map((loc) => (
                 <li
                   key={loc.id}
-                  className="flex items-start justify-between gap-4 rounded-xl border hairline bg-card p-4"
+                  className="flex items-start justify-between gap-3 rounded-xl border hairline bg-card p-4"
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-foreground">{loc.title}</div>
@@ -172,6 +172,7 @@ export function EnergyWhereToTest() {
                   <Button
                     variant={selectedId === loc.id ? "default" : "outline"}
                     size="sm"
+                    className="shrink-0"
                     onClick={() => setSelectedId(loc.id)}
                   >
                     {selectedId === loc.id ? "Выбрано" : "Выбрать"}
@@ -196,7 +197,7 @@ export function EnergyWhereToTest() {
             )}
           </div>
 
-          <div className="overflow-hidden rounded-xl border hairline bg-card">
+          <div className="min-w-0 overflow-hidden rounded-xl border hairline bg-card">
             <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
               <LabLocationsMap
                 key={city}
