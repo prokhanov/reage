@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -431,7 +432,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                   </div>
 
                   {/* Desktop / tablet table */}
-                  <div className="hidden md:block mt-4 border rounded-lg overflow-x-auto">
+                  <DataTableShell>
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-surface">
@@ -559,7 +560,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                         })}
                       </TableBody>
                     </Table>
-                   </div>
+                   </DataTableShell>
                 </AccordionContent>
               </AccordionItem>
             ))}

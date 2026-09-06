@@ -1,4 +1,5 @@
 import { AdminPageHeader } from "@/components/admin/AdminPage";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -532,7 +533,7 @@ export default function UserManagement() {
               {isLoading ? (
                 <AdminCenterLoader />
               ) : (
-                <div className="border hairline overflow-x-auto">
+                <DataTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -550,7 +551,7 @@ export default function UserManagement() {
                         filteredUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
+                            className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer"}
                             onClick={() => {
                               if (user.role !== "superadmin") {
                                 if (user.type === "pending") {
@@ -864,7 +865,7 @@ export default function UserManagement() {
                       )}
                     </TableBody>
                   </Table>
-                </div>
+                </DataTableShell>
               )}
             </CardContent>
           </Card>

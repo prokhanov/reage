@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { notify as toast } from "@/lib/toast";
@@ -238,7 +239,7 @@ export function MedicationsTab() {
               Всё распознано — нераспознанных названий нет.
             </p>
           ) : (
-            <div className="w-full overflow-x-auto">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -290,7 +291,7 @@ export function MedicationsTab() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           )}
         </CardContent>
       </Card>
@@ -319,7 +320,7 @@ export function MedicationsTab() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Загрузка…</p>
           ) : (
-            <div className="w-full overflow-x-auto">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -374,7 +375,7 @@ export function MedicationsTab() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           )}
         </CardContent>
       </Card>

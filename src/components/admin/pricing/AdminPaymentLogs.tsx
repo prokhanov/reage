@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -220,7 +221,7 @@ export function AdminPaymentLogs() {
           ) : filteredOrders.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">Нет заказов.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -291,7 +292,7 @@ export function AdminPaymentLogs() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           )}
         </CardContent>
       </Card>
@@ -312,7 +313,7 @@ export function AdminPaymentLogs() {
               Пока ни одного колбэка от Робокассы не зафиксировано.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -409,7 +410,7 @@ export function AdminPaymentLogs() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           )}
         </CardContent>
       </Card>

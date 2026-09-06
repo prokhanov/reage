@@ -1,4 +1,5 @@
 import { AdminPageHeader } from "@/components/admin/AdminPage";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -459,7 +460,7 @@ export default function TelegramSettings() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -508,7 +509,7 @@ export default function TelegramSettings() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         </CardContent>
       </Card>
     </div>

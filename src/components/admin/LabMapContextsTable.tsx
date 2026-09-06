@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -115,7 +116,7 @@ export default function LabMapContextsTable({ items }: { items: LabMapItem[] }) 
         На главную и в личный кабинет карта пока не выводится — только подготовка настроек.
       </div>
 
-      <div className="rounded-lg border border-border overflow-x-auto">
+      <DataTableShell>
         <Table>
           <TableHeader>
             <TableRow>
@@ -163,7 +164,7 @@ export default function LabMapContextsTable({ items }: { items: LabMapItem[] }) 
             )}
           </TableBody>
         </Table>
-      </div>
+      </DataTableShell>
 
       <SettingsDialog
         ctx={editing}

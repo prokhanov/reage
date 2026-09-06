@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { Fragment, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -370,7 +371,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
             У пациента нет записей на анализ
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -532,7 +533,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         )}
       </CardContent>
 

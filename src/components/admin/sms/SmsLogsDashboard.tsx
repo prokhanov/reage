@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -199,7 +200,7 @@ export function SmsLogsDashboard() {
           {loading ? (
             <AdminCenterLoader />
           ) : (
-            <div className="overflow-x-auto">
+            <DataTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -246,7 +247,7 @@ export function SmsLogsDashboard() {
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </DataTableShell>
           )}
 
           {totalPages > 1 && (

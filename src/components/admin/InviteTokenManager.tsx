@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -274,7 +275,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
           {inviteTokens && inviteTokens.length > 0 && (
             <div>
               <h3 className="text-sm font-medium mb-3">Активные инвайты</h3>
-              <div className="border hairline">
+              <DataTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -333,7 +334,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </DataTableShell>
             </div>
           )}
         </CardContent>

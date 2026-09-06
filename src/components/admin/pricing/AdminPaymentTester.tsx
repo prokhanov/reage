@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DataTableShell } from "@/components/ui/data-table";
 import { CreditCard } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +72,7 @@ export function AdminPaymentTester() {
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">Нет доступных цен для тестирования.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <DataTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -126,7 +127,7 @@ export function AdminPaymentTester() {
               })}
             </TableBody>
           </Table>
-        </div>
+        </DataTableShell>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { DataTableShell } from "@/components/ui/data-table";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -262,7 +263,7 @@ export default function MyAssignments() {
             </p>
           </div>
         ) : (
-          <div className="border hairline">
+          <DataTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -388,7 +389,7 @@ export default function MyAssignments() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </DataTableShell>
         )}
         </CardContent>
       </Card>
