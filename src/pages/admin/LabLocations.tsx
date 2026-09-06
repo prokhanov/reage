@@ -393,7 +393,7 @@ export default function LabLocations() {
             <span>Всего: {items.length}</span>
             <Badge variant="success" size="sm" dot>
               Активно: {items.filter((i) => i.is_active).length}
-            </span>
+            </Badge>
             <span>Показано: {filtered.length}</span>
           </div>
 
