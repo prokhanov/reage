@@ -15,28 +15,29 @@ interface Props {
 
 export function EnergyHero({ onAddToCart }: Props) {
   return (
-    <section className="relative flex flex-col-reverse overflow-hidden border-b hairline bg-background md:block md:min-h-[700px]">
-      {/* Photo area — right side on desktop, below text on mobile */}
-      <div className="relative mt-8 h-[300px] w-full overflow-hidden rounded-t-[2rem] md:absolute md:inset-y-0 md:right-0 md:mt-0 md:h-auto md:w-[54%] md:rounded-none">
+    <section className="relative flex flex-col-reverse overflow-hidden border-b hairline bg-background lg:block lg:min-h-[640px] xl:min-h-[700px]">
+      {/* Photo area — right side on desktop, below text on mobile/tablet */}
+      <div className="relative mt-8 aspect-[4/3] max-h-[420px] w-full overflow-hidden rounded-t-[2rem] sm:aspect-[16/9] lg:absolute lg:inset-y-0 lg:right-0 lg:mt-0 lg:aspect-auto lg:h-auto lg:max-h-none lg:w-[52%] lg:rounded-none">
 
         <img
           src={heroWoman}
           alt="Девушка с закрытыми глазами на солнце"
           width={1024}
           height={1024}
-          className="h-full w-full object-cover object-center"
+          sizes="(min-width: 1024px) 52vw, 100vw"
+          className="h-full w-full object-cover object-[50%_35%] lg:object-center"
         />
         {/* Soft organic curve blending photo into the light background */}
         <div
-          className="pointer-events-none absolute -left-[16%] -top-[10%] hidden h-[120%] w-[34%] rounded-[100%] bg-background md:block"
+          className="pointer-events-none absolute -left-[16%] -top-[10%] hidden h-[120%] w-[34%] rounded-[100%] bg-background lg:block"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-x-0 -top-8 h-16 rounded-[100%] bg-background md:hidden"
+          className="pointer-events-none absolute inset-x-0 -top-8 h-16 rounded-[100%] bg-background lg:hidden"
           aria-hidden
         />
         <p
-          className="absolute right-4 top-12 text-right text-[9px] font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 md:right-10 md:top-12 md:text-xs"
+          className="absolute right-4 top-8 text-right text-[9px] font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 sm:top-10 sm:text-[10px] lg:right-10 lg:top-12 lg:text-xs"
           style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
         >
           <span className="whitespace-nowrap">Больше энергии</span>
@@ -46,8 +47,9 @@ export function EnergyHero({ onAddToCart }: Props) {
         </p>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-12 md:px-6 md:pb-20 md:pt-24">
-        <div className="md:w-[48%] md:pr-8">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-10 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
+        <div className="lg:w-[48%] lg:pr-8">
+
           <span className="inline-flex items-center gap-2 rounded-full border hairline bg-card px-3 py-1 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             Анализы сдаются в LabQuest
