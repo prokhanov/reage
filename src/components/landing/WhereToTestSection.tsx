@@ -164,7 +164,7 @@ export function WhereToTestSection() {
                 <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
                   <div className="flex items-center gap-4 mb-5">
                     <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
-                      <Icon className="w-7 h-7 text-white" />
+                      <Icon className="w-7 h-7 text-primary-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

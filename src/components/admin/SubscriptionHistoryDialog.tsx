@@ -168,7 +168,7 @@ export function SubscriptionHistoryDialog({
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
                         <div className={`p-2 rounded-full ${config?.color || "bg-surface"}`}>
-                          <Icon className="w-4 h-4 text-white" />
+                          <Icon className="w-4 h-4 text-primary-foreground" />
                         </div>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">

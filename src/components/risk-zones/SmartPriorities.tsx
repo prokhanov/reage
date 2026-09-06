@@ -175,7 +175,7 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
             <CardHeader>
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-lg bg-gradient-to-r ${config.gradient} shrink-0`}>
-                  <Icon className="h-5 w-5 text-white" />
+                  <Icon className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div className="flex-1">
                   <CardTitle className="text-lg">{config.title}</CardTitle>

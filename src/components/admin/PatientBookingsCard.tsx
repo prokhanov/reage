@@ -99,7 +99,7 @@ const statusColors: Record<BookingStatus, string> = {
   application_submitted: "bg-info-soft text-info border-info",
   collected: "bg-success-soft text-success border-success",
   report_pending: "bg-primary text-primary border-primary",
-  report_ready: "bg-success text-white border-success",
+  report_ready: "bg-success text-primary-foreground border-success",
 };
 
 type TemplateKey =

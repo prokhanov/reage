@@ -54,15 +54,15 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
     });
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-border/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-muted-foreground/60">
+    <Card className="relative overflow-hidden rounded-2xl border border-border bg-card backdrop-blur-2xl shadow-card">
       <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full dark:bg-destructive/10 bg-destructive/30 blur-3xl pointer-events-none" />
       <CardContent className="relative p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-foreground">Статус систем организма</h3>
-            <p className="text-xs dark:text-white/55 text-muted-foreground mt-1">Средний статус по 7-сегментной модели</p>
+            <h3 className="text-lg md:text-xl font-bold text-foreground">Статус систем организма</h3>
+            <p className="text-xs text-muted-foreground mt-1">Средний статус по 7-сегментной модели</p>
           </div>
-          <div className="flex items-center gap-3 text-[10px] dark:text-white/60 text-muted-foreground">
+          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-destructive" /> Risks
             </span>
@@ -90,8 +90,8 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                 <div key={it.system} className="space-y-2">
                   <div className="flex items-end justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <Icon className="h-4 w-4 dark:text-white/70 text-muted-foreground shrink-0" />
-                      <span className="text-sm font-medium dark:text-white text-foreground truncate font-heading" style={{ fontWeight: 500 }}>
+                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-medium text-foreground truncate font-heading" style={{ fontWeight: 500 }}>
                         {it.system}
                       </span>
                       <div className="flex items-center gap-1 ml-1 shrink-0">
@@ -110,7 +110,7 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                     <span className={`text-sm font-heading font-bold tabular-nums ${c.text}`}>{it.score}%</span>
                   </div>
 
-                  <div className="relative h-3 rounded-full overflow-hidden dark:bg-white/5 bg-muted/70">
+                  <div className="relative h-3 rounded-full overflow-hidden bg-muted">
                     <div
                       className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
                       style={{

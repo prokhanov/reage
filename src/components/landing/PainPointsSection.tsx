@@ -90,7 +90,7 @@ function PainCard({
 export function PainPointsSection() {
   const painPoints = [
   {
-    icon: <AlertTriangle className="w-6 h-6 text-white" />,
+    icon: <AlertTriangle className="w-6 h-6 text-primary-foreground" />,
     painNumber: "01",
     painTitle: "Анализы «в норме», а самочувствие — нет",
     painDescription: "Врачи говорят: «Всё хорошо», но усталость, туман в голове и лишний вес никуда не уходят. Стандартные референсы слишком широкие.",
@@ -100,7 +100,7 @@ export function PainPointsSection() {
     delay: 0.1
   },
   {
-    icon: <TrendingDown className="w-6 h-6 text-white" />,
+    icon: <TrendingDown className="w-6 h-6 text-primary-foreground" />,
     painNumber: "02",
     painTitle: "Нет понимания динамики здоровья",
     painDescription: "Один анализ — это снимок. Вы не видите, улучшается ваше здоровье или ухудшается. Каждый раз как с чистого листа.",
@@ -110,7 +110,7 @@ export function PainPointsSection() {
     delay: 0.2
   },
   {
-    icon: <HelpCircle className="w-6 h-6 text-white" />,
+    icon: <HelpCircle className="w-6 h-6 text-primary-foreground" />,
     painNumber: "03",
     painTitle: "Непонятно, что делать с результатами",
     painDescription: "Получили PDF с цифрами — и что дальше? Гуглить? Идти к терапевту, который назначит ещё анализы?",

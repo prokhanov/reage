@@ -343,7 +343,7 @@ function AssistantWidgets() {
       <div className={`${glass} p-4`}>
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/40">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-info to-info flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
           <div>
             <div className="text-xs font-semibold">ReAge Ассистент</div>

@@ -28,15 +28,15 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
       {/* Биологический возраст */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Card className="cursor-pointer group bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60 hover:scale-[1.02] transition-transform">
+          <Card className="cursor-pointer group bg-card/40 backdrop-blur-xl border-border shadow-card hover:scale-[1.02] transition-transform">
             <CardContent className="p-5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm dark:text-white/60 text-muted-foreground font-medium">Биологический возраст</span>
+                <span className="text-sm text-muted-foreground font-medium">Биологический возраст</span>
                 <Activity className="h-4 w-4 dark:text-primary text-info" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold dark:text-white text-info">{bioAge != null ? bioAge.toFixed(1) : "—"}</span>
-                <span className="text-sm dark:text-white/50 text-muted-foreground">лет</span>
+                <span className="text-4xl font-bold text-info">{bioAge != null ? bioAge.toFixed(1) : "—"}</span>
+                <span className="text-sm text-muted-foreground">лет</span>
               </div>
               {delta != null && (
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -45,7 +45,7 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
                   {delta > 0 ? `−${delta} к паспортному` : delta < 0 ? `+${Math.abs(delta)} к паспортному` : "= паспортному"}
                 </div>
               )}
-              <p className="text-[11px] dark:text-white/40 text-muted-foreground inline-flex items-center gap-1">
+              <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
                 <Info className="h-3 w-3" /> Как мы считали
               </p>
             </CardContent>
@@ -66,45 +66,45 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
       </Dialog>
 
       {/* Индекс здоровья */}
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm dark:text-white/60 text-muted-foreground font-medium">Индекс здоровья</span>
+            <span className="text-sm text-muted-foreground font-medium">Индекс здоровья</span>
             <Heart className="h-4 w-4 dark:text-primary text-destructive" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold dark:text-white text-info">{healthIndex ?? "—"}</span>
-            <span className="text-sm dark:text-white/50 text-muted-foreground">/100</span>
+            <span className="text-4xl font-bold text-info">{healthIndex ?? "—"}</span>
+            <span className="text-sm text-muted-foreground">/100</span>
           </div>
           {indexTier && (
             <div className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${indexTier.cls}`}>
               {indexTier.label}
             </div>
           )}
-          <p className="text-[11px] dark:text-white/40 text-muted-foreground">Доля маркеров в зоне «оптимум»</p>
+          <p className="text-[11px] text-muted-foreground">Доля маркеров в зоне «оптимум»</p>
         </CardContent>
       </Card>
 
       {/* Перцентиль когорты */}
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm dark:text-white/60 text-muted-foreground font-medium">Перцентиль когорты</span>
+            <span className="text-sm text-muted-foreground font-medium">Перцентиль когорты</span>
             <TrendingUp className="h-4 w-4 dark:text-info text-info" />
           </div>
           {cohortPercentile != null ? (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold dark:text-white text-info">{cohortPercentile}%</span>
+                <span className="text-4xl font-bold text-info">{cohortPercentile}%</span>
               </div>
-              <p className="text-xs dark:text-white/60 text-muted-foreground leading-snug">
+              <p className="text-xs text-muted-foreground leading-snug">
                 Вы здоровее, чем {cohortPercentile}% {cohortLabel || "людей вашего возраста"}
               </p>
             </>
           ) : (
             <>
-              <span className="text-3xl font-bold dark:text-white/40 text-muted-foreground">—</span>
-              <p className="text-xs dark:text-white/40 text-muted-foreground">Недостаточно данных</p>
+              <span className="text-3xl font-bold text-muted-foreground">—</span>
+              <p className="text-xs text-muted-foreground">Недостаточно данных</p>
             </>
           )}
         </CardContent>

@@ -62,7 +62,7 @@ export function HowItWorksBlock() {
                   <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent blur-md opacity-50" />
                     <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 border-4 border-background">
-                      <span className="text-xl font-bold text-white">
+                      <span className="text-xl font-bold text-primary-foreground">
                         {step.num}
                       </span>
                     </div>

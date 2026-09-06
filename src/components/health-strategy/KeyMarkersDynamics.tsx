@@ -93,7 +93,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
 
   if (rows.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 dark:text-info text-info" />
@@ -106,13 +106,13 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Activity className="h-5 w-5 dark:text-info text-info" />
           Динамика ключевых маркеров
         </CardTitle>
-        <p className="text-xs dark:text-white/50 text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {previous.length > 0 ? "Сравнение с предыдущим чекапом" : "Текущие значения"}
         </p>
       </CardHeader>
@@ -120,7 +120,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
         <div className="overflow-x-auto -mx-2 px-2">
           <table className="w-full text-sm min-w-[520px]">
             <thead>
-              <tr className="text-[11px] uppercase dark:text-white/40 text-muted-foreground border-b dark:border-white/10 border-border/70">
+              <tr className="text-[11px] uppercase text-muted-foreground border-b border-border">
                 <th className="text-left py-2 font-medium">Маркер</th>
                 <th className="text-right py-2 font-medium">Прошлое</th>
                 <th className="text-right py-2 font-medium">Текущее</th>
@@ -140,14 +140,14 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
                     onClick={() => navigate(`/biomarkers?focus=${encodeURIComponent(r.code)}`)}
                   >
                     <td className="py-2.5">
-                      <div className="font-medium dark:text-white text-info">{r.name}</div>
-                      <div className="text-[11px] dark:text-white/40 text-muted-foreground">{r.category}</div>
+                      <div className="font-medium text-info">{r.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{r.category}</div>
                     </td>
-                    <td className="text-right py-2.5 font-heading dark:text-white/60 text-muted-foreground">
+                    <td className="text-right py-2.5 font-heading text-muted-foreground">
                       {r.prev != null ? `${r.prev}` : "—"}
                     </td>
-                    <td className="text-right py-2.5 font-heading dark:text-white text-info">
-                      {r.cur} <span className="text-[10px] dark:text-white/40 text-muted-foreground">{r.unit}</span>
+                    <td className="text-right py-2.5 font-heading text-info">
+                      {r.cur} <span className="text-[10px] text-muted-foreground">{r.unit}</span>
                     </td>
                     <td className="text-right py-2.5">
                       {r.deltaPct != null ? (
@@ -156,7 +156,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
                           {Math.abs(r.deltaPct) < 1 ? "0" : `${r.deltaPct > 0 ? "+" : ""}${r.deltaPct.toFixed(1)}`}%
                         </span>
                       ) : (
-                        <span className="text-xs dark:text-white/30 text-muted-foreground">—</span>
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
                     <td className="text-right py-2.5">

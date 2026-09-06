@@ -127,7 +127,7 @@ export function PhoneLoginForm() {
         >
           {loading ? (
             <span className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
               Отправка...
             </span>
           ) : (
@@ -171,7 +171,7 @@ export function PhoneLoginForm() {
       >
         {loading ? (
           <span className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             Проверка...
           </span>
         ) : (

@@ -360,7 +360,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary mb-4">
-              <Calendar className="h-8 w-8 text-white" />
+              <Calendar className="h-8 w-8 text-primary-foreground" />
             </div>
             <div className="bg-gradient-primary bg-clip-text text-transparent">
               Запись на анализы

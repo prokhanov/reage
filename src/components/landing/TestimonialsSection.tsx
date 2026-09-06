@@ -49,7 +49,7 @@ function TestimonialCard({ quote, author, role, avatar, rating, highlight, delay
         
         {/* Author */}
         <div className="flex items-center gap-4 mt-auto">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-lg">
             {avatar}
           </div>
           <div>

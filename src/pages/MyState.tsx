@@ -214,7 +214,7 @@ const severityLevels = [
   { value: 0, label: "Нет", color: "text-muted-foreground", badgeVariant: "secondary" as const },
   { value: 1, label: "Легко", color: "text-warning", badgeVariant: "outline" as const },
   { value: 2, label: "Средне", color: "text-warning", badgeVariant: "outline" as const },
-  { value: 3, label: "Сильно", color: "text-white", badgeVariant: "destructive" as const }
+  { value: 3, label: "Сильно", color: "text-primary-foreground", badgeVariant: "destructive" as const }
 ];
 
 interface SymptomRecord {

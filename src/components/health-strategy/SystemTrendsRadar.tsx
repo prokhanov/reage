@@ -25,7 +25,7 @@ export function SystemTrendsRadar({ currentScores, previousScores, categoryOrder
 
   if (data.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Hexagon className="h-5 w-5 dark:text-primary text-info" />
@@ -43,13 +43,13 @@ export function SystemTrendsRadar({ currentScores, previousScores, categoryOrder
   const prevColor = isDark ? "rgba(148,163,184,0.7)" : "rgba(100,116,139,0.6)";
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-border/60 dark:shadow-none shadow-xl shadow-muted-foreground/60">
+    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Hexagon className="h-5 w-5 dark:text-primary text-info" />
           Системные тренды
         </CardTitle>
-        <p className="text-xs dark:text-white/50 text-muted-foreground">Баланс 5 систем организма (0–100)</p>
+        <p className="text-xs text-muted-foreground">Баланс 5 систем организма (0–100)</p>
       </CardHeader>
       <CardContent>
         <div className="h-[320px] w-full">
@@ -76,7 +76,7 @@ export function SystemTrendsRadar({ currentScores, previousScores, categoryOrder
             </RadarChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex items-center justify-center gap-4 text-xs dark:text-white/60 text-muted-foreground">
+        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-block w-3 h-0.5 rounded" style={{ background: currentColor }} /> Сейчас
           </span>

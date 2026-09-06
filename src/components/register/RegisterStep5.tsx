@@ -256,7 +256,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
         {card.badge && (
           <div className={cn(
             "absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap",
-            card.isPopular ? "bg-gradient-to-r from-primary to-accent text-white" : "bg-muted text-muted-foreground"
+            card.isPopular ? "bg-gradient-to-r from-primary to-accent text-primary-foreground" : "bg-muted text-muted-foreground"
           )}>
             {card.isPopular && <Sparkles className="inline h-3 w-3 mr-1" />}
             {card.badge}
@@ -422,7 +422,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-primary mb-2">
-          <Rabbit className="h-7 w-7 text-white" />
+          <Rabbit className="h-7 w-7 text-primary-foreground" />
         </div>
         <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
           Выберите подписку
@@ -465,7 +465,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <button
           type="button"
           onClick={() => setComparisonOpen(true)}
-          className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl text-base font-semibold text-white bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-[1.03] transition-all duration-300"
+          className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl text-base font-semibold text-primary-foreground bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-[1.03] transition-all duration-300"
         >
           Сравнить тарифы
           <ArrowRight className="w-4 h-4" />

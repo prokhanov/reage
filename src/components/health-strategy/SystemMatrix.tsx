@@ -58,17 +58,17 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
   });
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-border/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-muted-foreground/60">
+    <Card className="relative overflow-hidden rounded-2xl border border-border bg-card backdrop-blur-2xl shadow-card">
       <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full dark:bg-destructive/15 bg-destructive/30 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full dark:bg-success/15 bg-success-soft/30 blur-3xl pointer-events-none" />
 
       <CardContent className="relative p-5 md:p-6 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-foreground">Статус систем организма</h3>
-            <p className="text-xs dark:text-white/55 text-muted-foreground mt-1">Средний статус биомаркеров и динамика</p>
+            <h3 className="text-lg md:text-xl font-bold text-foreground">Статус систем организма</h3>
+            <p className="text-xs text-muted-foreground mt-1">Средний статус биомаркеров и динамика</p>
           </div>
-          <div className="flex items-center gap-2 text-[11px] dark:text-white/55 text-muted-foreground shrink-0">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground shrink-0">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ background: isDark ? "#ff2d55" : "#fb7185" }} /> Risk
             </span>
@@ -98,10 +98,10 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
               <div key={s.name} className="space-y-2">
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg dark:bg-white/5 bg-muted flex items-center justify-center shrink-0">
-                      <Icon className="h-3.5 w-3.5 dark:text-white/80 text-foreground" />
+                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Icon className="h-3.5 w-3.5 text-foreground" />
                     </div>
-                    <span className="font-medium truncate dark:text-white text-foreground">{s.name}</span>
+                    <span className="font-medium truncate text-foreground">{s.name}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {s.delta != null && (
@@ -110,14 +110,14 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
                         {s.delta > 0 ? "+" : ""}{s.delta}
                       </span>
                     )}
-                    <span className="font-heading font-bold text-sm tabular-nums dark:text-white text-foreground">
+                    <span className="font-heading font-bold text-sm tabular-nums text-foreground">
                       {hasData ? `${score}%` : "—"}
                     </span>
                   </div>
                 </div>
 
                 {/* Track: full gradient at low opacity, fill at full opacity clipped to score */}
-                <div className="relative h-2.5 rounded-full overflow-hidden dark:bg-white/5 bg-muted/60">
+                <div className="relative h-2.5 rounded-full overflow-hidden bg-muted">
                   <div
                     className="absolute inset-0"
                     style={{ background: trackGradient, opacity: isDark ? 0.18 : 0.25 }}
@@ -138,8 +138,8 @@ export function SystemMatrix({ values, previousValues = [], age, gender, systemG
                 </div>
 
                 {s.goal?.goal && (
-                  <p className="text-[11px] dark:text-white/55 text-muted-foreground pl-9 leading-snug">
-                    <span className="dark:text-white/80 text-foreground font-medium">Цель:</span> {s.goal.goal}
+                  <p className="text-[11px] text-muted-foreground pl-9 leading-snug">
+                    <span className="text-foreground font-medium">Цель:</span> {s.goal.goal}
                   </p>
                 )}
               </div>
