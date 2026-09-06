@@ -3,6 +3,7 @@ import { DataTableShell } from "@/components/ui/data-table";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/Page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Info, Activity, Brain, X } from "lucide-react";
 import {
@@ -749,7 +750,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+    <PageContainer width="wide">
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-start gap-2 md:gap-3 min-w-0 w-full md:w-auto">
@@ -763,13 +764,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </Button>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-foreground">
+                <h1 className="text-2xl md:text-3xl tracking-tight text-foreground">
                   {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
                   })}
-                </h2>
+                </h1>
                 {analysis && <AnalysisStatusBadge status={analysis.status} />}
               </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-0.5">

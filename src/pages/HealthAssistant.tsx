@@ -291,7 +291,7 @@ export default function HealthAssistant() {
               <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold text-foreground truncate">
+              <h1 className="text-2xl sm:text-3xl tracking-tight text-foreground truncate">
                 AI Ассистент
               </h1>
               <p className="text-xs sm:text-base text-muted-foreground truncate">
@@ -309,7 +309,7 @@ export default function HealthAssistant() {
         </div>
       </div>
 
-      <Card className="flex flex-col sm:flex-1 sm:min-h-0 bg-card border-border max-sm:border-0 max-sm:bg-transparent max-sm:rounded-none max-sm:shadow-none">
+      <Card variant="flat" className="flex flex-col sm:flex-1 sm:min-h-0 max-sm:border-0 max-sm:bg-transparent max-sm:rounded-none">
         <div
           ref={scrollRef}
           className="p-4 sm:p-6 sm:flex-1 sm:overflow-y-auto"
