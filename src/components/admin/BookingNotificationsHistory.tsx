@@ -160,7 +160,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
                         {badge.label}
                       </Badge>
                       {e.errorMessage && (
-                        <div className="text-[11px] text-destructive dark:text-destructive max-w-md break-words">
+                        <div className="text-xs text-destructive dark:text-destructive max-w-md break-words">
                           {e.errorMessage}
                         </div>
                       )}

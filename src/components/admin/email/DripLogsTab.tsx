@@ -94,10 +94,10 @@ export default function DripLogsTab() {
   return (
     <div className="space-y-4">
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2">
           {tiles.map((t) => (
             <Card key={t.k}><CardContent className="p-3">
-              <div className="text-[11px] text-muted-foreground uppercase tracking-wide">{t.l}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">{t.l}</div>
               <div className={`text-xl font-bold ${t.c}`}>{summary[t.k] ?? 0}</div>
             </CardContent></Card>
           ))}

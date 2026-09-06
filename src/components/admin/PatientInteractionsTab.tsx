@@ -143,7 +143,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   return (
     <div className="space-y-4">
       {/* Statistics */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{totalInteractions}</div>

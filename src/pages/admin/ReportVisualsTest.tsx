@@ -418,7 +418,7 @@ export default function ReportVisualsTest() {
             </div>
             <div className="text-sm font-medium">{patientLabel}</div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:flex sm:items-center">
             <Button
               variant={paginated ? "default" : "outline"}
               size="sm"

@@ -697,7 +697,7 @@ function CreateBookingForPatientDialog({
           <DialogTitle>Новая запись на анализ</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Дата</Label>
               <Popover>
@@ -944,7 +944,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {emailOn && emailChanged && (
-              <p className="text-[11px] text-warning dark:text-warning">
+              <p className="text-xs text-warning dark:text-warning">
                 Адрес отличается от email пациента — письмо уйдёт разово на указанный адрес,
                 профиль пациента не изменится.
               </p>
@@ -974,7 +974,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {smsOn && phoneChanged && (
-              <p className="text-[11px] text-warning dark:text-warning">
+              <p className="text-xs text-warning dark:text-warning">
                 Номер отличается от телефона пациента — SMS уйдёт разово на указанный номер,
                 профиль пациента не изменится.
               </p>

@@ -300,7 +300,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                                 {biomarker.name}
                               </Label>
                               {isCalculated && (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                   <Calculator className="h-3 w-3" />
                                   Расчётный
                                 </span>
@@ -336,7 +336,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             {!ranges && ' • Норма: не указана'}
                           </p>
                           {formulaHint && (
-                            <p className="text-[11px] text-muted-foreground italic">
+                            <p className="text-xs text-muted-foreground italic">
                               Формула: {formulaHint}
                             </p>
                           )}

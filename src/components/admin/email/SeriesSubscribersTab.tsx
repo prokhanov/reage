@@ -163,10 +163,10 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
   return (
     <div className="space-y-4">
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
           {summaryTiles.map((t) => (
             <Card key={t.k}><CardContent className="p-3">
-              <div className="text-[11px] text-muted-foreground uppercase tracking-wide">{t.l}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">{t.l}</div>
               <div className={`text-xl font-bold ${t.c}`}>{(summary as any)[t.k] ?? 0}</div>
             </CardContent></Card>
           ))}
@@ -248,14 +248,14 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                       </td>
                       <td className="p-3">
                         <StatusBadge status={s.overall_status} label={STATUS_LABEL[s.overall_status] ?? getStatusLabel(s.overall_status)} />
-                        {s.unsubscribe_scope && <div className="text-[10px] text-muted-foreground mt-1">отписка: {s.unsubscribe_scope}</div>}
+                        {s.unsubscribe_scope && <div className="text-xs text-muted-foreground mt-1">отписка: {s.unsubscribe_scope}</div>}
                       </td>
                       <td className="p-3 min-w-[140px]">
                         <div className="flex items-center gap-2">
                           <Progress value={pct} className="h-2 flex-1" />
                           <span className="text-xs text-muted-foreground tabular-nums">{s.progress_sent}/{s.progress_total}</span>
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-1 flex gap-2 flex-wrap">
+                        <div className="text-xs text-muted-foreground mt-1 flex gap-2 flex-wrap">
                           {s.counts.pending > 0 && <span>в очереди: {s.counts.pending}</span>}
                           {s.counts.skipped > 0 && <span>пропущено: {s.counts.skipped}</span>}
                           {s.counts.failed > 0 && <span className="text-destructive">ошибок: {s.counts.failed}</span>}
@@ -268,7 +268,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                               {s.last_step_index !== null && <span className="text-muted-foreground">#{s.last_step_index} </span>}
                               {s.last_step_subject}
                             </div>
-                            {s.last_sent_at && <div className="text-[10px] text-muted-foreground">{new Date(s.last_sent_at).toLocaleString("ru-RU")}</div>}
+                            {s.last_sent_at && <div className="text-xs text-muted-foreground">{new Date(s.last_sent_at).toLocaleString("ru-RU")}</div>}
                           </>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
@@ -282,7 +282,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                               s.delivery_status === "bounced" || s.delivery_status === "failed" || s.delivery_status === "complained" ? "destructive" :
                               "secondary"
                             }
-                            className="text-[10px]"
+                            className="text-xs"
                           >
                             {s.delivery_status}
                           </Badge>

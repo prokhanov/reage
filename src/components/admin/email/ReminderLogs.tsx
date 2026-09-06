@@ -108,7 +108,7 @@ export default function ReminderLogs() {
                     <div className="flex items-center gap-2">
                       {TYPE_LABELS[r.template_name] || r.template_name}
                       {r.metadata?.test && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
+                        <Badge variant="outline" className="text-xs px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
                           Тест
                         </Badge>
                       )}

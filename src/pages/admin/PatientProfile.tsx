@@ -290,7 +290,7 @@ export default function PatientProfile() {
                   <h2 className="text-2xl tracking-tight">{profile.name || "Без имени"}</h2>
                   <Badge variant="outline">{profile.gender === "male" ? "Мужчина" : "Женщина"}</Badge>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <div>

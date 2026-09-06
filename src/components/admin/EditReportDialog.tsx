@@ -602,7 +602,7 @@ export function EditReportDialog({
                       Классический
                     </ToggleGroupItem>
                     <ToggleGroupItem value="v2" className="h-7 px-2 text-xs data-[state=on]:bg-background">
-                      Новый <UiBadge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">Beta</UiBadge>
+                      Новый <UiBadge variant="secondary" className="ml-1 h-4 px-1 text-xs">Beta</UiBadge>
                     </ToggleGroupItem>
                   </ToggleGroup>
                 )}

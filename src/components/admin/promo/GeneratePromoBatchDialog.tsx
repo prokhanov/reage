@@ -133,7 +133,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Название партии</Label>
                 <Input
@@ -151,7 +151,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Префикс</Label>
                 <Input
@@ -183,7 +183,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Тип скидки</Label>
                 <Select value={discountType} onValueChange={(v) => setDiscountType(v as PromoDiscountType)}>
@@ -241,7 +241,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Лимит на код</Label>
                 <Input
@@ -258,7 +258,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Действует с</Label>
                 <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />

@@ -75,7 +75,7 @@ function ScaleUnit({ value, compact = false }: { value: number; compact?: boolea
       </div>
       <ArrowS pos={valuePos} />
       <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
-      <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
+      <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
         Оптимальный диапазон:{" "}
         <span className="font-mono font-medium text-foreground tabular-nums">

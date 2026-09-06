@@ -154,7 +154,7 @@ export function CreateInteractionDialog({
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Тип взаимодействия*</Label>
               <Select 
@@ -212,7 +212,7 @@ export function CreateInteractionDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Дата взаимодействия*</Label>
               <Popover>
@@ -274,7 +274,7 @@ export function CreateInteractionDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Связанный анализ</Label>
               <Select 

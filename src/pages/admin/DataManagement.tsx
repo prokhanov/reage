@@ -1267,7 +1267,7 @@ export default function DataManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveBiomarker} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Название *</Label>
                 <Input
@@ -1290,7 +1290,7 @@ export default function DataManagement() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="unit">Единица измерения *</Label>
                 <Input
@@ -1353,7 +1353,7 @@ export default function DataManagement() {
                 <div className="h-full flex-1 bg-status-risk" title="Риск верх" />
                 <div className="h-full flex-1 bg-status-critical" title="Критично верх" />
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+              <div className="flex justify-between text-xs text-muted-foreground px-1">
                 <span>🔴 Крит.</span>
                 <span>🟠 Риск</span>
                 <span>🟡 Допуст.</span>
@@ -1369,7 +1369,7 @@ export default function DataManagement() {
             {/* Priority hint */}
             <div className="rounded-lg border border-border bg-muted/40 p-2.5 flex items-start gap-2">
               <span className="text-sm">ℹ️</span>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 <span className="font-medium text-foreground">Приоритет: Гендерные → Общий.</span>{' '}
                 Если задано значение для Мужчин/Женщин, оно используется вместо общего. Общий диапазон — fallback, когда гендерный не задан.
               </p>
@@ -1382,17 +1382,17 @@ export default function DataManagement() {
               {/* 🔴 critical_min — boundary between Critical Low and Risk Low */}
               <div className="rounded-lg border border-status-critical/30 bg-status-critical/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-critical">🔴 Критично низ</span> → <span className="text-status-risk">🟠 Риск низ</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.critical_min_male != null || editingBiomarker?.critical_min_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.critical_min_male != null || editingBiomarker?.critical_min_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.critical_min_male != null || editingBiomarker?.critical_min_female != null) ? ' (fallback)' : ''}</Label>
                     <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input name="critical_min_male" type="number" step="any" defaultValue={editingBiomarker?.critical_min_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_min_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input name="critical_min_female" type="number" step="any" defaultValue={editingBiomarker?.critical_min_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_min_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1401,17 +1401,17 @@ export default function DataManagement() {
               {/* 🟠 normal_min — boundary between Risk Low and Acceptable Low */}
               <div className="rounded-lg border border-status-risk/30 bg-status-risk/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-risk">🟠 Риск низ</span> → <span className="text-status-acceptable">🟡 Допустимо низ</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.normal_min_male != null || editingBiomarker?.normal_min_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.normal_min_male != null || editingBiomarker?.normal_min_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.normal_min_male != null || editingBiomarker?.normal_min_female != null) ? ' (fallback)' : ''}</Label>
                     <Input id="normal_min" name="normal_min" type="number" step="any" defaultValue={editingBiomarker?.normal_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input id="normal_min_male" name="normal_min_male" type="number" step="any" defaultValue={editingBiomarker?.normal_min_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_min_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input id="normal_min_female" name="normal_min_female" type="number" step="any" defaultValue={editingBiomarker?.normal_min_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_min_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1420,17 +1420,17 @@ export default function DataManagement() {
               {/* 🟡 optimal_min — boundary between Acceptable Low and Optimal */}
               <div className="rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-acceptable">🟡 Допустимо низ</span> → <span className="text-status-optimal">🟢 Оптимально</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.optimal_min_male != null || editingBiomarker?.optimal_min_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.optimal_min_male != null || editingBiomarker?.optimal_min_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.optimal_min_male != null || editingBiomarker?.optimal_min_female != null) ? ' (fallback)' : ''}</Label>
                     <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1438,21 +1438,21 @@ export default function DataManagement() {
 
               {/* 🟢 Optimal zone display */}
               <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Label className="text-xs text-muted-foreground">Общий</Label>
                     <p className="text-xs font-semibold text-status-optimal">
                       🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min, editingBiomarker?.optimal_max)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <p className="text-xs font-semibold text-status-optimal">
                       🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min_male, editingBiomarker?.optimal_max_male)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <p className="text-xs font-semibold text-status-optimal">
                       🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min_female, editingBiomarker?.optimal_max_female)}
                     </p>
@@ -1463,17 +1463,17 @@ export default function DataManagement() {
               {/* 🟡 optimal_max — boundary between Optimal and Acceptable High */}
               <div className="rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-optimal">🟢 Оптимально</span> → <span className="text-status-acceptable">🟡 Допустимо верх</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.optimal_max_male != null || editingBiomarker?.optimal_max_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.optimal_max_male != null || editingBiomarker?.optimal_max_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.optimal_max_male != null || editingBiomarker?.optimal_max_female != null) ? ' (fallback)' : ''}</Label>
                     <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1482,17 +1482,17 @@ export default function DataManagement() {
               {/* 🟠 normal_max — boundary between Acceptable High and Risk High */}
               <div className="rounded-lg border border-status-risk/30 bg-status-risk/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-acceptable">🟡 Допустимо верх</span> → <span className="text-status-risk">🟠 Риск верх</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.normal_max_male != null || editingBiomarker?.normal_max_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.normal_max_male != null || editingBiomarker?.normal_max_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.normal_max_male != null || editingBiomarker?.normal_max_female != null) ? ' (fallback)' : ''}</Label>
                     <Input id="normal_max" name="normal_max" type="number" step="any" defaultValue={editingBiomarker?.normal_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input id="normal_max_male" name="normal_max_male" type="number" step="any" defaultValue={editingBiomarker?.normal_max_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_max_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input id="normal_max_female" name="normal_max_female" type="number" step="any" defaultValue={editingBiomarker?.normal_max_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_max_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1501,17 +1501,17 @@ export default function DataManagement() {
               {/* 🔴 critical_max — boundary between Risk High and Critical High */}
               <div className="rounded-lg border border-status-critical/30 bg-status-critical/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-risk">🟠 Риск верх</span> → <span className="text-status-critical">🔴 Критично верх</span></Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.critical_max_male != null || editingBiomarker?.critical_max_female != null) ? 'opacity-50' : ''}`}>
-                    <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.critical_max_male != null || editingBiomarker?.critical_max_female != null) ? ' (fallback)' : ''}</Label>
+                    <Label className="text-xs text-muted-foreground">Общий{(editingBiomarker?.critical_max_male != null || editingBiomarker?.critical_max_female != null) ? ' (fallback)' : ''}</Label>
                     <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Label className="text-xs text-muted-foreground">Мужчины</Label>
                     <Input name="critical_max_male" type="number" step="any" defaultValue={editingBiomarker?.critical_max_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_max_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Label className="text-xs text-muted-foreground">Женщины</Label>
                     <Input name="critical_max_female" type="number" step="any" defaultValue={editingBiomarker?.critical_max_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_max_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
@@ -1602,30 +1602,30 @@ export default function DataManagement() {
                       </Button>
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🔴 Крит. низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🔴 Крит. низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateMale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟠 Риск низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🟠 Риск низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.min} onChange={(e) => updateMale('min', Number(e.target.value))} placeholder="Min" />
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🟡 Допуст. низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateMale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-optimal/30 bg-status-optimal/10 p-2 text-center">
-                      <Label className="text-[10px] font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
+                      <Label className="text-xs font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🟡 Допуст. верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateMale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟠 Риск верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🟠 Риск верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.max} onChange={(e) => updateMale('max', Number(e.target.value))} placeholder="Max" />
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🔴 Крит. верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🔴 Крит. верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateMale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                   </div>
@@ -1666,30 +1666,30 @@ export default function DataManagement() {
                       </Button>
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🔴 Крит. низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🔴 Крит. низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_min ?? ''} onChange={(e) => updateFemale('critical_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟠 Риск низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🟠 Риск низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.min} onChange={(e) => updateFemale('min', Number(e.target.value))} placeholder="Min" />
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. низ</Label>
+                      <Label className="text-xs whitespace-nowrap">🟡 Допуст. низ</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_min ?? ''} onChange={(e) => updateFemale('optimal_min', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-optimal/30 bg-status-optimal/10 p-2 text-center">
-                      <Label className="text-[10px] font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
+                      <Label className="text-xs font-medium text-status-optimal">🟢 Оптимальная зона: <span className="font-semibold">{fmtRange(range.optimal_min, range.optimal_max)}</span></Label>
                     </div>
                     <div className="rounded border border-status-acceptable/30 bg-status-acceptable/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟡 Допуст. верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🟡 Допуст. верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.optimal_max ?? ''} onChange={(e) => updateFemale('optimal_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                     <div className="rounded border border-status-risk/30 bg-status-risk/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🟠 Риск верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🟠 Риск верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.max} onChange={(e) => updateFemale('max', Number(e.target.value))} placeholder="Max" />
                     </div>
                     <div className="rounded border border-status-critical/30 bg-status-critical/5 p-2 flex items-center gap-2">
-                      <Label className="text-[10px] whitespace-nowrap">🔴 Крит. верх</Label>
+                      <Label className="text-xs whitespace-nowrap">🔴 Крит. верх</Label>
                       <Input className="h-control-sm text-xs" type="number" step="any" value={range.critical_max ?? ''} onChange={(e) => updateFemale('critical_max', e.target.value ? Number(e.target.value) : '')} placeholder="—" />
                     </div>
                   </div>

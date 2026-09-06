@@ -467,7 +467,7 @@ export default function SmsSettings() {
                                 <span>·</span>
                                 <span>Переменные:</span>
                                 {t.variables.map((v) => (
-                                  <Badge key={v} variant="secondary" className="text-[10px]">{`{{${v}}}`}</Badge>
+                                  <Badge key={v} variant="secondary" className="text-xs">{`{{${v}}}`}</Badge>
                                 ))}
                               </>
                             )}

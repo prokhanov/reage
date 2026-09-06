@@ -181,7 +181,7 @@ export default function DripCampaigns() {
         </div>
 
         {scheduleStats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             {[
               { k: 'pending', l: 'В очереди', c: 'text-info' },
               { k: 'sent', l: 'Отправлено', c: 'text-success' },
@@ -253,7 +253,7 @@ export default function DripCampaigns() {
                               <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
                                 <span>{delayLabel(st.delay_value, st.delay_unit)}</span>
                                 {(st.cancel_conditions?.length ?? 0) > 0 && <span>· {st.cancel_conditions.length} усл. отмены</span>}
-                                {!st.is_active && <Badge variant="secondary" className="text-[10px]">выключен</Badge>}
+                                {!st.is_active && <Badge variant="secondary" className="text-xs">выключен</Badge>}
                               </div>
                             </div>
                             <Button size="sm" variant="ghost" onClick={() => sendTest(st.id)}><Send className="w-4 h-4" /></Button>
@@ -340,7 +340,7 @@ export default function DripCampaigns() {
             <DialogHeader><DialogTitle>Редактор шага</DialogTitle></DialogHeader>
             {editingStep && (
               <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div><Label>Задержка</Label><Input type="number" value={editingStep.delay_value} onChange={e => setEditingStep({ ...editingStep, delay_value: Number(e.target.value) })} /></div>
                   <div><Label>Единица</Label>
                     <Select value={editingStep.delay_unit} onValueChange={v => setEditingStep({ ...editingStep, delay_unit: v })}>
@@ -364,7 +364,7 @@ export default function DripCampaigns() {
                   </Label>
                   <Textarea rows={10} className="font-mono text-sm" value={editingStep.body_markdown} onChange={e => setEditingStep({ ...editingStep, body_markdown: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><Label>Кнопка — текст</Label><Input value={editingStep.cta_label ?? ''} onChange={e => setEditingStep({ ...editingStep, cta_label: e.target.value })} /></div>
                   <div><Label>Кнопка — ссылка</Label><Input value={editingStep.cta_url ?? ''} placeholder="{{dashboard_url}}" onChange={e => setEditingStep({ ...editingStep, cta_url: e.target.value })} /></div>
                 </div>

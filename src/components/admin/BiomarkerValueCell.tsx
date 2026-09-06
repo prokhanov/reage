@@ -118,7 +118,7 @@ function ScaleBar({
           }}
         />
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
         <div>Норма: <span className="text-foreground">{formatNormalRange(norm.min, norm.max)} {biomarker.unit}</span></div>
         {(opt.min != null || opt.max != null) && (
           <div>Оптимум: <span className="text-foreground">{formatNormalRange(opt.min, opt.max)}</span></div>
@@ -190,7 +190,7 @@ export function BiomarkerValueCell({ value, onChange, biomarker, age, gender, hi
           </TooltipProvider>
         )}
       </div>
-      {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+      {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }
