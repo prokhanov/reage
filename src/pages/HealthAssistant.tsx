@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
+import { Send, Bot, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { useToast } from "@/hooks/use-toast";
@@ -283,174 +283,145 @@ export default function HealthAssistant() {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 pt-4 sm:pt-6 max-sm:pb-[100px] sm:h-[calc(100dvh-2rem)] md:h-[calc(100dvh-4rem)] sm:flex sm:flex-col sm:overflow-hidden">
-      <div className="mb-3 sm:mb-4 flex-shrink-0">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary flex items-center justify-center shadow-md flex-shrink-0">
-              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl tracking-tight text-foreground truncate">
-                AI Ассистент
-              </h1>
-              <p className="text-xs sm:text-base text-muted-foreground truncate">
-                Персональный помощник по здоровью
-              </p>
-            </div>
+    <div className="container mx-auto w-full min-w-0 max-w-6xl px-4 py-6 md:py-8 max-sm:pb-[104px] sm:h-[calc(100dvh-2rem)] md:h-[calc(100dvh-4rem)] sm:flex sm:flex-col sm:overflow-hidden">
+      <header className="mb-6 flex-shrink-0 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1">
+            <p className="label-mono">AI Ассистент</p>
+            <h1 className="text-2xl md:text-3xl tracking-tight break-words">
+              Персональный помощник по здоровью
+            </h1>
+            <p className="max-w-3xl text-sm text-muted-foreground">
+              Знает ваши анализы, симптомы и назначения — спрашивайте о чём угодно.
+            </p>
           </div>
-          <ChatHistoryDropdown
-            conversations={conversations || []}
-            currentConversationId={currentConversationId}
-            onSelectConversation={handleSwitchConversation}
-            onNewChat={handleNewChat}
-            onDeleteConversation={(id) => deleteConversation.mutate(id)}
-          />
+          <div className="flex shrink-0 items-center gap-2">
+            <ChatHistoryDropdown
+              conversations={conversations || []}
+              currentConversationId={currentConversationId}
+              onSelectConversation={handleSwitchConversation}
+              onNewChat={handleNewChat}
+              onDeleteConversation={(id) => deleteConversation.mutate(id)}
+            />
+          </div>
         </div>
-      </div>
+      </header>
 
       <Card variant="flat" className="flex flex-col sm:flex-1 sm:min-h-0 max-sm:border-0 max-sm:bg-transparent max-sm:rounded-none">
         <div
           ref={scrollRef}
           className="p-4 sm:p-6 sm:flex-1 sm:overflow-y-auto"
+          onScroll={(e) => {
+            const element = e.currentTarget;
+            const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+            isAutoScrollEnabled.current = isNearBottom;
+          }}
+        >
+          <div className="space-y-5 sm:space-y-6">
+            {messages.map((message, index) => {
+              const normalizedContent =
+                message.role === "assistant" ? normalizeMarkdown(message.content) : message.content;
 
-
-
-
-            onScroll={(e) => {
-              const element = e.currentTarget;
-              const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
-              isAutoScrollEnabled.current = isNearBottom;
-            }}
-          >
-            <div className="space-y-4 sm:space-y-6">
-              {messages.map((message, index) => {
-                const normalizedContent = message.role === "assistant" 
-                  ? normalizeMarkdown(message.content) 
-                  : message.content;
-                
-                return (
+              return (
                 <div
                   key={index}
-                  className={`flex gap-2 sm:gap-3 ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
-                      <Bot className="w-4 h-4 text-primary-foreground" />
+                    <div className="mt-0.5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border hairline bg-surface sm:flex">
+                      <Bot className="h-4 w-4 text-primary" />
                     </div>
                   )}
-                  
-                  <div
-                    className={`max-w-[92%] sm:max-w-[80%] rounded-xl px-4 py-3 ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-surface text-foreground border border-border"
-                    }`}
-                  >
-                    {message.role === "assistant" ? (
-                      <MarkdownContent
-                        content={normalizedContent}
-                        className="text-sm"
-                      />
-                    ) : (
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                    )}
-                  </div>
+
+                  {message.role === "assistant" ? (
+                    <div className="min-w-0 max-w-[92%] sm:max-w-[80%]">
+                      <MarkdownContent content={normalizedContent} className="text-sm" />
+                    </div>
+                  ) : (
+                    <div className="max-w-[92%] rounded-xl bg-primary px-4 py-3 text-primary-foreground sm:max-w-[80%]">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  )}
 
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-secondary hidden sm:flex items-center justify-center flex-shrink-0 border border-border">
-                      <User className="w-4 h-4 text-foreground" />
+                    <div className="mt-0.5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border hairline bg-surface sm:flex">
+                      <User className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
                 </div>
               );
-              })}
+            })}
 
-              {isLoading && (
-                <div className="flex gap-2 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
-                    <Bot className="w-4 h-4 text-primary-foreground animate-pulse" />
-                  </div>
-                  <div className="bg-surface rounded-xl px-4 py-3 border border-border">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-                      <div
-                        className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      />
-                    </div>
-                  </div>
+            {isLoading && (
+              <div className="flex gap-3">
+                <div className="mt-0.5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border hairline bg-surface sm:flex">
+                  <Bot className="h-4 w-4 text-primary" />
                 </div>
-              )}
+                <div className="flex items-center gap-1.5 py-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce" />
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  />
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
+        {messages.length === 1 && (
+          <div className="border-t hairline p-4 sm:p-6">
+            <p className="label-mono mb-3">Попробуйте спросить</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {suggestedQuestions.map((question, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setInput(question)}
+                  className="h-auto justify-start whitespace-normal py-2 text-left"
+                >
+                  {question}
+                </Button>
+              ))}
             </div>
           </div>
+        )}
 
-          {messages.length === 1 && (
-            <div className="p-3 sm:p-4 border-t border-border">
+        <form
+          onSubmit={handleSubmit}
+          className="flex-shrink-0 border-t hairline p-4 sm:p-6 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background"
+        >
+          <div className="flex items-end gap-2">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              placeholder="Задайте вопрос..."
+              className="min-h-[48px] max-h-[140px] resize-none"
+              disabled={isLoading}
+            />
+            <Button type="submit" size="icon" disabled={!input.trim() || isLoading} className="h-11 w-11 shrink-0">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
 
-              <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                Попробуйте задать вопрос:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {suggestedQuestions.map((question, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setInput(question);
-                    }}
-                    className="text-left justify-start h-auto py-2 px-3 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                  >
-                    {question}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border flex-shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background max-sm:border-border">
-            <div className="flex gap-2">
-              <Textarea
-                ref={textareaRef}
-
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-                placeholder="Задайте вопрос..."
-                className="min-h-[48px] sm:min-h-[60px] max-h-[120px] resize-none bg-background"
-                disabled={isLoading}
-              />
-              <Button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="h-[48px] sm:h-[60px] px-4 sm:px-6 bg-primary hover:opacity-90 shadow-md"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <p className="text-xs text-muted-foreground mt-2 hidden sm:block">
-              Нажмите Enter для отправки, Shift+Enter для новой строки
-            </p>
-
-          </form>
-        </Card>
-      </div>
+          <p className="mt-2 hidden text-xs text-muted-foreground sm:block">
+            Enter — отправить, Shift+Enter — новая строка
+          </p>
+        </form>
+      </Card>
+    </div>
   );
 }
+
