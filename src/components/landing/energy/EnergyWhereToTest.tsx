@@ -117,7 +117,7 @@ export function EnergyWhereToTest() {
                 clusterMarkers
                 showSelectButton
                 selectedId={selectedId ?? undefined}
-                onSelect={(id: string) => setSelectedId(id)}
+                onSelect={(item) => setSelectedId(item.id)}
               />
             </Suspense>
           </div>
