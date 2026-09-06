@@ -178,9 +178,9 @@ export default function Subscription() {
       {/* Hero Section */}
       <div className="text-center space-y-2 md:space-y-4 mb-6 md:mb-12">
         <div className="inline-flex items-center justify-center w-12 h-12 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-2 md:mb-4">
-          <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-white" />
+          <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-primary-foreground" />
         </div>
-        <h1 className="text-2xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent leading-tight">
+        <h1 className="text-2xl md:text-5xl font-bold text-foreground leading-tight">
           Выберите свой тариф
         </h1>
         <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">

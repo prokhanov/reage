@@ -68,7 +68,7 @@ export function BusinessHero({ onCta }: { onCta: () => void }) {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in">
               <span className="text-foreground">Здоровье команды</span>
               <br />
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
+              <span className="text-foreground">
                 как управляемый актив
               </span>
             </h1>
@@ -100,7 +100,7 @@ export function BusinessHero({ onCta }: { onCta: () => void }) {
           <div className="grid grid-cols-2 gap-px rounded-3xl overflow-hidden border border-border/50 bg-border/50 backdrop-blur-sm animate-fade-in" style={{ animationDelay: "0.2s" }}>
             {PROOF.map((p) => (
               <div key={p.label} className="bg-card/70 p-6 md:p-7">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+                <div className="text-3xl md:text-4xl font-bold text-foreground">
                   {p.value}
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground leading-snug">{p.label}</div>

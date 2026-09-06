@@ -183,10 +183,10 @@ export default function DripCampaigns() {
         {scheduleStats && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
-              { k: 'pending', l: 'В очереди', c: 'text-blue-500' },
-              { k: 'sent', l: 'Отправлено', c: 'text-green-500' },
-              { k: 'skipped', l: 'Пропущено', c: 'text-yellow-500' },
-              { k: 'failed', l: 'Ошибки', c: 'text-red-500' },
+              { k: 'pending', l: 'В очереди', c: 'text-info' },
+              { k: 'sent', l: 'Отправлено', c: 'text-success' },
+              { k: 'skipped', l: 'Пропущено', c: 'text-warning' },
+              { k: 'failed', l: 'Ошибки', c: 'text-destructive' },
               { k: 'cancelled', l: 'Отменено', c: 'text-muted-foreground' },
             ].map(s => (
               <Card key={s.k}><CardContent className="p-4">
@@ -222,7 +222,7 @@ export default function DripCampaigns() {
                       <CardTitle className="text-lg">{sr.name}</CardTitle>
                       <Badge variant={sr.is_active ? 'default' : 'secondary'}>{sr.is_active ? 'Активна' : 'Выключена'}</Badge>
                       <Select value={sr.trigger_type} onValueChange={v => changeTrigger(sr.id, v)}>
-                        <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-[200px] h-control-sm text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="registration">При регистрации</SelectItem>
                           <SelectItem value="subscription_paid">При оплате подписки</SelectItem>

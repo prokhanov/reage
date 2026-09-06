@@ -20,8 +20,8 @@ function CellView({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
 
   if (icon === "yes") {
     return (
-      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-emerald-500/15">
-        <Check className="w-4 h-4 text-emerald-500" />
+      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-success/15">
+        <Check className="w-4 h-4 text-success" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ export function ComparisonSection() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Почему ReAge — это не</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">просто анализы?</span>
+            <span className="text-foreground">просто анализы?</span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: "0.2s" }}>
             Сравниваем подходы: что вы получаете за свои деньги

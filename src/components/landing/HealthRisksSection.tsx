@@ -96,7 +96,7 @@ export function HealthRisksSection() {
         <div className="text-center mb-8">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
             <span className="text-foreground">Выявляем </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">100+ рисков</span>
+            <span className="text-foreground">100+ рисков</span>
             <span className="text-foreground"> на ранней стадии</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>

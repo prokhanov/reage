@@ -81,7 +81,7 @@ function StatElement({ width }: { width: number }) {
   return (
     <div className="text-left">
       <div
-        className="whitespace-nowrap font-black bg-gradient-hero bg-clip-text text-transparent leading-none"
+        className="whitespace-nowrap font-black text-foreground leading-none"
         style={{ fontSize: titleSize }}
       >
         50+ страниц
@@ -333,7 +333,7 @@ function EditPanel({
 
   return createPortal(
     <div
-      className="fixed left-2 right-2 md:right-auto md:w-[340px] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl text-xs pointer-events-auto"
+      className="fixed left-2 right-2 md:right-auto md:w-[340px] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-xl text-xs pointer-events-auto"
       style={{ top: "max(8px, env(safe-area-inset-top))", zIndex: 2147483647 }}
     >
       <div className="flex items-center justify-between p-2 gap-2">
@@ -511,7 +511,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Ваш персональный отчёт </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               на понятном языке
             </span>
           </h2>
@@ -523,7 +523,7 @@ export function ReportCollageBlock({ editMode }: { editMode?: boolean } = {}) {
           <Button
             size="lg"
             onClick={() => setDialogOpen(true)}
-            className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+            className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-md hover:scale-[1.02] transition-all duration-300 group"
           >
             Посмотреть пример отчёта
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

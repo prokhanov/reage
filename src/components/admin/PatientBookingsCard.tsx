@@ -92,14 +92,14 @@ const statusLabels: Record<BookingStatus, string> = {
 };
 
 const statusColors: Record<BookingStatus, string> = {
-  waiting_call: "bg-amber-50 text-amber-700 border-amber-200",
-  no_answer: "bg-orange-50 text-orange-700 border-orange-200",
-  not_scheduled: "bg-slate-50 text-slate-700 border-slate-200",
-  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  application_submitted: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  collected: "bg-teal-50 text-teal-700 border-teal-200",
-  report_pending: "bg-violet-50 text-violet-700 border-violet-200",
-  report_ready: "bg-emerald-600 text-white border-emerald-600",
+  waiting_call: "bg-warning-soft text-warning border-warning",
+  no_answer: "bg-warning-soft text-warning border-warning",
+  not_scheduled: "bg-muted text-foreground border-border",
+  scheduled: "bg-info-soft text-info border-info",
+  application_submitted: "bg-info-soft text-info border-info",
+  collected: "bg-success-soft text-success border-success",
+  report_pending: "bg-primary text-primary border-primary",
+  report_ready: "bg-success text-primary-foreground border-success",
 };
 
 type TemplateKey =
@@ -420,8 +420,8 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                               variant="outline"
                               className={
                                 b.location_type === "clinic"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200 mb-1"
-                                  : "bg-emerald-50 text-emerald-700 border-emerald-200 mb-1"
+                                  ? "bg-info-soft text-info border-info mb-1"
+                                  : "bg-success-soft text-success border-success mb-1"
                               }
                             >
                               {b.location_type === "clinic" ? "🏥 Клиника" : "🏠 На дому"}
@@ -435,7 +435,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                               </div>
                             )}
                             {b.labquest_request_number && (
-                              <div className="text-xs text-indigo-700 dark:text-indigo-300 mt-0.5">
+                              <div className="text-xs text-info dark:text-info mt-0.5">
                                 🔖 Заявка ЛабКвест: <span className="font-medium">{b.labquest_request_number}</span>
                               </div>
                             )}
@@ -456,7 +456,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                               statusMutation.mutate({ id: b.id, status: next });
                             }}
                           >
-                            <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
+                            <SelectTrigger className="h-control-sm w-auto gap-1 border-none p-0 bg-transparent shadow-none">
                               <Badge
                                 variant="outline"
                                 className={cn("font-normal cursor-pointer", statusColors[b.status])}
@@ -954,7 +954,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {emailOn && emailChanged && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+              <p className="text-[11px] text-warning dark:text-warning">
                 Адрес отличается от email пациента — письмо уйдёт разово на указанный адрес,
                 профиль пациента не изменится.
               </p>
@@ -984,7 +984,7 @@ function SendRemindersDialog({
               data-1p-ignore="true"
             />
             {smsOn && phoneChanged && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+              <p className="text-[11px] text-warning dark:text-warning">
                 Номер отличается от телефона пациента — SMS уйдёт разово на указанный номер,
                 профиль пациента не изменится.
               </p>

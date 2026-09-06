@@ -181,9 +181,9 @@ export function EditMedicalHistoryDialog({
           <MedicalAnketaForm value={value} onChange={handleChange} />
 
           {showReproField && (
-            <div className="rounded-lg border border-pink-500/25 bg-pink-500/5 p-4 space-y-3">
+            <div className="rounded-lg border border-primary/25 bg-primary/5 p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Flower2 className="h-4 w-4 text-pink-500" />
+                <Flower2 className="h-4 w-4 text-primary" />
                 <Label className="text-sm font-medium">
                   Репродуктивный статус
                 </Label>

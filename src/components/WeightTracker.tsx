@@ -177,10 +177,10 @@ export function WeightTracker() {
   };
 
   const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return { text: "Недостаточный вес", color: "text-blue-500" };
-    if (bmi < 25) return { text: "Нормальный вес", color: "text-green-500" };
-    if (bmi < 30) return { text: "Избыточный вес", color: "text-yellow-500" };
-    return { text: "Ожирение", color: "text-red-500" };
+    if (bmi < 18.5) return { text: "Недостаточный вес", color: "text-info" };
+    if (bmi < 25) return { text: "Нормальный вес", color: "text-success" };
+    if (bmi < 30) return { text: "Избыточный вес", color: "text-warning" };
+    return { text: "Ожирение", color: "text-destructive" };
   };
 
   const getWeightTrend = () => {
@@ -210,15 +210,15 @@ export function WeightTracker() {
               <div className="flex items-center gap-1 mt-2">
                 {weightTrend < 0 ? (
                   <>
-                    <TrendingDown className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-500">
+                    <TrendingDown className="w-4 h-4 text-success" />
+                    <span className="text-sm text-success">
                       {Math.abs(weightTrend).toFixed(1)} кг
                     </span>
                   </>
                 ) : weightTrend > 0 ? (
                   <>
-                    <TrendingUp className="w-4 h-4 text-red-500" />
-                    <span className="text-sm text-red-500">
+                    <TrendingUp className="w-4 h-4 text-destructive" />
+                    <span className="text-sm text-destructive">
                       +{weightTrend.toFixed(1)} кг
                     </span>
                   </>
@@ -396,10 +396,10 @@ export function WeightTracker() {
                 </svg>
               </div>
               <div className="relative h-3 flex rounded-full overflow-hidden">
-                <div style={{ width: `${seg1}%` }} className="h-full bg-blue-500" />
-                <div style={{ width: `${seg2}%` }} className="h-full bg-green-500" />
-                <div style={{ width: `${seg3}%` }} className="h-full bg-yellow-500" />
-                <div style={{ width: `${seg4}%` }} className="h-full bg-red-500" />
+                <div style={{ width: `${seg1}%` }} className="h-full bg-info" />
+                <div style={{ width: `${seg2}%` }} className="h-full bg-success" />
+                <div style={{ width: `${seg3}%` }} className="h-full bg-warning" />
+                <div style={{ width: `${seg4}%` }} className="h-full bg-destructive" />
               </div>
               <div className="relative h-3">
                 <span className="absolute text-[9px] text-muted-foreground -translate-x-1/2" style={{ left: `${lbl1}%` }}>18.5</span>

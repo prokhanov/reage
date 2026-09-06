@@ -124,13 +124,13 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
     const benefit = formatPromoBenefit(applied);
     return (
       <div className={className}>
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-green-500/40 bg-green-500/5 px-3 py-2.5 md:px-4 md:py-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-success/40 bg-success/5 px-3 py-2.5 md:px-4 md:py-3">
           <div className="flex items-center gap-3 min-w-0">
-            <Check className="h-4 w-4 text-green-500 shrink-0" />
+            <Check className="h-4 w-4 text-success shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-mono text-sm font-medium truncate">{applied.code}</span>
-                <span className="inline-flex items-center rounded-md bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-600 dark:text-green-400">
+                <span className="inline-flex items-center rounded-md bg-success/15 px-2 py-0.5 text-xs font-semibold text-success dark:text-success">
                   {benefit}
                 </span>
               </div>

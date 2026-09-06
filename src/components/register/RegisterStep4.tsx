@@ -42,9 +42,9 @@ export function RegisterStep4({
     <div className="space-y-8">
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary mb-4">
-          <Calendar className="h-10 w-10 text-white" />
+          <Calendar className="h-10 w-10 text-primary-foreground" />
         </div>
-        <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold text-foreground">
           Запись на анализы
         </h2>
         <p className="text-muted-foreground text-lg">
@@ -102,7 +102,7 @@ export function RegisterStep4({
                 variant={bookingTime === time ? "default" : "outline"}
                 className={cn(
                   "h-12 transition-all",
-                  bookingTime === time && "bg-gradient-primary shadow-neon-primary"
+                  bookingTime === time && "bg-gradient-primary shadow-md"
                 )}
                 onClick={() => onTimeChange(time)}
               >
@@ -122,7 +122,7 @@ export function RegisterStep4({
             placeholder="Введите ваш адрес"
             value={bookingAddress}
             onChange={(e) => onAddressChange(e.target.value)}
-            className="h-12 text-base"
+            className="h-control-xl text-base"
           />
         </div>
       </div>
@@ -132,7 +132,7 @@ export function RegisterStep4({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1 h-12"
+          className="flex-1 h-control-xl"
         >
           Назад
         </Button>
@@ -140,7 +140,7 @@ export function RegisterStep4({
           type="button"
           variant="ghost"
           onClick={onSkip}
-          className="flex-1 h-12 text-muted-foreground hover:text-foreground"
+          className="flex-1 h-control-xl text-muted-foreground hover:text-foreground"
         >
           <SkipForward className="h-4 w-4 mr-2" />
           Пропустить
@@ -148,7 +148,7 @@ export function RegisterStep4({
         <Button
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+          className="flex-1 h-control-xl bg-gradient-primary shadow-md"
         >
           Продолжить
           <ChevronRight className="ml-2 h-5 w-5" />

@@ -135,7 +135,7 @@ export default function Auth() {
           <Link to="/" className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
           </Link>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 text-foreground">
             {forgotMode ? "Сброс пароля" : "Добро пожаловать"}
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -144,7 +144,7 @@ export default function Auth() {
         </div>
 
         <Card
-          className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in"
+          className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-xl relative overflow-hidden animate-fade-in"
           style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}
         >
           <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
@@ -166,14 +166,14 @@ export default function Auth() {
                 <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background/40 border border-border/50">
                   <TabsTrigger
                     value="email"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
                   >
                     <Mail className="h-4 w-4" />
                     Email
                   </TabsTrigger>
                   <TabsTrigger
                     value="phone"
-                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"
                   >
                     <PhoneIcon className="h-4 w-4" />
                     Телефон

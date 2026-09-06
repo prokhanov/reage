@@ -91,7 +91,7 @@ export function ConsultationCtaBlock() {
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-5 text-foreground">
               Запишитесь на{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-primary">
                 бесплатную консультацию
               </span>
             </h2>
@@ -115,7 +115,7 @@ export function ConsultationCtaBlock() {
           {/* Right: form card */}
           <div className="relative w-full max-w-md lg:max-w-sm mx-auto">
             <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 rounded-3xl blur-sm opacity-60" />
-            <div className="relative rounded-3xl bg-card border border-border/60 p-6 md:p-8 shadow-2xl">
+            <div className="relative rounded-3xl bg-card border border-border/60 p-6 md:p-8 shadow-xl">
               {status === "success" ? (
                 <div className="flex flex-col items-center text-center py-6">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-5">

@@ -410,7 +410,7 @@ function EditPanel({
   };
 
   return (
-    <div className="fixed top-2 right-2 z-[100] w-[300px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
+    <div className="fixed top-2 right-2 z-[100] w-[300px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-xl p-3 text-xs">
       <div className="flex items-center justify-between mb-2">
         <div className="font-bold">Edit · {bp}</div>
         <div className="flex gap-1">
@@ -688,7 +688,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               style={{ animationDelay: "0.1s" }}
             >
               <span className="block text-foreground">Ваше здоровье</span>
-              <span className="block mt-0.5 sm:mt-1 lg:mt-2 bg-gradient-hero bg-clip-text text-transparent">
+              <span className="block mt-0.5 sm:mt-1 lg:mt-2 text-foreground">
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>
@@ -709,7 +709,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -740,7 +740,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

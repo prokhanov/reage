@@ -29,10 +29,10 @@ interface Prescription {
 }
 
 const adherenceLevels = [
-  { value: 0, label: "Почти не придерживался(ась)", color: "text-red-500", bgColor: "bg-red-500/10", borderColor: "border-red-500" },
-  { value: 1, label: "Иногда пропускал(а)", color: "text-orange-500", bgColor: "bg-orange-500/10", borderColor: "border-orange-500" },
-  { value: 2, label: "В основном да", color: "text-blue-500", bgColor: "bg-blue-500/10", borderColor: "border-blue-500" },
-  { value: 3, label: "Всегда", color: "text-green-500", bgColor: "bg-green-500/10", borderColor: "border-green-500" }
+  { value: 0, label: "Почти не придерживался(ась)", color: "text-destructive", bgColor: "bg-destructive/10", borderColor: "border-destructive" },
+  { value: 1, label: "Иногда пропускал(а)", color: "text-warning", bgColor: "bg-warning/10", borderColor: "border-warning" },
+  { value: 2, label: "В основном да", color: "text-info", bgColor: "bg-info/10", borderColor: "border-info" },
+  { value: 3, label: "Всегда", color: "text-success", bgColor: "bg-success/10", borderColor: "border-success" }
 ];
 
 const symptomCategories = [
@@ -212,9 +212,9 @@ const symptomCategories = [
 
 const severityLevels = [
   { value: 0, label: "Нет", color: "text-muted-foreground", badgeVariant: "secondary" as const },
-  { value: 1, label: "Легко", color: "text-yellow-500", badgeVariant: "outline" as const },
-  { value: 2, label: "Средне", color: "text-orange-500", badgeVariant: "outline" as const },
-  { value: 3, label: "Сильно", color: "text-white", badgeVariant: "destructive" as const }
+  { value: 1, label: "Легко", color: "text-warning", badgeVariant: "outline" as const },
+  { value: 2, label: "Средне", color: "text-warning", badgeVariant: "outline" as const },
+  { value: 3, label: "Сильно", color: "text-primary-foreground", badgeVariant: "destructive" as const }
 ];
 
 interface SymptomRecord {
@@ -606,7 +606,7 @@ export default function MyState() {
   return (
     <div className="container max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Мое состояние</h1>
         <p className="text-muted-foreground">
           Отслеживайте свои симптомы и следите за изменениями
         </p>
@@ -638,16 +638,16 @@ export default function MyState() {
                     {/* Сводка по последнему опросу */}
                     {latestSymptoms.length > 0 && (
                       <div className="w-full max-w-md grid grid-cols-3 gap-3">
-                        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                          <p className="text-2xl font-bold text-yellow-500">{stats.mild}</p>
+                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                          <p className="text-2xl font-bold text-warning">{stats.mild}</p>
                           <p className="text-xs text-muted-foreground mt-1">Лёгкие</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                          <p className="text-2xl font-bold text-orange-500">{stats.moderate}</p>
+                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                          <p className="text-2xl font-bold text-warning">{stats.moderate}</p>
                           <p className="text-xs text-muted-foreground mt-1">Средние</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                          <p className="text-2xl font-bold text-red-500">{stats.severe}</p>
+                        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                          <p className="text-2xl font-bold text-destructive">{stats.severe}</p>
                           <p className="text-xs text-muted-foreground mt-1">Сильные</p>
                         </div>
                       </div>
@@ -907,24 +907,24 @@ export default function MyState() {
                     </div>
                   </Card>
 
-                  <Card className="p-6 bg-yellow-500/5">
+                  <Card className="p-6 bg-warning/5">
                     <div>
                       <p className="text-sm text-muted-foreground">Легкие</p>
-                      <p className="text-2xl font-bold text-yellow-500">{stats.mild}</p>
+                      <p className="text-2xl font-bold text-warning">{stats.mild}</p>
                     </div>
                   </Card>
 
-                  <Card className="p-6 bg-orange-500/5">
+                  <Card className="p-6 bg-warning/5">
                     <div>
                       <p className="text-sm text-muted-foreground">Средние</p>
-                      <p className="text-2xl font-bold text-orange-500">{stats.moderate}</p>
+                      <p className="text-2xl font-bold text-warning">{stats.moderate}</p>
                     </div>
                   </Card>
 
-                  <Card className="p-6 bg-red-500/5">
+                  <Card className="p-6 bg-destructive/5">
                     <div>
                       <p className="text-sm text-muted-foreground">Сильные</p>
-                      <p className="text-2xl font-bold text-red-500">{stats.severe}</p>
+                      <p className="text-2xl font-bold text-destructive">{stats.severe}</p>
                     </div>
                   </Card>
                 </div>
@@ -968,12 +968,12 @@ export default function MyState() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <div className="flex gap-2">
                                 {dateStats.mild > 0 && (
-                                  <Badge variant="outline" className="text-yellow-500">
+                                  <Badge variant="outline" className="text-warning">
                                     {dateStats.mild} легких
                                   </Badge>
                                 )}
                                 {dateStats.moderate > 0 && (
-                                  <Badge variant="outline" className="text-orange-500">
+                                  <Badge variant="outline" className="text-warning">
                                     {dateStats.moderate} средних
                                   </Badge>
                                 )}

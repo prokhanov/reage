@@ -338,7 +338,7 @@ export default function Trends() {
     {!loading && (
     <>
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold mb-2 text-foreground">
             Динамика показателей
           </h2>
           <p className="text-muted-foreground">
@@ -390,7 +390,7 @@ export default function Trends() {
                           onClick={() => setPeriod(p)}
                           className={
                             period === p
-                              ? "shadow-neon-secondary"
+                              ? "shadow-sm"
                               : "border-secondary/30 hover:border-secondary"
                           }
                         >
@@ -406,7 +406,7 @@ export default function Trends() {
             {/* Chart */}
             {trendData.length > 0 ? (
               <>
-                <Card className="border-primary/30 shadow-neon-primary bg-gradient-to-br from-card to-card/50">
+                <Card className="border-primary/30 shadow-md bg-gradient-to-br from-card to-card/50">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">

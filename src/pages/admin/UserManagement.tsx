@@ -619,7 +619,7 @@ export default function UserManagement() {
                             </TableCell>
                             <TableCell>
                               {user.status === "active" ? (
-                                <Badge variant="default" className="bg-green-600">
+                                <Badge variant="default" className="bg-success">
                                   Активен
                                 </Badge>
                               ) : (
@@ -825,7 +825,7 @@ export default function UserManagement() {
                                                 setPendingSuspend({ id: user.id, name: user.name });
                                               }}
                                             >
-                                              <Pause className="w-4 h-4 text-orange-500" />
+                                              <Pause className="w-4 h-4 text-warning" />
                                             </Button>
                                           </TooltipTrigger>
                                           <TooltipContent>

@@ -88,16 +88,16 @@ export function LifestyleQuizCTASection() {
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="relative rounded-3xl md:rounded-[2rem] p-[1px] bg-gradient-to-br from-accent/40 via-primary/30 to-accent/40 shadow-2xl shadow-accent/10">
-            <div className="relative rounded-3xl md:rounded-[2rem] bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
+          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-accent/40 via-primary/30 to-accent/40 shadow-xl shadow-accent/10">
+            <div className="relative rounded-3xl  bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5" />
 
               <div className="relative p-8 md:p-12 lg:p-16">
                 <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 lg:gap-16 items-center">
                   <div className="text-center lg:text-left">
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold leading-tight tracking-tight mb-5 text-foreground">
                       Узнай скрытые риски{" "}
-                      <span className="bg-gradient-hero bg-clip-text text-transparent">
+                      <span className="text-foreground">
                         своего организма за 3 минуты
                       </span>
                     </h2>
@@ -110,7 +110,7 @@ export function LifestyleQuizCTASection() {
                       <Button
                         onClick={() => setOpen(true)}
                         size="lg"
-                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
                       >
                         Пройти тест
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

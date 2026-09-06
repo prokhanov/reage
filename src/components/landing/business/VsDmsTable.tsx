@@ -29,8 +29,8 @@ const rows: Row[] = [
 function Cell({ value, highlight }: { value: Mark | string; highlight?: boolean }) {
   if (value === "yes")
     return (
-      <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
-        <Check className="w-4 h-4 text-emerald-500" />
+      <div className="w-6 h-6 rounded-full bg-success/15 flex items-center justify-center mx-auto">
+        <Check className="w-4 h-4 text-success" />
       </div>
     );
   if (value === "no")
@@ -41,8 +41,8 @@ function Cell({ value, highlight }: { value: Mark | string; highlight?: boolean 
     );
   if (value === "partial")
     return (
-      <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto">
-        <Minus className="w-4 h-4 text-amber-500" />
+      <div className="w-6 h-6 rounded-full bg-warning/15 flex items-center justify-center mx-auto">
+        <Minus className="w-4 h-4 text-warning" />
       </div>
     );
   return (
@@ -60,7 +60,7 @@ export function VsDmsTable() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Почему это не заменяет ДМС </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">и не повторяет чекап</span>
+            <span className="text-foreground">и не повторяет чекап</span>
           </h2>
           <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
             ДМС покрывает лечение, когда проблема уже есть. Корпоративный чекап фиксирует

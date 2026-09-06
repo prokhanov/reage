@@ -9,7 +9,7 @@ export function SubscriptionSkeleton() {
         <Skeleton className="h-5 w-96" />
       </div>
 
-      <Card className="border-primary/20 shadow-neon-primary">
+      <Card className="border-primary/20 shadow-md">
         <CardHeader>
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-5 w-full" />

@@ -80,15 +80,15 @@ function HealthDynamicsWidget() {
         ))}
       </ul>
 
-      <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
+      <div className="w-full rounded-xl border border-border bg-card p-3">
         <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground">Витамин D</span>
           <div className="flex flex-col items-end">
             <div className="flex items-baseline gap-1">
-              <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
-              <span className="text-[10px] text-slate-500">нг/мл</span>
+              <span className="text-sm font-semibold text-foreground">{points[lastIdx]}</span>
+              <span className="text-[10px] text-muted-foreground">нг/мл</span>
             </div>
-            <span className="text-[10px] font-medium text-emerald-600">оптимально</span>
+            <span className="text-[10px] font-medium text-success">оптимально</span>
           </div>
         </div>
 
@@ -456,7 +456,7 @@ export function HeroPortraitClassic() {
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
+                className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-md shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
               >
                 Оставить заявку
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -485,7 +485,7 @@ export function HeroPortraitClassic() {
             >
               <span className="text-foreground">Ваше здоровье</span>
               <br />
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
+              <span className="text-foreground">
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>
@@ -506,7 +506,7 @@ export function HeroPortraitClassic() {
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -537,7 +537,7 @@ export function HeroPortraitClassic() {
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Записаться на бесплатную консультацию
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

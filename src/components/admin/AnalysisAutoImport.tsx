@@ -98,11 +98,11 @@ const CONCURRENCY = 1;
 function statusBadge(s: ItemStatus) {
   switch (s) {
     case "ok":
-      return <Badge className="bg-green-600 hover:bg-green-600">OK</Badge>;
+      return <Badge className="bg-success hover:bg-success">OK</Badge>;
     case "unit_mismatch":
-      return <Badge className="bg-amber-500 hover:bg-amber-500">Единицы</Badge>;
+      return <Badge className="bg-warning hover:bg-warning">Единицы</Badge>;
     case "low_confidence":
-      return <Badge className="bg-amber-500 hover:bg-amber-500">Низкая уверенность</Badge>;
+      return <Badge className="bg-warning hover:bg-warning">Низкая уверенность</Badge>;
     case "value_parse_error":
       return <Badge variant="destructive">Не парсится</Badge>;
   }
@@ -690,7 +690,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         <div className="flex items-center gap-2">
           <Label className="text-xs whitespace-nowrap">Сверка с тарифом</Label>
           <Select value={selectedPlanId || "__none__"} onValueChange={(v) => setSelectedPlanId(v === "__none__" ? "" : v)}>
-            <SelectTrigger className="h-8">
+            <SelectTrigger className="h-control-sm">
               <SelectValue placeholder="Без сверки" />
             </SelectTrigger>
             <SelectContent>
@@ -707,9 +707,9 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
           ) : (
             <div className="space-y-2 text-xs">
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-green-600 hover:bg-green-600">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
+                <Badge className="bg-success hover:bg-success">Найдено {planComparison.matched.length} / {planBiomarkers.length}</Badge>
                 {planComparison.willCalculate.length > 0 && (
-                  <Badge className="bg-blue-600 hover:bg-blue-600">Будет рассчитано {planComparison.willCalculate.length}</Badge>
+                  <Badge className="bg-info hover:bg-info">Будет рассчитано {planComparison.willCalculate.length}</Badge>
                 )}
                 {planComparison.missing.length > 0 && (
                   <Badge variant="destructive">Не найдено {planComparison.missing.length}</Badge>
@@ -721,7 +721,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               {planComparison.willCalculate.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                       <ChevronDown className="h-3 w-3 mr-1" />
                       Показать расчётные ({planComparison.willCalculate.length})
                     </Button>
@@ -741,7 +741,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               {planComparison.missing.length > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                    <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                       <ChevronDown className="h-3 w-3 mr-1" />
                       Показать недостающие ({planComparison.missing.length})
                     </Button>
@@ -795,8 +795,8 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
               {entry.status === "uploading" && <Badge variant="secondary"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Загрузка</Badge>}
               {entry.status === "parsing" && <Badge variant="secondary"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Распознавание</Badge>}
               {entry.status === "queued" && <Badge variant="outline">В очереди</Badge>}
-              {entry.status === "done" && <Badge className="bg-green-600 hover:bg-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Готово</Badge>}
-              {entry.status === "imported" && <Badge className="bg-blue-600 hover:bg-blue-600"><CheckCircle2 className="h-3 w-3 mr-1" />Импортировано</Badge>}
+              {entry.status === "done" && <Badge className="bg-success hover:bg-success"><CheckCircle2 className="h-3 w-3 mr-1" />Готово</Badge>}
+              {entry.status === "imported" && <Badge className="bg-info hover:bg-info"><CheckCircle2 className="h-3 w-3 mr-1" />Импортировано</Badge>}
               {entry.status === "error" && <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Ошибка</Badge>}
               {(entry.status === "queued" || entry.status === "error" || entry.status === "done") && (
                 <Button type="button" size="icon" variant="ghost" onClick={() => removeEntry(entry.id)}>
@@ -911,7 +911,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                 {entry.result.unknown.length > 0 && (
                   <Collapsible>
                     <CollapsibleTrigger asChild>
-                      <Button type="button" variant="ghost" size="sm" className="text-xs h-7">
+                      <Button type="button" variant="ghost" size="sm" className="text-xs h-control-sm">
                         <ChevronDown className="h-3 w-3 mr-1" />
                         Не сопоставлено с панелью ({entry.result.unknown.length})
                       </Button>

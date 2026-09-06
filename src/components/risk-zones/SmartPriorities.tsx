@@ -53,19 +53,19 @@ const levelConfig = {
     icon: Zap,
     title: "Краткосрочно (1–2 недели)",
     subtitle: "Что сделать прямо сейчас, чтобы быстро почувствовать эффект",
-    gradient: "from-red-500 to-orange-500",
+    gradient: "from-destructive to-warning",
   },
   medium_term: {
     icon: Target,
     title: "Среднесрочно (1–2 месяца)",
     subtitle: "Изменения для устойчивого улучшения через 1–2 месяца",
-    gradient: "from-blue-500 to-cyan-500",
+    gradient: "from-info to-info",
   },
   long_term: {
     icon: Mountain,
     title: "Долгосрочно (3+ месяца)",
     subtitle: "Стратегия для замедления старения и профилактики на годы",
-    gradient: "from-purple-500 to-pink-500",
+    gradient: "from-primary to-primary",
   },
 };
 
@@ -175,7 +175,7 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
             <CardHeader>
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-lg bg-gradient-to-r ${config.gradient} shrink-0`}>
-                  <Icon className="h-5 w-5 text-white" />
+                  <Icon className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div className="flex-1">
                   <CardTitle className="text-lg">{config.title}</CardTitle>
@@ -304,7 +304,7 @@ const TaskCard = ({ task }: { task: Task }) => {
                   variant="secondary"
                   className={cn(
                     "font-mono text-[10px] font-normal",
-                    improvement.isStable && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    improvement.isStable && "bg-success-soft text-success dark:bg-success/30 dark:text-success"
                   )}
                 >
                   {improvement.text}

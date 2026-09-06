@@ -359,7 +359,7 @@ export default function Faq() {
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Ответы на вопросы{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-primary">
                 о ReAge
               </span>
             </h1>

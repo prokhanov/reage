@@ -30,7 +30,7 @@ function TestimonialCard({ quote, author, role, avatar, rating, highlight, delay
           {[...Array(5)].map((_, i) => (
             <Star 
               key={i} 
-              className={`w-4 h-4 ${i < rating ? "text-amber-400 fill-amber-400" : "text-muted"}`} 
+              className={`w-4 h-4 ${i < rating ? "text-warning fill-warning" : "text-muted"}`} 
             />
           ))}
         </div>
@@ -49,7 +49,7 @@ function TestimonialCard({ quote, author, role, avatar, rating, highlight, delay
         
         {/* Author */}
         <div className="flex items-center gap-4 mt-auto">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-lg">
             {avatar}
           </div>
           <div>
@@ -136,7 +136,7 @@ export function TestimonialsSection() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Что говорят </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               наши клиенты
             </span>
           </h2>
@@ -172,7 +172,7 @@ export function TestimonialsSection() {
 function StatItem({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+      <div className="text-3xl md:text-4xl font-bold text-foreground">
         {value}
       </div>
       <div className="text-sm text-muted-foreground mt-1">{label}</div>

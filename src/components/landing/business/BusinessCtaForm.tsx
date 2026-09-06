@@ -93,7 +93,7 @@ export function BusinessCtaForm({ id = "business-cta" }: { id?: string }) {
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
                 <span className="text-foreground">Рассчитаем программу </span>
-                <span className="bg-gradient-hero bg-clip-text text-transparent">под вашу команду</span>
+                <span className="text-foreground">под вашу команду</span>
               </h2>
               <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in leading-relaxed">
                 Оставьте контакты — вернёмся с расчётом, составом панели и сроками запуска.
@@ -113,7 +113,7 @@ export function BusinessCtaForm({ id = "business-cta" }: { id?: string }) {
 
             {status === "success" ? (
               <div className="flex flex-col items-center justify-center text-center gap-3 py-10">
-                <CheckCircle className="w-12 h-12 text-emerald-500" />
+                <CheckCircle className="w-12 h-12 text-success" />
                 <p className="text-lg font-semibold text-foreground">Заявка отправлена</p>
                 <p className="text-sm text-muted-foreground">
                   Свяжемся с вами в течение часа в рабочее время.

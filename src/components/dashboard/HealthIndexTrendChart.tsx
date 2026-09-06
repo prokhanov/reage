@@ -62,7 +62,7 @@ export function HealthIndexTrendChart({ analyses }: HealthIndexTrendChartProps) 
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
-    const changeColor = data.change > 0 ? 'text-green-600' : data.change < 0 ? 'text-red-600' : 'text-muted-foreground';
+    const changeColor = data.change > 0 ? 'text-success' : data.change < 0 ? 'text-destructive' : 'text-muted-foreground';
     const changeSign = data.change > 0 ? '+' : '';
 
     return (

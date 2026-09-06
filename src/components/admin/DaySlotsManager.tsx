@@ -210,7 +210,7 @@ export function DaySlotsManager() {
                           </Badge>
                         )}
                         {isBlocked && !isFullyBooked && (
-                          <Badge variant="outline" className="text-xs border-orange-500 text-orange-500">
+                          <Badge variant="outline" className="text-xs border-warning text-warning">
                             <AlertTriangle className="h-3 w-3 mr-1" /> 2ч блок
                           </Badge>
                         )}

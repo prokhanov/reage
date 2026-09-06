@@ -370,13 +370,13 @@ export function StrategyPreviewDialog({
                             </div>
                             <div className="text-sm font-semibold">
                               BA {h.projected_bio_age.toFixed(1)}{" "}
-                              <span className={`text-[11px] font-normal ${h.ba_delta <= 0 ? "text-emerald-500" : "text-amber-500"}`}>
+                              <span className={`text-[11px] font-normal ${h.ba_delta <= 0 ? "text-success" : "text-warning"}`}>
                                 ({h.ba_delta >= 0 ? "+" : ""}{h.ba_delta.toFixed(2)})
                               </span>
                             </div>
                             <div className="text-xs">
                               HI {Math.round(h.projected_health_index)}{" "}
-                              <span className={`text-[11px] ${h.hi_delta >= 0 ? "text-emerald-500" : "text-amber-500"}`}>
+                              <span className={`text-[11px] ${h.hi_delta >= 0 ? "text-success" : "text-warning"}`}>
                                 ({h.hi_delta >= 0 ? "+" : ""}{h.hi_delta.toFixed(1)})
                               </span>
                             </div>
@@ -411,11 +411,11 @@ export function StrategyPreviewDialog({
                           )) : <div className="text-[11px] text-muted-foreground">—</div>}
                         </div>
                         <div className="space-y-1">
-                          <div className="text-[10px] uppercase tracking-wide text-emerald-600">Плюсы</div>
+                          <div className="text-[10px] uppercase tracking-wide text-success">Плюсы</div>
                           {topPositiveDrivers.length > 0 ? topPositiveDrivers.map((m) => (
                             <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
                               <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
-                              <Badge className="text-[10px] shrink-0 bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">+{Number(m.contribution).toFixed(2)}</Badge>
+                              <Badge className="text-[10px] shrink-0 bg-success/15 text-success hover:bg-success/20">+{Number(m.contribution).toFixed(2)}</Badge>
                             </div>
                           )) : <div className="text-[11px] text-muted-foreground">—</div>}
                         </div>

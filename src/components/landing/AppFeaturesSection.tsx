@@ -72,7 +72,7 @@ const appFeatures: Record<
       { icon: TrendingUp, text: "Тренды по 5 системам" },
       { icon: BarChart3, text: "История изменений" },
     ],
-    color: "from-blue-500 to-indigo-500",
+    color: "from-info to-info",
   },
   analyses: {
     icon: FlaskConical,
@@ -86,7 +86,7 @@ const appFeatures: Record<
       { icon: Clock, text: "Оптимальные диапазоны" },
       { icon: Activity, text: "Оцифровка результатов" },
     ],
-    color: "from-emerald-500 to-teal-500",
+    color: "from-success to-success",
   },
   reports: {
     icon: FileText,
@@ -100,7 +100,7 @@ const appFeatures: Record<
       { icon: Activity, text: "Расшифровка анализов" },
       { icon: Lightbulb, text: "Конкретные рекомендации" },
     ],
-    color: "from-amber-500 to-orange-500",
+    color: "from-warning to-warning",
   },
   state: {
     icon: Heart,
@@ -114,7 +114,7 @@ const appFeatures: Record<
       { icon: Clock, text: "История изменений" },
       { icon: TrendingUp, text: "Связь с анализами" },
     ],
-    color: "from-rose-500 to-pink-500",
+    color: "from-destructive to-primary",
   },
   assistant: {
     icon: MessageSquare,
@@ -128,7 +128,7 @@ const appFeatures: Record<
       { icon: MessageSquare, text: "Мгновенные ответы" },
       { icon: Lightbulb, text: "Персональные советы" },
     ],
-    color: "from-cyan-500 to-blue-500",
+    color: "from-info to-info",
   },
   recommendations: {
     icon: Lightbulb,
@@ -142,7 +142,7 @@ const appFeatures: Record<
       { icon: FileText, text: "Длительность приема" },
       { icon: Activity, text: "Дозировки" },
     ],
-    color: "from-yellow-500 to-amber-500",
+    color: "from-warning to-warning",
   },
 };
 
@@ -250,7 +250,7 @@ function ReportsWidgets() {
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
             Отчёт от 15.03.2026
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">PDF</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning dark:text-warning font-semibold">PDF</span>
         </div>
         <div className="text-sm text-foreground/85 leading-relaxed">
           <span className="font-semibold">Резюме врача:</span> в целом картина благоприятная. Основной фокус —
@@ -342,8 +342,8 @@ function AssistantWidgets() {
     <div className="space-y-3">
       <div className={`${glass} p-4`}>
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/40">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-info to-info flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
           <div>
             <div className="text-xs font-semibold">ReAge Ассистент</div>
@@ -404,10 +404,10 @@ function AssistantWidgets() {
 
 function RecommendationsWidgets() {
   const supplements = [
-    { name: "Витамин D3", dose: "5000 МЕ", time: "утром с едой", color: "bg-amber-500" },
-    { name: "Магний глицинат", dose: "400 мг", time: "вечером", color: "bg-emerald-500" },
-    { name: "Омега-3", dose: "2 г EPA+DHA", time: "с обедом", color: "bg-blue-500" },
-    { name: "Метилфолат B9", dose: "400 мкг", time: "утром", color: "bg-rose-500" },
+    { name: "Витамин D3", dose: "5000 МЕ", time: "утром с едой", color: "bg-warning" },
+    { name: "Магний глицинат", dose: "400 мг", time: "вечером", color: "bg-success" },
+    { name: "Омега-3", dose: "2 г EPA+DHA", time: "с обедом", color: "bg-info" },
+    { name: "Метилфолат B9", dose: "400 мкг", time: "утром", color: "bg-destructive" },
   ];
   return (
     <div className="space-y-3">
@@ -484,7 +484,7 @@ export function AppFeaturesSection() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
             <span className="text-foreground">Полный контроль в вашем</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               личном кабинете
             </span>
           </h2>

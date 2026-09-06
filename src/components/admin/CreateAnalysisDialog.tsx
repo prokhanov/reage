@@ -85,7 +85,7 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-primary/30">
         <DialogHeader>
-          <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
+          <DialogTitle className="text-foreground">
             Новый анализ для пациента
           </DialogTitle>
           <DialogDescription>

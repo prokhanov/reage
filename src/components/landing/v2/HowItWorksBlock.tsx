@@ -41,7 +41,7 @@ export function HowItWorksBlock() {
             style={{ animationDelay: "0.1s" }}
           >
             <span className="text-foreground">Что входит в </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               годовую программу
             </span>
           </h2>
@@ -56,13 +56,13 @@ export function HowItWorksBlock() {
               style={{ animationDelay: `${0.1 + i * 0.1}s` }}
             >
               <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 pt-12 pb-0 md:pt-14 md:pb-0 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 pt-12 pb-0 md:pt-14 md:pb-0 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-xl group-hover:-translate-y-1">
                 {/* Numbered circle — top center, overflowing the card */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2">
                   <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent blur-md opacity-50" />
                     <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 border-4 border-background">
-                      <span className="text-xl font-bold text-white">
+                      <span className="text-xl font-bold text-primary-foreground">
                         {step.num}
                       </span>
                     </div>

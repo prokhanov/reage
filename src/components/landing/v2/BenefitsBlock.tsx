@@ -118,7 +118,7 @@ export function BenefitsBlock() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Всё для </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               управления здоровьем в одном сервисе  
             </span>
           </h2>

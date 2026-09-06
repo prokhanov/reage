@@ -1340,7 +1340,7 @@ function ScreenEmail({
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/25">
           <CheckCircle2 className="h-7 w-7 text-primary" />
         </div>
-        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight mb-2">
           Результат готов
         </h2>
         <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md mx-auto">
@@ -1632,7 +1632,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
               className={cn(
                 "rounded-2xl border p-5 flex flex-col gap-2 bg-card",
                 c.isElevated
-                  ? "border-amber-500/40 bg-amber-500/[0.04]"
+                  ? "border-warning/40 bg-warning/[0.04]"
                   : "border-border/60",
               )}
             >
@@ -1640,7 +1640,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    c.isElevated ? "text-amber-500" : "text-primary",
+                    c.isElevated ? "text-warning" : "text-primary",
                   )}
                 />
                 {c.system}
@@ -1649,7 +1649,7 @@ function ScreenResult({ a }: { a: QuizAnswers }) {
               <div
                 className={cn(
                   "text-lg md:text-xl font-semibold leading-tight mt-1",
-                  c.isElevated ? "text-amber-600 dark:text-amber-400" : "text-foreground",
+                  c.isElevated ? "text-warning dark:text-warning" : "text-foreground",
                 )}
               >
                 {c.category}
@@ -1801,7 +1801,7 @@ function QuizHeader({
           {eyebrow}
         </div>
       )}
-      <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
+      <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight mb-2.5">
         {title}
       </h2>
       {subtitle && (

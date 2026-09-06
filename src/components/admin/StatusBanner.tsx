@@ -13,10 +13,10 @@ interface StatusBannerProps {
 }
 
 const VARIANT_CLASSES: Record<StatusBannerVariant, string> = {
-  success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+  success: "bg-success/10 text-success dark:text-success border-success/20",
   error: "bg-destructive/10 text-destructive border-destructive/20",
   info: "bg-muted/60 text-muted-foreground border-border",
-  warning: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  warning: "bg-warning/10 text-warning dark:text-warning border-warning/20",
 };
 
 export function StatusBanner({

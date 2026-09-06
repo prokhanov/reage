@@ -133,7 +133,7 @@ function WizardRow({ value }: { value: number }) {
 // ─── Контекст 5: имитация PDF ─────────────────────────────────────────────
 function PdfRow({ value }: { value: number }) {
   return (
-    <div className="border-b border-gray-200 pb-3 last:border-0">
+    <div className="border-b border-border pb-3 last:border-0">
       <ScaleUnit value={value} compact />
     </div>
   );
@@ -208,8 +208,8 @@ export default function ScaleLabelsPreview() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="bg-white text-black rounded-lg p-6 max-w-[520px] mx-auto space-y-4 border shadow-sm">
-            <div className="text-center text-xs text-gray-500 uppercase tracking-wider">PDF preview</div>
+          <div className="bg-card text-foreground rounded-lg p-6 max-w-[520px] mx-auto space-y-4 border shadow-sm">
+            <div className="text-center text-xs text-muted-foreground uppercase tracking-wider">PDF preview</div>
             {SCENARIOS.map((s) => <PdfRow key={s.label} value={s.value} />)}
           </div>
         </CardContent>

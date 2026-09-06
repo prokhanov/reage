@@ -63,8 +63,8 @@ export function MedicalAnketaCard({
     <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-            <Heart className="h-6 w-6 text-red-500" />
+          <div className="w-12 h-control-xl rounded-full bg-destructive/10 flex items-center justify-center">
+            <Heart className="h-6 w-6 text-destructive" />
           </div>
           <div>
             <h2 className="text-xl font-bold">История болезней</h2>
@@ -89,7 +89,7 @@ export function MedicalAnketaCard({
           {/* Репродуктивный статус (только для женщин) */}
           {isFemale && (
             <Section
-              icon={<Flower2 className="h-4 w-4 text-pink-500" />}
+              icon={<Flower2 className="h-4 w-4 text-primary" />}
               title="Репродуктивный статус"
             >
               {reproLabel ? (
@@ -105,7 +105,7 @@ export function MedicalAnketaCard({
           {/* Хронические */}
 
           <Section
-            icon={<Heart className="h-4 w-4 text-red-500" />}
+            icon={<Heart className="h-4 w-4 text-destructive" />}
             title="Хронические заболевания"
           >
             {chronic.length > 0 ? (
@@ -134,7 +134,7 @@ export function MedicalAnketaCard({
                   <div key={op.key}>
                     <div className="flex items-start justify-between gap-3">
                       <span className="flex-1">{op.label}</span>
-                      <Badge className="shrink-0 min-w-[44px] justify-center bg-rose-500/15 text-rose-500 border-rose-500/30 hover:bg-rose-500/15">
+                      <Badge className="shrink-0 min-w-[44px] justify-center bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/15">
                         Да
                       </Badge>
                     </div>

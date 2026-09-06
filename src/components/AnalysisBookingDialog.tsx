@@ -360,9 +360,9 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary mb-4">
-              <Calendar className="h-8 w-8 text-white" />
+              <Calendar className="h-8 w-8 text-primary-foreground" />
             </div>
-            <div className="bg-gradient-primary bg-clip-text text-transparent">
+            <div className="text-foreground">
               Запись на анализы
             </div>
           </DialogTitle>
@@ -441,7 +441,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
                     variant={bookingTime === slot.time ? "default" : "outline"}
                     className={cn(
                       "h-12 transition-all relative",
-                      bookingTime === slot.time && "bg-gradient-primary shadow-neon-primary",
+                      bookingTime === slot.time && "bg-gradient-primary shadow-md",
                       !slot.isAvailable && "opacity-50 cursor-not-allowed"
                     )}
                     disabled={!slot.isAvailable}
@@ -525,7 +525,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             <Button
               onClick={handleSubmit}
               disabled={!isValid || isSubmitting}
-              className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+              className="flex-1 h-12 bg-gradient-primary shadow-md"
             >
               {isSubmitting ? (
                 "Сохранение..."

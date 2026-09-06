@@ -121,7 +121,7 @@ export function PersonasSection() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Узнайте себя </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               в наших клиентах
             </span>
           </h2>
@@ -176,7 +176,7 @@ export function PersonasSection() {
             className="relative animate-fade-in"
           >
             {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-[40px] blur-2xl opacity-50" />
+            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-3xl blur-2xl opacity-50" />
             
             <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-3xl overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0">
@@ -225,7 +225,7 @@ export function PersonasSection() {
                       <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Результат</span>
                     </div>
                     
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-6">
+                    <div className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                       {activeData.result}
                     </div>
                     

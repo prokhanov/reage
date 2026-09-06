@@ -64,7 +64,7 @@ export function CycleInfographicBlock() {
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Как это </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">работает</span>
+            <span className="text-foreground">работает</span>
           </h2>
           <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.1s" }}>
             Замкнутый цикл заботы о здоровье — от анализа до устойчивого результата

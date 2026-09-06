@@ -87,7 +87,7 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={handleLogoutAndRegister}
               disabled={loggingOut}
-              className="bg-gradient-primary shadow-neon-primary w-full"
+              className="bg-gradient-primary shadow-md w-full"
             >
               {loggingOut ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -29,10 +29,10 @@ function pickIcon(name: string) {
 
 function statusColor(score: number) {
   // 7-segment: 0-15 critical, 15-30 risk, 30-45 warn, 45-60 moderate, 60-75 watch, 75-90 good, 90-100 optimum
-  if (score >= 80) return { from: "#10b981", to: "#34d399", text: "text-emerald-500" }; // green
-  if (score >= 60) return { from: "#f59e0b", to: "#fbbf24", text: "text-amber-500" }; // yellow
-  if (score >= 40) return { from: "#f97316", to: "#fb923c", text: "text-orange-500" }; // orange
-  return { from: "#ef4444", to: "#f87171", text: "text-rose-500" }; // red
+  if (score >= 80) return { from: "#10b981", to: "#34d399", text: "text-success" }; // green
+  if (score >= 60) return { from: "#f59e0b", to: "#fbbf24", text: "text-warning" }; // yellow
+  if (score >= 40) return { from: "#f97316", to: "#fb923c", text: "text-warning" }; // orange
+  return { from: "#ef4444", to: "#f87171", text: "text-destructive" }; // red
 }
 
 const SEGMENTS = ["#dc2626", "#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16", "#10b981"];
@@ -54,21 +54,21 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
     });
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-slate-200/60">
-      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full dark:bg-rose-500/10 bg-rose-200/30 blur-3xl pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border border-border bg-card backdrop-blur-2xl shadow-card">
+      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full dark:bg-destructive/10 bg-destructive/30 blur-3xl pointer-events-none" />
       <CardContent className="relative p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900">Статус систем организма</h3>
-            <p className="text-xs dark:text-white/55 text-slate-500 mt-1">Средний статус по 7-сегментной модели</p>
+            <h3 className="text-lg md:text-xl font-bold text-foreground">Статус систем организма</h3>
+            <p className="text-xs text-muted-foreground mt-1">Средний статус по 7-сегментной модели</p>
           </div>
-          <div className="flex items-center gap-3 text-[10px] dark:text-white/60 text-slate-500">
+          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
             <span className="inline-flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-rose-500" /> Risks
+              <span className="w-2 h-2 rounded-full bg-destructive" /> Risks
             </span>
             <span>to</span>
             <span className="inline-flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Optimum
+              <span className="w-2 h-2 rounded-full bg-success" /> Optimum
             </span>
           </div>
         </div>
@@ -90,8 +90,8 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                 <div key={it.system} className="space-y-2">
                   <div className="flex items-end justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <Icon className="h-4 w-4 dark:text-white/70 text-slate-500 shrink-0" />
-                      <span className="text-sm font-medium dark:text-white text-slate-800 truncate font-heading" style={{ fontWeight: 500 }}>
+                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-medium text-foreground truncate font-heading" style={{ fontWeight: 500 }}>
                         {it.system}
                       </span>
                       <div className="flex items-center gap-1 ml-1 shrink-0">
@@ -110,7 +110,7 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                     <span className={`text-sm font-heading font-bold tabular-nums ${c.text}`}>{it.score}%</span>
                   </div>
 
-                  <div className="relative h-3 rounded-full overflow-hidden dark:bg-white/5 bg-slate-200/70">
+                  <div className="relative h-3 rounded-full overflow-hidden bg-muted">
                     <div
                       className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
                       style={{

@@ -88,13 +88,13 @@ export default function ResetPassword() {
           <div className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
           </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 text-foreground">
             Новый пароль
           </h1>
           <p className="text-muted-foreground text-lg">Введите новый пароль для вашего аккаунта</p>
         </div>
 
-        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
+        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
           <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
           <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
@@ -102,7 +102,7 @@ export default function ResetPassword() {
           <div className="relative z-10">
             {success ? (
               <div className="flex flex-col items-center gap-4 py-4">
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-success" />
                 <p className="text-center text-foreground font-medium">Пароль успешно изменён!</p>
                 <p className="text-sm text-muted-foreground">Перенаправляем на страницу входа...</p>
               </div>
@@ -144,12 +144,12 @@ export default function ResetPassword() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+                  className="w-full h-12 bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
                   disabled={loading}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                       Сохранение...
                     </span>
                   ) : (

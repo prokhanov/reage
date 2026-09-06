@@ -99,13 +99,13 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
 
       <div className="absolute -inset-0.5 rounded-3xl opacity-50 blur-xl" style={{ background: glowColor }} />
 
-      <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-2xl shadow-primary/10">
+      <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-xl shadow-primary/10">
 
         {badge &&
         <div className={`
             absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold
             ${isPopular ?
-        "bg-gradient-to-r from-primary to-accent text-white" :
+        "bg-gradient-to-r from-primary to-accent text-primary-foreground" :
         "bg-muted text-muted-foreground"}
           `}>
             {badge}
@@ -116,7 +116,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
           <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
 
           <div className="flex items-baseline justify-center gap-1">
-            <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
+            <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "text-foreground" : "text-foreground"}`}>
               {price}
             </span>
             {period && <span className="text-muted-foreground whitespace-nowrap">/{period}</span>}
@@ -156,7 +156,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
 
 
         <Button
-          className={`w-full mt-auto ${isPopular ? "shadow-neon-primary" : ""}`}
+          className={`w-full mt-auto ${isPopular ? "shadow-md" : ""}`}
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
@@ -508,7 +508,7 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Варианты сопровождения</span>
+            <span className="text-foreground">Варианты сопровождения</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
             Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
@@ -555,7 +555,7 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
           <button
             type="button"
             onClick={() => setComparisonOpen(true)}
-            className="inline-flex items-center justify-center gap-2 h-14 md:h-16 px-10 md:px-14 rounded-xl text-lg md:text-xl font-semibold text-white bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-110 hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 animate-fade-in"
+            className="inline-flex items-center justify-center gap-2 h-14 md:h-16 px-10 md:px-14 rounded-xl text-lg md:text-xl font-semibold text-primary-foreground bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-110 hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 animate-fade-in"
             style={{ animationDelay: '0.2s' }}
           >
             Сравнить тарифы

@@ -56,7 +56,7 @@ export function BioAgeTrendChart({ analyses, birthDate }: BioAgeTrendChartProps)
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
-    const diffColor = data.difference > 0 ? 'text-green-600' : 'text-red-600';
+    const diffColor = data.difference > 0 ? 'text-success' : 'text-destructive';
     const diffSign = data.difference > 0 ? '+' : '';
 
     return (

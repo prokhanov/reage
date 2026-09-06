@@ -20,14 +20,14 @@ export const bookingStatusLabels: Record<BookingStatus, string> = {
 };
 
 export const bookingStatusColors: Record<BookingStatus, string> = {
-  waiting_call: "bg-amber-50 text-amber-700 border-amber-200",
-  no_answer: "bg-orange-50 text-orange-700 border-orange-200",
-  not_scheduled: "bg-slate-50 text-slate-700 border-slate-200",
-  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  application_submitted: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  collected: "bg-green-100 text-green-700 border-green-200",
-  report_pending: "bg-violet-50 text-violet-700 border-violet-200",
-  report_ready: "bg-emerald-600 text-white border-emerald-600",
+  waiting_call: "bg-warning-soft text-warning border-warning/30",
+  no_answer: "bg-destructive/10 text-destructive border-destructive/30",
+  not_scheduled: "bg-muted text-muted-foreground border-border",
+  scheduled: "bg-info-soft text-info border-info/30",
+  application_submitted: "bg-primary/10 text-primary border-primary/25",
+  collected: "bg-success-soft text-success border-success/30",
+  report_pending: "bg-accent/15 text-accent-foreground border-accent/30",
+  report_ready: "bg-success text-success-foreground border-success",
 };
 
 /** Порядок статусов в селектах/меню (без not_scheduled — служебный). */

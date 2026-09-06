@@ -122,12 +122,12 @@ export function PhoneLoginForm() {
         </div>
         <Button
           type="submit"
-          className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium group"
+          className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium group"
           disabled={loading}
         >
           {loading ? (
             <span className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
               Отправка...
             </span>
           ) : (
@@ -166,12 +166,12 @@ export function PhoneLoginForm() {
 
       <Button
         type="submit"
-        className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+        className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
         disabled={loading || otp.length !== 4}
       >
         {loading ? (
           <span className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             Проверка...
           </span>
         ) : (

@@ -261,7 +261,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
                       className={cn(
                         "px-4 py-1.5 rounded-full text-sm border transition-all",
                         v === false
-                          ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                          ? "border-success/50 bg-success/15 text-success"
                           : "border-border/60 hover:border-primary/40"
                       )}
                     >
@@ -273,7 +273,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
                       className={cn(
                         "px-4 py-1.5 rounded-full text-sm border transition-all",
                         v === true
-                          ? "border-rose-500/50 bg-rose-500/15 text-rose-500"
+                          ? "border-destructive/50 bg-destructive/15 text-destructive"
                           : "border-border/60 hover:border-primary/40"
                       )}
                     >

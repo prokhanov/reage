@@ -87,10 +87,10 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
 
   if (priorities.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-slate-200/60 dark:shadow-none shadow-xl shadow-slate-200/60">
+      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-5 w-5 dark:text-fuchsia-300 text-rose-500" />
+            <Target className="h-5 w-5 dark:text-primary text-destructive" />
             Приоритеты на месяц
           </CardTitle>
         </CardHeader>
@@ -100,13 +100,13 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl dark:border-white/10 border-slate-200/60 dark:shadow-none shadow-xl shadow-slate-200/60">
+    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Target className="h-5 w-5 dark:text-fuchsia-300 text-rose-500" />
+          <Target className="h-5 w-5 dark:text-primary text-destructive" />
           Приоритеты на месяц
         </CardTitle>
-        <p className="text-xs dark:text-white/50 text-slate-500">Что закрывает ваши главные риски</p>
+        <p className="text-xs text-muted-foreground">Что закрывает ваши главные риски</p>
       </CardHeader>
       <CardContent className="space-y-3">
         {priorities.map((p, i) => {
@@ -115,23 +115,23 @@ export function SmartPrioritiesStrategy({ blockers, prescriptions, actionMap }: 
             <button
               key={i}
               onClick={() => navigate(`/prescriptions${p.related[0] ? `?id=${p.related[0].id}` : ""}`)}
-              className="w-full text-left p-3 rounded-xl border dark:border-white/10 border-slate-200/70 dark:bg-white/[0.02] bg-white/60 hover:scale-[1.01] transition-transform group space-y-2"
+              className="w-full text-left p-3 rounded-xl border border-border bg-card hover:scale-[1.01] transition-transform group space-y-2"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2 min-w-0 flex-1">
-                  <ListChecks className="h-4 w-4 mt-0.5 shrink-0 dark:text-violet-300 text-indigo-600" />
+                  <ListChecks className="h-4 w-4 mt-0.5 shrink-0 dark:text-primary text-info" />
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm dark:text-white text-indigo-900 line-clamp-2">{p.title}</div>
-                    <div className="text-xs dark:text-white/50 text-slate-500 mt-0.5">
+                    <div className="font-medium text-sm text-info line-clamp-2">{p.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {p.related.length} {p.related.length === 1 ? "назначение" : p.related.length < 5 ? "назначения" : "назначений"}
                       {p.related[0]?.name ? ` • ${p.related.map((r) => r.name).filter(Boolean).slice(0, 2).join(", ")}${p.related.length > 2 ? "…" : ""}` : ""}
                     </div>
                   </div>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 shrink-0 dark:text-white/30 text-slate-400 group-hover:translate-x-0.5 transition-transform mt-1" />
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:translate-x-0.5 transition-transform mt-1" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] dark:text-white/50 text-slate-500">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>Прогресс курса</span>
                   <span className="font-heading">{p.done}/{p.total}</span>
                 </div>

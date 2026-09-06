@@ -75,8 +75,8 @@ export function QuizCTASection() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Main card with gradient border */}
-          <div className="relative rounded-3xl md:rounded-[2rem] p-[1px] bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 shadow-2xl shadow-primary/10">
-            <div className="relative rounded-3xl md:rounded-[2rem] bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
+          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 shadow-xl shadow-primary/10">
+            <div className="relative rounded-3xl  bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
               {/* Subtle inner glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
 
@@ -90,9 +90,9 @@ export function QuizCTASection() {
                       Бесплатно и без регистрации
                     </div>
 
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold leading-tight tracking-tight mb-5 text-foreground">
                       Узнай риск инфаркта,{" "}
-                      <span className="bg-gradient-hero bg-clip-text text-transparent">
+                      <span className="text-foreground">
                         диабета и жирового гепатоза
                       </span>{" "}
                       за 90 секунд
@@ -109,7 +109,7 @@ export function QuizCTASection() {
                       <Button
                         onClick={() => setOpen(true)}
                         size="lg"
-                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                        className="w-full sm:w-auto text-lg px-10 py-7 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
                       >
                         Пройти тест
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

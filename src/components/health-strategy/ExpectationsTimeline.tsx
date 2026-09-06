@@ -42,12 +42,12 @@ interface Props {
 }
 
 const SYSTEM_META: Record<string, { icon: any; label: string; color: string; bg: string; ring: string }> = {
-  energy: { icon: Zap, label: "Энергия", color: "text-amber-500", bg: "bg-amber-500/10", ring: "ring-amber-500/20" },
-  sleep: { icon: Moon, label: "Сон", color: "text-indigo-400", bg: "bg-indigo-500/10", ring: "ring-indigo-500/20" },
-  gut: { icon: Wheat, label: "ЖКТ", color: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/20" },
-  hormones: { icon: FlaskRound, label: "Гормоны", color: "text-pink-400", bg: "bg-pink-500/10", ring: "ring-pink-500/20" },
-  metabolism: { icon: Activity, label: "Метаболизм", color: "text-cyan-400", bg: "bg-cyan-500/10", ring: "ring-cyan-500/20" },
-  inflammation: { icon: ShieldCheck, label: "Воспаление", color: "text-rose-400", bg: "bg-rose-500/10", ring: "ring-rose-500/20" },
+  energy: { icon: Zap, label: "Энергия", color: "text-warning", bg: "bg-warning/10", ring: "ring-warning/20" },
+  sleep: { icon: Moon, label: "Сон", color: "text-info", bg: "bg-info/10", ring: "ring-info/20" },
+  gut: { icon: Wheat, label: "ЖКТ", color: "text-success", bg: "bg-success/10", ring: "ring-success/20" },
+  hormones: { icon: FlaskRound, label: "Гормоны", color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
+  metabolism: { icon: Activity, label: "Метаболизм", color: "text-info", bg: "bg-info/10", ring: "ring-info/20" },
+  inflammation: { icon: ShieldCheck, label: "Воспаление", color: "text-destructive", bg: "bg-destructive/10", ring: "ring-destructive/20" },
   general: { icon: HeartPulse, label: "Организм", color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
 };
 
@@ -294,8 +294,8 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                                     className={[
                                       "h-3.5 w-3.5 ml-auto shrink-0",
                                       e.biomarker_target.to < e.biomarker_target.from
-                                        ? "text-emerald-500"
-                                        : "text-amber-500 rotate-180",
+                                        ? "text-success"
+                                        : "text-warning rotate-180",
                                     ].join(" ")}
                                   />
                                 </div>

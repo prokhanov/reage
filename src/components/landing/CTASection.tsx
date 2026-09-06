@@ -29,10 +29,10 @@ export function CTASection() {
             {/* Gradient border effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary rounded-3xl" />
             
-            <div className="relative m-[2px] rounded-[22px] bg-card p-8 md:p-12 lg:p-16 my-px">
+            <div className="relative m-[2px] rounded-3xl bg-card p-8 md:p-12 lg:p-16 my-px">
               <div className="text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight text-foreground whitespace-pre-line">
-                  Время покажет.{"\u00A0"}{"\n"}<span className="bg-gradient-hero bg-clip-text text-transparent">Мы покажем раньше.</span>{"\n"}
+                  Время покажет.{"\u00A0"}{"\n"}<span className="text-foreground">Мы покажем раньше.</span>{"\n"}
                 </h2>
                 
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
@@ -43,7 +43,7 @@ export function CTASection() {
                   <Button 
                     size="lg"
                     onClick={requestRegister}
-                    className="text-lg px-10 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                    className="text-lg px-10 py-6 shadow-md hover:shadow-md hover:scale-[1.02] transition-all duration-300 group"
                   >
                     Посмотреть демо-аккаунт
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -957,7 +957,7 @@ export function EditReportDialog({
 
           {(qaRunning || qaEvents.length > 0) && (
             <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-              <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+              <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-3 border-b">
                   <div className="flex items-center gap-2">
                     {qaRunning ? (
@@ -992,8 +992,8 @@ export function EditReportDialog({
                       : evt.type === "done" ? CheckCircle2
                       : Info;
                     const color =
-                      evt.type === "fix" ? "text-emerald-600 dark:text-emerald-400"
-                      : evt.type === "warn" ? "text-amber-600 dark:text-amber-400"
+                      evt.type === "fix" ? "text-success dark:text-success"
+                      : evt.type === "warn" ? "text-warning dark:text-warning"
                       : evt.type === "error" ? "text-destructive"
                       : evt.type === "done" ? "text-primary"
                       : "text-muted-foreground";

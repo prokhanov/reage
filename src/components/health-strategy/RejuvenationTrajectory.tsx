@@ -142,7 +142,7 @@ export function RejuvenationTrajectory({
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Цель · 12 мес</div>
-              <div className="font-heading text-2xl font-bold leading-none bg-gradient-primary bg-clip-text text-transparent">
+              <div className="font-heading text-2xl font-bold leading-none text-foreground">
                 {targetBioAge.toFixed(1)}
                 <span className="text-[11px] font-normal text-muted-foreground ml-1 font-heading">лет</span>
               </div>
@@ -312,7 +312,7 @@ export function RejuvenationTrajectory({
 
 function StatRow({ label, value, unit, accent, good }: { label: string; value: string; unit: string; accent?: boolean; good?: boolean }) {
   const numColor = accent
-    ? "bg-gradient-primary bg-clip-text text-transparent"
+    ? "text-foreground"
     : good
     ? "text-status-good"
     : "text-foreground";

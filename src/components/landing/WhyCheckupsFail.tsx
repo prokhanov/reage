@@ -36,7 +36,7 @@ export function WhyCheckupsFail() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
             <span className="text-foreground">Почему Reage эффективнее</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">обычных чекапов</span>
+            <span className="text-foreground">обычных чекапов</span>
           </h2>
 
         </div>

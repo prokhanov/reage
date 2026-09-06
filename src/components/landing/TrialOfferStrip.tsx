@@ -110,7 +110,7 @@ export function TrialOfferStrip() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Пробная сдача{" "}
-              <span className="bg-gradient-hero bg-clip-text text-transparent">ReAge Старт</span>
+              <span className="text-foreground">ReAge Старт</span>
             </DialogTitle>
             <DialogDescription>
               Разовый формат знакомства с сервисом: срез ключевых показателей, разбор врача и отчёт ReAge.

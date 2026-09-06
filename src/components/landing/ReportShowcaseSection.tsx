@@ -54,7 +54,7 @@ const MarkerChip = ({
         {label}
       </span>
     </div>
-    <div className="relative h-1 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
+    <div className="relative h-1 rounded-full bg-gradient-to-r from-destructive/30 via-success/40 to-destructive/30">
       <div
         className="absolute -top-0.5 w-2 h-2 rounded-full border border-background"
         style={{ left: `${p}%`, background: color, transform: "translateX(-50%)" }}
@@ -199,14 +199,14 @@ const PageBioAge = () => (
       <div className="flex items-end justify-between gap-3">
         <div>
           <div className="text-[10px] text-muted-foreground mb-0.5">Биологический</div>
-          <div className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent leading-none">
+          <div className="text-4xl font-bold text-foreground leading-none">
             34.5
           </div>
           <div className="text-[10px] text-muted-foreground mt-1">из 38 хроно</div>
         </div>
         <div className="text-right">
           <div className="text-[10px] text-muted-foreground mb-0.5">Моложе на</div>
-          <div className="text-xl font-bold text-emerald-500">−3.5 года</div>
+          <div className="text-xl font-bold text-success">−3.5 года</div>
           <div className="text-[10px] text-muted-foreground mt-0.5">Индекс здоровья 91/100</div>
         </div>
       </div>
@@ -327,7 +327,7 @@ const PagePrescriptions = () => (
             <div className="text-[12px] font-semibold">{r.t}</div>
             <div className="text-[11px] text-foreground/70 mt-0.5 leading-relaxed">{r.d}</div>
           </div>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
         </div>
       ))}
     </div>
@@ -422,11 +422,11 @@ function ReportMockup({
   return (
     <div className="relative" onClick={stopAuto}>
       {/* Glow */}
-      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-3xl pointer-events-none" />
 
       {/* A4 page frame (1 : √2) */}
       <div
-        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col"
+        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-xl overflow-hidden flex flex-col"
         style={{ aspectRatio: "1 / 1.4142" }}
       >
         {/* Page header */}
@@ -512,7 +512,7 @@ function PreviewCardsRow() {
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-3xl pointer-events-none" />
 
       <div
         className="relative w-full max-w-[640px] mx-auto"
@@ -620,7 +620,7 @@ export function ReportShowcaseSection() {
           <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold leading-tight">
             <span className="text-foreground">Ваш персональный отчёт</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               на понятном языке
             </span>
           </h2>

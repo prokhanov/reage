@@ -49,7 +49,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
     <Card 
       className={cn(
         "relative transition-all duration-300 hover:shadow-lg",
-        isRecommended && "border-primary shadow-neon-primary"
+        isRecommended && "border-primary shadow-md"
       )}
     >
       {plan.badge_text && (
@@ -101,13 +101,13 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
           )}
 
           {isPromoApplied && appliedPromo?.discount_type === "free_period" && (
-            <div className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400 pt-1 md:pt-2 animate-in fade-in-50 duration-300">
+            <div className="text-xs md:text-sm font-medium text-success dark:text-success pt-1 md:pt-2 animate-in fade-in-50 duration-300">
               +{appliedPromo.discount_value} мес. бесплатно
             </div>
           )}
 
           {!isPromoApplied && savings > 0 && (
-            <div className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400 pt-1 md:pt-2 animate-in fade-in-50 duration-300">
+            <div className="text-xs md:text-sm font-medium text-success dark:text-success pt-1 md:pt-2 animate-in fade-in-50 duration-300">
               Экономия {savings.toLocaleString('ru-RU')} ₽
             </div>
           )}
@@ -129,7 +129,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
         <Button
           className={cn(
             "w-full h-12 text-sm md:text-base transition-all duration-300",
-            isRecommended ? "bg-gradient-primary shadow-neon-primary hover:shadow-neon-primary-lg" : ""
+            isRecommended ? "bg-gradient-primary shadow-md hover:shadow-md-lg" : ""
           )}
           variant={isRecommended ? "default" : "outline"}
           onClick={() => onSelect(plan.id, pricing.id)}

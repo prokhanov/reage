@@ -203,7 +203,7 @@ export default function TelegramSettings() {
     if (loading) return null;
     if (!status?.configured) return <Badge variant="secondary">Не настроен</Badge>;
     if (!status.is_active) return <Badge variant="outline">Выключен</Badge>;
-    return <Badge className="bg-green-600 hover:bg-green-600">Активен</Badge>;
+    return <Badge className="bg-success hover:bg-success">Активен</Badge>;
   })();
 
   if (loading) {
@@ -489,7 +489,7 @@ export default function TelegramSettings() {
                     </TableCell>
                     <TableCell>
                       {row.status === "sent" ? (
-                        <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
+                        <span className="inline-flex items-center gap-1 text-success dark:text-success">
                           <CheckCircle2 className="w-4 h-4" /> ок
                         </span>
                       ) : row.status === "skipped" ? (

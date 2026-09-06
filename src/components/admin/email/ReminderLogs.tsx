@@ -24,11 +24,11 @@ const TYPE_LABELS: Record<string, string> = {
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; cls: string; Icon: any }> = {
-    sent: { label: "Отправлено", cls: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30", Icon: CheckCircle2 },
-    pending: { label: "В очереди", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30", Icon: Clock },
+    sent: { label: "Отправлено", cls: "bg-success/15 text-success dark:text-success border-success/30", Icon: CheckCircle2 },
+    pending: { label: "В очереди", cls: "bg-info/15 text-info dark:text-info border-info/30", Icon: Clock },
     dlq: { label: "Ошибка", cls: "bg-destructive/15 text-destructive border-destructive/30", Icon: AlertCircle },
     failed: { label: "Ошибка", cls: "bg-destructive/15 text-destructive border-destructive/30", Icon: AlertCircle },
-    suppressed: { label: "Заблокирован", cls: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30", Icon: AlertCircle },
+    suppressed: { label: "Заблокирован", cls: "bg-warning/15 text-warning dark:text-warning border-warning/30", Icon: AlertCircle },
   };
   const cfg = map[status] || { label: status, cls: "bg-muted text-muted-foreground", Icon: Mail };
   const Icon = cfg.Icon;
@@ -108,7 +108,7 @@ export default function ReminderLogs() {
                     <div className="flex items-center gap-2">
                       {TYPE_LABELS[r.template_name] || r.template_name}
                       {r.metadata?.test && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary dark:text-primary border-primary/30">
                           Тест
                         </Badge>
                       )}

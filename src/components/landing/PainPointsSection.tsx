@@ -90,33 +90,33 @@ function PainCard({
 export function PainPointsSection() {
   const painPoints = [
   {
-    icon: <AlertTriangle className="w-6 h-6 text-white" />,
+    icon: <AlertTriangle className="w-6 h-6 text-primary-foreground" />,
     painNumber: "01",
     painTitle: "Анализы «в норме», а самочувствие — нет",
     painDescription: "Врачи говорят: «Всё хорошо», но усталость, туман в голове и лишний вес никуда не уходят. Стандартные референсы слишком широкие.",
     solutionTitle: "Оптимальные диапазоны",
     solutionDescription: "Мы используем узкие оптимальные зоны вместо широких «норм». Видим проблему до того, как она станет диагнозом.",
-    accentColor: "from-red-500 to-orange-500",
+    accentColor: "from-destructive to-warning",
     delay: 0.1
   },
   {
-    icon: <TrendingDown className="w-6 h-6 text-white" />,
+    icon: <TrendingDown className="w-6 h-6 text-primary-foreground" />,
     painNumber: "02",
     painTitle: "Нет понимания динамики здоровья",
     painDescription: "Один анализ — это снимок. Вы не видите, улучшается ваше здоровье или ухудшается. Каждый раз как с чистого листа.",
     solutionTitle: "Тренды 4× в год",
     solutionDescription: "Регулярные замеры показывают траекторию. Вы видите прогресс и понимаете, работают ли ваши усилия.",
-    accentColor: "from-amber-500 to-yellow-500",
+    accentColor: "from-warning to-warning",
     delay: 0.2
   },
   {
-    icon: <HelpCircle className="w-6 h-6 text-white" />,
+    icon: <HelpCircle className="w-6 h-6 text-primary-foreground" />,
     painNumber: "03",
     painTitle: "Непонятно, что делать с результатами",
     painDescription: "Получили PDF с цифрами — и что дальше? Гуглить? Идти к терапевту, который назначит ещё анализы?",
     solutionTitle: "Персональный план действий",
     solutionDescription: "Персональные рекомендации по питанию, добавкам и образу жизни. Конкретные шаги, а не абстрактные советы.",
-    accentColor: "from-purple-500 to-pink-500",
+    accentColor: "from-primary to-primary",
     delay: 0.3
   }];
 
@@ -144,7 +144,7 @@ export function PainPointsSection() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">3 правды, которые </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               неприятно слышать
             </span>
           </h2>

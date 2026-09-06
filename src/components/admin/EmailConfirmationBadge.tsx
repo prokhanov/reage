@@ -124,7 +124,7 @@ export function EmailConfirmationBadge({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
           </TooltipTrigger>
           <TooltipContent>Email подтверждён</TooltipContent>
         </Tooltip>
@@ -148,7 +148,7 @@ export function EmailConfirmationBadge({
       ) : (
         <Badge
           variant="outline"
-          className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
+          className="text-xs cursor-pointer border-warning text-warning hover:bg-warning-soft dark:hover:bg-warning"
           onClick={openDialog}
         >
           <AlertCircle className="w-3 h-3 mr-1" />
@@ -204,7 +204,7 @@ export function EmailConfirmationBadge({
               )}
             </div>
             {allowEmailChange && isEditing && resendEmail !== email && (
-              <p className="text-xs text-orange-500">
+              <p className="text-xs text-warning">
                 ⚠️ Email будет изменён на новый. Письмо подтверждения придёт на новый адрес.
               </p>
             )}
@@ -233,7 +233,7 @@ export function EmailConfirmationBadge({
                 Подтвердить без проверки
               </Button>
             )}
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-11">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-control-lg">
               Отмена
             </Button>
           </DialogFooter>

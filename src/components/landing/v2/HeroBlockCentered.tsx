@@ -78,7 +78,7 @@ export function HeroBlockCentered() {
               style={{ animationDelay: "0.1s" }}
             >
               <span className="block text-foreground">Ваше здоровье в цифрах,</span>
-              <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
+              <span className="block mt-1 text-foreground">
                 динамике и рекомендациях
               </span>
             </h1>
@@ -97,7 +97,7 @@ export function HeroBlockCentered() {
               <Button
                 size="lg"
                 onClick={requestRegister}
-                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-md hover:scale-[1.02] transition-all duration-300 group"
               >
                 Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

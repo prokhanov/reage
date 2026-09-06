@@ -44,11 +44,11 @@ interface HistoryEntry {
 }
 
 const actionConfig = {
-  created: { label: "Создание подписки", color: "bg-green-500", icon: Plus },
-  updated: { label: "Изменение подписки", color: "bg-blue-500", icon: Edit },
-  cancelled: { label: "Отмена подписки", color: "bg-red-500", icon: XCircle },
-  expired: { label: "Истекла подписка", color: "bg-gray-500", icon: Clock },
-  renewed: { label: "Продление подписки", color: "bg-green-500", icon: RefreshCw },
+  created: { label: "Создание подписки", color: "bg-success", icon: Plus },
+  updated: { label: "Изменение подписки", color: "bg-info", icon: Edit },
+  cancelled: { label: "Отмена подписки", color: "bg-destructive", icon: XCircle },
+  expired: { label: "Истекла подписка", color: "bg-surface", icon: Clock },
+  renewed: { label: "Продление подписки", color: "bg-success", icon: RefreshCw },
 };
 
 export function SubscriptionHistoryDialog({
@@ -167,8 +167,8 @@ export function SubscriptionHistoryDialog({
                   <Card key={entry.id}>
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-full ${config?.color || "bg-gray-500"}`}>
-                          <Icon className="w-4 h-4 text-white" />
+                        <div className={`p-2 rounded-full ${config?.color || "bg-surface"}`}>
+                          <Icon className="w-4 h-4 text-primary-foreground" />
                         </div>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
