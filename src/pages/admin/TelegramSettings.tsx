@@ -218,20 +218,9 @@ export default function TelegramSettings() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
       <AdminPageHeader
-
         title="Telegram уведомления"
-
         description="Бот отправляет уведомления админам о событиях платформы"
-
-        actions={
-
-          <>
-        {statusBadge}
-
-          </>
-
-        }
-
+        actions={{statusBadge}}
       />
 
 
