@@ -165,7 +165,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
       {hasLifestyle && (
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
               Питание и коррекция образа жизни
             </h2>
             <div className="h-1 w-20 bg-gradient-primary rounded-full" />
@@ -217,7 +217,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
       {hasFollowUps && (
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
               Дополнительные консультации и обследования
             </h2>
             <div className="h-1 w-20 bg-gradient-primary rounded-full" />

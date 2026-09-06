@@ -261,7 +261,7 @@ export default function Profile() {
     <div className="container mx-auto px-4 pt-4 pb-8 sm:py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-5 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Профиль</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
           Управляйте своими персональными данными
         </p>

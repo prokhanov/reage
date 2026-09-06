@@ -485,7 +485,7 @@ export function HeroPortraitClassic() {
             >
               <span className="text-foreground">Ваше здоровье</span>
               <br />
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
+              <span className="text-foreground">
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>

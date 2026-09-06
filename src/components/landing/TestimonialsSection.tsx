@@ -136,7 +136,7 @@ export function TestimonialsSection() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Что говорят </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               наши клиенты
             </span>
           </h2>
@@ -172,7 +172,7 @@ export function TestimonialsSection() {
 function StatItem({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+      <div className="text-3xl md:text-4xl font-bold text-foreground">
         {value}
       </div>
       <div className="text-sm text-muted-foreground mt-1">{label}</div>

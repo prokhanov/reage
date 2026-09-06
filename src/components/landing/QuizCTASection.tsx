@@ -90,9 +90,9 @@ export function QuizCTASection() {
                       Бесплатно и без регистрации
                     </div>
 
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight mb-5 text-foreground">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold leading-tight tracking-tight mb-5 text-foreground">
                       Узнай риск инфаркта,{" "}
-                      <span className="bg-gradient-hero bg-clip-text text-transparent">
+                      <span className="text-foreground">
                         диабета и жирового гепатоза
                       </span>{" "}
                       за 90 секунд

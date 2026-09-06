@@ -121,7 +121,7 @@ export function PersonasSection() {
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Узнайте себя </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               в наших клиентах
             </span>
           </h2>
@@ -225,7 +225,7 @@ export function PersonasSection() {
                       <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Результат</span>
                     </div>
                     
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-6">
+                    <div className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                       {activeData.result}
                     </div>
                     

@@ -275,7 +275,7 @@ export default function ExampleReport() {
           {/* Desktop Sidebar */}
           <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
             <div className="p-6 border-b border-border flex-shrink-0">
-              <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
+              <h3 className="font-semibold text-lg text-foreground">
                 Содержание
               </h3>
               <p className="text-sm text-muted-foreground mt-1">{dateLabel}</p>
@@ -325,7 +325,7 @@ export default function ExampleReport() {
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
                     <SheetHeader className="p-5 border-b border-border">
-                      <SheetTitle className="bg-gradient-primary bg-clip-text text-transparent text-left">
+                      <SheetTitle className="text-foreground text-left">
                         Содержание
                       </SheetTitle>
                       <p className="text-sm text-muted-foreground text-left">
@@ -366,7 +366,7 @@ export default function ExampleReport() {
                 </Sheet>
 
                 <div className="min-w-0 flex-1">
-                  <DialogTitle className="text-base sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                  <DialogTitle className="text-base sm:text-2xl font-bold text-foreground truncate">
                     <span className="md:hidden">{dateLabel}</span>
                     <span className="hidden md:inline">
                       Пример персонального отчёта
@@ -445,7 +445,7 @@ export default function ExampleReport() {
                       >
                         <div className="space-y-4">
                           <div className="mb-4 sm:mb-6">
-                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                               {type}
                             </h2>
                             <div className="h-1 w-20 bg-gradient-primary rounded-full" />
@@ -472,7 +472,7 @@ export default function ExampleReport() {
                 {hasPrescriptionsBlock && (
                   <div id="section-prescriptions" className="scroll-mt-6">
                     <div className="mb-4 sm:mb-6">
-                      <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                         Рекомендации
                       </h2>
                       <div className="h-1 w-20 bg-gradient-primary rounded-full" />

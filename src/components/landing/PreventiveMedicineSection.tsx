@@ -18,7 +18,7 @@ export function PreventiveMedicineSection() {
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Зачем сдавать </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">столько анализов?</span>
+            <span className="text-foreground">столько анализов?</span>
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>

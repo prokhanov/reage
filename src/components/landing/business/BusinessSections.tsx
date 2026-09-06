@@ -35,7 +35,7 @@ export function CostOfInactionBlock() {
         <div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Компания платит за незамеченные отклонения — </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">просто не видит эту строку в бюджете</span>
+            <span className="text-foreground">просто не видит эту строку в бюджете</span>
           </h2>
           <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in leading-relaxed">
             Выгорание ключевых людей, длительные больничные, падение продуктивности и внезапно
@@ -95,7 +95,7 @@ export function BusinessValueBlock() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Что это даёт </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">бизнесу</span>
+            <span className="text-foreground">бизнесу</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
@@ -149,7 +149,7 @@ export function PersonasBlock() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Кому внутри компании </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">это нужно</span>
+            <span className="text-foreground">это нужно</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
@@ -191,7 +191,7 @@ export function CompanyVsEmployeeBlock() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Сотрудник видит всё. </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Компания — только цифры по группе</span>
+            <span className="text-foreground">Компания — только цифры по группе</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
           Это условие, без которого программа не работает: люди участвуют только тогда, когда
@@ -270,7 +270,7 @@ export function ProgramFormatsBlock() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in mb-4" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Форматы </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">программы</span>
+            <span className="text-foreground">программы</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
             Стоимость зависит от объёма и состава панели — рассчитаем под вашу команду.
@@ -318,7 +318,7 @@ export function OnboardingTimeline() {
         <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="text-foreground">Как </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">запускаем</span>
+            <span className="text-foreground">запускаем</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-4 gap-6 relative">
@@ -361,7 +361,7 @@ export function TrustComplianceBlock() {
           <div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
               <span className="text-foreground">Безопасность данных и </span>
-              <span className="bg-gradient-hero bg-clip-text text-transparent">документы для юрлица</span>
+              <span className="text-foreground">документы для юрлица</span>
             </h2>
             <p className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in leading-relaxed">
               Работаем по договору с ООО «Реэйдж», предоставляем закрывающие документы.

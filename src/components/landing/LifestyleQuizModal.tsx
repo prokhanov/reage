@@ -382,7 +382,7 @@ function DemographyStep({
           </span>
           О вас
         </div>
-        <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight mb-2.5">
           Немного о вас
         </h2>
         <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
@@ -630,7 +630,7 @@ function DomainStep({
           </span>
           Образ жизни · {DOMAIN_LABELS[domain]}
         </div>
-        <h2 className="text-[26px] md:text-[32px] font-bold tracking-tight text-foreground leading-[1.15] mb-2.5">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight mb-2.5">
           {DOMAIN_LABELS[domain]}
         </h2>
         <p className="text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
@@ -677,7 +677,7 @@ function ContactStep({
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/25">
           <CheckCircle2 className="h-7 w-7 text-primary" />
         </div>
-        <h2 className="text-[26px] md:text-[30px] font-bold tracking-tight text-foreground leading-tight mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight mb-2">
           Результат готов
         </h2>
         <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md mx-auto">

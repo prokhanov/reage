@@ -364,7 +364,7 @@ export default function Prescriptions() {
           <>
             <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Рекомендации</h1>
           </div>
 
           {isViewMode && hasPatientAccess && viewAsUserId && (
@@ -406,7 +406,7 @@ export default function Prescriptions() {
                 {activePrescriptions.length > 0 && (
                   <section className="space-y-4">
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                         Нутрицевтики ({activePrescriptions.length})
 
                       </h2>

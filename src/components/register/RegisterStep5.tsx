@@ -275,7 +275,7 @@ function PricingPlanCard({ card, isSelected, onSelect }: { card: CardData; isSel
           <div className="flex items-baseline justify-center gap-1">
             <span className={cn(
               "text-2xl sm:text-3xl font-bold whitespace-nowrap",
-              card.isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"
+              card.isPopular ? "text-foreground" : "text-foreground"
             )}>
               {card.price}
             </span>
@@ -424,7 +424,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-primary mb-2">
           <Rabbit className="h-7 w-7 text-primary-foreground" />
         </div>
-        <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold text-foreground">
           Выберите подписку
         </h2>
         <p className="text-muted-foreground text-sm">

@@ -199,7 +199,7 @@ const PageBioAge = () => (
       <div className="flex items-end justify-between gap-3">
         <div>
           <div className="text-[10px] text-muted-foreground mb-0.5">Биологический</div>
-          <div className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent leading-none">
+          <div className="text-4xl font-bold text-foreground leading-none">
             34.5
           </div>
           <div className="text-[10px] text-muted-foreground mt-1">из 38 хроно</div>
@@ -620,7 +620,7 @@ export function ReportShowcaseSection() {
           <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold leading-tight">
             <span className="text-foreground">Ваш персональный отчёт</span>
             <br />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               на понятном языке
             </span>
           </h2>

@@ -53,7 +53,7 @@ export function CycleInfographicBlockV2() {
         <header className="text-center max-w-3xl mx-auto mb-2 md:mb-3">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
             <span className="text-foreground">Как это </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">работает</span>
+            <span className="text-foreground">работает</span>
           </h2>
           <p
             className="mt-4 text-base md:text-lg text-muted-foreground animate-fade-in"

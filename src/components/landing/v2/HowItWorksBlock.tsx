@@ -41,7 +41,7 @@ export function HowItWorksBlock() {
             style={{ animationDelay: "0.1s" }}
           >
             <span className="text-foreground">Что входит в </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-foreground">
               годовую программу
             </span>
           </h2>

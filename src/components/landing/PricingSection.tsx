@@ -116,7 +116,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
           <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
 
           <div className="flex items-baseline justify-center gap-1">
-            <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
+            <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "text-foreground" : "text-foreground"}`}>
               {price}
             </span>
             {period && <span className="text-muted-foreground whitespace-nowrap">/{period}</span>}
@@ -508,7 +508,7 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Варианты сопровождения</span>
+            <span className="text-foreground">Варианты сопровождения</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
             Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом

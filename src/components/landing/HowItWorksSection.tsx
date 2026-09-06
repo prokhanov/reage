@@ -48,7 +48,7 @@ export function HowItWorksSection() {
             style={{ animationDelay: "0.1s" }}
           >
             <span className="text-foreground">Как это </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">работает</span>
+            <span className="text-foreground">работает</span>
           </h2>
         </div>
 

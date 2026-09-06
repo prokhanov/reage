@@ -488,7 +488,7 @@ export default function Dashboard() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
               <span className="text-foreground">Добро пожаловать,</span>
               <br />
-              <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
+              <span className="text-foreground">{profile?.name}</span>
             </h1>
             <p className="text-sm text-muted-foreground">
               Паспортный возраст: <span className="text-primary font-medium">{(() => {

@@ -202,7 +202,7 @@ export default function Analyses() {
           <>
             <div className="mb-8 flex justify-between items-start">
           <div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 text-foreground">
               История анализов
             </h2>
             <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
@@ -238,7 +238,7 @@ export default function Analyses() {
                 <FlaskConical className="h-20 w-20 text-primary/40" />
                 <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+              <h3 className="text-2xl font-semibold mb-3 text-foreground">
                 Ваши анализы скоро появятся здесь
               </h3>
               <p className="text-muted-foreground text-center max-w-md leading-relaxed">

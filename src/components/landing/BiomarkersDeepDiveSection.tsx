@@ -180,7 +180,7 @@ export function BiomarkersDeepDiveSection() {
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
             <span className="text-foreground">Что мы </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">измеряем</span>
+            <span className="text-foreground">измеряем</span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in">
             Эти 5 систем и 100+ биомаркеров охватывают всё здоровье: сердце и сосуды, иммунитет, гормоны, метаболизм и клеточную энергию

@@ -291,7 +291,7 @@ export default function HealthAssistant() {
               <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+              <h1 className="text-xl sm:text-3xl font-bold text-foreground truncate">
                 AI Ассистент
               </h1>
               <p className="text-xs sm:text-base text-muted-foreground truncate">

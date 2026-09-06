@@ -1005,7 +1005,7 @@ export default function Recommendations() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent leading-tight">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-foreground leading-tight">
           Персональные отчёты
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -1020,7 +1020,7 @@ export default function Recommendations() {
                 <Brain className="h-20 w-20 text-primary/40" />
                 <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+              <h3 className="text-2xl font-semibold mb-3 text-foreground">
                 Ваши отчёты скоро появятся здесь
               </h3>
             </CardContent>
@@ -1231,7 +1231,7 @@ export default function Recommendations() {
                   {/* Desktop Sidebar */}
                   <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
                     <div className="p-6 border-b border-border flex-shrink-0">
-                      <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
+                      <h3 className="font-semibold text-lg text-foreground">
                         Содержание
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">{dateLabel}</p>
@@ -1281,7 +1281,7 @@ export default function Recommendations() {
                           </SheetTrigger>
                           <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
                             <SheetHeader className="p-5 border-b border-border">
-                              <SheetTitle className="bg-gradient-primary bg-clip-text text-transparent text-left">
+                              <SheetTitle className="text-foreground text-left">
                                 Содержание
                               </SheetTitle>
                               <p className="text-sm text-muted-foreground text-left">{dateLabel}</p>
@@ -1317,7 +1317,7 @@ export default function Recommendations() {
                         </Sheet>
 
                         <div className="min-w-0 flex-1">
-                          <DialogTitle className="text-base sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                          <DialogTitle className="text-base sm:text-2xl font-bold text-foreground truncate">
                             <span className="md:hidden">{dateLabel}</span>
                             <span className="hidden md:inline">Персональный отчет</span>
                           </DialogTitle>
@@ -1400,7 +1400,7 @@ export default function Recommendations() {
                               <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
                                 <div className="space-y-4">
                                   <div className="mb-6">
-                                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                    <h2 className="text-2xl font-bold text-foreground mb-2">
                                       {type}
                                     </h2>
                                     <div className="h-1 w-20 bg-gradient-primary rounded-full" />
@@ -1419,7 +1419,7 @@ export default function Recommendations() {
                         {hasPrescriptionsBlock && (
                           <div id="section-prescriptions" className="scroll-mt-6">
                             <div className="mb-6">
-                              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                              <h2 className="text-2xl font-bold text-foreground mb-2">
                                 Рекомендации
                               </h2>
                               <div className="h-1 w-20 bg-gradient-primary rounded-full" />

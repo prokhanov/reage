@@ -88,7 +88,7 @@ export default function ResetPassword() {
           <div className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
           </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 text-foreground">
             Новый пароль
           </h1>
           <p className="text-muted-foreground text-lg">Введите новый пароль для вашего аккаунта</p>
