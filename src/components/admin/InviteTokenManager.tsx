@@ -274,7 +274,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
           {inviteTokens && inviteTokens.length > 0 && (
             <div>
               <h3 className="text-sm font-medium mb-3">Активные инвайты</h3>
-              <div className="rounded-md border">
+              <div className="border hairline">
                 <Table>
                   <TableHeader>
                     <TableRow>

@@ -41,7 +41,7 @@ export function UserManagementSkeleton() {
                 <Skeleton className="h-10 w-48" />
               </div>
 
-              <div className="rounded-md border overflow-x-auto">
+              <div className="border hairline overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

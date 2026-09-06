@@ -378,7 +378,7 @@ export default function AnalysisBookings() {
             </p>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="border hairline">
             <Table>
               <TableHeader>
                 <TableRow>

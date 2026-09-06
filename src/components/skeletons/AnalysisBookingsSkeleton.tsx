@@ -24,7 +24,7 @@ export default function AnalysisBookingsSkeleton() {
           <Skeleton className="h-10 w-full md:w-[200px]" />
         </div>
 
-        <div className="rounded-md border">
+        <div className="border hairline">
           <Table>
             <TableHeader>
               <TableRow>

@@ -414,7 +414,7 @@ export default function Patients() {
               />
             </div>
 
-            <div className="rounded-md border overflow-x-auto">
+            <div className="border hairline overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

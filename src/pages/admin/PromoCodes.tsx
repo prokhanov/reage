@@ -278,7 +278,7 @@ export default function PromoCodes() {
               ) : (codes?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Промокоды не найдены</p>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="border hairline overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -392,7 +392,7 @@ export default function PromoCodes() {
               ) : (batches?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Партий нет</p>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="border hairline overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -467,7 +467,7 @@ export default function PromoCodes() {
               ) : (redemptions?.length ?? 0) === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Активаций ещё не было</p>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="border hairline overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
