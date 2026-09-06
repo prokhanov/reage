@@ -262,7 +262,7 @@ export default function MyAssignments() {
             </p>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="border hairline">
             <Table>
               <TableHeader>
                 <TableRow>

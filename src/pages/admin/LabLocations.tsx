@@ -397,7 +397,7 @@ export default function LabLocations() {
             <span>Показано: {filtered.length}</span>
           </div>
 
-          <div className="rounded-md border bg-card">
+          <div className="border hairline bg-card">
             <div className="w-full overflow-x-auto">
               <Table>
                 <TableHeader>

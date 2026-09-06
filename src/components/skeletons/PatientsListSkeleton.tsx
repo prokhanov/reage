@@ -29,7 +29,7 @@ export function PatientsListSkeleton() {
         <CardContent className="space-y-4">
           <Skeleton className="h-10 w-full" />
 
-          <div className="rounded-md border">
+          <div className="border hairline">
             <Table>
               <TableHeader>
                 <TableRow>

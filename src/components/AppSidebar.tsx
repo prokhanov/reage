@@ -52,6 +52,20 @@ const adminNavItems: Array<{ to: string; label: string; icon: any; module: Admin
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical, module: "data_management" },
 ];
 
+
+/** Единый паттерн навигационного пункта (Consilium app-shell). */
+const navItemClass = (active: boolean, isOpen: boolean) =>
+  cn(
+    "group flex w-full items-center gap-3 rounded-md text-sm transition-colors",
+    active
+      ? "bg-primary/[0.07] text-foreground after:ml-auto after:h-1 after:w-4 after:shrink-0 after:bg-accent after:content-['']"
+      : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+    isOpen ? "px-3 py-2.5 text-left" : "h-10 w-10 justify-center mx-auto p-0 after:hidden",
+  );
+
+const NAV_ICON = "h-[18px] w-[18px] shrink-0";
+
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,7 +167,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-foreground/25 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -161,34 +175,39 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-surface border-r border-border   transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-16",
+          "fixed top-0 left-0 z-50 h-dvh bg-surface border-r hairline transition-[width,transform] duration-300 ease-out",
+          isOpen ? "w-[268px] max-w-[82vw] lg:w-[264px] lg:max-w-none" : "w-[76px]",
           "lg:translate-x-0",
-          !isOpen && "lg:w-16",
-          !isOpen && "-translate-x-full lg:translate-x-0"
+          !isOpen && "lg:w-[76px]",
+          !isOpen && "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo with collapse button */}
-          <div className={cn("border-b border-border", isOpen ? "p-4" : "p-2")}>
+          <div
+            className={cn(
+              "shrink-0 border-b hairline",
+              isOpen ? "px-4 py-3" : "flex h-[73px] items-center justify-center px-2",
+            )}
+          >
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
                   <NavLink to="/" onClick={closeSidebarOnMobile}>
-                    <ThemedLogo className="h-12 w-auto" />
+                    <ThemedLogo className="h-9 w-auto" />
                   </NavLink>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
                     title="Свернуть боковую панель"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={1.6} />
                   </button>
                 </div>
                 {viewAsUserId ? (
                   <>
-                    <p className="text-xs text-muted-foreground truncate mt-1">{patientEmail}</p>
-                    <p className="text-xs text-primary/70 font-medium mt-0.5">Пациент</p>
+                    <p className="mt-1 truncate text-[13px] text-muted-foreground">{patientEmail}</p>
+                    <p className="label-mono mt-1">Пациент</p>
                   </>
                 ) : (
                   <div className="space-y-1 mt-1">
@@ -236,24 +255,24 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                       )}
                     </div>
                     {/* Role */}
-                    <p className="text-xs text-primary/70 font-medium pt-0.5">{userRole}</p>
+                    <p className="label-mono pt-1">{userRole}</p>
                   </div>
                 )}
               </>
             ) : (
               <button
                 onClick={() => setIsOpen(true)}
-                className="w-full flex justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
                 title="Развернуть боковую панель"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-[18px] w-[18px]" strokeWidth={1.6} />
               </button>
             )}
           </div>
 
           {/* View Mode Badge */}
           {viewAsUserId && isOpen && (
-            <div className="px-4 py-3 bg-primary/10 border-b border-border">
+            <div className="border-b hairline bg-primary/[0.07] px-4 py-3">
               <Badge variant="default" className="w-full justify-start gap-2">
                 <Eye className="h-3 w-3" />
                 Просмотр: {patientName}
@@ -261,18 +280,18 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             </div>
           )}
           {viewAsUserId && !isOpen && (
-            <div className="flex justify-center py-2 bg-primary/10 border-b border-border" title="Режим просмотра пациента">
+            <div className="flex justify-center border-b hairline bg-primary/[0.07] py-2" title="Режим просмотра пациента">
               <Eye className="h-4 w-4 text-primary" />
             </div>
           )}
 
           {/* Navigation */}
-          <nav className={cn("flex-1 space-y-1 overflow-y-auto", isOpen ? "p-2" : "py-2 px-0")}>
+          <nav className={cn("flex-1 overflow-y-auto flex flex-col gap-1 py-4", isOpen ? "px-3" : "px-2")}>
             {isLoadingRoles ? (
               // Скелетон навигации
               <>
                 {[...Array(8)].map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-10 w-full rounded-md" />
                 ))}
               </>
             ) : (
@@ -280,12 +299,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {/* Для пациентов или режима просмотра - показываем пациентские разделы */}
                 {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
-              const baseClasses = cn(
-                "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                "hover:bg-primary/10 hover:text-primary",
-                activeInSim && "bg-primary/15 text-primary border border-primary/20",
-                isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-              );
+              const baseClasses = navItemClass(!!(activeInSim), isOpen);
 
               if (viewAsUserId) {
                 return (
@@ -295,8 +309,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     className={baseClasses}
                     title={!isOpen ? item.label : undefined}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
-                    {isOpen && <span className="font-medium">{item.label}</span>}
+                    <item.icon className={NAV_ICON} strokeWidth={1.6} />
+                    {isOpen && <span className="truncate">{item.label}</span>}
                   </button>
                 );
               }
@@ -307,17 +321,12 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   to={item.to}
                   onClick={closeSidebarOnMobile}
                   className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                      "hover:bg-primary/10 hover:text-primary",
-                      isActive && "bg-primary/15 text-primary border border-primary/20",
-                      isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                    )
+                    navItemClass(!!(isActive), isOpen)
                   }
                   title={!isOpen ? item.label : undefined}
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {isOpen && <span className="font-medium">{item.label}</span>}
+                  <item.icon className={NAV_ICON} strokeWidth={1.6} />
+                  {isOpen && <span className="truncate">{item.label}</span>}
                 </NavLink>
               );
             })}
@@ -340,16 +349,11 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                         to={item.to}
                         onClick={closeSidebarOnMobile}
                         className={({ isActive }) =>
-                          cn(
-                            "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                            "hover:bg-primary/10 hover:text-primary",
-                            isActive && "bg-primary/15 text-primary border border-primary/20",
-                            isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                          )
+                          navItemClass(!!(isActive), isOpen)
                         }
                         title={!isOpen ? item.label : undefined}
                       >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <item.icon className={NAV_ICON} strokeWidth={1.6} />
                         {isOpen && (
                           <span className={cn("font-medium", showCount && "font-bold")}>
                             {item.label}
@@ -370,37 +374,27 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* User Profile & Logout */}
-          <div className={cn("border-t border-border space-y-1", isOpen ? "p-2" : "py-2 px-0")}>
+          <div className={cn("mt-auto shrink-0 border-t hairline flex flex-col gap-1", isOpen ? "p-3" : "px-2 py-3")}>
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                  "hover:bg-primary/10 hover:text-primary",
-                  simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20",
-                  isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                )}
+                className={navItemClass(!!(simPath === "/profile"), isOpen)}
                 title={!isOpen ? "Профиль" : undefined}
               >
-                <User className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Профиль</span>}
+                <User className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Профиль</span>}
               </button>
             ) : (
               <NavLink
                 to="/profile"
                 onClick={closeSidebarOnMobile}
                 className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20",
-                    isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                  )
+                  navItemClass(!!(isActive), isOpen)
                 }
                 title={!isOpen ? "Профиль" : undefined}
               >
-                <User className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Профиль</span>}
+                <User className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Профиль</span>}
               </NavLink>
             )}
 
@@ -408,68 +402,50 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/subscription"); closeSidebarOnMobile(); }}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                  "hover:bg-primary/10 hover:text-primary",
-                  simPath === "/subscription" && "bg-primary/15 text-primary border border-primary/20",
-                  isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                )}
+                className={navItemClass(!!(simPath === "/subscription"), isOpen)}
                 title={!isOpen ? "Подписка" : undefined}
               >
-                <CreditCard className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Подписка</span>}
+                <CreditCard className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Подписка</span>}
               </button>
             ) : (
               <NavLink
                 to="/subscription"
                 onClick={closeSidebarOnMobile}
                 className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20",
-                    isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
-                  )
+                  navItemClass(!!(isActive), isOpen)
                 }
                 title={!isOpen ? "Подписка" : undefined}
               >
-                <CreditCard className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Подписка</span>}
+                <CreditCard className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Подписка</span>}
               </NavLink>
             )}
 
             {viewAsUserId ? (
               <button
                 onClick={handleExitViewMode}
-                className={cn(
-                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 w-full text-sm",
-                  "hover:bg-destructive/10 hover:text-destructive",
-                  isOpen ? "px-3 text-left" : "px-0 justify-center"
-                )}
+                className={cn(navItemClass(false, isOpen), "hover:bg-destructive/10 hover:text-destructive")}
                 title={!isOpen ? "Выйти из просмотра" : undefined}
               >
-                <X className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Выйти из просмотра</span>}
+                <X className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Выйти из просмотра</span>}
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className={cn(
-                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 w-full text-sm",
-                  "hover:bg-destructive/10 hover:text-destructive",
-                  isOpen ? "px-3 text-left" : "px-0 justify-center"
-                )}
+                className={cn(navItemClass(false, isOpen), "hover:bg-destructive/10 hover:text-destructive")}
                 title={!isOpen ? "Выход" : undefined}
               >
-                <LogOut className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">Выход</span>}
+                <LogOut className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Выход</span>}
               </button>
             )}
 
             {/* Theme Toggle */}
             <div className={cn(
-              "border-t border-border mt-1",
-              isOpen ? "pt-1" : "flex justify-center pt-2"
+              "mt-1 border-t hairline",
+              isOpen ? "pt-2" : "flex justify-center pt-2"
             )}>
               <ThemeToggle isOpen={isOpen} />
             </div>

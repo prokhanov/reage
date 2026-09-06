@@ -532,7 +532,7 @@ export default function UserManagement() {
               {isLoading ? (
                 <AdminCenterLoader />
               ) : (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="border hairline overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
