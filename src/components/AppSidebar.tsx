@@ -173,7 +173,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-foreground/25 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -181,21 +181,26 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-surface border-r border-border   transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-16",
+          "fixed top-0 left-0 z-50 h-dvh bg-surface border-r hairline transition-[width,transform] duration-300 ease-out",
+          isOpen ? "w-[268px] max-w-[82vw] lg:w-[264px] lg:max-w-none" : "w-[76px]",
           "lg:translate-x-0",
-          !isOpen && "lg:w-16",
-          !isOpen && "-translate-x-full lg:translate-x-0"
+          !isOpen && "lg:w-[76px]",
+          !isOpen && "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo with collapse button */}
-          <div className={cn("border-b border-border", isOpen ? "p-4" : "p-2")}>
+          <div
+            className={cn(
+              "shrink-0 border-b hairline",
+              isOpen ? "px-4 py-3" : "flex h-[73px] items-center justify-center px-2",
+            )}
+          >
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
                   <NavLink to="/" onClick={closeSidebarOnMobile}>
-                    <ThemedLogo className="h-12 w-auto" />
+                    <ThemedLogo className="h-9 w-auto" />
                   </NavLink>
                   <button
                     onClick={() => setIsOpen(false)}
