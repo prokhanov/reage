@@ -55,31 +55,34 @@ export function EnergyHero({ onAddToCart }: Props) {
             Анализы сдаются в LabQuest
           </span>
 
-          <h1 className="font-display mt-6 text-5xl leading-[1.05] text-foreground md:text-6xl">
+          <h1 className="font-display mt-5 text-4xl leading-[1.05] text-foreground sm:mt-6 sm:text-5xl xl:text-6xl">
             ReAge Energy
           </h1>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
+          <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground xl:text-lg">
             Чекап для тех, кто просыпается уставшим. Шесть анализов, которые чаще всего
             объясняют нехватку энергии.
           </p>
 
-          <dl className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <dl className="mt-7 grid grid-cols-1 gap-3 xs:grid-cols-3 sm:grid-cols-3">
             {facts.map((f) => (
-              <div key={f.title} className="rounded-xl border hairline bg-card/70 p-4">
-                <f.icon className="h-5 w-5 text-primary" aria-hidden />
-                <dt className="mt-2 text-sm font-medium text-foreground">{f.title}</dt>
-                <dd className="text-xs leading-snug text-muted-foreground">{f.text}</dd>
+              <div key={f.title} className="flex items-start gap-3 rounded-xl border hairline bg-card/70 p-4 sm:block">
+                <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+                <div className="sm:mt-2">
+                  <dt className="text-sm font-medium text-foreground">{f.title}</dt>
+                  <dd className="text-xs leading-snug text-muted-foreground">{f.text}</dd>
+                </div>
               </div>
             ))}
           </dl>
 
-          <div className="mt-9 flex flex-wrap items-center gap-5">
-            <div className="font-mono-tech text-3xl text-foreground md:text-4xl">5 990 ₽</div>
-            <Button size="lg" onClick={onAddToCart} className="gap-2">
+          <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-5">
+            <div className="font-mono-tech text-3xl text-foreground sm:text-4xl">5 990 ₽</div>
+            <Button size="lg" onClick={onAddToCart} className="w-full gap-2 sm:w-auto">
               Добавить в корзину
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
+
           <p className="mt-3 text-sm text-muted-foreground">Результаты в ReAge</p>
         </div>
       </div>
