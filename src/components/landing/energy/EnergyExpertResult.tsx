@@ -181,7 +181,7 @@ export function EnergyExpertResult() {
         </div>
 
 
-        <div className="min-w-0">
+        <div className="min-w-0 lg:pt-5">
           <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
