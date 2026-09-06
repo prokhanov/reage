@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { getStatusLabel } from "@/lib/statusTone";
 import { DataTableShell } from "@/components/ui/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,15 +58,6 @@ const pickField = (obj: Record<string, unknown> | null | undefined, ...keys: str
 const fmt = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleString("ru-RU") : "—";
 
-function statusBadge(status: string) {
-  const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    paid: { label: "Оплачен", variant: "default" },
-    pending: { label: "Ожидание", variant: "secondary" },
-    failed: { label: "Ошибка", variant: "destructive" },
-  };
-  const cfg = map[status] || { label: status, variant: "outline" as const };
-  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
-}
 
 export function AdminPaymentLogs() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -263,7 +256,7 @@ export function AdminPaymentLogs() {
                         <TableCell className="text-right tabular-nums">
                           {o.paid_amount != null ? `${Number(o.paid_amount).toLocaleString("ru-RU")} ₽` : "—"}
                         </TableCell>
-                        <TableCell>{statusBadge(o.status)}</TableCell>
+                        <TableCell>{<StatusBadge status={o.status} label={getStatusLabel(o.status)} />}</TableCell>
                         <TableCell>
                           {o.is_test ? <Badge variant="outline">тест</Badge> : <Badge variant="secondary">боевой</Badge>}
                         </TableCell>

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { getStatusLabel } from "@/lib/statusTone";
 import { DataTableShell } from "@/components/ui/data-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,22 +53,6 @@ function maskPhone(phone: string): string {
   return `+${d.slice(0, 1)} ${d.slice(1, 4)} ***-**-${d.slice(-2)}`;
 }
 
-function statusBadge(status: string) {
-  const map: Record<string, { label: string; className: string; icon: any }> = {
-    sent: { label: "Отправлено", className: "bg-success/15 text-success dark:text-success border-success/30", icon: CheckCircle2 },
-    pending: { label: "В очереди", className: "bg-info/15 text-info dark:text-info border-info/30", icon: Clock },
-    failed: { label: "Ошибка", className: "bg-destructive/15 text-destructive border-destructive/30", icon: AlertCircle },
-    dlq: { label: "Ошибка", className: "bg-destructive/15 text-destructive border-destructive/30", icon: AlertCircle },
-  };
-  const cfg = map[status] || { label: status, className: "bg-muted text-muted-foreground", icon: MessageSquare };
-  const Icon = cfg.icon;
-  return (
-    <Badge variant="outline" className={`gap-1 ${cfg.className}`}>
-      <Icon className="w-3 h-3" />
-      {cfg.label}
-    </Badge>
-  );
-}
 
 function periodStart(p: string): string {
   const now = new Date();
@@ -232,7 +218,7 @@ export function SmsLogsDashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm whitespace-nowrap">{maskPhone(r.recipient_phone)}</TableCell>
-                        <TableCell>{statusBadge(r.status)}</TableCell>
+                        <TableCell>{<StatusBadge status={r.status} label={getStatusLabel(r.status)} />}</TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(r.created_at).toLocaleString("ru-RU")}
                         </TableCell>

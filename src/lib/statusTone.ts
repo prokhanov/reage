@@ -58,6 +58,8 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   expired: "destructive",
   overdue: "destructive",
 
+  suppressed: "warning",
+
   // Нейтральные / выключенные
   inactive: "neutral",
   not_scheduled: "neutral",
@@ -100,6 +102,9 @@ const STATUS_LABELS: Record<string, string> = {
   not_scheduled: "Не назначен",
   uploaded: "Загружен",
   used: "Использован",
+  suppressed: "Заблокирован",
+  paid: "Оплачен",
+  processing: "В обработке",
   revoked: "Отозван",
 };
 

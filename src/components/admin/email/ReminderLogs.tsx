@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { getStatusLabel } from "@/lib/statusTone";
 import { DataTableShell } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,23 +25,6 @@ const TYPE_LABELS: Record<string, string> = {
   confirm_reminder_both: "Email + телефон",
 };
 
-function statusBadge(status: string) {
-  const map: Record<string, { label: string; cls: string; Icon: any }> = {
-    sent: { label: "Отправлено", cls: "bg-success/15 text-success dark:text-success border-success/30", Icon: CheckCircle2 },
-    pending: { label: "В очереди", cls: "bg-info/15 text-info dark:text-info border-info/30", Icon: Clock },
-    dlq: { label: "Ошибка", cls: "bg-destructive/15 text-destructive border-destructive/30", Icon: AlertCircle },
-    failed: { label: "Ошибка", cls: "bg-destructive/15 text-destructive border-destructive/30", Icon: AlertCircle },
-    suppressed: { label: "Заблокирован", cls: "bg-warning/15 text-warning dark:text-warning border-warning/30", Icon: AlertCircle },
-  };
-  const cfg = map[status] || { label: status, cls: "bg-muted text-muted-foreground", Icon: Mail };
-  const Icon = cfg.Icon;
-  return (
-    <Badge variant="outline" className={`gap-1 ${cfg.cls}`}>
-      <Icon className="w-3 h-3" />
-      {cfg.label}
-    </Badge>
-  );
-}
 
 export default function ReminderLogs() {
   const [rows, setRows] = useState<LogRow[]>([]);
@@ -116,7 +101,7 @@ export default function ReminderLogs() {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{r.recipient_email}</TableCell>
-                  <TableCell>{statusBadge(r.status)}</TableCell>
+                  <TableCell>{<StatusBadge status={r.status} label={getStatusLabel(r.status)} />}</TableCell>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(r.created_at).toLocaleString("ru-RU")}
                   </TableCell>
