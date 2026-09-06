@@ -57,6 +57,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          soft: "hsl(var(--success-soft))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          soft: "hsl(var(--warning-soft))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          soft: "hsl(var(--info-soft))",
+        },
         status: {
           good: "hsl(var(--status-good))",
           warning: "hsl(var(--status-warning))",
@@ -66,6 +81,7 @@ export default {
           risk: "hsl(var(--status-risk))",
           critical: "hsl(var(--status-critical))",
         },
+
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
@@ -107,11 +123,15 @@ export default {
         'page-x': 'var(--space-page-x)',
       },
       borderRadius: {
+        xs: "var(--radius-xs)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
         xl: "var(--radius-lg)",
+        "2xl": "var(--radius-xl)",
+        "3xl": "var(--radius-2xl)",
       },
+
       keyframes: {
         "accordion-down": {
           from: {
