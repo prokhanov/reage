@@ -36,7 +36,7 @@ export function EnergyHero({ onAddToCart }: Props) {
           aria-hidden
         />
         <p
-          className="absolute right-5 top-6 text-right text-[9px] font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 md:right-10 md:top-12 md:text-xs"
+          className="absolute right-4 top-12 text-right text-[9px] font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80 md:right-10 md:top-12 md:text-xs"
           style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
         >
           <span className="whitespace-nowrap">Больше энергии</span>
