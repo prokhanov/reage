@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -72,13 +73,6 @@ const statusLabels: Record<BookingStatus, string> = {
   report_ready: bookingStatusLabels.report_ready,
 };
 
-const statusColors: Record<BookingStatus, string> = {
-  scheduled: bookingStatusColors.scheduled,
-  application_submitted: bookingStatusColors.application_submitted,
-  collected: bookingStatusColors.collected,
-  report_pending: bookingStatusColors.report_pending,
-  report_ready: bookingStatusColors.report_ready,
-};
 
 
 export default function MyAssignments() {
@@ -350,12 +344,7 @@ export default function MyAssignments() {
                       </button>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={statusColors[booking.status]}
-                      >
-                        {statusLabels[booking.status]}
-                      </Badge>
+                      <StatusBadge status={booking.status} label={statusLabels[booking.status]} />
                     </TableCell>
                     <TableCell>
                       {format(new Date(booking.created_at), "d MMM yyyy", { locale: ru })}

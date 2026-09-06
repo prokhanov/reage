@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Fragment, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -91,16 +92,6 @@ const statusLabels: Record<BookingStatus, string> = {
   report_ready: "Отчёт загружен",
 };
 
-const statusColors: Record<BookingStatus, string> = {
-  waiting_call: "bg-warning-soft text-warning border-warning",
-  no_answer: "bg-warning-soft text-warning border-warning",
-  not_scheduled: "bg-muted text-foreground border-border",
-  scheduled: "bg-info-soft text-info border-info",
-  application_submitted: "bg-info-soft text-info border-info",
-  collected: "bg-success-soft text-success border-success",
-  report_pending: "bg-primary text-primary border-primary",
-  report_ready: "bg-success text-primary-foreground border-success",
-};
 
 type TemplateKey =
   | "scheduled"
@@ -457,12 +448,11 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             }}
                           >
                             <SelectTrigger className="h-control-sm w-auto gap-1 border-none p-0 bg-transparent shadow-none">
-                              <Badge
-                                variant="outline"
-                                className={cn("font-normal cursor-pointer", statusColors[b.status])}
-                              >
-                                {statusLabels[b.status]}
-                              </Badge>
+                              <StatusBadge
+                                status={b.status}
+                                label={statusLabels[b.status]}
+                                className="cursor-pointer font-normal"
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               {(Object.keys(statusLabels) as BookingStatus[]).map((s) => (

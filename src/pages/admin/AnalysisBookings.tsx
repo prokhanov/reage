@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -462,12 +463,7 @@ export default function AnalysisBookings() {
                       </button>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={statusColors[booking.status]}
-                      >
-                        {statusLabels[booking.status]}
-                      </Badge>
+                      <StatusBadge status={booking.status} label={statusLabels[booking.status]} />
                     </TableCell>
                     <TableCell>
                       <button
