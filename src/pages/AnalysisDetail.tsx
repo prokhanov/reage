@@ -1120,6 +1120,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             />
           </>
         )}
-      </div>
+    </PageContainer>
   );
 }

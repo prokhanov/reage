@@ -1508,6 +1508,6 @@ export default function Recommendations() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+    </PageContainer>
   );
 }
