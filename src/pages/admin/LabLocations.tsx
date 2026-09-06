@@ -391,8 +391,7 @@ export default function LabLocations() {
 
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>Всего: {items.length}</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-success font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            <Badge variant="success" size="sm" dot>
               Активно: {items.filter((i) => i.is_active).length}
             </span>
             <span>Показано: {filtered.length}</span>

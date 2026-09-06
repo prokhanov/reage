@@ -1,3 +1,5 @@
+import { getStatusLabel } from "@/lib/statusTone";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useEffect, useMemo, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,14 +55,6 @@ const STATUS_LABEL: Record<string, string> = {
   mixed: "Смешано",
 };
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  active: "default",
-  completed: "secondary",
-  unsubscribed: "outline",
-  failed: "destructive",
-  cancelled: "outline",
-  mixed: "secondary",
-};
 
 export default function SeriesSubscribersTab({ seriesId }: Props) {
   const { toast } = useToast();
@@ -250,10 +244,10 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                       <td className="p-3">
                         <div className="font-medium">{displayName(s)}</div>
                         <div className="text-xs text-muted-foreground">{s.email}</div>
-                        {s.has_active_subscription && <Badge variant="outline" className="text-[10px] mt-1">подписка</Badge>}
+                        {s.has_active_subscription && <Badge variant="outline" size="sm" className="mt-1">подписка</Badge>}
                       </td>
                       <td className="p-3">
-                        <Badge variant={STATUS_VARIANT[s.overall_status] ?? "secondary"}>{STATUS_LABEL[s.overall_status] ?? s.overall_status}</Badge>
+                        <StatusBadge status={s.overall_status} label={STATUS_LABEL[s.overall_status] ?? getStatusLabel(s.overall_status)} />
                         {s.unsubscribe_scope && <div className="text-[10px] text-muted-foreground mt-1">отписка: {s.unsubscribe_scope}</div>}
                       </td>
                       <td className="p-3 min-w-[140px]">

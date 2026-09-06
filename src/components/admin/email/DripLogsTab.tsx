@@ -1,3 +1,5 @@
+import { getStatusLabel } from "@/lib/statusTone";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useEffect, useState } from "react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,12 +29,6 @@ interface LogItem {
   is_test: boolean;
 }
 
-const STATUS_VARIANT = (s: string): "default" | "secondary" | "destructive" | "outline" => {
-  if (s === "sent") return "default";
-  if (s === "pending") return "secondary";
-  if (s === "failed" || s === "dlq" || s === "bounced" || s === "complained") return "destructive";
-  return "outline";
-};
 
 export default function DripLogsTab() {
   const { toast } = useToast();
@@ -171,7 +167,7 @@ export default function DripLogsTab() {
                     </td>
                     <td className="p-3">
                       <div className="text-xs">
-                        {l.is_test && <Badge variant="outline" className="text-[10px] mr-1">ТЕСТ</Badge>}
+                        {l.is_test && <Badge variant="outline" size="sm" className="mr-1">ТЕСТ</Badge>}
                         {l.series_name ?? <span className="text-muted-foreground">—</span>}
                       </div>
                       {l.step_subject && (
@@ -182,7 +178,7 @@ export default function DripLogsTab() {
                       )}
                     </td>
                     <td className="p-3">
-                      <Badge variant={STATUS_VARIANT(l.status)} className="text-[10px]">{l.status}</Badge>
+                      <StatusBadge status={l.status} label={getStatusLabel(l.status)} size="sm" />
                     </td>
                     <td className="p-3 text-xs text-destructive max-w-[320px] truncate" title={l.error_message ?? ""}>
                       {l.error_message ?? ""}
