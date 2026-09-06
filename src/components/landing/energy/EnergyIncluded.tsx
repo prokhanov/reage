@@ -23,13 +23,11 @@ export function EnergyIncluded() {
           </span>
         </p>
 
-        {/* Мобильный список: тонкие разделители, без рамок у каждого пункта.
-            Планшет/десктоп — прежняя сетка карточек. */}
-        <ul className="mt-6 divide-y divide-border/60 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0">
+        <ul className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2">
           {items.map((i) => (
             <li
               key={i.title}
-              className="flex min-h-[60px] items-center gap-3 py-3 sm:min-h-0 sm:items-start sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-4"
+              className="flex min-h-[60px] items-center gap-3 rounded-xl border border-border bg-card p-4 sm:min-h-0 sm:items-start"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:mt-0.5">
                 <i.icon className="h-[18px] w-[18px] text-primary" aria-hidden />
