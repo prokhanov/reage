@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 /**
  * PrescriptionCard — единая карточка одного нутрицевтика.
  *
