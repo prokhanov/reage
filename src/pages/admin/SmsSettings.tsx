@@ -18,6 +18,7 @@ import {
   MessageSquare, Send, CheckCircle, AlertCircle, Save, User, Activity, Wifi, Eye, EyeOff, KeyRound,
 } from "lucide-react";
 import { SmsLogsDashboard } from "@/components/admin/sms/SmsLogsDashboard";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 type SmsTemplate = {
   id: string;
@@ -292,13 +293,8 @@ export default function SmsSettings() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">SMS рассылки</h1>
-        <p className="text-muted-foreground mt-1">
-          Отправитель, шаблоны и тестовая отправка через SMS Aero
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="SMS рассылки" description="Отправитель, шаблоны и тестовая отправка через SMS Aero" />
 
       <Tabs defaultValue="sender" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">

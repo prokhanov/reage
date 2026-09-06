@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 // Categories will be loaded from DB
 
@@ -694,7 +695,7 @@ export default function DataManagement() {
 
   if (loadingBiomarkers || loadingConditions) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
@@ -702,13 +703,8 @@ export default function DataManagement() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Управление данными</h1>
-          <p className="text-muted-foreground mt-1">
-            Управление биомаркерами и медицинскими состояниями
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+        <AdminPageHeader title="Управление данными" description="Управление биомаркерами и медицинскими состояниями" />
 
         <Tabs defaultValue="biomarkers" className="space-y-6">
           <TabsList className="w-full justify-start flex-wrap h-auto">

@@ -52,6 +52,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
+import { AdminPageHeader } from "@/components/admin/AdminPage";
   bookingStatusLabels as statusLabels,
   bookingStatusColors as statusColors,
   type BookingStatus,
@@ -287,20 +288,15 @@ export default function AnalysisBookings() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Записи на анализы</h1>
-        <p className="text-muted-foreground mt-1">
-          Управление записями пациентов и доступными слотами
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Записи на анализы" description="Управление записями пациентов и доступными слотами" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start flex-wrap h-auto">

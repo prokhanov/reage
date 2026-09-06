@@ -37,6 +37,7 @@ import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
 import {
+import { AdminPageHeader } from "@/components/admin/AdminPage";
   bookingStatusLabels,
   bookingStatusColors,
   type BookingStatus as AllBookingStatus,
@@ -217,20 +218,15 @@ export default function MyAssignments() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Назначены мне</h1>
-        <p className="text-muted-foreground mt-1">
-          Анализы, назначенные мне для забора
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Назначены мне" description="Анализы, назначенные мне для забора" />
 
       <Card>
         <CardHeader>

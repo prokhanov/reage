@@ -307,10 +307,10 @@ export default function LabLocations() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Лаборатории</h1>
+          <h1 className="text-2xl md:text-3xl tracking-tight">Лаборатории</h1>
           <p className="text-muted-foreground mt-1">
             Справочник адресов пунктов забора (LabQuest и другие провайдеры).
           </p>

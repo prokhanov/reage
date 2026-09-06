@@ -19,6 +19,7 @@ import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { getCategoryKey } from "@/lib/categoryKeyMap";
 import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import type { Tables } from "@/integrations/supabase/types";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 interface PromptFormData {
   description: string;
@@ -260,20 +261,15 @@ export default function AISettings() {
 
   if (isLoading || categoriesLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0">
         <AdminCenterLoader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Настройки AI промптов</h1>
-        <p className="text-muted-foreground mt-1">
-          Управление промптами для AI анализа биомаркеров по категориям
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Настройки AI промптов" description="Управление промптами для AI анализа биомаркеров по категориям" />
 
 
 

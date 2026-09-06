@@ -15,6 +15,7 @@ import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone, 
 import { EmailLogsDashboard } from "@/components/admin/email/EmailLogsDashboard";
 import DripCampaigns from "@/components/admin/email/DripCampaigns";
 import ConfirmationReminders from "@/components/admin/email/ConfirmationReminders";
+import { AdminPageHeader } from "@/components/admin/AdminPage";
 
 interface EmailTemplate {
   id?: string;
@@ -236,13 +237,8 @@ export default function EmailSettings() {
   const hasButton = (type: string) => type !== "reauthentication";
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Настройки Email</h1>
-        <p className="text-muted-foreground mt-1">
-          Управление отправкой писем: регистрация, восстановление пароля и уведомления
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+      <AdminPageHeader title="Настройки Email" description="Управление отправкой писем: регистрация, восстановление пароля и уведомления" />
 
       <Tabs defaultValue="drip" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">
