@@ -310,52 +310,35 @@ export default function LabLocations() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
       <AdminPageHeader
-
         title="Лаборатории"
-
         description="Справочник адресов пунктов забора (LabQuest и другие провайдеры)."
-
         actions={
-
           <>
-        <div className="flex flex-wrap gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
-          />
-          <Button
-            variant="outline"
-            onClick={handleSyncLabquest}
-            disabled={syncing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Обновление..." : "Обновить клиники LabQuest"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {importing ? "Импорт..." : "Загрузить JSON"}
-          </Button>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить
-          </Button>
-
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+              }}
+            />
+            <Button variant="outline" onClick={handleSyncLabquest} disabled={syncing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Обновление..." : "Обновить клиники LabQuest"}
+            </Button>
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? "Импорт..." : "Загрузить JSON"}
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить
+            </Button>
           </>
-
         }
-
       />
-      </div>
 
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full justify-start flex-wrap h-auto">
