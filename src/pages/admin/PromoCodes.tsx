@@ -147,30 +147,21 @@ export default function PromoCodes() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
       <AdminPageHeader
-
         title="Промокоды"
-
         description="Генерация, управление и аналитика промокодов"
-
         actions={
-
           <>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Создать
-          </Button>
-          <Button onClick={() => setGenerateOpen(true)}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            Массовая генерация
-          </Button>
-
+            <Button variant="outline" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Создать
+            </Button>
+            <Button onClick={() => setGenerateOpen(true)}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Массовая генерация
+            </Button>
           </>
-
         }
-
       />
-      </div>
 
       <Card>
         <CardHeader className="pb-3">
