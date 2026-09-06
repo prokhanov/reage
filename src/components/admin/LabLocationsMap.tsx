@@ -364,6 +364,9 @@ export default function LabLocationsMap({
   hideControls = false,
   hideAttribution = false,
   scrollWheelZoomDelay = 500,
+  focusOnSelected = false,
+  focusZoom = 15,
+
 }: {
   items: LabMapItem[];
   center?: [number, number];
