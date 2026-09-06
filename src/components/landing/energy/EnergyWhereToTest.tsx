@@ -209,7 +209,11 @@ export function EnergyWhereToTest() {
                 clusterMarkers
                 showSelectButton
                 selectedId={selectedId ?? undefined}
+                focusOnSelected
+                focusZoom={15}
                 onSelect={(item) => setSelectedId(item.id)}
+
+
               />
             </Suspense>
           </div>

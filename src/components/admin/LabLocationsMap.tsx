@@ -198,6 +198,26 @@ function FitBounds({ items }: { items: LabMapItem[] }) {
   return null;
 }
 
+function FocusSelected({
+  items,
+  selectedId,
+  zoom,
+}: {
+  items: LabMapItem[];
+  selectedId?: string | null;
+  zoom: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!selectedId) return;
+    const target = items.find((i) => i.id === selectedId);
+    if (!target) return;
+    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), zoom), { duration: 0.8 });
+  }, [selectedId, items, map, zoom]);
+  return null;
+}
+
+
 function ClusterLayer({
   items,
   showPartnerButton,
@@ -364,6 +384,9 @@ export default function LabLocationsMap({
   hideControls = false,
   hideAttribution = false,
   scrollWheelZoomDelay = 500,
+  focusOnSelected = false,
+  focusZoom = 15,
+
 }: {
   items: LabMapItem[];
   center?: [number, number];
@@ -385,6 +408,9 @@ export default function LabLocationsMap({
   hideControls?: boolean;
   hideAttribution?: boolean;
   scrollWheelZoomDelay?: number;
+  focusOnSelected?: boolean;
+  focusZoom?: number;
+
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
@@ -601,6 +627,8 @@ export default function LabLocationsMap({
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
+          {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
+
           <ClusterLayer
             items={items}
             showPartnerButton={showPartnerButton}
