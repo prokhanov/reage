@@ -422,7 +422,7 @@ function ReportMockup({
   return (
     <div className="relative" onClick={stopAuto}>
       {/* Glow */}
-      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-3xl pointer-events-none" />
 
       {/* A4 page frame (1 : √2) */}
       <div
@@ -512,7 +512,7 @@ function PreviewCardsRow() {
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
+      <div className="absolute -inset-6 bg-gradient-hero opacity-20 blur-3xl rounded-3xl pointer-events-none" />
 
       <div
         className="relative w-full max-w-[640px] mx-auto"

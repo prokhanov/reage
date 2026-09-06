@@ -63,7 +63,7 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
               <div className="relative rounded-3xl overflow-hidden print:rounded-none print:overflow-visible">
                 {/* Gradient border */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-border/50 to-accent/20 rounded-3xl print:hidden" />
-                <div className="relative m-[1px] rounded-[23px] bg-card/80 backdrop-blur-sm border border-border/30 p-8 md:p-12 lg:p-16 print:m-0 print:rounded-none print:border-0 print:bg-transparent print:p-0 print:backdrop-blur-none">
+                <div className="relative m-[1px] rounded-3xl bg-card/80 backdrop-blur-sm border border-border/30 p-8 md:p-12 lg:p-16 print:m-0 print:rounded-none print:border-0 print:bg-transparent print:p-0 print:backdrop-blur-none">
                   <div className="prose prose-invert prose-lg max-w-none print:prose-base print:text-black">
                     {children}
                   </div>

@@ -176,7 +176,7 @@ export function PersonasSection() {
             className="relative animate-fade-in"
           >
             {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-[40px] blur-2xl opacity-50" />
+            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-3xl blur-2xl opacity-50" />
             
             <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-3xl overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0">
