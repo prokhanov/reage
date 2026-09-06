@@ -762,7 +762,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </Button>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-foreground md:bg-gradient-primary md:bg-clip-text md:text-transparent">
+                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-foreground">
                   {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
                     day: "numeric",
                     month: "long",

@@ -91,7 +91,7 @@ export function ConsultationCtaBlock() {
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-5 text-foreground">
               Запишитесь на{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-primary">
                 бесплатную консультацию
               </span>
             </h2>
