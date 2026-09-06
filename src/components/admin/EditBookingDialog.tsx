@@ -100,7 +100,7 @@ export function EditBookingDialog({
 
   return (
     <Dialog open={!!bookingId} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Редактировать запись</DialogTitle>
         </DialogHeader>

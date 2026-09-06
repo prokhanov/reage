@@ -411,7 +411,7 @@ export default function ReportVisualsTest() {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="sticky top-0 z-10 border-b bg-background">
-        <div className="mx-auto flex max-w-[1100px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-2xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <div className="text-xs uppercase tracking-widest text-muted-foreground">
               Report Lab · Sandbox
@@ -458,7 +458,7 @@ export default function ReportVisualsTest() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1100px] px-6 py-6">
+      <div className="mx-auto max-w-2xl px-6 py-6">
 
         {pdfLogs.length > 0 && (
           <Card className="mb-6 border bg-background p-4">

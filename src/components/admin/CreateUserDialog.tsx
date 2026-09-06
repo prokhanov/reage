@@ -173,7 +173,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   };
 
   return (
-    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-md">
       <DialogHeader>
         <DialogTitle>{generatedUrl ? "Приглашение создано" : "Добавить пользователя"}</DialogTitle>
         <DialogDescription>

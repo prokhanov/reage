@@ -171,7 +171,7 @@ export default function DripLogsTab() {
                         {l.series_name ?? <span className="text-muted-foreground">—</span>}
                       </div>
                       {l.step_subject && (
-                        <div className="text-xs text-muted-foreground truncate max-w-[280px]" title={l.step_subject}>
+                        <div className="text-xs text-muted-foreground truncate max-w-md" title={l.step_subject}>
                           {l.step_order_index !== null && <span>#{l.step_order_index} </span>}
                           {l.step_subject}
                         </div>
@@ -180,7 +180,7 @@ export default function DripLogsTab() {
                     <td className="p-3">
                       <StatusBadge status={l.status} label={getStatusLabel(l.status)} size="sm" />
                     </td>
-                    <td className="p-3 text-xs text-destructive max-w-[320px] truncate" title={l.error_message ?? ""}>
+                    <td className="p-3 text-xs text-destructive max-w-md truncate" title={l.error_message ?? ""}>
                       {l.error_message ?? ""}
                     </td>
                   </tr>

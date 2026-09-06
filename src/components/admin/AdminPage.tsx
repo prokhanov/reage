@@ -20,7 +20,7 @@ export function AdminPage({ children, className, wide }: AdminPageProps) {
     <div
       className={cn(
         "container mx-auto w-full min-w-0 px-4 py-6 md:py-8 space-y-6",
-        wide ? "max-w-[1600px]" : "max-w-7xl",
+        wide ? "max-w-2xl" : "max-w-7xl",
         className,
       )}
     >

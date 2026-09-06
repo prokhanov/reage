@@ -67,7 +67,7 @@ export function PdfCanvas({ url }: { url: string }) {
   if (error) {
     return <div className="p-6 text-sm text-destructive">Не удалось показать PDF: {error}</div>;
   }
-  return <div ref={hostRef} className="mx-auto w-full max-w-[900px] p-4" />;
+  return <div ref={hostRef} className="mx-auto w-full max-w-2xl p-4" />;
 }
 
 export function ReportPdfView({ analysisId, persona, className }: Props) {

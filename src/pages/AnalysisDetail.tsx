@@ -968,7 +968,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                             <Info className="h-3.5 w-3.5 text-primary" />
                                           </button>
                                         </TooltipTrigger>
-                                        <TooltipContent className="max-w-[260px]" side="top" align="end" sideOffset={6}>
+                                        <TooltipContent className="max-w-md" side="top" align="end" sideOffset={6}>
                                           <p className="text-xs">{value.biomarkers.description}</p>
                                         </TooltipContent>
                                       </Tooltip>

@@ -238,7 +238,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
 
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Информация о пациенте</DialogTitle>
           <DialogDescription>

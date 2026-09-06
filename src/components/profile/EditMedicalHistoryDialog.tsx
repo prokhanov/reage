@@ -172,7 +172,7 @@ export function EditMedicalHistoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Редактировать историю болезней</DialogTitle>
         </DialogHeader>

@@ -103,7 +103,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Редактировать тариф</DialogTitle>
         </DialogHeader>

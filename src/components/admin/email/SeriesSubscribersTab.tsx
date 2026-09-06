@@ -264,7 +264,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                       <td className="p-3">
                         {s.last_step_subject ? (
                           <>
-                            <div className="text-xs truncate max-w-[200px]" title={s.last_step_subject}>
+                            <div className="text-xs truncate max-w-md" title={s.last_step_subject}>
                               {s.last_step_index !== null && <span className="text-muted-foreground">#{s.last_step_index} </span>}
                               {s.last_step_subject}
                             </div>

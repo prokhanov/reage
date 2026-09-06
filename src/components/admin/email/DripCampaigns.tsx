@@ -336,7 +336,7 @@ export default function DripCampaigns() {
 
         {/* Step editor */}
         <Dialog open={!!editingStep} onOpenChange={(o) => !o && setEditingStep(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader><DialogTitle>Редактор шага</DialogTitle></DialogHeader>
             {editingStep && (
               <div className="space-y-4">

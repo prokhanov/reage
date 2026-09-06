@@ -501,7 +501,7 @@ export default function TelegramSettings() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-[300px] truncate" title={row.error || ""}>
+                    <TableCell className="text-xs text-muted-foreground max-w-md truncate" title={row.error || ""}>
                       {row.error || "—"}
                     </TableCell>
                   </TableRow>

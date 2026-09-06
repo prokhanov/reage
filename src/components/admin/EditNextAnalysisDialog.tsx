@@ -80,7 +80,7 @@ export function EditNextAnalysisDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Изменить дату следующего анализа</DialogTitle>
           <DialogDescription>

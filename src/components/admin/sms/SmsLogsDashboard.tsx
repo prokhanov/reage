@@ -236,7 +236,7 @@ export function SmsLogsDashboard() {
                           {new Date(r.created_at).toLocaleString("ru-RU")}
                         </TableCell>
                         <TableCell
-                          className={`text-xs max-w-[320px] truncate ${r.error_message ? "text-destructive" : "text-muted-foreground"}`}
+                          className={`text-xs max-w-md truncate ${r.error_message ? "text-destructive" : "text-muted-foreground"}`}
                           title={r.error_message || r.body_text}
                         >
                           {r.error_message || r.body_text}

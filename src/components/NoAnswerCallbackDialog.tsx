@@ -102,7 +102,7 @@ export function NoAnswerCallbackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px] p-5 sm:p-6 gap-4">
+      <DialogContent className="max-w-md p-5 sm:p-6 gap-4">
         <DialogHeader className="text-left space-y-1.5">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Phone className="h-5 w-5 text-primary" />

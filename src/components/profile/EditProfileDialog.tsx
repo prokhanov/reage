@@ -211,7 +211,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] sm: overflow-hidden flex flex-col p-0">
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Редактировать профиль</DialogTitle>
           <DialogDescription>

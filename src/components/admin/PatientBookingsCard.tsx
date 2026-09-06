@@ -402,7 +402,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             </div>
                           </button>
                         </TableCell>
-                        <TableCell className="max-w-[240px]">
+                        <TableCell className="max-w-md">
                           <button
                             onClick={() => setEditing(b)}
                             className="block max-w-full text-left hover:text-primary"
@@ -692,7 +692,7 @@ function CreateBookingForPatientDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Новая запись на анализ</DialogTitle>
         </DialogHeader>
@@ -892,7 +892,7 @@ function SendRemindersDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Отправить напоминания</DialogTitle>
         </DialogHeader>
@@ -1025,7 +1025,7 @@ function RequestNumberDialog({
   const trimmed = value.trim();
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Заявка ЛабКвест оформлена</DialogTitle>
         </DialogHeader>

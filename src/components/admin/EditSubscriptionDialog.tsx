@@ -187,7 +187,7 @@ export function EditSubscriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {subscription?.id ? "Редактировать подписку" : "Создать подписку"}

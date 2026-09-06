@@ -434,7 +434,7 @@ export default function AnalysisBookings() {
                         </div>
                       </button>
                     </TableCell>
-                    <TableCell className="max-w-[220px]">
+                    <TableCell className="max-w-md">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

@@ -208,7 +208,7 @@ export default function ScaleLabelsPreview() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="bg-card text-foreground rounded-lg p-6 max-w-[520px] mx-auto space-y-4 border shadow-sm">
+          <div className="bg-card text-foreground rounded-lg p-6 max-w-lg mx-auto space-y-4 border shadow-sm">
             <div className="text-center text-xs text-muted-foreground uppercase tracking-wider">PDF preview</div>
             {SCENARIOS.map((s) => <PdfRow key={s.label} value={s.value} />)}
           </div>

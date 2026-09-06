@@ -1257,7 +1257,7 @@ export default function DataManagement() {
 
       {/* Biomarker Dialog */}
       <Dialog open={biomarkerDialog} onOpenChange={setBiomarkerDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editingBiomarker ? "Редактировать биомаркер" : "Добавить биомаркер"}

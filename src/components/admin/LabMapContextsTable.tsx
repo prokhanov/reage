@@ -214,7 +214,7 @@ function SettingsDialog({
 
   return (
     <Dialog open={!!ctx} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Настройки карты — {draft.name}</DialogTitle>
           <DialogDescription>{draft.location || "Место использования карты"}</DialogDescription>

@@ -208,7 +208,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Новая запись на анализ</DialogTitle>
           <DialogDescription>

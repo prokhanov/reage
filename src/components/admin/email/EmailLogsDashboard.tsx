@@ -244,7 +244,7 @@ export function EmailLogsDashboard() {
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(r.created_at).toLocaleString("ru-RU")}
                         </TableCell>
-                        <TableCell className="text-xs text-destructive max-w-[280px] truncate" title={r.error_message ?? ""}>
+                        <TableCell className="text-xs text-destructive max-w-md truncate" title={r.error_message ?? ""}>
                           {r.error_message ?? ""}
                         </TableCell>
                       </TableRow>

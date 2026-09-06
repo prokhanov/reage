@@ -355,7 +355,7 @@ export function AdminPaymentLogs() {
                         <TableCell className="text-right tabular-nums text-xs">
                           {outSum != null ? `${Number(outSum).toLocaleString("ru-RU")} ₽` : "—"}
                         </TableCell>
-                        <TableCell className="font-mono text-[10px] max-w-[140px] truncate" title={sig || ""}>
+                        <TableCell className="font-mono text-[10px] max-w-md truncate" title={sig || ""}>
                           {sig || "—"}
                         </TableCell>
                         <TableCell>

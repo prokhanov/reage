@@ -90,7 +90,7 @@ export function ExampleReportDialog({ open, onOpenChange }: ExampleReportDialogP
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o && status === "success") return; handleClose(); }}>
       <DialogContent
-        className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border"
+        className="max-w-lg p-0 gap-0 overflow-hidden bg-card border-border"
         hideCloseButton
         onPointerDownOutside={(e) => { if (status === "success") e.preventDefault(); }}
         onEscapeKeyDown={(e) => { if (status === "success") e.preventDefault(); }}

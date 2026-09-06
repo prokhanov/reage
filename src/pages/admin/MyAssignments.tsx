@@ -310,7 +310,7 @@ export default function MyAssignments() {
                         </div>
                       </button>
                     </TableCell>
-                    <TableCell className="max-w-[200px]">
+                    <TableCell className="max-w-md">
                       <button
                         onClick={() => setEditingBooking({
                           id: booking.id,

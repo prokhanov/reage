@@ -93,7 +93,7 @@ export function CreatePlanDialog() {
           Создать тариф
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Создать новый тариф</DialogTitle>
         </DialogHeader>
