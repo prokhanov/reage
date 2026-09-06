@@ -198,6 +198,26 @@ function FitBounds({ items }: { items: LabMapItem[] }) {
   return null;
 }
 
+function FocusSelected({
+  items,
+  selectedId,
+  zoom,
+}: {
+  items: LabMapItem[];
+  selectedId?: string | null;
+  zoom: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!selectedId) return;
+    const target = items.find((i) => i.id === selectedId);
+    if (!target) return;
+    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), zoom), { duration: 0.8 });
+  }, [selectedId, items, map, zoom]);
+  return null;
+}
+
+
 function ClusterLayer({
   items,
   showPartnerButton,
