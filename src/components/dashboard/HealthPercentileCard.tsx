@@ -11,7 +11,7 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
   if (!biologicalAge || !chronologicalAge) {
     if (compact) {
       return (
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background">
           <Trophy className="h-5 w-5 text-muted-foreground flex-shrink-0" />
           <div className="flex-1">
             <div className="text-sm text-muted-foreground">Ваш результат</div>
@@ -22,7 +22,7 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
     }
     
     return (
-      <Card className="border-border bg-card backdrop-blur-sm">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" strokeWidth={1.75} />
@@ -132,7 +132,7 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
 
   // Original full card version
   return (
-    <Card className={`border-border backdrop-blur-sm ${data.bgColor}`}>
+    <Card className={`border-border   ${data.bgColor}`}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Icon className={`h-5 w-5 ${data.color}`} strokeWidth={1.75} />
@@ -175,7 +175,7 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
           </p>
 
           {ageDifference > 0 && (
-            <div className="text-center p-3 rounded-lg bg-background/50">
+            <div className="text-center p-3 rounded-lg bg-background">
               <p className="text-xs text-muted-foreground">
                 Ваш биологический возраст
               </p>

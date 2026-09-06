@@ -230,7 +230,7 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
 
   if (!categoryScores || categories.length === 0) {
     return (
-      <Card className="border-border bg-card backdrop-blur-sm">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <SystemRatingsIcon className="h-5 w-5 text-primary" strokeWidth={1.75} />
@@ -262,7 +262,7 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
   }
 
   return (
-    <Card className="border-border bg-card backdrop-blur-sm">
+    <Card className="border-border bg-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">

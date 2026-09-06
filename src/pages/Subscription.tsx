@@ -177,7 +177,7 @@ export default function Subscription() {
 
       {/* Hero Section */}
       <div className="text-center space-y-2 md:space-y-4 mb-6 md:mb-12">
-        <div className="inline-flex items-center justify-center w-12 h-12 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-2 md:mb-4">
+        <div className="inline-flex items-center justify-center w-12 h-12 md:w-20 md:h-20 rounded-full bg-primary mb-2 md:mb-4">
           <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-primary-foreground" />
         </div>
         <h1 className="text-2xl md:text-5xl font-bold text-foreground leading-tight">
@@ -202,7 +202,7 @@ export default function Subscription() {
           type="single"
           value={selectedPeriod}
           onValueChange={(value) => value && setSelectedPeriod(value)}
-          className="w-full sm:w-auto grid sm:inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+          className="w-full sm:w-auto grid sm:inline-flex rounded-lg border border-border p-1 bg-background"
           style={{ gridTemplateColumns: `repeat(${Math.min(availablePeriods.length || 1, 4)}, minmax(0, 1fr))` }}
         >
           {availablePeriods.map(period => (
@@ -261,7 +261,7 @@ export default function Subscription() {
       </div>
 
       {/* Trust Indicators */}
-      <div className="text-center space-y-4 pt-6 md:pt-8 border-t border-border/50">
+      <div className="text-center space-y-4 pt-6 md:pt-8 border-t border-border">
         <div className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-xs md:text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />Безопасная оплата</span>
           <span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-primary" />Без скрытых платежей</span>

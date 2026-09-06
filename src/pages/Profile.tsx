@@ -269,7 +269,7 @@ export default function Profile() {
 
         <div className="space-y-4 sm:space-y-6">
           {/* Personal Info Card */}
-          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+          <Card className="p-4 sm:p-6 bg-card border-border">
             <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -304,7 +304,7 @@ export default function Profile() {
 
 
             {/* Mobile: compact list */}
-            <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
+            <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border bg-background">
               <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-muted-foreground flex-shrink-0">Имя</span>
                 <span className="font-medium text-right truncate">{firstName || "—"}</span>
@@ -345,7 +345,7 @@ export default function Profile() {
             {/* Desktop: card grid */}
             <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* First name */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Имя</label>
@@ -354,7 +354,7 @@ export default function Profile() {
               </div>
 
               {/* Last name */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Фамилия</label>
@@ -363,7 +363,7 @@ export default function Profile() {
               </div>
 
               {/* Middle name */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Отчество</label>
@@ -373,7 +373,7 @@ export default function Profile() {
 
 
               {/* Email */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Email</label>
@@ -382,7 +382,7 @@ export default function Profile() {
               </div>
 
               {/* Gender & Age */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Пол и возраст</label>
@@ -394,7 +394,7 @@ export default function Profile() {
               </div>
 
               {/* Birth Date */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Дата рождения</label>
@@ -405,7 +405,7 @@ export default function Profile() {
               </div>
 
               {/* Height */}
-              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="p-4 rounded-lg bg-background border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Ruler className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Рост</label>
@@ -418,7 +418,7 @@ export default function Profile() {
 
 
             {/* Phone (inline with verification flow) */}
-            <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="mt-4 pt-4 border-t border-border">
               <PhoneChangeField
                 currentPhone={profile?.phone || null}
                 isVerified={!!profile?.phone_verified_at}
@@ -431,7 +431,7 @@ export default function Profile() {
               Для сотрудников/врачей/админов не отображаются. */}
           {isPatientProfile && <>
           {/* Passport Card */}
-          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+          <Card className="p-4 sm:p-6 bg-card border-border">
             <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -471,7 +471,7 @@ export default function Profile() {
             {passportDataFilled ? (
               <>
                 {/* Mobile list */}
-                <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
+                <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border bg-background">
                   <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                     <span className="text-muted-foreground">Серия</span>
                     <span className="font-medium tracking-wider">{profile.passport_series}</span>
@@ -487,11 +487,11 @@ export default function Profile() {
                 </p>
                 {/* Desktop grid */}
                 <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                  <div className="p-4 rounded-lg bg-background border border-border">
                     <label className="text-sm text-muted-foreground block mb-2">Серия</label>
                     <p className="text-lg font-medium tracking-wider">{profile.passport_series}</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                  <div className="p-4 rounded-lg bg-background border border-border">
                     <label className="text-sm text-muted-foreground block mb-2">Номер</label>
                     <p className="text-lg font-medium tracking-wider">{profile.passport_number}</p>
                   </div>
@@ -516,7 +516,7 @@ export default function Profile() {
 
           {/* Next Analysis Date Card */}
           {nextAnalysisDate && (
-            <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -545,7 +545,7 @@ export default function Profile() {
 
 
           {/* Demo Mode Card */}
-          {canShowDemoModeCard && <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+          {canShowDemoModeCard && <Card className="p-4 sm:p-6 bg-card border-border">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -559,7 +559,7 @@ export default function Profile() {
             </div>
 
             <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-lg bg-background/50 border border-border/50">
+              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-lg bg-background border border-border">
                 <Label htmlFor="demo-mode" className="cursor-pointer min-w-0">
                   <div className="text-xs sm:text-sm text-muted-foreground">
                     Показывать примерные данные. Отключится автоматически после первого анализа.
@@ -604,7 +604,7 @@ export default function Profile() {
           </>}
 
           {/* Security Card */}
-          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+          <Card className="p-4 sm:p-6 bg-card border-border">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />

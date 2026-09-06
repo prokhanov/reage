@@ -132,7 +132,7 @@ export function renderInterleavedWeb(
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
             if (!bm && !trimmedContent) return null;
             return (
-              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 max-sm:!border-0 max-sm:!bg-transparent max-sm:!shadow-none max-sm:!p-0 max-sm:!rounded-none ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
+              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 max-sm:!border-0 max-sm:!bg-transparent max-sm:!shadow-none max-sm:!p-0 max-sm:!rounded-none ${bm ? statusBgMap[bm.status] : 'border-border bg-card'}`}>
                 {bm && (
                   <div className="space-y-2">
                     {/* Row 1: name (code) + status */}
@@ -158,7 +158,7 @@ export function renderInterleavedWeb(
                   </div>
                 )}
                 {trimmedContent && (
-                  <div className={bm ? "pt-1 border-t border-border/20" : ""}>
+                  <div className={bm ? "pt-1 border-t border-border" : ""}>
                     <MarkdownContent content={trimmedContent} />
                   </div>
                 )}

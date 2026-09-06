@@ -139,7 +139,7 @@ export function SubscriptionRequiredDialog({
                 type="single" 
                 value={selectedPeriod}
                 onValueChange={(value) => value && setSelectedPeriod(value)}
-                className="inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+                className="inline-flex rounded-lg border border-border p-1 bg-background"
               >
                 {availablePeriods.map(period => (
                   <ToggleGroupItem 

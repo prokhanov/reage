@@ -304,7 +304,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
         </div>
 
         {Object.keys(biomarkers).length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50">
+          <Card className="border-dashed border-2 border-primary/30 bg-card">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Activity className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных</h3>
@@ -319,9 +319,9 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
               <AccordionItem 
                 key={category} 
                 value={category}
-                className="border border-primary/20 rounded-2xl bg-card/50 backdrop-blur-sm"
+                className="border border-primary/20 rounded-xl bg-card"
               >
-                <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-2xl gap-3">
+                <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-xl gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {(() => {
                       const CatIcon = getBiomarkerCategoryIcon(category);
@@ -369,7 +369,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                       return (
                         <div
                           key={biomarker.id}
-                          className="rounded-xl border border-border/60 bg-background/40 p-3"
+                          className="rounded-xl border border-border bg-background p-3"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
@@ -434,7 +434,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                   <div className="hidden md:block mt-4 border rounded-lg overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-secondary/50">
+                        <TableRow className="bg-surface">
                           <TableHead className="font-semibold w-[260px]">Название</TableHead>
                           <TableHead className="font-semibold w-[200px] whitespace-nowrap">Последнее значение</TableHead>
                           <TableHead className="font-semibold w-[140px]">Статус</TableHead>
@@ -461,7 +461,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                                   ? "bg-status-acceptable/5 hover:bg-status-acceptable/10"
                                   : statusInfo?.status === 'optimal'
                                   ? "bg-status-optimal/5 hover:bg-status-optimal/10"
-                                  : "hover:bg-secondary/50"
+                                  : "hover:bg-surface"
                               }`}
                             >
                               <TableCell className="font-medium">

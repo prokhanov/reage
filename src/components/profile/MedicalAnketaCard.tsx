@@ -60,7 +60,7 @@ export function MedicalAnketaCard({
 
 
   return (
-    <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-control-xl rounded-full bg-destructive/10 flex items-center justify-center">
@@ -200,7 +200,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+    <div className="p-4 rounded-lg bg-background border border-border">
       <div className="flex items-center gap-2 mb-3">
         {icon}
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>

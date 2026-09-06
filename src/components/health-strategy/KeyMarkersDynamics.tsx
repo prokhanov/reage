@@ -93,7 +93,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
 
   if (rows.length === 0) {
     return (
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 dark:text-info text-info" />
@@ -106,7 +106,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+    <Card className="bg-card border-border shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Activity className="h-5 w-5 dark:text-info text-info" />
@@ -136,7 +136,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
                 return (
                   <tr
                     key={i}
-                    className="border-b last:border-0 border-border/50 hover:bg-muted/50 cursor-pointer group"
+                    className="border-b last:border-0 border-border hover:bg-muted/50 cursor-pointer group"
                     onClick={() => navigate(`/biomarkers?focus=${encodeURIComponent(r.code)}`)}
                   >
                     <td className="py-2.5">

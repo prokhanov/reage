@@ -58,7 +58,7 @@ export default function VerifyEmail() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center space-y-6">
+      <div className="max-w-md w-full bg-card border border-border rounded-xl p-8 text-center space-y-6">
         {state.kind === "loading" && (
           <>
             <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />

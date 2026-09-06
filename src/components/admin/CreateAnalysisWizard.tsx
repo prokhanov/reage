@@ -506,7 +506,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
       {/* Progress Dialog - same as AnalysisDetail */}
       {analyzing && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
           <Card className="w-full max-w-md p-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">

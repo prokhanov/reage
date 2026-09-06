@@ -28,7 +28,7 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
       {/* Биологический возраст */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Card className="cursor-pointer group bg-card/40 backdrop-blur-xl border-border shadow-card hover:scale-[1.02] transition-transform">
+          <Card className="cursor-pointer group bg-card border-border shadow-card hover:scale-[1.02] transition-transform">
             <CardContent className="p-5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground font-medium">Биологический возраст</span>
@@ -66,7 +66,7 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
       </Dialog>
 
       {/* Индекс здоровья */}
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground font-medium">Индекс здоровья</span>
@@ -86,7 +86,7 @@ export function LongevityKPI({ bioAge, chronoAge, healthIndex, cohortPercentile,
       </Card>
 
       {/* Перцентиль когорты */}
-      <Card className="bg-card/40 backdrop-blur-xl border-border shadow-card">
+      <Card className="bg-card border-border shadow-card">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground font-medium">Перцентиль когорты</span>

@@ -410,7 +410,7 @@ export default function ReportVisualsTest() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
+      <div className="sticky top-0 z-10 border-b bg-background">
         <div className="mx-auto flex max-w-[1100px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <div className="text-xs uppercase tracking-widest text-muted-foreground">

@@ -59,7 +59,7 @@ export function EmailLoginForm({ onForgot }: Props) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="h-control-xl bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          className="h-control-xl bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </div>
       <div className="space-y-2">
@@ -82,12 +82,12 @@ export function EmailLoginForm({ onForgot }: Props) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="h-control-xl bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          className="h-control-xl bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </div>
       <Button
         type="submit"
-        className="w-full h-control-xl bg-gradient-primary hover:shadow-md transition-all duration-300 text-base font-medium"
+        className="w-full h-control-xl bg-primary hover:shadow-md transition-all duration-300 text-base font-medium"
         disabled={loading}
       >
         {loading ? (

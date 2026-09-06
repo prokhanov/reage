@@ -268,7 +268,7 @@ export function EditAdvisoryDialog({
   const renderLifestyleGroup = (key: LifestyleKey, label: string, Icon: any) => {
     const items = lifestyle[key] || [];
     return (
-      <div className="p-4 bg-card/50 rounded-xl border border-border">
+      <div className="p-4 bg-card rounded-xl border border-border">
         <h4 className="font-medium mb-3 flex items-center gap-2">
           <Icon className="h-4 w-4 text-primary" />
           {label}
@@ -352,7 +352,7 @@ export function EditAdvisoryDialog({
                 {followUps.map((f, i) => (
                   <div
                     key={i}
-                    className="p-4 bg-card/50 rounded-xl border border-border space-y-2"
+                    className="p-4 bg-card rounded-xl border border-border space-y-2"
                   >
                     <div className="flex items-start gap-2">
                       <div className="flex-1 space-y-2">

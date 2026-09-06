@@ -1014,7 +1014,7 @@ export default function Recommendations() {
       </div>
 
         {reports.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
+          <Card className="border-dashed border-2 border-primary/30 bg-card shadow-lg">
             <CardContent className="flex flex-col items-center justify-center py-16 px-6">
               <div className="relative mb-6">
                 <Brain className="h-20 w-20 text-primary/40" />
@@ -1037,7 +1037,7 @@ export default function Recommendations() {
                   <div
                     key={report.date}
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
-                    className="rounded-2xl border border-primary/20 bg-card/50 p-4 cursor-pointer active:scale-[0.99] transition-transform"
+                    className="rounded-xl border border-primary/20 bg-card p-4 cursor-pointer active:scale-[0.99] transition-transform"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -1053,7 +1053,7 @@ export default function Recommendations() {
                     <div className="flex items-center justify-between gap-2">
                       <Button
                         size="sm"
-                        className="h-9 rounded-xl bg-gradient-primary shadow-md"
+                        className="h-9 rounded-xl bg-primary shadow-md"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (report.analysisId) openReportV2(report, "view");
@@ -1229,7 +1229,7 @@ export default function Recommendations() {
               return (
                 <div className="flex h-full w-full min-w-0 min-h-0 flex-col md:flex-row">
                   {/* Desktop Sidebar */}
-                  <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
+                  <div className="hidden md:flex w-64 border-r border-border bg-muted/30 flex-col min-h-0 overflow-hidden">
                     <div className="p-6 border-b border-border flex-shrink-0">
                       <h3 className="font-semibold text-lg text-foreground">
                         Содержание
@@ -1265,7 +1265,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 border-b border-border bg-surface flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
@@ -1371,7 +1371,7 @@ export default function Recommendations() {
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none">
-                              <div className="sm:p-6 sm:bg-gradient-to-br sm:from-primary/5 sm:to-accent/5 sm:rounded-xl sm:border sm:border-primary/10 sm:shadow-sm">
+                              <div className="sm:p-6 sm:bg-surface sm:rounded-xl sm:border sm:border-primary/10 sm:shadow-sm">
                                 <MarkdownContent content={cleanMarkdownArtifacts(patientData.text)} />
                               </div>
                             </div>
@@ -1389,7 +1389,7 @@ export default function Recommendations() {
                             {summary && (
                               <div id="section-summary" className="scroll-mt-6">
                                 <div className="prose prose-sm max-w-none">
-                                  <div className="sm:p-6 sm:bg-gradient-to-br sm:from-accent/5 sm:to-primary/5 sm:rounded-xl sm:border sm:border-accent/10 sm:shadow-sm">
+                                  <div className="sm:p-6 sm:bg-surface sm:rounded-xl sm:border sm:border-accent/10 sm:shadow-sm">
                                     <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
                                   </div>
                                 </div>
@@ -1403,10 +1403,10 @@ export default function Recommendations() {
                                     <h2 className="text-2xl font-bold text-foreground mb-2">
                                       {type}
                                     </h2>
-                                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                    <div className="h-1 w-20 bg-primary rounded-full" />
                                   </div>
                                   {recs.map((rec) => (
-                                    <div key={rec.id} className="sm:p-6 sm:bg-card/50 sm:backdrop-blur-sm sm:rounded-xl sm:border sm:border-border sm:shadow-sm sm:hover:shadow-md sm:transition-shadow">
+                                    <div key={rec.id} className="sm:p-6 sm:bg-card sm:rounded-xl sm:border sm:border-border sm:shadow-sm sm:hover:shadow-md sm:transition-shadow">
                                       {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
                                     </div>
                                   ))}
@@ -1422,7 +1422,7 @@ export default function Recommendations() {
                               <h2 className="text-2xl font-bold text-foreground mb-2">
                                 Рекомендации
                               </h2>
-                              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                              <div className="h-1 w-20 bg-primary rounded-full" />
                             </div>
 
                             {/* ── Нутрицевтики (единый компонент с разделом «Рекомендации») ── */}

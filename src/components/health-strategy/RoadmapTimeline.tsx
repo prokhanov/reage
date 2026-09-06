@@ -175,7 +175,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   return (
     <div className="space-y-4 md:space-y-5">
       {/* Route card: visual timeline only */}
-      <Card className="border border-primary/20 bg-card/80 overflow-hidden shadow-sm">
+      <Card className="border border-primary/20 bg-card overflow-hidden shadow-sm">
         <CardContent className="p-4 md:p-6">
           {/* Header */}
           <div className="flex items-end justify-between gap-3 flex-wrap mb-4 md:mb-5">
@@ -288,7 +288,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                     className={[
                       "relative w-11 h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
                       passed
-                        ? "bg-gradient-primary border-primary text-primary-foreground"
+                        ? "bg-primary border-primary text-primary-foreground"
                         : current
                         ? "bg-card border-primary text-primary ring-4 ring-primary/15"
                         : "bg-card border-border text-muted-foreground",
@@ -320,7 +320,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                   ? "border-primary/50 bg-primary/5 shadow-sm"
                   : passed
                   ? "border-border bg-muted/40 opacity-90"
-                  : "border-border bg-card/50",
+                  : "border-border bg-card",
               ].join(" ")}
             >
               <div className="flex items-center justify-between gap-2">

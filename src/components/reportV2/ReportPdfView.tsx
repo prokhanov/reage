@@ -76,7 +76,7 @@ export function ReportPdfView({ analysisId, persona, className }: Props) {
   return (
     <div className={className}>
       {updating && (
-        <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-4 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Готовится обновлённая версия отчёта — пока показана предыдущая
         </div>
@@ -101,7 +101,7 @@ export function ReportPdfView({ analysisId, persona, className }: Props) {
 
       {url && persona === "patient" && <PdfCanvas url={url} />}
       {url && persona === "staff" && (
-        <iframe title="Отчёт (PDF)" src={url} className="h-[80vh] w-full rounded-md border border-border/60" />
+        <iframe title="Отчёт (PDF)" src={url} className="h-[80vh] w-full rounded-md border border-border" />
       )}
     </div>
   );

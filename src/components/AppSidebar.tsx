@@ -153,7 +153,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-background z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -161,7 +161,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 z-50 h-screen bg-surface border-r border-border   transition-all duration-300 ease-in-out",
           isOpen ? "w-64" : "w-16",
           "lg:translate-x-0",
           !isOpen && "lg:w-16",
@@ -170,12 +170,12 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo with collapse button */}
-          <div className={cn("border-b border-border/30", isOpen ? "p-4" : "p-2")}>
+          <div className={cn("border-b border-border", isOpen ? "p-4" : "p-2")}>
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
                   <NavLink to="/" onClick={closeSidebarOnMobile}>
-                    <ThemedLogo className="h-12 w-auto animate-hue-shift" />
+                    <ThemedLogo className="h-12 w-auto" />
                   </NavLink>
                   <button
                     onClick={() => setIsOpen(false)}
@@ -253,7 +253,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
           {/* View Mode Badge */}
           {viewAsUserId && isOpen && (
-            <div className="px-4 py-3 bg-primary/10 border-b border-border/30">
+            <div className="px-4 py-3 bg-primary/10 border-b border-border">
               <Badge variant="default" className="w-full justify-start gap-2">
                 <Eye className="h-3 w-3" />
                 Просмотр: {patientName}
@@ -261,7 +261,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             </div>
           )}
           {viewAsUserId && !isOpen && (
-            <div className="flex justify-center py-2 bg-primary/10 border-b border-border/30" title="Режим просмотра пациента">
+            <div className="flex justify-center py-2 bg-primary/10 border-b border-border" title="Режим просмотра пациента">
               <Eye className="h-4 w-4 text-primary" />
             </div>
           )}
@@ -370,7 +370,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* User Profile & Logout */}
-          <div className={cn("border-t border-border/30 space-y-1", isOpen ? "p-2" : "py-2 px-0")}>
+          <div className={cn("border-t border-border space-y-1", isOpen ? "p-2" : "py-2 px-0")}>
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
@@ -468,7 +468,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
             {/* Theme Toggle */}
             <div className={cn(
-              "border-t border-border/30 mt-1",
+              "border-t border-border mt-1",
               isOpen ? "pt-1" : "flex justify-center pt-2"
             )}>
               <ThemeToggle isOpen={isOpen} />

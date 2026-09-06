@@ -52,7 +52,7 @@ export function ChatHistoryDropdown({
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[350px] bg-card/95 backdrop-blur-xl border-border/50">
+      <DropdownMenuContent align="end" className="w-[350px] bg-card border-border">
         <DropdownMenuLabel className="text-sm font-semibold">
           История чатов
         </DropdownMenuLabel>

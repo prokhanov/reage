@@ -613,7 +613,7 @@ export default function MyState() {
       </div>
 
       <Tabs defaultValue="survey" className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+        <TabsList className="mb-8">
             <TabsTrigger value="survey">Опросник</TabsTrigger>
             <TabsTrigger value="history">История</TabsTrigger>
           </TabsList>
@@ -622,7 +622,7 @@ export default function MyState() {
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
               {!canTakeSurveyActual && daysUntilNextSurvey > 0 && (
-                <Card className="p-8 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+                <Card className="p-8 bg-surface border-primary/20">
                   <div className="flex flex-col items-center gap-6 text-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                       <CheckCircle className="w-8 h-8 text-primary" />
@@ -653,7 +653,7 @@ export default function MyState() {
                       </div>
                     )}
 
-                    <div className="w-full max-w-md p-4 bg-background/50 rounded-lg border">
+                    <div className="w-full max-w-md p-4 bg-background rounded-lg border">
                       <p className="text-sm text-muted-foreground mb-1">Следующий опрос будет доступен через</p>
                       <p className="text-3xl font-bold text-primary">
                         {daysUntilNextSurvey} {daysUntilNextSurvey === 1 ? 'день' : daysUntilNextSurvey < 5 ? 'дня' : 'дней'}
@@ -692,7 +692,7 @@ export default function MyState() {
               </div>
 
               {isAdherenceStep ? (
-                <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+                <Card className="p-6 md:p-8 bg-card border-border">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -707,7 +707,7 @@ export default function MyState() {
 
                   <div className="space-y-6">
                     {prescriptions.map((prescription) => (
-                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background/50">
+                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background">
                         <div>
                           <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
                           {prescription.effect && (
@@ -768,7 +768,7 @@ export default function MyState() {
                   </div>
                 </Card>
               ) : currentCategory ? (
-                <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+                <Card className="p-6 md:p-8 bg-card border-border">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       {(() => {
@@ -790,7 +790,7 @@ export default function MyState() {
                     return (
                       <div 
                         key={index}
-                        className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                        className="p-4 rounded-lg border border-border hover:border-primary/30 transition-colors"
                       >
                         <div className="mb-3">
                           <label className="text-sm font-medium leading-relaxed">
@@ -812,7 +812,7 @@ export default function MyState() {
                                   transition-all hover:border-primary/50
                                   ${currentValue === level.value 
                                     ? 'border-primary bg-primary/10' 
-                                    : 'border-border/50 bg-background/50'
+                                    : 'border-border bg-background'
                                   }
                                 `}
                               >
@@ -1030,7 +1030,7 @@ export default function MyState() {
                                       return (
                                         <div
                                           key={symptom.id}
-                                          className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/30"
+                                          className="flex items-center justify-between p-2 rounded-lg bg-background border border-border"
                                         >
                                           <span className="text-sm flex-1">{symptom.symptom}</span>
                                           <Badge 
@@ -1100,7 +1100,7 @@ export default function MyState() {
 
                   <div className="space-y-6">
                     {prescriptions.map((prescription) => (
-                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background/50">
+                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background">
                         <div>
                           <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
                           {prescription.effect && (
@@ -1163,7 +1163,7 @@ export default function MyState() {
                       return (
                         <div 
                           key={index}
-                          className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                          className="p-4 rounded-lg border border-border hover:border-primary/30 transition-colors"
                         >
                           <div className="mb-3">
                             <label className="text-sm font-medium leading-relaxed">
@@ -1185,7 +1185,7 @@ export default function MyState() {
                                     transition-all hover:border-primary/50
                                     ${currentValue === level.value 
                                       ? 'border-primary bg-primary/10' 
-                                      : 'border-border/50 bg-background/50'
+                                      : 'border-border bg-background'
                                     }
                                   `}
                                 >

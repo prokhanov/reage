@@ -285,7 +285,7 @@ export default function Prescriptions() {
             prescription={prescription}
             showStatus={false /* статус ниже как часть метаданных */}
           />
-          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!px-0 max-sm:!pt-2 max-sm:!pb-0 max-sm:!mt-0 max-sm:!rounded-none">
+          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border -mt-4 rounded-b-lg border border-border bg-card border-t-0 max-sm:!border-0 max-sm:!bg-transparent max-sm:!px-0 max-sm:!pt-2 max-sm:!pb-0 max-sm:!mt-0 max-sm:!rounded-none">
             <div className="flex items-center gap-6 flex-wrap">
               {hasPatientAccess && (
                 <div className="flex items-center gap-2">
@@ -380,7 +380,7 @@ export default function Prescriptions() {
         </div>
 
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList>
             <TabsTrigger value="active" className="gap-2">
               <FileText className="w-4 h-4" />
               Активные ({totalActiveCount})
@@ -393,7 +393,7 @@ export default function Prescriptions() {
 
           <TabsContent value="active" className="space-y-6 sm:space-y-8 mt-6">
             {totalActiveCount === 0 ? (
-              <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
+              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
                 <div className="flex flex-col items-center justify-center">
                   <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground text-center">
@@ -410,7 +410,7 @@ export default function Prescriptions() {
                         Нутрицевтики ({activePrescriptions.length})
 
                       </h2>
-                      <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                      <div className="h-1 w-20 bg-primary rounded-full" />
                     </div>
                     <PrescriptionTable prescriptions={activePrescriptions} />
                   </section>
@@ -424,7 +424,7 @@ export default function Prescriptions() {
 
           <TabsContent value="archive" className="space-y-4 mt-6">
             {archivedPrescriptions.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
+              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
                 <div className="flex flex-col items-center justify-center">
                   <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground text-center">

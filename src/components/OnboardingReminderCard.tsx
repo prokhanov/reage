@@ -55,7 +55,7 @@ export function OnboardingReminderCard() {
   if (!show) return null;
 
   return (
-    <div className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+    <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
       <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -73,7 +73,7 @@ export function OnboardingReminderCard() {
         </div>
         <Button
           asChild
-          className="bg-gradient-primary shadow-md shrink-0 w-full sm:w-auto h-10 rounded-xl"
+          className="bg-primary shadow-md shrink-0 w-full sm:w-auto h-10 rounded-xl"
         >
           <Link to="/onboarding/personal">Заполнить →</Link>
         </Button>

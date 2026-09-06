@@ -95,7 +95,7 @@ export default function AnalysisPrep() {
 
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
+        <header className="border-b border-border bg-background sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
               <img src={logoDark} alt="ReAge" className="h-10 md:h-12 w-auto" />
@@ -110,8 +110,8 @@ export default function AnalysisPrep() {
         </header>
 
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-border/40">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
+        <section className="relative overflow-hidden border-b border-border">
+          <div className="absolute inset-0 bg-surface" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]" />
 
           <div className="relative container mx-auto px-4 py-16 md:py-24 text-center max-w-3xl">
@@ -148,7 +148,7 @@ export default function AnalysisPrep() {
                 return (
                   <article
                     key={rule.title}
-                    className="group relative rounded-2xl border border-border/60 bg-card p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+                    className="group relative rounded-xl border border-border bg-card p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
                   >
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
@@ -167,7 +167,7 @@ export default function AnalysisPrep() {
         </section>
 
         {/* Extra recommendations */}
-        <section className="border-t border-border/40 bg-card/30">
+        <section className="border-t border-border bg-card/30">
           <div className="container mx-auto px-4 py-16 md:py-20">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-3 mb-10">
@@ -181,7 +181,7 @@ export default function AnalysisPrep() {
                   return (
                     <article
                       key={rule.title}
-                      className="group relative rounded-2xl border border-border/60 bg-background p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+                      className="group relative rounded-xl border border-border bg-background p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
@@ -206,7 +206,7 @@ export default function AnalysisPrep() {
             <Droplet className="w-7 h-7 text-primary" />
             <h2 className="text-2xl md:text-3xl font-bold">Сбор мочи</h2>
           </div>
-          <div className="rounded-2xl border border-border/60 bg-card p-6 md:p-8">
+          <div className="rounded-xl border border-border bg-card p-6 md:p-8">
             <ul className="space-y-3">
               {URINE.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
@@ -221,7 +221,7 @@ export default function AnalysisPrep() {
         </section>
 
         {/* Don't */}
-        <section className="border-t border-border/40 bg-card/30">
+        <section className="border-t border-border bg-card/30">
           <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
             <div className="flex items-center gap-3 mb-8">
               <AlertTriangle className="w-7 h-7 text-destructive" />
@@ -246,7 +246,7 @@ export default function AnalysisPrep() {
 
         {/* Contact */}
         <section className="container mx-auto px-4 py-16 md:py-20 max-w-3xl text-center">
-          <div className="rounded-2xl border border-border/60 bg-card p-6 md:p-8">
+          <div className="rounded-xl border border-border bg-card p-6 md:p-8">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Phone className="w-6 h-6 text-primary" />
               <h2 className="text-xl md:text-2xl font-bold">Если возникли вопросы</h2>

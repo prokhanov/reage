@@ -31,7 +31,7 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
   const sortedBlockers = [...blockers].sort((a, b) => b.impact_score - a.impact_score);
 
   return (
-    <Card className="border-border bg-card backdrop-blur-sm">
+    <Card className="border-border bg-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Ban className="h-5 w-5 text-status-danger" />
@@ -48,7 +48,7 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
           return (
             <div
               key={idx}
-              className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm animate-fade-in hover:shadow-md transition-all duration-300"
+              className="p-4 rounded-lg border border-border bg-background animate-fade-in hover:shadow-md transition-all duration-300"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
               <div className="space-y-3">

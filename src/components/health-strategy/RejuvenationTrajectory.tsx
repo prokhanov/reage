@@ -90,15 +90,6 @@ export function RejuvenationTrajectory({
     <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[minmax(300px,340px)_minmax(0,1fr)_minmax(300px,400px)] items-stretch gap-4">
       {/* Left: Status card */}
       <Card className="border-border bg-card overflow-hidden relative h-full">
-        {/* ambient glow */}
-        <div
-          className="pointer-events-none absolute -top-16 -left-16 w-56 h-56 rounded-full opacity-30 blur-3xl"
-          style={{ background: `radial-gradient(circle, ${PRIMARY} 0%, transparent 70%)` }}
-        />
-        <div
-          className="pointer-events-none absolute -bottom-20 -right-16 w-56 h-56 rounded-full opacity-20 blur-3xl"
-          style={{ background: `radial-gradient(circle, ${ACCENT} 0%, transparent 70%)` }}
-        />
 
         <CardContent className="relative pt-5 pb-7 px-7 flex flex-col h-full">
           {/* Header — 10% */}

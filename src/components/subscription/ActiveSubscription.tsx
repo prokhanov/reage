@@ -59,7 +59,7 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
     <div className="container max-w-4xl mx-auto px-4 py-6 md:py-12">
       {/* Success Header */}
       <div className="text-center space-y-3 md:space-y-4 mb-6 md:mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-2 md:mb-4">
+        <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-full bg-primary mb-2 md:mb-4">
           <CheckCircle2 className="h-7 w-7 md:h-10 md:w-10 text-primary-foreground" />
         </div>
         <h1 className="text-2xl md:text-4xl font-bold leading-tight">

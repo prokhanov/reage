@@ -195,8 +195,8 @@ export default function RegisterStaff() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-dark p-4">
-      <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="text-center space-y-4">
           <ThemedLogo className="h-14 w-auto mx-auto" />
           {inviteToken && (

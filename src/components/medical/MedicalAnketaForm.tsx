@@ -76,7 +76,7 @@ function ChipsBlock({
                 "px-3.5 py-2 rounded-full border text-sm transition-all",
                 isSelected
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/60 bg-background hover:border-primary/40 hover:bg-muted/50"
+                  : "border-border bg-background hover:border-primary/40 hover:bg-muted/50"
               )}
             >
               {isSelected && <Check className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />}
@@ -219,7 +219,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
   return (
     <div className="space-y-6">
       {/* Хронические заболевания */}
-      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+      <section className="rounded-xl border border-border bg-card p-5 md:p-6 space-y-4">
         <header>
           <h3 className="text-lg font-semibold">Хронические заболевания</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -239,7 +239,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
       </section>
 
       {/* Операции и процедуры */}
-      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+      <section className="rounded-xl border border-border bg-card p-5 md:p-6 space-y-4">
         <header>
           <h3 className="text-lg font-semibold">Операции и процедуры</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -262,7 +262,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
                         "px-4 py-1.5 rounded-full text-sm border transition-all",
                         v === false
                           ? "border-success/50 bg-success/15 text-success"
-                          : "border-border/60 hover:border-primary/40"
+                          : "border-border hover:border-primary/40"
                       )}
                     >
                       Нет
@@ -274,7 +274,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
                         "px-4 py-1.5 rounded-full text-sm border transition-all",
                         v === true
                           ? "border-destructive/50 bg-destructive/15 text-destructive"
-                          : "border-border/60 hover:border-primary/40"
+                          : "border-border hover:border-primary/40"
                       )}
                     >
                       Да
@@ -309,7 +309,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
       </section>
 
       {/* Препараты и добавки */}
-      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+      <section className="rounded-xl border border-border bg-card p-5 md:p-6 space-y-4">
         <header>
           <h3 className="text-lg font-semibold">Препараты и добавки</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -331,7 +331,7 @@ export function MedicalAnketaForm({ value, onChange }: Props) {
       </section>
 
       {/* Заметка */}
-      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-3">
+      <section className="rounded-xl border border-border bg-card p-5 md:p-6 space-y-3">
         <header>
           <h3 className="text-lg font-semibold">Что-то ещё, что может быть важно?</h3>
         </header>

@@ -164,7 +164,7 @@ export function PassportDataDialog({ open, onOpenChange, onSaved }: PassportData
           <Button
             onClick={handleSave}
             disabled={loading || !complete}
-            className="h-11 rounded-xl bg-gradient-primary shadow-md w-full sm:w-auto"
+            className="h-11 rounded-xl bg-primary shadow-md w-full sm:w-auto"
           >
             {loading ? "Сохранение..." : "Сохранить"}
           </Button>

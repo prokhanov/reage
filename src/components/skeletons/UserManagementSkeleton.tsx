@@ -19,7 +19,7 @@ export function UserManagementSkeleton() {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList>
           <TabsTrigger value="users">Пользователи</TabsTrigger>
           <TabsTrigger value="roles">Роли</TabsTrigger>
         </TabsList>

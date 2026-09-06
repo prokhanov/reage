@@ -144,7 +144,7 @@ export function CompareRecordsDialog({ groupedByDate, sortedDates }: CompareReco
                     {symptoms.map(({ symptom, severity1, severity2, change }) => (
                       <div
                         key={symptom}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50"
+                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-background"
                       >
                         <span className="text-sm flex-1">{symptom}</span>
                         <div className="flex items-center gap-3">

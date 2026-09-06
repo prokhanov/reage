@@ -68,11 +68,11 @@ function PatientViewShell({
   const { demoMode, toggleDemoMode } = useDemoMode();
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gradient-dark">
+    <div className="h-full w-full overflow-hidden bg-background">
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border/30 bg-secondary/90 backdrop-blur-xl">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border bg-surface">
         <div className="flex items-center justify-between p-4">
           <Button
             variant="ghost"

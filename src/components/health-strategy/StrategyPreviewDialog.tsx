@@ -235,7 +235,7 @@ export function StrategyPreviewDialog({
 
         <Tabs defaultValue="health" className="flex-1 min-h-0 flex flex-col">
           <div className="px-5 pt-3 border-b">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted">
+            <TabsList>
               <TabsTrigger value="health">Моё здоровье</TabsTrigger>
               <TabsTrigger value="strategy">Стратегия здоровья</TabsTrigger>
             </TabsList>
@@ -262,7 +262,7 @@ export function StrategyPreviewDialog({
                             </div>
                             <div className="space-y-1.5">
                               {topDeviations.map((d) => (
-                                <div key={d.code} className="flex items-center justify-between text-xs gap-2 py-1 px-2 rounded bg-background/50">
+                                <div key={d.code} className="flex items-center justify-between text-xs gap-2 py-1 px-2 rounded bg-background">
                                   <span className="truncate">{d.name} <span className="text-muted-foreground">({d.code})</span></span>
                                   <span className="flex items-center gap-2 shrink-0">
                                     <span className="text-foreground/80">{d.value} {d.unit}</span>
@@ -364,7 +364,7 @@ export function StrategyPreviewDialog({
                       </div>
                       <div className="grid grid-cols-3 gap-2 pt-2">
                         {trajectoryHorizons.map((h) => (
-                          <div key={h.months} className="rounded-md bg-background/60 p-3 space-y-1">
+                          <div key={h.months} className="rounded-md bg-background p-3 space-y-1">
                             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                               через {h.months} мес.
                             </div>
@@ -404,7 +404,7 @@ export function StrategyPreviewDialog({
                         <div className="space-y-1">
                           <div className="text-[10px] uppercase tracking-wide text-destructive">Минусы</div>
                           {topNegativeDrivers.length > 0 ? topNegativeDrivers.map((m) => (
-                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
+                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background">
                               <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
                               <Badge variant="destructive" className="text-[10px] shrink-0">−{Number(m.contribution).toFixed(2)}</Badge>
                             </div>
@@ -413,7 +413,7 @@ export function StrategyPreviewDialog({
                         <div className="space-y-1">
                           <div className="text-[10px] uppercase tracking-wide text-success">Плюсы</div>
                           {topPositiveDrivers.length > 0 ? topPositiveDrivers.map((m) => (
-                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
+                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background">
                               <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
                               <Badge className="text-[10px] shrink-0 bg-success/15 text-success hover:bg-success/20">+{Number(m.contribution).toFixed(2)}</Badge>
                             </div>
@@ -433,7 +433,7 @@ export function StrategyPreviewDialog({
                       <div className="space-y-2 pt-1">
 
                         {systemRatings.map((r, i) => (
-                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
+                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background">
                             <div className="col-span-12 md:col-span-4 text-sm font-medium pt-1.5">{r.category}</div>
                             <div className="col-span-4 md:col-span-2">
                               <Input
@@ -497,7 +497,7 @@ export function StrategyPreviewDialog({
                     {roadmap.length > 0 ? (
                       <div className="space-y-2 pt-1">
                         {roadmap.map((r: any, i: number) => (
-                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
+                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background">
                             <div className="col-span-12 md:col-span-3">
                               <Input
                                 type="date"
@@ -544,7 +544,7 @@ export function StrategyPreviewDialog({
                     {expectations.length > 0 ? (
                       <div className="space-y-2 pt-1">
                         {expectations.map((e: any, i: number) => (
-                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
+                          <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background">
                             <div className="col-span-12 md:col-span-3">
                               <Input
                                 type="date"
@@ -662,7 +662,7 @@ function paceBadgeVariant(t: string): "default" | "secondary" | "destructive" | 
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-background/60 px-2 py-1.5">
+    <div className="rounded-md bg-background px-2 py-1.5">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="text-sm font-semibold">{value}</div>
     </div>

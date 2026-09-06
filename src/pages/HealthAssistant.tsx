@@ -287,7 +287,7 @@ export default function HealthAssistant() {
       <div className="mb-3 sm:mb-4 flex-shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-md flex-shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary flex items-center justify-center shadow-md flex-shrink-0">
               <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="min-w-0">
@@ -309,7 +309,7 @@ export default function HealthAssistant() {
         </div>
       </div>
 
-      <Card className="flex flex-col sm:flex-1 sm:min-h-0 bg-card/50 backdrop-blur border-border/50 max-sm:border-0 max-sm:bg-transparent max-sm:backdrop-blur-none max-sm:rounded-none max-sm:shadow-none">
+      <Card className="flex flex-col sm:flex-1 sm:min-h-0 bg-card border-border max-sm:border-0 max-sm:bg-transparent max-sm:rounded-none max-sm:shadow-none">
         <div
           ref={scrollRef}
           className="p-4 sm:p-6 sm:flex-1 sm:overflow-y-auto"
@@ -337,16 +337,16 @@ export default function HealthAssistant() {
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
+                    <div className="w-8 h-8 rounded-full bg-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
                       <Bot className="w-4 h-4 text-primary-foreground" />
                     </div>
                   )}
                   
                   <div
-                    className={`max-w-[92%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[92%] sm:max-w-[80%] rounded-xl px-4 py-3 ${
                       message.role === "user"
-                        ? "bg-gradient-primary text-primary-foreground shadow-md"
-                        : "bg-secondary/80 text-foreground border border-border/30"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-surface text-foreground border border-border"
                     }`}
                   >
                     {message.role === "assistant" ? (
@@ -362,7 +362,7 @@ export default function HealthAssistant() {
                   </div>
 
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-secondary hidden sm:flex items-center justify-center flex-shrink-0 border border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-secondary hidden sm:flex items-center justify-center flex-shrink-0 border border-border">
                       <User className="w-4 h-4 text-foreground" />
                     </div>
                   )}
@@ -372,10 +372,10 @@ export default function HealthAssistant() {
 
               {isLoading && (
                 <div className="flex gap-2 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
+                  <div className="w-8 h-8 rounded-full bg-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-md">
                     <Bot className="w-4 h-4 text-primary-foreground animate-pulse" />
                   </div>
-                  <div className="bg-secondary/80 rounded-2xl px-4 py-3 border border-border/30">
+                  <div className="bg-surface rounded-xl px-4 py-3 border border-border">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
                       <div
@@ -395,7 +395,7 @@ export default function HealthAssistant() {
           </div>
 
           {messages.length === 1 && (
-            <div className="p-3 sm:p-4 border-t border-border/30">
+            <div className="p-3 sm:p-4 border-t border-border">
 
               <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -419,7 +419,7 @@ export default function HealthAssistant() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30 flex-shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background max-sm:border-border/50">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border flex-shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background max-sm:border-border">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
@@ -433,13 +433,13 @@ export default function HealthAssistant() {
                   }
                 }}
                 placeholder="Задайте вопрос..."
-                className="min-h-[48px] sm:min-h-[60px] max-h-[120px] resize-none bg-background/50"
+                className="min-h-[48px] sm:min-h-[60px] max-h-[120px] resize-none bg-background"
                 disabled={isLoading}
               />
               <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="h-[48px] sm:h-[60px] px-4 sm:px-6 bg-gradient-primary hover:opacity-90 shadow-md"
+                className="h-[48px] sm:h-[60px] px-4 sm:px-6 bg-primary hover:opacity-90 shadow-md"
               >
                 <Send className="w-5 h-5" />
               </Button>
