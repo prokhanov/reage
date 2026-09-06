@@ -220,7 +220,7 @@ export default function TelegramSettings() {
       <AdminPageHeader
         title="Telegram уведомления"
         description="Бот отправляет уведомления админам о событиях платформы"
-        actions={{statusBadge}}
+        actions={statusBadge}
       />
 
 
