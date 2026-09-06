@@ -256,22 +256,24 @@ export default function PatientProfile() {
 
   return (
     <>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Профиль пациента</h1>
-              <p className="text-muted-foreground">Просмотр данных пациента</p>
-            </div>
-          </div>
-          <Button onClick={() => setShowPrescriptionDialog(true)}>
-            <FileText className="w-4 h-4 mr-2" />
-            Добавить назначение
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl min-w-0 space-y-6">
+        <AdminPageHeader
+          breadcrumbs={[{ label: "Пациенты", to: "/admin/patients" }, { label: profile.name || "Профиль пациента" }]}
+          title="Профиль пациента"
+          description="Просмотр данных пациента"
+          actions={
+            <>
+              <Button variant="outline" onClick={() => navigate("/admin/patients")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                К списку
+              </Button>
+              <Button onClick={() => setShowPrescriptionDialog(true)}>
+                <FileText className="w-4 h-4 mr-2" />
+                Добавить назначение
+              </Button>
+            </>
+          }
+        />
 
         {/* Header Card */}
         <Card>
