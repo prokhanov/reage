@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { useEffect, useState } from "react";
 import { DataTableShell } from "@/components/ui/data-table";
 import { supabase } from "@/integrations/supabase/client";
@@ -305,7 +306,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
         </div>
 
         {Object.keys(biomarkers).length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card">
+          <Card className="border-dashed border-2 border-primary/30">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Activity className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных</h3>
@@ -368,9 +369,9 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                       const { min, max } = getNormalRange(biomarker);
                       const valueColor = statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))";
                       return (
-                        <div
+                        <Tile
                           key={biomarker.id}
-                          className="rounded-xl border border-border bg-background p-3"
+                          
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
@@ -426,7 +427,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                               />
                             </div>
                           )}
-                        </div>
+                        </Tile>
                       );
                     })}
                   </div>

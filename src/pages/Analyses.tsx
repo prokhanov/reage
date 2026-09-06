@@ -1,11 +1,11 @@
 import { useEffect, useState, useContext } from "react";
-import { DataTableShell } from "@/components/ui/data-table";
+import { DataTableShell, EmptyState, RowActionItem, RowActions } from "@/components/ui/data-table";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit, Printer } from "lucide-react";
+import { Calendar, FlaskConical, Trash2, Plus, Edit, Printer } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -197,174 +197,133 @@ export default function Analyses() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <PageContainer>
         {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
         {(!loading || analyses.length > 0) && (
           <>
-            <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h2 className="text-3xl font-bold mb-2 text-foreground">
-              История анализов
-            </h2>
-            <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {displayAnalyses.length > 0 && !demoMode && (
-              <Button
-                onClick={handlePrintAnalyses}
-                variant="outline"
-                size="sm"
-              >
-                <Printer className="h-4 w-4 mr-2" />
-                Скачать PDF
-              </Button>
-            )}
-            {isViewMode && hasPatientAccess && (
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                variant="default"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить анализ
-              </Button>
-            )}
-          </div>
-        </div>
+            <PageHeader
+              title="История анализов"
+              description="Отслеживайте динамику своих показателей"
+              actions={
+                <>
+                  {displayAnalyses.length > 0 && !demoMode && (
+                    <Button onClick={handlePrintAnalyses} variant="outline" size="sm">
+                      <Printer className="h-4 w-4 mr-2" />
+                      Скачать PDF
+                    </Button>
+                  )}
+                  {isViewMode && hasPatientAccess && (
+                    <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Добавить анализ
+                    </Button>
+                  )}
+                </>
+              }
+            />
 
-        {displayAnalyses.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card shadow-lg">
-            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="relative mb-6">
-                <FlaskConical className="h-20 w-20 text-primary/40" />
-                <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-3 text-foreground">
-                Ваши анализы скоро появятся здесь
-              </h3>
-              <p className="text-muted-foreground text-center max-w-md leading-relaxed">
-                Администратор добавит результаты ваших анализов после их обработки. 
-                Вы получите уведомление, когда данные будут готовы к просмотру.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-primary/20 bg-card">
-            <DataTableShell>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent border-b border-border">
-                    <TableHead className="font-semibold">Дата</TableHead>
-                    <TableHead className="font-semibold">Лаборатория</TableHead>
-                    <TableHead className="font-semibold text-center">Маркеров</TableHead>
-                    <TableHead className="font-semibold text-center">Индекс здоровья</TableHead>
-                    <TableHead className="font-semibold text-center">Био. возраст</TableHead>
-                    <TableHead className="font-semibold text-center">Статус</TableHead>
-                    {isViewMode && hasPatientAccess && (
-                      <TableHead className="font-semibold text-right">Действия</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayAnalyses.map((analysis) => (
-                    <TableRow
-                      key={analysis.id}
-                      className="cursor-pointer hover:bg-primary/5 transition-colors border-b border-border"
-                      onClick={() => {
-                        if (isViewMode) {
-                          setSimPath(`/analyses/${analysis.id}`);
-                        } else {
-                          navigate(`/analyses/${analysis.id}`);
-                        }
-                      }}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-primary shrink-0" />
-                          <span className="font-medium">
-                            {new Date(analysis.date).toLocaleDateString("ru-RU", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {analysis.lab_name || "—"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {analysis.biomarkers_count && analysis.biomarkers_count > 0 ? (
-                          <Badge variant="secondary" className="text-xs">
-                            {analysis.biomarkers_count}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {analysis.health_index !== null ? (
-                          <span className="text-lg font-bold text-primary">
-                            {analysis.health_index}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {analysis.biological_age !== null ? (
-                          <span className="font-semibold text-foreground">
-                            {Math.round(analysis.biological_age * 10) / 10} лет
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <AnalysisStatusBadge status={analysis.status} />
-                      </TableCell>
+            {displayAnalyses.length === 0 ? (
+              <EmptyState
+                icon={FlaskConical}
+                title="Ваши анализы скоро появятся здесь"
+                description="Администратор добавит результаты ваших анализов после их обработки. Вы получите уведомление, когда данные будут готовы к просмотру."
+              />
+            ) : (
+              <DataTableShell>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Дата</TableHead>
+                      <TableHead>Лаборатория</TableHead>
+                      <TableHead className="text-center">Маркеров</TableHead>
+                      <TableHead className="text-center">Индекс здоровья</TableHead>
+                      <TableHead className="text-center">Био. возраст</TableHead>
+                      <TableHead className="text-center">Статус</TableHead>
                       {isViewMode && hasPatientAccess && (
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 hover:bg-primary/10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setAnalysisToEdit(analysis.id);
-                                setEditAnalysisDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setAnalysisToDelete(analysis.id);
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                        <TableHead className="text-right">Действия</TableHead>
                       )}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </DataTableShell>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {displayAnalyses.map((analysis) => (
+                      <TableRow
+                        key={analysis.id}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (isViewMode) {
+                            setSimPath(`/analyses/${analysis.id}`);
+                          } else {
+                            navigate(`/analyses/${analysis.id}`);
+                          }
+                        }}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" strokeWidth={1.7} />
+                            <span className="font-medium whitespace-nowrap">
+                              {new Date(analysis.date).toLocaleDateString("ru-RU", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {analysis.lab_name || "—"}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums">
+                          {analysis.biomarkers_count && analysis.biomarkers_count > 0
+                            ? analysis.biomarkers_count
+                            : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums font-medium">
+                          {analysis.health_index !== null
+                            ? analysis.health_index
+                            : <span className="font-normal text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums whitespace-nowrap">
+                          {analysis.biological_age !== null
+                            ? `${Math.round(analysis.biological_age * 10) / 10} лет`
+                            : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <AnalysisStatusBadge status={analysis.status} />
+                        </TableCell>
+                        {isViewMode && hasPatientAccess && (
+                          <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
+                            <RowActions label="Действия с анализом">
+                              <RowActionItem
+                                icon={Edit}
+                                onSelect={() => {
+                                  setAnalysisToEdit(analysis.id);
+                                  setEditAnalysisDialogOpen(true);
+                                }}
+                              >
+                                Редактировать
+                              </RowActionItem>
+                              <RowActionItem
+                                icon={Trash2}
+                                destructive
+                                onSelect={() => {
+                                  setAnalysisToDelete(analysis.id);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                Удалить анализ
+                              </RowActionItem>
+                            </RowActions>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </DataTableShell>
+            )}
+          </>
         )}
-        </>
-      )}
-      </div>
+      </PageContainer>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

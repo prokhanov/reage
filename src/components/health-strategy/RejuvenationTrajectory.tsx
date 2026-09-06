@@ -89,7 +89,7 @@ export function RejuvenationTrajectory({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[minmax(300px,340px)_minmax(0,1fr)_minmax(300px,400px)] items-stretch gap-4">
       {/* Left: Status card */}
-      <Card className="border-border bg-card overflow-hidden relative h-full">
+      <Card className="overflow-hidden relative h-full">
 
         <CardContent className="relative pt-5 pb-7 px-7 flex flex-col h-full">
           {/* Header — 10% */}
@@ -159,7 +159,7 @@ export function RejuvenationTrajectory({
       </Card>
 
       {/* Right: Trajectory chart card */}
-      <Card className="border-border bg-card overflow-hidden h-full">
+      <Card className="overflow-hidden h-full">
         <CardContent className="h-full flex flex-col pt-5 pb-4 md:pb-5 px-4 md:px-5 space-y-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>

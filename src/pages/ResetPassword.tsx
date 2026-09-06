@@ -94,7 +94,7 @@ export default function ResetPassword() {
           <p className="text-muted-foreground text-lg">Введите новый пароль для вашего аккаунта</p>
         </div>
 
-        <Card className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
+        <Card className="p-6 md:p-8 md:bg-card shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
 
           <div className="relative z-10">
             {success ? (

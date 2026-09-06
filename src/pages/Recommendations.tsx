@@ -2,6 +2,8 @@ import { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
+import { EmptyState } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Brain, Download, Sparkles, Edit, Eye, List, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -1003,28 +1005,18 @@ export default function Recommendations() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-foreground leading-tight">
-          Персональные отчёты
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Персонализированные отчёты на основе ваших анализов
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Персональные отчёты"
+        description="Персонализированные отчёты на основе ваших анализов"
+      />
 
         {reports.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card shadow-lg">
-            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="relative mb-6">
-                <Brain className="h-20 w-20 text-primary/40" />
-                <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-3 text-foreground">
-                Ваши отчёты скоро появятся здесь
-              </h3>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Brain}
+            title="Ваши отчёты скоро появятся здесь"
+            description="Отчёт формируется после обработки анализов и проверки врачом."
+          />
         ) : (
           <>
             {/* Mobile: card list */}
@@ -1037,7 +1029,7 @@ export default function Recommendations() {
                   <div
                     key={report.date}
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
-                    className="rounded-xl border border-primary/20 bg-card p-4 cursor-pointer active:scale-[0.99] transition-transform"
+                    className="rounded-xl border hairline bg-card p-4 cursor-pointer transition-colors hover:bg-foreground/[0.02] active:scale-[0.99]"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -1516,6 +1508,6 @@ export default function Recommendations() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+    </PageContainer>
   );
 }

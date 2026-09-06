@@ -5,6 +5,9 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/data-table";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Calendar, FileText, Plus, Pencil } from "lucide-react";
@@ -266,12 +269,13 @@ export default function Prescriptions() {
     advisorySleepCount +
     advisoryFollowUpsCount;
 
-  const getStatusBadge = (status: "on_review" | "confirmed") => {
-    if (status === "confirmed") {
-      return <Badge variant="default" className="text-xs">Подтверждено</Badge>;
-    }
-    return <Badge variant="secondary" className="text-xs">На проверке</Badge>;
-  };
+  const getStatusBadge = (status: "on_review" | "confirmed") => (
+    <StatusBadge
+      status={status}
+      tone={status === "confirmed" ? "success" : "neutral"}
+      label={status === "confirmed" ? "Подтверждено" : "На проверке"}
+    />
+  );
 
   // Карточки нутрицевтиков рендерим через единый компонент
   // PrescriptionCard (тот же используется в модалке отчёта).
@@ -358,26 +362,21 @@ export default function Prescriptions() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl space-y-4 sm:space-y-6">
+      <PageContainer>
         {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
         {!isLoading && !accessLoading && (
           <>
-            <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Рекомендации</h1>
-          </div>
-
-          {isViewMode && hasPatientAccess && viewAsUserId && (
-            <Button
-              onClick={() => setCreateDialogOpen(true)}
-              variant="default"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Добавить назначение
-            </Button>
-          )}
-        </div>
+            <PageHeader
+              title="Рекомендации"
+              actions={
+                isViewMode && hasPatientAccess && viewAsUserId ? (
+                  <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить назначение
+                  </Button>
+                ) : undefined
+              }
+            />
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList>
@@ -393,14 +392,7 @@ export default function Prescriptions() {
 
           <TabsContent value="active" className="space-y-6 sm:space-y-8 mt-6">
             {totalActiveCount === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
-                <div className="flex flex-col items-center justify-center">
-                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    Нет активных назначений
-                  </p>
-                </div>
-              </div>
+              <EmptyState icon={FileText} title="Нет активных назначений" />
             ) : (
               <>
                 {activePrescriptions.length > 0 && (
@@ -424,14 +416,7 @@ export default function Prescriptions() {
 
           <TabsContent value="archive" className="space-y-4 mt-6">
             {archivedPrescriptions.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
-                <div className="flex flex-col items-center justify-center">
-                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    Архив пуст
-                  </p>
-                </div>
-              </div>
+              <EmptyState icon={FileText} title="Архив пуст" />
             ) : (
               <PrescriptionTable prescriptions={archivedPrescriptions} />
             )}
@@ -440,7 +425,7 @@ export default function Prescriptions() {
 
         </>
       )}
-      </div>
+      </PageContainer>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>

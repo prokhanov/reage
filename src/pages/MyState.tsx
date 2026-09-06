@@ -1,4 +1,6 @@
+import { Tile } from "@/components/ui/tile";
 import { useState, useEffect } from "react";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -604,13 +606,11 @@ export default function MyState() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">Мое состояние</h1>
-        <p className="text-muted-foreground">
-          Отслеживайте свои симптомы и следите за изменениями
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Мое состояние"
+        description="Отслеживайте свои симптомы и следите за изменениями"
+      />
 
       <Tabs defaultValue="survey" className="w-full">
         <TabsList className="mb-8">
@@ -653,7 +653,7 @@ export default function MyState() {
                       </div>
                     )}
 
-                    <div className="w-full max-w-md p-4 bg-background rounded-lg border">
+                    <Tile  className="w-full max-w-md">
                       <p className="text-sm text-muted-foreground mb-1">Следующий опрос будет доступен через</p>
                       <p className="text-3xl font-bold text-primary">
                         {daysUntilNextSurvey} {daysUntilNextSurvey === 1 ? 'день' : daysUntilNextSurvey < 5 ? 'дня' : 'дней'}
@@ -661,7 +661,7 @@ export default function MyState() {
                       <p className="text-xs text-muted-foreground mt-2">
                         Оптимальный интервал — раз в 2 недели, чтобы видеть динамику
                       </p>
-                    </div>
+                    </Tile>
 
                     <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                       <Button
@@ -692,7 +692,7 @@ export default function MyState() {
               </div>
 
               {isAdherenceStep ? (
-                <Card className="p-6 md:p-8 bg-card border-border">
+                <Card className="p-6 md:p-8">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -707,7 +707,7 @@ export default function MyState() {
 
                   <div className="space-y-6">
                     {prescriptions.map((prescription) => (
-                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background">
+                      <Tile key={prescription.id} >
                         <div>
                           <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
                           {prescription.effect && (
@@ -743,7 +743,7 @@ export default function MyState() {
                             ))}
                           </div>
                         </RadioGroup>
-                      </div>
+                      </Tile>
                     ))}
                   </div>
 
@@ -768,7 +768,7 @@ export default function MyState() {
                   </div>
                 </Card>
               ) : currentCategory ? (
-                <Card className="p-6 md:p-8 bg-card border-border">
+                <Card className="p-6 md:p-8">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       {(() => {
@@ -788,9 +788,9 @@ export default function MyState() {
                     const currentValue = answers[key] || 0;
 
                     return (
-                      <div 
+                      <Tile 
                         key={index}
-                        className="p-4 rounded-lg border border-border hover:border-primary/30 transition-colors"
+                        
                       >
                         <div className="mb-3">
                           <label className="text-sm font-medium leading-relaxed">
@@ -828,7 +828,7 @@ export default function MyState() {
                             </div>
                           ))}
                         </RadioGroup>
-                      </div>
+                      </Tile>
                     );
                   })}
                 </div>
@@ -1100,7 +1100,7 @@ export default function MyState() {
 
                   <div className="space-y-6">
                     {prescriptions.map((prescription) => (
-                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background">
+                      <Tile key={prescription.id} >
                         <div>
                           <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
                           {prescription.effect && (
@@ -1136,7 +1136,7 @@ export default function MyState() {
                             ))}
                           </div>
                         </RadioGroup>
-                      </div>
+                      </Tile>
                     ))}
                   </div>
                 </div>
@@ -1161,9 +1161,9 @@ export default function MyState() {
                       const currentValue = answers[key] || 0;
 
                       return (
-                        <div 
+                        <Tile 
                           key={index}
-                          className="p-4 rounded-lg border border-border hover:border-primary/30 transition-colors"
+                          
                         >
                           <div className="mb-3">
                             <label className="text-sm font-medium leading-relaxed">
@@ -1201,7 +1201,7 @@ export default function MyState() {
                               </div>
                             ))}
                           </RadioGroup>
-                        </div>
+                        </Tile>
                       );
                     })}
                   </div>
@@ -1241,6 +1241,6 @@ export default function MyState() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+    </PageContainer>
   );
 }

@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 /**
  * PrescriptionCard — единая карточка одного нутрицевтика.
  *
@@ -37,7 +38,7 @@ export function PrescriptionCard({ prescription, index, showStatus = false }: Pr
   const title = prescription.name || prescription.prescription;
   const reason = cleanReasonText(prescription.reason);
   return (
-    <div className="rounded-lg border border-border bg-card p-6 space-y-4 hover:border-primary/30 transition-colors max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none">
+    <Card variant="flat" className="p-6 space-y-4 transition-colors hover:bg-foreground/[0.02] max-sm:!border-0 max-sm:!bg-transparent max-sm:!p-0 max-sm:!rounded-none">
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
           <h3 className="text-lg font-semibold leading-relaxed text-primary flex-1">
@@ -85,6 +86,6 @@ export function PrescriptionCard({ prescription, index, showStatus = false }: Pr
           </p>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

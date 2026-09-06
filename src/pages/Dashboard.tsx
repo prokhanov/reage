@@ -1,4 +1,6 @@
+import { Tile } from "@/components/ui/tile";
 
+import { PageContainer } from "@/components/layout/Page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -425,9 +427,9 @@ export default function Dashboard() {
 
   if (loading || demoLoading) {
     return (
-      <div className="p-4 md:p-8">
+      <PageContainer width="wide">
         <DashboardSkeleton />
-      </div>
+      </PageContainer>
     );
   }
 
@@ -473,7 +475,7 @@ export default function Dashboard() {
   const displayAllAnalyses = analyses || [];
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <PageContainer width="wide">
       {/* Demo Banner */}
 
       {/* Напоминания об онбординге удалены: их место занял OnboardingGate,
@@ -485,7 +487,7 @@ export default function Dashboard() {
       {/* Header */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+            <h1 className="text-2xl md:text-3xl tracking-tight leading-tight">
               <span className="text-foreground">Добро пожаловать,</span>
               <br />
               <span className="text-foreground">{profile?.name}</span>
@@ -556,7 +558,7 @@ export default function Dashboard() {
 
         {/* Data Status Alerts */}
         {!demoMode && displayAnalysesCount === 0 && (
-          <div className="rounded-lg border border-border bg-card p-4">
+          <Tile >
             <div className="flex items-start gap-3">
               <Activity className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
@@ -566,7 +568,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-          </div>
+          </Tile>
         )}
 
         {!demoMode && displayAnalysesCount > 0 && displayBioAge === null && (
@@ -584,7 +586,7 @@ export default function Dashboard() {
         )}
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
-        <Card className="border-border bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
             <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
           </CardHeader>
@@ -669,13 +671,13 @@ export default function Dashboard() {
                     </div>
 
                     {/* Compact Metric Cards - equal height */}
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Activity className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Анализов</div>
                       <div className="text-3xl font-bold text-foreground tabular-nums mt-auto">{displayAnalysesCount}</div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -693,9 +695,9 @@ export default function Dashboard() {
                       <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayRecentPeriod || "за период"}
                       </div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -713,9 +715,9 @@ export default function Dashboard() {
                       <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayFirstAnalysisDate || "всего"}
                       </div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Calendar className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
                       {nextBooking ? (
@@ -730,10 +732,10 @@ export default function Dashboard() {
                       ) : (
                         <div className="text-sm text-muted-foreground mb-2 mt-auto">Не запланирован</div>
                       )}
-                    </div>
+                    </Tile>
 
                     {/* Health Percentile */}
-                    <div className="col-span-2 p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="col-span-2">
                       {(() => {
                         if (!displayBiologicalAge || !chronologicalAge || !bioPercentile) {
                           return (
@@ -779,7 +781,7 @@ export default function Dashboard() {
                           </div>
                         );
                       })()}
-                    </div>
+                    </Tile>
                   </div>
                 </div>
               </TabsContent>
@@ -819,7 +821,7 @@ export default function Dashboard() {
         />
 
         {/* Biomarkers & Trends Tabs */}
-        <Card className="border-border bg-card overflow-visible">
+        <Card className="overflow-visible">
           <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
               <div className="px-4 pt-4 md:px-6 md:pt-6">
@@ -838,6 +840,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-    </div>
+    </PageContainer>
   );
 }

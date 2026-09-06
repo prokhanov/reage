@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -251,7 +252,7 @@ export default function HealthStrategy() {
 
 
   if (loading || demoLoading) {
-    return <div className="p-4 md:p-8"><DashboardSkeleton /></div>;
+    return <PageContainer width="wide"><DashboardSkeleton /></PageContainer>;
   }
 
   const displayProfile = profile;
@@ -271,37 +272,27 @@ export default function HealthStrategy() {
       : [];
 
   return (
-    <div className="min-h-screen">
-      <div className="p-4 md:p-8 space-y-5 md:space-y-6">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
-          <div className="space-y-1.5 min-w-0">
-            <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-              <span className="text-foreground">Стратегия здоровья</span>
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground">
-              Персональный план управления биологическим возрастом
-            </p>
-          </div>
-          {canRecalculate && hasAnalyses && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void generate(true)}
-              disabled={generating}
-              className="shrink-0"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
-              {generating ? "Пересчитываем…" : "Пересчитать стратегию"}
-            </Button>
-          )}
-        </div>
+    <PageContainer width="wide">
+      <>
+        <PageHeader
+          title="Стратегия здоровья"
+          description="Персональный план управления биологическим возрастом"
+          actions={
+            canRecalculate && hasAnalyses ? (
+              <Button variant="outline" size="sm" onClick={() => void generate(true)} disabled={generating}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
+                {generating ? "Пересчитываем…" : "Пересчитать стратегию"}
+              </Button>
+            ) : undefined
+          }
+        />
 
 
 
 
 
         {!hasAnalyses ? (
-          <Card className="border-dashed bg-card">
+          <Card variant="muted" className="border-dashed">
             <CardContent className="py-16 text-center">
               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Нет данных анализов</h3>
@@ -309,7 +300,7 @@ export default function HealthStrategy() {
             </CardContent>
           </Card>
         ) : awaitingReport ? (
-          <Card className="border-dashed bg-card">
+          <Card variant="muted" className="border-dashed">
             <CardContent className="py-16 text-center">
               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Отчёт на проверке у врача</h3>
@@ -320,7 +311,7 @@ export default function HealthStrategy() {
           </Card>
         ) : !snapshot ? (
 
-          <Card className="border-dashed bg-card">
+          <Card variant="muted" className="border-dashed">
             <CardContent className="py-16 text-center">
               <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Стратегия готовится врачом</h3>
@@ -365,8 +356,7 @@ export default function HealthStrategy() {
 
           </div>
         )}
-
-      </div>
-    </div>
+      </>
+    </PageContainer>
   );
 }

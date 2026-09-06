@@ -269,7 +269,7 @@ export default function Profile() {
 
         <div className="space-y-4 sm:space-y-6">
           {/* Personal Info Card */}
-          <Card className="p-4 sm:p-6 bg-card border-border">
+          <Card className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -431,7 +431,7 @@ export default function Profile() {
               Для сотрудников/врачей/админов не отображаются. */}
           {isPatientProfile && <>
           {/* Passport Card */}
-          <Card className="p-4 sm:p-6 bg-card border-border">
+          <Card className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -516,7 +516,7 @@ export default function Profile() {
 
           {/* Next Analysis Date Card */}
           {nextAnalysisDate && (
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -545,7 +545,7 @@ export default function Profile() {
 
 
           {/* Demo Mode Card */}
-          {canShowDemoModeCard && <Card className="p-4 sm:p-6 bg-card border-border">
+          {canShowDemoModeCard && <Card className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -604,7 +604,7 @@ export default function Profile() {
           </>}
 
           {/* Security Card */}
-          <Card className="p-4 sm:p-6 bg-card border-border">
+          <Card className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />

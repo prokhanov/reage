@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
@@ -47,8 +48,8 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
   if (compact) {
     if (!booking) {
       return (
-        <div 
-          className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background cursor-pointer hover:bg-background transition-colors"
+        <Tile 
+           className="flex items-center gap-3 cursor-pointer hover:bg-background transition-colors"
           onClick={() => navigate('/analyses')}
         >
           <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
@@ -56,7 +57,7 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
             <div className="text-sm text-muted-foreground">Следующий анализ</div>
             <div className="text-lg font-bold text-foreground">Не запланирован</div>
           </div>
-        </div>
+        </Tile>
       );
     }
 
@@ -64,8 +65,8 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
     const daysUntil = differenceInDays(bookingDate, new Date());
 
     return (
-      <div 
-        className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background cursor-pointer hover:bg-background transition-colors"
+      <Tile 
+         className="flex items-center gap-3 cursor-pointer hover:bg-background transition-colors"
         onClick={() => navigate('/analyses')}
       >
         <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
@@ -78,14 +79,14 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
             через {daysUntil} {daysUntil === 1 ? 'день' : daysUntil < 5 ? 'дня' : 'дней'}
           </div>
         </div>
-      </div>
+      </Tile>
     );
   }
 
   // Original full card version
   if (!booking) {
     return (
-      <Card className="border-border bg-card">
+      <Card>
         <CardContent className="py-6">
           <div className="flex items-center gap-3">
             <Calendar className="h-8 w-8 text-primary" />
@@ -104,7 +105,7 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
   const progress = Math.max(0, Math.min(100, 100 - (daysUntil / 90) * 100));
 
   return (
-    <Card className="border-border bg-card">
+    <Card>
       <CardContent className="py-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
