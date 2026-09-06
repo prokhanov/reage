@@ -432,7 +432,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                   </div>
 
                   {/* Desktop / tablet table */}
-                  <DataTableShell>
+                  <DataTableShell className="hidden md:block mt-4">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-surface">
