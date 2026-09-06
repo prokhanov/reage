@@ -58,19 +58,13 @@ const navItemClass = (active: boolean, isOpen: boolean) =>
   cn(
     "group flex w-full items-center gap-3 rounded-md text-sm transition-colors",
     active
-      ? "bg-primary/[0.07] text-foreground"
+      ? "bg-primary/[0.07] text-foreground after:ml-auto after:h-1 after:w-4 after:shrink-0 after:bg-accent after:content-['']"
       : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
-    isOpen ? "px-3 py-2.5 text-left" : "h-10 w-10 justify-center mx-auto p-0",
+    isOpen ? "px-3 py-2.5 text-left" : "h-10 w-10 justify-center mx-auto p-0 after:hidden",
   );
 
 const NAV_ICON = "h-[18px] w-[18px] shrink-0";
-
-/** Охристый штрих активного пункта справа (Consilium). */
-function ActiveRule({ active, isOpen }: { active: boolean; isOpen: boolean }) {
-  if (!active || !isOpen) return null;
-  return <span className="ml-auto h-1 w-4 shrink-0 bg-accent" />;
-}
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { toast } = useToast();

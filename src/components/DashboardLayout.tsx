@@ -33,8 +33,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-14 border-b border-border bg-background">
-        <div className="flex h-full items-center justify-between px-3">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-[73px] border-b hairline bg-background/85 backdrop-blur">
+        <div className="flex h-full items-center justify-between px-4">
           <Button
             variant="ghost"
             size="icon"
@@ -44,13 +44,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <ThemedLogo className="h-7 w-auto" />
+          <ThemedLogo className="h-8 w-auto" />
           <div className="w-10" />
         </div>
       </header>
 
       {/* Main content */}
-      <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-[264px]' : 'lg:ml-[76px]'}`}>
+      <main className={`pt-[73px] lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-[264px]' : 'lg:ml-[76px]'}`}>
         <div className="px-4 md:px-8 pt-4 md:pt-8 space-y-4">
           {canShowDemoBanner && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
           <AnalysisBookingBanner />
