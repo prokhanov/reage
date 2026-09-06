@@ -40,10 +40,10 @@ import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
 import {
-  bookingStatusLabels,
+  statusLabels,
   bookingStatusColors,
   type BookingStatus as AllBookingStatus,
-} from "@/lib/bookingStatusLabels";
+} from "@/lib/statusLabels";
 
 type BookingStatus = Extract<
   AllBookingStatus,
@@ -66,13 +66,6 @@ interface BookingData {
   };
 }
 
-const statusLabels: Record<BookingStatus, string> = {
-  scheduled: bookingStatusLabels.scheduled,
-  application_submitted: bookingStatusLabels.application_submitted,
-  collected: bookingStatusLabels.collected,
-  report_pending: bookingStatusLabels.report_pending,
-  report_ready: bookingStatusLabels.report_ready,
-};
 
 
 

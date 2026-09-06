@@ -1,4 +1,5 @@
 import { AdminPageHeader } from "@/components/admin/AdminPage";
+import { RoleBadge } from "@/components/admin/RoleBadge";
 import { DataTableShell } from "@/components/ui/data-table";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -438,31 +439,6 @@ export default function UserManagement() {
     return moduleNames[moduleId] || moduleId;
   };
 
-  const getRoleBadge = (role: string, roleDisplayName?: string) => {
-    const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
-      superadmin: { label: "Суперадмин", variant: "destructive" },
-      admin: { label: "Админ", variant: "default" },
-      doctor: { label: "Врач", variant: "default" },
-      user: { label: "Пользователь", variant: "secondary" },
-      patient: { label: "Пациент", variant: "secondary" },
-    };
-    
-    // Если есть display_name для кастомной роли - используем его
-    if (roleDisplayName && !roleConfig[role]) {
-      return (
-        <Badge variant="default" className="text-xs">
-          {roleDisplayName}
-        </Badge>
-      );
-    }
-    
-    const config = roleConfig[role] || roleConfig.user;
-    return (
-      <Badge variant={config.variant} className="text-xs">
-        {config.label}
-      </Badge>
-    );
-  };
 
   if (isLoading) {
     return (
