@@ -426,9 +426,9 @@ export default function Dashboard() {
 
   if (loading || demoLoading) {
     return (
-      <div className="p-4 md:p-8">
+      <PageContainer width="wide">
         <DashboardSkeleton />
-      </div>
+      </PageContainer>
     );
   }
 
@@ -839,6 +839,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-    </div>
+    </PageContainer>
   );
 }

@@ -356,8 +356,7 @@ export default function HealthStrategy() {
 
           </div>
         )}
-
-      </div>
-    </div>
+      </>
+    </PageContainer>
   );
 }

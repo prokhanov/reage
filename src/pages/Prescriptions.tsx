@@ -438,7 +438,7 @@ export default function Prescriptions() {
 
         </>
       )}
-      </div>
+      </PageContainer>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>

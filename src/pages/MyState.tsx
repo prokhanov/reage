@@ -1240,6 +1240,6 @@ export default function MyState() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+    </PageContainer>
   );
 }
