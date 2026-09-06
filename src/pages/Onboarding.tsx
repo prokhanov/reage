@@ -298,7 +298,7 @@ export default function Onboarding() {
           </p>
         </div>
 
-        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl animate-fade-in">
+        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-xl animate-fade-in">
           {step === 1 && (
             <RegisterStep2
               formData={formData}

@@ -75,7 +75,7 @@ export function QuizCTASection() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Main card with gradient border */}
-          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 shadow-2xl shadow-primary/10">
+          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 shadow-xl shadow-primary/10">
             <div className="relative rounded-3xl  bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
               {/* Subtle inner glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />

@@ -250,7 +250,7 @@ export function BiomarkersDeepDiveSection() {
                   initial={false}
                   animate={{ opacity: isActive ? 1 : 0, x: isActive ? 0 : direction > 0 ? -60 : 60 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className={`col-start-1 row-start-1 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03] ${
+                  className={`col-start-1 row-start-1 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-xl shadow-primary/[0.03] ${
                     isActive ? "relative z-10" : "invisible pointer-events-none z-0"
                   }`}
                 >
@@ -261,7 +261,7 @@ export function BiomarkersDeepDiveSection() {
                     <img
                       src={category.image}
                       alt={category.name}
-                      className="relative w-48 h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 object-contain drop-shadow-2xl"
+                      className="relative w-48 h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 object-contain drop-shadow-xl"
                     />
                     <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
                       <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">

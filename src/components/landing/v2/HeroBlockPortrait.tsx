@@ -410,7 +410,7 @@ function EditPanel({
   };
 
   return (
-    <div className="fixed top-2 right-2 z-[100] w-[300px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl p-3 text-xs">
+    <div className="fixed top-2 right-2 z-[100] w-[300px] max-h-[90vh] overflow-auto rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-xl p-3 text-xs">
       <div className="flex items-center justify-between mb-2">
         <div className="font-bold">Edit · {bp}</div>
         <div className="flex gap-1">

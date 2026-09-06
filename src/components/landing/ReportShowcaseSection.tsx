@@ -426,7 +426,7 @@ function ReportMockup({
 
       {/* A4 page frame (1 : √2) */}
       <div
-        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col"
+        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-xl overflow-hidden flex flex-col"
         style={{ aspectRatio: "1 / 1.4142" }}
       >
         {/* Page header */}

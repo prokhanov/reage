@@ -17,7 +17,7 @@ function StatCard({ widget, index }: { widget: typeof statsWidgets[0]; index: nu
       <div 
         className={`relative bg-gradient-to-br ${widget.bg} backdrop-blur-xl border border-border/50 rounded-2xl p-5 shadow-lg 
           transition-all duration-500 
-          group-hover:scale-110 group-hover:shadow-2xl group-hover:border-primary/50
+          group-hover:scale-110 group-hover:shadow-xl group-hover:border-primary/50
           group-hover:-translate-y-2`}
       >
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/0 to-accent/0 group-hover:from-primary/10 group-hover:to-accent/10 transition-all duration-500" />

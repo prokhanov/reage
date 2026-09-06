@@ -99,7 +99,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
 
       <div className="absolute -inset-0.5 rounded-3xl opacity-50 blur-xl" style={{ background: glowColor }} />
 
-      <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-2xl shadow-primary/10">
+      <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-xl shadow-primary/10">
 
         {badge &&
         <div className={`

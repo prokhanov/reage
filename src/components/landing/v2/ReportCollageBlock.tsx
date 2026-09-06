@@ -333,7 +333,7 @@ function EditPanel({
 
   return createPortal(
     <div
-      className="fixed left-2 right-2 md:right-auto md:w-[340px] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-2xl text-xs pointer-events-auto"
+      className="fixed left-2 right-2 md:right-auto md:w-[340px] rounded-lg border border-border bg-background/95 backdrop-blur-xl shadow-xl text-xs pointer-events-auto"
       style={{ top: "max(8px, env(safe-area-inset-top))", zIndex: 2147483647 }}
     >
       <div className="flex items-center justify-between p-2 gap-2">

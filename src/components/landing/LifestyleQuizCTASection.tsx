@@ -88,7 +88,7 @@ export function LifestyleQuizCTASection() {
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-accent/40 via-primary/30 to-accent/40 shadow-2xl shadow-accent/10">
+          <div className="relative rounded-3xl  p-[1px] bg-gradient-to-br from-accent/40 via-primary/30 to-accent/40 shadow-xl shadow-accent/10">
             <div className="relative rounded-3xl  bg-card/80 backdrop-blur-xl border border-border/40 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5" />
 
