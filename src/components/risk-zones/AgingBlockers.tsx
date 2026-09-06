@@ -31,7 +31,7 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
   const sortedBlockers = [...blockers].sort((a, b) => b.impact_score - a.impact_score);
 
   return (
-    <Card className="border-border bg-card">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Ban className="h-5 w-5 text-status-danger" />

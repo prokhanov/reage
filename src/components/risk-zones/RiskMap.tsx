@@ -57,7 +57,7 @@ export function RiskMap({ categories }: RiskMapProps) {
           return (
             <Card
               key={category.name}
-              className="border-border bg-card hover:shadow-lg transition-all duration-300 animate-fade-in"
+              className="hover:shadow-lg transition-all duration-300 animate-fade-in"
               style={{ animationDelay: `${idx * 50}ms` }}
             >
               <CardHeader className="pb-3">

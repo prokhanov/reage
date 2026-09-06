@@ -71,7 +71,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
 
   return (
     <TooltipProvider>
-      <Card className="border-border bg-card">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-primary" />

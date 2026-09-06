@@ -85,7 +85,7 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
   // Original full card version
   if (!booking) {
     return (
-      <Card className="border-border bg-card">
+      <Card>
         <CardContent className="py-6">
           <div className="flex items-center gap-3">
             <Calendar className="h-8 w-8 text-primary" />
@@ -104,7 +104,7 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
   const progress = Math.max(0, Math.min(100, 100 - (daysUntil / 90) * 100));
 
   return (
-    <Card className="border-border bg-card">
+    <Card>
       <CardContent className="py-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">

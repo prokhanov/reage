@@ -585,7 +585,7 @@ export default function Dashboard() {
         )}
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
-        <Card className="border-border bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
             <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
           </CardHeader>
@@ -820,7 +820,7 @@ export default function Dashboard() {
         />
 
         {/* Biomarkers & Trends Tabs */}
-        <Card className="border-border bg-card overflow-visible">
+        <Card className="overflow-visible">
           <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
               <div className="px-4 pt-4 md:px-6 md:pt-6">

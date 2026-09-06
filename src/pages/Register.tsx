@@ -573,7 +573,7 @@ export default function Register() {
 
           {/* Steps Content */}
 
-          <Card className="p-6 md:p-8 bg-card md:bg-card border-border shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
+          <Card className="p-6 md:p-8 md:bg-card shadow-xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
 
             <div className="relative z-10">
               {currentStep === 1 && (

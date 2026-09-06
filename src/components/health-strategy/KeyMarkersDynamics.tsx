@@ -93,7 +93,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
 
   if (rows.length === 0) {
     return (
-      <Card className="bg-card border-border shadow-card">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 dark:text-info text-info" />
@@ -106,7 +106,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
   }
 
   return (
-    <Card className="bg-card border-border shadow-card">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Activity className="h-5 w-5 dark:text-info text-info" />

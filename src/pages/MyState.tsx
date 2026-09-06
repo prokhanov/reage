@@ -691,7 +691,7 @@ export default function MyState() {
               </div>
 
               {isAdherenceStep ? (
-                <Card className="p-6 md:p-8 bg-card border-border">
+                <Card className="p-6 md:p-8">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -767,7 +767,7 @@ export default function MyState() {
                   </div>
                 </Card>
               ) : currentCategory ? (
-                <Card className="p-6 md:p-8 bg-card border-border">
+                <Card className="p-6 md:p-8">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                       {(() => {

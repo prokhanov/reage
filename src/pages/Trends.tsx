@@ -347,7 +347,7 @@ export default function Trends() {
         </div>
 
         {biomarkers.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card">
+          <Card className="border-dashed border-2 border-primary/30">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <TrendingUp className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных для анализа</h3>
@@ -565,7 +565,7 @@ export default function Trends() {
 
               </>
             ) : (
-              <Card className="border-dashed border-2 border-accent/30 bg-card">
+              <Card className="border-dashed border-2 border-accent/30">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <p className="text-muted-foreground text-center">
                     Недостаточно данных для построения графика.

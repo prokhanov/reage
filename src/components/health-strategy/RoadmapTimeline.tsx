@@ -175,7 +175,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   return (
     <div className="space-y-4 md:space-y-5">
       {/* Route card: visual timeline only */}
-      <Card className="border border-primary/20 bg-card overflow-hidden shadow-sm">
+      <Card className="border-primary/20 overflow-hidden shadow-sm">
         <CardContent className="p-4 md:p-6">
           {/* Header */}
           <div className="flex items-end justify-between gap-3 flex-wrap mb-4 md:mb-5">

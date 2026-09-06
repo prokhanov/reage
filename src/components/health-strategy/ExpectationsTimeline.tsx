@@ -110,7 +110,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
   const nextIdx = items.findIndex((e) => isBefore(today, new Date(e.date_iso)));
 
   return (
-    <Card className="border border-border bg-card overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="pb-4 md:pb-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1.5 min-w-0">
