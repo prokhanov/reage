@@ -160,7 +160,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 export function EnergyExpertResult() {
   return (
     <section className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <div className="flex min-w-0 gap-4 rounded-xl border border-border bg-card p-4 sm:gap-5 sm:p-5 lg:block lg:self-start">
           <img
             src={expertDoctor}
