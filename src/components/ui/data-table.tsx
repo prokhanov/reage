@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MoreVertical, Search, X } from "lucide-react";
+import { MoreVertical, Search, X, type LucideIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -147,7 +147,7 @@ export function EmptyState({
   action,
   className,
 }: {
-  icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon?: LucideIcon;
   title: string;
   description?: React.ReactNode;
   action?: React.ReactNode;
@@ -252,7 +252,7 @@ export function RowActionItem({
   destructive,
   disabled,
 }: {
-  icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon?: LucideIcon;
   children: React.ReactNode;
   onSelect: () => void;
   destructive?: boolean;
