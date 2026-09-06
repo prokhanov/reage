@@ -5,6 +5,7 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/data-table";
 import { PageContainer, PageHeader } from "@/components/layout/Page";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -391,14 +392,7 @@ export default function Prescriptions() {
 
           <TabsContent value="active" className="space-y-6 sm:space-y-8 mt-6">
             {totalActiveCount === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
-                <div className="flex flex-col items-center justify-center">
-                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    Нет активных назначений
-                  </p>
-                </div>
-              </div>
+              <EmptyState icon={FileText} title="Нет активных назначений" />
             ) : (
               <>
                 {activePrescriptions.length > 0 && (
@@ -422,14 +416,7 @@ export default function Prescriptions() {
 
           <TabsContent value="archive" className="space-y-4 mt-6">
             {archivedPrescriptions.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
-                <div className="flex flex-col items-center justify-center">
-                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    Архив пуст
-                  </p>
-                </div>
-              </div>
+              <EmptyState icon={FileText} title="Архив пуст" />
             ) : (
               <PrescriptionTable prescriptions={archivedPrescriptions} />
             )}
