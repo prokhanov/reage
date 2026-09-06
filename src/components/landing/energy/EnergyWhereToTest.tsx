@@ -127,7 +127,7 @@ export function EnergyWhereToTest() {
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        <div className="mt-5 inline-flex rounded-xl border hairline bg-card p-1 md:mt-6">
+        <div className="mt-5 inline-flex rounded-xl border border-border bg-card p-1 md:mt-6">
           {CITIES.map((c) => (
             <button
               key={c.key}
@@ -162,7 +162,7 @@ export function EnergyWhereToTest() {
               {visible.map((loc) => (
                 <li
                   key={loc.id}
-                  className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border hairline bg-card px-4 py-3 md:items-start md:p-4"
+                  className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 md:items-start md:p-4"
                 >
                   <div className="min-w-0">
                     <div className="truncate text-[15px] font-medium text-foreground md:text-sm">
@@ -187,7 +187,7 @@ export function EnergyWhereToTest() {
                 </li>
               ))}
               {visible.length === 0 && (
-                <li className="rounded-xl border hairline bg-card p-4 text-sm text-muted-foreground">
+                <li className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
                   Ничего не нашлось — попробуйте другой запрос.
                 </li>
               )}
@@ -218,7 +218,7 @@ export function EnergyWhereToTest() {
           </div>
 
           <div
-            className={`min-w-0 overflow-hidden rounded-xl border hairline bg-card ${
+            className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
               showMap ? "" : "hidden lg:block"
             }`}
           >

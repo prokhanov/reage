@@ -16,7 +16,7 @@ export function EnergyOtherCheckups() {
             <Link
               key={c.title}
               to="/"
-              className="group flex min-h-[52px] items-center justify-between gap-3 rounded-xl border hairline bg-card px-4 py-3 transition-colors hover:bg-foreground/[0.02] md:p-5"
+              className="group flex min-h-[52px] items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-foreground/[0.02] md:p-5"
             >
               <span className="min-w-0">
                 <span className="block truncate text-[15px] font-medium text-foreground md:text-sm">

@@ -39,7 +39,7 @@ export function EnergyHowItWorks() {
         {/* Десктоп — без изменений */}
         <ol className="mt-8 hidden gap-3 md:grid md:grid-cols-3">
           {desktopSteps.map((s) => (
-            <li key={s.n} className="rounded-xl border hairline bg-card p-5">
+            <li key={s.n} className="rounded-xl border border-border bg-card p-5">
               <span className="font-mono-tech flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">
                 {s.n}
               </span>
