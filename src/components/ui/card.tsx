@@ -1,9 +1,35 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl border bg-card text-card-foreground shadow-card", className)} {...props} />
+/**
+ * Единая карточка продукта. Разные визуальные роли задаются через variant,
+ * а не через локальные border/rounded/shadow классы на странице.
+ */
+const cardVariants = cva("text-card-foreground", {
+  variants: {
+    variant: {
+      /** Базовая карточка контента. */
+      default: "rounded-xl border hairline bg-card shadow-card",
+      /** Плоская панель (таблицы, списки, вложенные блоки) — стиль Consilium. */
+      flat: "rounded-xl border hairline bg-card",
+      /** Второстепенный блок на фоне поверхности. */
+      muted: "rounded-xl border hairline bg-surface",
+      /** Кликабельная карточка. */
+      interactive:
+        "rounded-xl border hairline bg-card shadow-card transition-colors hover:bg-foreground/[0.02] cursor-pointer",
+      /** Акцентный/справочный блок (callout, рекомендация, подсказка). */
+      accent: "rounded-xl border border-primary/25 bg-primary/[0.04]",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
+export type CardProps = React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>;
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, variant, ...props }, ref) => (
+  <div ref={ref} className={cn(cardVariants({ variant }), className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -40,4 +66,4 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants };
