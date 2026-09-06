@@ -235,7 +235,7 @@ export function StrategyPreviewDialog({
 
         <Tabs defaultValue="health" className="flex-1 min-h-0 flex flex-col">
           <div className="px-5 pt-3 border-b">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted">
+            <TabsList>
               <TabsTrigger value="health">Моё здоровье</TabsTrigger>
               <TabsTrigger value="strategy">Стратегия здоровья</TabsTrigger>
             </TabsList>

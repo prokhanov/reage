@@ -380,7 +380,7 @@ export default function Prescriptions() {
         </div>
 
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList>
             <TabsTrigger value="active" className="gap-2">
               <FileText className="w-4 h-4" />
               Активные ({totalActiveCount})

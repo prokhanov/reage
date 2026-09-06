@@ -613,7 +613,7 @@ export default function MyState() {
       </div>
 
       <Tabs defaultValue="survey" className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+        <TabsList className="mb-8">
             <TabsTrigger value="survey">Опросник</TabsTrigger>
             <TabsTrigger value="history">История</TabsTrigger>
           </TabsList>

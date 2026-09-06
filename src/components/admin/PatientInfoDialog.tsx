@@ -336,7 +336,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
 
             {/* Вкладки */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList>
                 <TabsTrigger value="overview">
                   <User className="w-4 h-4 mr-2" />
                   Обзор

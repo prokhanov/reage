@@ -163,7 +163,7 @@ export default function Auth() {
                 onValueChange={(v) => setAuthMethod(v as "email" | "phone")}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background border border-border">
+                <TabsList className="mb-6">
                   <TabsTrigger
                     value="email"
                     className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 gap-2"

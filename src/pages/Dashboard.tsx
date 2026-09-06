@@ -590,7 +590,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-4 md:p-6 lg:p-8">
             <Tabs defaultValue="current" className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 bg-muted">
+              <TabsList className="mb-6">
                 <TabsTrigger value="current">Текущее состояние</TabsTrigger>
                 <TabsTrigger value="dynamics">Динамика</TabsTrigger>
               </TabsList>
@@ -823,7 +823,7 @@ export default function Dashboard() {
           <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
               <div className="px-4 pt-4 md:px-6 md:pt-6">
-                <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted">
+                <TabsList>
                   <TabsTrigger value="biomarkers">Маркеры</TabsTrigger>
                   <TabsTrigger value="trends">Тренды</TabsTrigger>
                 </TabsList>
