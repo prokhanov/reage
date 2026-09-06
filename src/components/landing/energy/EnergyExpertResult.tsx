@@ -160,22 +160,26 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 export function EnergyExpertResult() {
   return (
     <section className="border-b hairline">
-      <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-12 md:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <div className="rounded-xl border hairline bg-card p-5 lg:self-start">
+      <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <div className="flex gap-4 rounded-xl border hairline bg-card p-4 sm:gap-5 sm:p-5 lg:block lg:self-start">
           <img
             src={expertDoctor}
             alt="Врач Анна Ковалёва"
             width={768}
             height={896}
             loading="lazy"
-            className="aspect-[4/5] w-full rounded-lg object-cover"
+            sizes="(min-width: 1024px) 320px, 40vw"
+            className="aspect-[4/5] w-28 shrink-0 rounded-lg object-cover object-top sm:w-40 lg:w-full"
           />
-          <div className="mt-4 text-base font-medium text-foreground">Д-р Анна Ковалёва</div>
-          <div className="text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Составила состав чекапа и правила интерпретации результатов.
-          </p>
+          <div>
+            <div className="mt-0 text-base font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</div>
+            <div className="text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Составила состав чекапа и правила интерпретации результатов.
+            </p>
+          </div>
         </div>
+
 
         <div>
           <h2 className="font-display text-2xl text-foreground md:text-3xl">Пример результата</h2>
