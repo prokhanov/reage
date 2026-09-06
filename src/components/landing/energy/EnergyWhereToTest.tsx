@@ -31,6 +31,17 @@ export function EnergyWhereToTest() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [city, setCity] = useState<CityKey>(detectCity);
   const [cityTouched, setCityTouched] = useState(false);
+  const [mapHeight, setMapHeight] = useState(420);
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setMapHeight(w < 640 ? Math.max(260, Math.round(window.innerHeight * 0.45)) : w < 1024 ? 380 : 420);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -186,13 +197,13 @@ export function EnergyWhereToTest() {
           </div>
 
           <div className="overflow-hidden rounded-xl border hairline bg-card">
-            <Suspense fallback={<div className="h-[420px] w-full bg-muted/40" />}>
+            <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
               <LabLocationsMap
                 key={city}
                 items={filtered}
                 center={CITIES.find((c) => c.key === city)!.center}
                 zoom={CITIES.find((c) => c.key === city)!.zoom}
-                height={420}
+                height={mapHeight}
                 fitToItems
                 hideControls
                 clusterMarkers
