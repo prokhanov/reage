@@ -29,7 +29,7 @@ export function EnergyIncluded() {
           {items.map((i) => (
             <li
               key={i.title}
-              className="flex min-h-[60px] items-center gap-3 py-3 sm:min-h-0 sm:items-start sm:rounded-xl sm:border sm:hairline sm:bg-card sm:p-4"
+              className="flex min-h-[60px] items-center gap-3 py-3 sm:min-h-0 sm:items-start sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-4"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:mt-0.5">
                 <i.icon className="h-[18px] w-[18px] text-primary" aria-hidden />

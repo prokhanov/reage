@@ -43,7 +43,7 @@ export function EnergyHero({ onAddToCart }: Props) {
 
       <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
         <div className="lg:w-[48%] lg:pr-8">
-          <span className="inline-flex items-center gap-2 rounded-full border hairline bg-card px-3 py-1.5 text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             Анализы сдаются в LabQuest
           </span>
@@ -61,7 +61,7 @@ export function EnergyHero({ onAddToCart }: Props) {
             {facts.map((f) => (
               <li
                 key={f.title}
-                className="inline-flex items-center gap-1.5 rounded-full border hairline bg-card px-3 py-1.5 text-[13px] text-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] text-foreground"
               >
                 <f.icon className="h-3.5 w-3.5 text-primary" aria-hidden />
                 {f.title}
@@ -72,7 +72,7 @@ export function EnergyHero({ onAddToCart }: Props) {
           {/* Десктопные карточки-факты — без изменений */}
           <dl className="mt-7 hidden gap-3 lg:grid lg:grid-cols-3">
             {facts.map((f) => (
-              <div key={f.title} className="rounded-xl border hairline bg-card/70 p-4">
+              <div key={f.title} className="rounded-xl border border-border bg-card/70 p-4">
                 <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
                 <div className="mt-2">
                   <dt className="text-sm font-medium text-foreground">{f.title}</dt>
