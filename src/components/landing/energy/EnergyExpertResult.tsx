@@ -1,22 +1,167 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
+import { cn } from "@/lib/utils";
 import expertDoctor from "@/assets/energy/expert-doctor.jpg";
 
-const secondary = [
-  { name: "Витамин D (25-OH)", value: "24 нг/мл", status: "Погранично", tone: "warning" as const },
-  { name: "ТТГ", value: "2.1 мЕд/л", status: "Норма", tone: "success" as const },
-  { name: "HbA1c", value: "5.4 %", status: "Норма", tone: "success" as const },
+/**
+ * Демо-карточки биомаркеров для лендинга: та же шкала и та же логика статусов,
+ * что и в персональном отчёте. Диапазоны совпадают со справочником ReAge.
+ */
+interface DemoMarker {
+  code: string;
+  name: string;
+  value: number;
+  unit: string;
+  biomarker: Record<string, number | string>;
+  commentary: string;
+}
+
+const markers: DemoMarker[] = [
+  {
+    code: "FERR",
+    name: "Ферритин",
+    value: 12,
+    unit: "нг/мл",
+    biomarker: {
+      unit: "нг/мл",
+      normal_min: 30,
+      normal_max: 200,
+      optimal_min: 45,
+      optimal_max: 80,
+      critical_min: 15,
+      critical_max: 300,
+    },
+    commentary:
+      "Ферритин отражает запас железа в тканях — того самого железа, из которого строится гемоглобин и работают ферменты дыхательной цепи. При значении 12 нг/мл резерв практически исчерпан: гемоглобин ещё может оставаться в норме, но клеткам уже не хватает кислорода и энергии. Отсюда утренняя разбитость, зябкость, выпадение волос и падение выносливости при обычной нагрузке. Дальнейший шаг — оценить причину потери железа (питание, кровопотери, всасывание), скорректировать рацион и повторно проверить ферритин вместе с общим анализом крови через 3 месяца.",
+  },
+  {
+    code: "25-OH D",
+    name: "Витамин D",
+    value: 24,
+    unit: "нг/мл",
+    biomarker: {
+      unit: "нг/мл",
+      normal_min: 30,
+      normal_max: 80,
+      optimal_min: 40,
+      optimal_max: 70,
+      critical_min: 15,
+      critical_max: 120,
+    },
+    commentary:
+      "Витамин D работает как гормон: участвует в обмене кальция, поддерживает мышечную силу, иммунный ответ и настроение. Значение 24 нг/мл ниже нормы и заметно ниже целевого диапазона — типичная картина для средней полосы в осенне-зимний период. Такое состояние проявляется вялостью, ноющими мышцами и частыми простудами. Требуется подбор дозы холекальциферола с учётом веса и исходного уровня, контроль показателя через 3 месяца.",
+  },
+  {
+    code: "TSH",
+    name: "Тиреотропный гормон",
+    value: 2.1,
+    unit: "мМЕ/л",
+    biomarker: {
+      unit: "мМЕ/л",
+      normal_min: 0.4,
+      normal_max: 4,
+      optimal_min: 0.5,
+      optimal_max: 2.5,
+      critical_min: 0.1,
+      critical_max: 10,
+    },
+    commentary:
+      "ТТГ — управляющий сигнал гипофиза к щитовидной железе и самый чувствительный индикатор её работы. Значение 2.1 мМЕ/л находится в целевом диапазоне: скорость обмена веществ, терморегуляция и темп восстановления после нагрузок регулируются штатно. Щитовидная железа как причина усталости в этом случае маловероятна, плановый контроль — раз в год.",
+  },
+  {
+    code: "Hb",
+    name: "Гемоглобин",
+    value: 138,
+    unit: "г/л",
+    biomarker: {
+      unit: "г/л",
+      normal_min: 120,
+      normal_max: 155,
+      optimal_min: 125,
+      optimal_max: 145,
+      critical_min: 100,
+      critical_max: 170,
+    },
+    commentary:
+      "Гемоглобин переносит кислород от лёгких к тканям и определяет базовую выносливость. Значение 138 г/л в целевом диапазоне: явной анемии нет. Важная деталь — гемоглобин удерживается в норме за счёт расходования запасов железа, поэтому при низком ферритине нормальный гемоглобин не отменяет дефицита, а лишь показывает, что организм пока компенсирует его.",
+  },
 ];
 
-const toneClass: Record<"success" | "warning" | "risk", string> = {
-  success: "border-success/30 bg-success/10 text-success",
-  warning: "border-warning/30 bg-warning/10 text-warning",
-  risk: "border-destructive/30 bg-destructive/10 text-destructive",
+const statusColorMap: Record<string, string> = {
+  critical: "text-status-critical",
+  risk: "text-status-risk",
+  acceptable: "text-status-acceptable",
+  optimal: "text-status-optimal",
 };
+
+const statusBgMap: Record<string, string> = {
+  critical: "bg-status-critical/5 border-status-critical/15",
+  risk: "bg-status-risk/5 border-status-risk/15",
+  acceptable: "bg-status-acceptable/5 border-status-acceptable/15",
+  optimal: "bg-status-optimal/5 border-status-optimal/15",
+};
+
+function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const status = getBiomarkerStatus(marker.value, marker.biomarker, 40, "female");
+  const key = status.status as keyof typeof statusColorMap;
+
+  return (
+    <div className={cn("rounded-xl border shadow-sm", statusBgMap[key])}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 p-4 text-left"
+      >
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-sm font-semibold text-foreground">{marker.name}</span>
+          <span className="text-xs text-muted-foreground">({marker.code})</span>
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
+            {marker.value}
+          </span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">{marker.unit}</span>
+          <span className={cn("text-[10px]", statusColorMap[key])}>●</span>
+          <span className={cn("text-xs font-medium", statusColorMap[key])}>{status.label}</span>
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+              open && "rotate-180",
+            )}
+            aria-hidden
+          />
+        </span>
+      </button>
+
+      {open && (
+        <div className="space-y-3 px-4 pb-4">
+          <BiomarkerScale
+            biomarker={marker.biomarker}
+            value={marker.value}
+            age={40}
+            gender="female"
+            unit={marker.unit}
+            showHeader
+          />
+          <div className="border-t border-border/20 pt-3 text-sm leading-relaxed text-muted-foreground">
+            {marker.commentary}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function EnergyExpertResult() {
   return (
     <section className="border-b hairline">
       <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-12 md:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <div className="rounded-xl border hairline bg-card p-5">
+        <div className="rounded-xl border hairline bg-card p-5 lg:self-start">
           <img
             src={expertDoctor}
             alt="Врач Анна Ковалёва"
@@ -34,53 +179,15 @@ export function EnergyExpertResult() {
 
         <div>
           <h2 className="font-display text-2xl text-foreground md:text-3xl">Пример результата</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
+          </p>
 
-          <div className="mt-5 rounded-xl border hairline bg-card p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-base font-medium text-foreground">Ферритин</span>
-              <span className="font-mono-tech text-lg text-foreground">12 мкг/л</span>
-            </div>
-            <span
-              className={`mt-2 inline-flex rounded-full border px-2.5 py-0.5 text-xs ${toneClass.risk}`}
-            >
-              Понижено
-            </span>
-
-            <div className="mt-4">
-              <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div className="absolute inset-y-0 left-0 w-[18%] bg-destructive" />
-                <div className="absolute inset-y-0 left-[18%] w-[14%] bg-warning" />
-                <div className="absolute inset-y-0 left-[32%] right-[18%] bg-success" />
-              </div>
-              <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
-                <span>10</span>
-                <span>30–150 — оптимум</span>
-                <span>300</span>
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm text-muted-foreground">
-              Запасы железа на нижней границе: типичная причина утренней разбитости, зябкости и
-              снижения выносливости. Показан разбор питания и контроль показателя через 3 месяца.
-            </p>
-          </div>
-
-          <ul className="mt-3 space-y-3">
-            {secondary.map((s) => (
-              <li
-                key={s.name}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border hairline bg-card px-5 py-4"
-              >
-                <span className="text-sm text-foreground">{s.name}</span>
-                <span className="flex items-center gap-3">
-                  <span className="font-mono-tech text-sm text-foreground">{s.value}</span>
-                  <span className={`rounded-full border px-2.5 py-0.5 text-xs ${toneClass[s.tone]}`}>
-                    {s.status}
-                  </span>
-                </span>
-              </li>
+          <div className="mt-5 space-y-3">
+            {markers.map((m, i) => (
+              <MarkerCard key={m.code} marker={m} defaultOpen={i === 0} />
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </section>
