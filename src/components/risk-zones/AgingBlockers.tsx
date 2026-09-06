@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Ban } from "lucide-react";
@@ -46,9 +47,9 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
           const impactColor = getImpactColor(blocker.impact_score);
 
           return (
-            <div
+            <Tile
               key={idx}
-              className="p-4 rounded-lg border border-border bg-background animate-fade-in hover:shadow-md transition-all duration-300"
+               className="animate-fade-in hover:shadow-md transition-all duration-300"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
               <div className="space-y-3">
@@ -125,7 +126,7 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
                   )}
                 </div>
               </div>
-            </div>
+            </Tile>
           );
         })}
       </CardContent>

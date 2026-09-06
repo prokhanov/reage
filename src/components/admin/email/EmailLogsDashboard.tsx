@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { getStatusLabel } from "@/lib/statusTone";
@@ -264,9 +265,9 @@ export function EmailLogsDashboard() {
 
 function StatCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <Tile >
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${accent || "text-foreground"}`}>{value}</p>
-    </div>
+    </Tile>
   );
 }

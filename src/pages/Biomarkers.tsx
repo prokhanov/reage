@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { useEffect, useState } from "react";
 import { DataTableShell } from "@/components/ui/data-table";
 import { supabase } from "@/integrations/supabase/client";
@@ -368,9 +369,9 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                       const { min, max } = getNormalRange(biomarker);
                       const valueColor = statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))";
                       return (
-                        <div
+                        <Tile
                           key={biomarker.id}
-                          className="rounded-xl border border-border bg-background p-3"
+                          
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
@@ -426,7 +427,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                               />
                             </div>
                           )}
-                        </div>
+                        </Tile>
                       );
                     })}
                   </div>

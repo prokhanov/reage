@@ -557,7 +557,7 @@ export default function Dashboard() {
 
         {/* Data Status Alerts */}
         {!demoMode && displayAnalysesCount === 0 && (
-          <div className="rounded-lg border border-border bg-card p-4">
+          <Tile >
             <div className="flex items-start gap-3">
               <Activity className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
@@ -567,7 +567,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-          </div>
+          </Tile>
         )}
 
         {!demoMode && displayAnalysesCount > 0 && displayBioAge === null && (
@@ -670,13 +670,13 @@ export default function Dashboard() {
                     </div>
 
                     {/* Compact Metric Cards - equal height */}
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Activity className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Анализов</div>
                       <div className="text-3xl font-bold text-foreground tabular-nums mt-auto">{displayAnalysesCount}</div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -694,9 +694,9 @@ export default function Dashboard() {
                       <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayRecentPeriod || "за период"}
                       </div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
                       <div className={`text-2xl font-bold tabular-nums mt-auto ${
@@ -714,9 +714,9 @@ export default function Dashboard() {
                       <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayFirstAnalysisDate || "всего"}
                       </div>
-                    </div>
+                    </Tile>
 
-                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="flex flex-col h-full min-h-[120px]">
                       <Calendar className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
                       {nextBooking ? (
@@ -731,10 +731,10 @@ export default function Dashboard() {
                       ) : (
                         <div className="text-sm text-muted-foreground mb-2 mt-auto">Не запланирован</div>
                       )}
-                    </div>
+                    </Tile>
 
                     {/* Health Percentile */}
-                    <div className="col-span-2 p-4 rounded-xl bg-background border border-border">
+                    <Tile  className="col-span-2">
                       {(() => {
                         if (!displayBiologicalAge || !chronologicalAge || !bioPercentile) {
                           return (
@@ -780,7 +780,7 @@ export default function Dashboard() {
                           </div>
                         );
                       })()}
-                    </div>
+                    </Tile>
                   </div>
                 </div>
               </TabsContent>

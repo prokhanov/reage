@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { useEffect, useState, useContext } from "react";
 import { DataTableShell } from "@/components/ui/data-table";
 import { useNavigate, useParams } from "react-router-dom";
@@ -938,9 +939,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                             const statusInfo = getBiomarkerStatus(value.value, value.biomarkers, patientAge, gender);
                             const valueColor = statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))";
                             return (
-                              <div
+                              <Tile
                                 key={value.id}
-                                className="rounded-xl border border-border bg-background p-3"
+                                
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="min-w-0 flex-1">
@@ -996,7 +997,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                     />
                                   </div>
                                 )}
-                              </div>
+                              </Tile>
                             );
                           })}
                         </div>

@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Star, TrendingUp, Target } from "lucide-react";
 
@@ -11,13 +12,13 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
   if (!biologicalAge || !chronologicalAge) {
     if (compact) {
       return (
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background">
+        <Tile  className="flex items-center gap-3">
           <Trophy className="h-5 w-5 text-muted-foreground flex-shrink-0" />
           <div className="flex-1">
             <div className="text-sm text-muted-foreground">Ваш результат</div>
             <div className="text-lg font-bold text-foreground">—</div>
           </div>
-        </div>
+        </Tile>
       );
     }
     

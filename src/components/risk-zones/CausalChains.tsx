@@ -1,3 +1,4 @@
+import { Tile } from "@/components/ui/tile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sprout, FlaskConical, AlertTriangle, ArrowRight, GitBranch, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -97,9 +98,9 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
             const consequences = buildConsequences(blocker);
 
             return (
-              <div
+              <Tile
                 key={idx}
-                className="p-4 rounded-lg border border-border bg-background animate-fade-in"
+                 className="animate-fade-in"
                 style={{ animationDelay: `${idx * 80}ms` }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-3 md:gap-2 items-start">
@@ -152,7 +153,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                     </p>
                   </div>
                 )}
-              </div>
+              </Tile>
             );
           })}
         </CardContent>
