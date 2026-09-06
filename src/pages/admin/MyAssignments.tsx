@@ -40,10 +40,12 @@ import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
 import {
-  statusLabels,
+  bookingStatusLabels,
   bookingStatusColors,
   type BookingStatus as AllBookingStatus,
-} from "@/lib/statusLabels";
+} from "@/lib/bookingStatusLabels";
+
+const statusLabels = bookingStatusLabels;
 
 type BookingStatus = Extract<
   AllBookingStatus,

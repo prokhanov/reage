@@ -587,7 +587,7 @@ export default function UserManagement() {
                                   {user.custom_role.display_name}
                                 </Badge>
                               ) : (
-                                getRoleBadge(user.role, (user as any).role_display_name)
+                                <RoleBadge role={user.role} displayName={(user as { role_display_name?: string }).role_display_name} />
                               )}
                             </TableCell>
                             <TableCell>
