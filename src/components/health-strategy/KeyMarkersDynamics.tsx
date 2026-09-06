@@ -136,7 +136,7 @@ export function KeyMarkersDynamics({ current, previous }: Props) {
                 return (
                   <tr
                     key={i}
-                    className="border-b last:border-0 dark:border-white/5 border-border/50 hover:dark:bg-white/[0.03] hover:bg-white/40 cursor-pointer group"
+                    className="border-b last:border-0 border-border/50 hover:bg-muted/50 cursor-pointer group"
                     onClick={() => navigate(`/biomarkers?focus=${encodeURIComponent(r.code)}`)}
                   >
                     <td className="py-2.5">
