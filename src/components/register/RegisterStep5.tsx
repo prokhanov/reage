@@ -465,7 +465,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <button
           type="button"
           onClick={() => setComparisonOpen(true)}
-          className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl text-base font-semibold text-primary-foreground bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-[1.03] transition-all duration-300"
+          className="inline-flex items-center justify-center gap-2 h-control-xl px-8 rounded-xl text-base font-semibold text-primary-foreground bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-[1.03] transition-all duration-300"
         >
           Сравнить тарифы
           <ArrowRight className="w-4 h-4" />
@@ -493,7 +493,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1 min-w-[120px] h-12"
+          className="flex-1 min-w-[120px] h-control-xl"
           disabled={isSubmitting || paying}
         >
           Назад
@@ -502,7 +502,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           type="button"
           variant="ghost"
           onClick={handleSkip}
-          className="flex-1 min-w-[140px] h-12 text-muted-foreground hover:text-foreground"
+          className="flex-1 min-w-[140px] h-control-xl text-muted-foreground hover:text-foreground"
           disabled={isSubmitting || paying}
         >
           <SkipForward className="h-4 w-4 mr-2" />
@@ -511,7 +511,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         <Button
           onClick={handlePay}
           disabled={!selectedCard || isSubmitting || paying}
-          className="flex-1 min-w-[180px] h-12 bg-gradient-primary shadow-neon-primary"
+          className="flex-1 min-w-[180px] h-control-xl bg-gradient-primary shadow-neon-primary"
         >
           {paying ? (
             <>

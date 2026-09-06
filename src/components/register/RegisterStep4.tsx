@@ -122,7 +122,7 @@ export function RegisterStep4({
             placeholder="Введите ваш адрес"
             value={bookingAddress}
             onChange={(e) => onAddressChange(e.target.value)}
-            className="h-12 text-base"
+            className="h-control-xl text-base"
           />
         </div>
       </div>
@@ -132,7 +132,7 @@ export function RegisterStep4({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1 h-12"
+          className="flex-1 h-control-xl"
         >
           Назад
         </Button>
@@ -140,7 +140,7 @@ export function RegisterStep4({
           type="button"
           variant="ghost"
           onClick={onSkip}
-          className="flex-1 h-12 text-muted-foreground hover:text-foreground"
+          className="flex-1 h-control-xl text-muted-foreground hover:text-foreground"
         >
           <SkipForward className="h-4 w-4 mr-2" />
           Пропустить
@@ -148,7 +148,7 @@ export function RegisterStep4({
         <Button
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+          className="flex-1 h-control-xl bg-gradient-primary shadow-neon-primary"
         >
           Продолжить
           <ChevronRight className="ml-2 h-5 w-5" />

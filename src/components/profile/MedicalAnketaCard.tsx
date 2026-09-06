@@ -63,7 +63,7 @@ export function MedicalAnketaCard({
     <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+          <div className="w-12 h-control-xl rounded-full bg-destructive/10 flex items-center justify-center">
             <Heart className="h-6 w-6 text-destructive" />
           </div>
           <div>

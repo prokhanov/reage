@@ -119,6 +119,7 @@ export default {
         'control-sm': 'var(--control-sm)',
         'control-md': 'var(--control-md)',
         'control-lg': 'var(--control-lg)',
+        'control-xl': 'var(--control-xl)',
         'section': 'var(--space-section-y)',
         'page-x': 'var(--space-page-x)',
       },

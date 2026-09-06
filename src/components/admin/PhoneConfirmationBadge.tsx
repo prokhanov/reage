@@ -213,7 +213,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
 
           {stage === "edit" ? (
             <div className="space-y-3 py-1">
-              <PhoneInput value={input} onChange={setInput} className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              <PhoneInput value={input} onChange={setInput} className="h-control-xl bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
               <p className="text-xs text-muted-foreground">
                 Начните с «+» и кода страны. Страна определится автоматически.
               </p>
@@ -268,7 +268,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                     variant="secondary"
                     onClick={handleForceConfirm}
                     disabled={forcing}
-                    className="w-full h-12"
+                    className="w-full h-control-xl"
                   >
                     {forcing ? <ButtonSpinner className="mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                     Подтвердить без проверки

@@ -103,6 +103,7 @@ All colors MUST be HSL.
     --control-sm: 2rem;
     --control-md: 2.25rem;
     --control-lg: 2.5rem;
+    --control-xl: 3rem;
     --space-page-x: clamp(1rem, 3vw, 2rem);
     --space-section-y: clamp(2.5rem, 6vw, 4rem);
     --content-narrow: 48rem;
