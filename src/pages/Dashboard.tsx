@@ -1,4 +1,5 @@
 
+import { PageContainer } from "@/components/layout/Page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -473,7 +474,7 @@ export default function Dashboard() {
   const displayAllAnalyses = analyses || [];
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <PageContainer width="wide">
       {/* Demo Banner */}
 
       {/* Напоминания об онбординге удалены: их место занял OnboardingGate,
@@ -485,7 +486,7 @@ export default function Dashboard() {
       {/* Header */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+            <h1 className="text-2xl md:text-3xl tracking-tight leading-tight">
               <span className="text-foreground">Добро пожаловать,</span>
               <br />
               <span className="text-foreground">{profile?.name}</span>

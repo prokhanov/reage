@@ -5,6 +5,8 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Calendar, FileText, Plus, Pencil } from "lucide-react";
@@ -266,12 +268,13 @@ export default function Prescriptions() {
     advisorySleepCount +
     advisoryFollowUpsCount;
 
-  const getStatusBadge = (status: "on_review" | "confirmed") => {
-    if (status === "confirmed") {
-      return <Badge variant="default" className="text-xs">Подтверждено</Badge>;
-    }
-    return <Badge variant="secondary" className="text-xs">На проверке</Badge>;
-  };
+  const getStatusBadge = (status: "on_review" | "confirmed") => (
+    <StatusBadge
+      status={status}
+      tone={status === "confirmed" ? "success" : "neutral"}
+      label={status === "confirmed" ? "Подтверждено" : "На проверке"}
+    />
+  );
 
   // Карточки нутрицевтиков рендерим через единый компонент
   // PrescriptionCard (тот же используется в модалке отчёта).
@@ -358,26 +361,21 @@ export default function Prescriptions() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl space-y-4 sm:space-y-6">
+      <PageContainer>
         {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
         {!isLoading && !accessLoading && (
           <>
-            <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Рекомендации</h1>
-          </div>
-
-          {isViewMode && hasPatientAccess && viewAsUserId && (
-            <Button
-              onClick={() => setCreateDialogOpen(true)}
-              variant="default"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Добавить назначение
-            </Button>
-          )}
-        </div>
+            <PageHeader
+              title="Рекомендации"
+              actions={
+                isViewMode && hasPatientAccess && viewAsUserId ? (
+                  <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить назначение
+                  </Button>
+                ) : undefined
+              }
+            />
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList>

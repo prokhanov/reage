@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageContainer, PageHeader } from "@/components/layout/Page";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -604,13 +605,11 @@ export default function MyState() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">Мое состояние</h1>
-        <p className="text-muted-foreground">
-          Отслеживайте свои симптомы и следите за изменениями
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Мое состояние"
+        description="Отслеживайте свои симптомы и следите за изменениями"
+      />
 
       <Tabs defaultValue="survey" className="w-full">
         <TabsList className="mb-8">
