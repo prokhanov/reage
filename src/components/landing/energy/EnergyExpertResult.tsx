@@ -110,7 +110,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
   const key = status.status as keyof typeof statusColorMap;
 
   return (
-    <div className={cn("rounded-xl border shadow-sm", statusBgMap[key])}>
+    <div className={cn("rounded-xl border", statusBgMap[key])}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
