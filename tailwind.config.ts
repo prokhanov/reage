@@ -93,11 +93,11 @@ export default {
         slow: 'var(--duration-slow)',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Fraunces', 'Georgia', 'serif'],
-        heading: ['Fraunces', 'Georgia', 'serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-        'mono-tech': ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['Inter Tight', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+        heading: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'mono-tech': ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       spacing: {
         'control-sm': 'var(--control-sm)',
