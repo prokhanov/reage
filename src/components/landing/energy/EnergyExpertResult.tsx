@@ -119,9 +119,9 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
       >
         <span className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-sm font-semibold text-foreground">{marker.name}</span>
-          <span className="text-xs text-muted-foreground">({marker.code})</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">({marker.code})</span>
         </span>
-        <span className="flex items-center gap-2">
+        <span className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
             {marker.value}
           </span>
@@ -159,9 +159,9 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 
 export function EnergyExpertResult() {
   return (
-    <section className="border-b hairline">
+    <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto grid w-full max-w-[72rem] gap-6 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <div className="flex gap-4 rounded-xl border hairline bg-card p-4 sm:gap-5 sm:p-5 lg:block lg:self-start">
+        <div className="flex min-w-0 gap-4 rounded-xl border hairline bg-card p-4 sm:gap-5 sm:p-5 lg:block lg:self-start">
           <img
             src={expertDoctor}
             alt="Врач Анна Ковалёва"
@@ -181,7 +181,7 @@ export function EnergyExpertResult() {
         </div>
 
 
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-2xl text-foreground md:text-3xl">Пример результата</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
