@@ -311,7 +311,7 @@ export function EnergyWhereToTest() {
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Клик по группе точек на карте приближает её к этой группе отделений.
+          Клик по группе точек на карте приближает карту к этим отделениям.
         </p>
       </div>
     </section>
