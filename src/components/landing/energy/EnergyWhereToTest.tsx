@@ -177,14 +177,15 @@ export function EnergyWhereToTest() {
           >
             {!selected ? (
               <div className="flex flex-1 flex-col">
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-base font-bold tracking-tight text-primary-foreground">
-                    LQ
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">LabQuest</p>
-                    <p className="text-sm text-muted-foreground">официальный партнёр ReAge</p>
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex h-20 w-40 items-center justify-center rounded-xl bg-white p-3">
+                    <img
+                      src={labquestLogo.url}
+                      alt="LabQuest"
+                      className="max-h-full max-w-full object-contain"
+                    />
                   </div>
+                  <p className="mt-3 text-sm font-medium text-foreground">Официальный партнёр ReAge</p>
                 </div>
 
                 <ul className="mt-5 space-y-3">
