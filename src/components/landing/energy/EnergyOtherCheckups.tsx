@@ -143,7 +143,7 @@ export function EnergyOtherCheckups() {
   const scrollBy = (dir: 1 | -1) => {
     const el = trackRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: "smooth" });
+    el.scrollBy({ left: dir * Math.max(320, el.clientWidth * 0.8), behavior: "smooth" });
   };
 
   return (
@@ -181,18 +181,27 @@ export function EnergyOtherCheckups() {
           </div>
         </div>
 
-        <div
-          ref={trackRef}
-          onScroll={update}
-          className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:-mx-2 md:gap-6 md:px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
+        <div className="relative">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent md:w-14"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent md:w-14"
+          />
+          <div
+            ref={trackRef}
+            onScroll={update}
+            className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:-mx-2 md:gap-7 md:px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
           {checkups.map((c) => {
             const a = accentClasses[c.accent];
             return (
               <Link
                 key={c.title}
                 to="/"
-                className="group relative block w-[85vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[22rem] md:w-[24rem]"
+                className="group relative block w-[88vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] md:w-[30rem]"
               >
                 <div
                   className={`absolute -inset-0.5 rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60`}
@@ -243,6 +252,7 @@ export function EnergyOtherCheckups() {
               </Link>
             );
           })}
+          </div>
         </div>
       </div>
     </section>
