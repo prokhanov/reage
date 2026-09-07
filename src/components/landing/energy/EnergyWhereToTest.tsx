@@ -186,28 +186,47 @@ export function EnergyWhereToTest() {
             style={{ minHeight: mapHeight }}
           >
             {!selected ? (
-              <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                  <MapPin className="h-7 w-7 text-muted-foreground" aria-hidden />
-                </span>
-                <p className="mt-4 text-base font-medium text-foreground">
-                  Выберите клинику на карте
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  или найдём ближайшую к вам автоматически
-                </p>
-                <Button
-                  type="button"
-                  onClick={handleLocate}
-                  disabled={locating || items.length === 0}
-                  className="mt-6 h-12 w-full gap-2 text-base"
-                >
-                  <Crosshair className="h-4 w-4" aria-hidden />
-                  {locating ? "Определяем…" : "Определить ближайшую"}
-                </Button>
-                {geoNote && (
-                  <p className="mt-3 text-xs text-muted-foreground">{geoNote}</p>
-                )}
+              <div className="flex flex-1 flex-col">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-base font-bold tracking-tight text-primary-foreground">
+                    LQ
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground">LabQuest</p>
+                    <p className="text-sm text-muted-foreground">официальный партнёр ReAge</p>
+                  </div>
+                </div>
+
+                <ul className="mt-5 space-y-3">
+                  {[
+                    "400+ отделений по Москве, СПб и всей России",
+                    "Государственная аккредитация лаборатории",
+                    "Результаты доступны онлайн в личном кабинете",
+                  ].map((text) => (
+                    <li key={text} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                      <span className="min-w-0">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-auto space-y-3 pt-8">
+                  <p className="text-center text-sm text-muted-foreground">
+                    Выберите отделение на карте или найдём ближайшее автоматически
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleLocate}
+                    disabled={locating || items.length === 0}
+                    className="h-12 w-full gap-2 text-base"
+                  >
+                    <Crosshair className="h-4 w-4" aria-hidden />
+                    {locating ? "Определяем…" : "Определить ближайшую"}
+                  </Button>
+                  {geoNote && (
+                    <p className="text-center text-xs text-muted-foreground">{geoNote}</p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex flex-1 flex-col">
