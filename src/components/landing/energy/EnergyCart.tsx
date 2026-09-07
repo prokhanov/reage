@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MapPin, ShieldCheck } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -201,10 +201,6 @@ export function EnergyCart() {
             className="space-y-3 border-t hairline px-5 py-4"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
           >
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-              Не подошла расшифровка — вернём деньги
-            </div>
             <label className="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-muted-foreground">
               <Checkbox
                 checked={agree}
