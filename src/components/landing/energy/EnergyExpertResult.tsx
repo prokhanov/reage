@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Award, ChevronDown, Clock, MessageCircle, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, MessageCircle, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { Button } from "@/components/ui/button";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cn } from "@/lib/utils";
 import expertDoctor from "@/assets/energy/expert-doctor.jpg";
