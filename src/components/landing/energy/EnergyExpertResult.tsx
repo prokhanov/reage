@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-import {
-  getBiomarkerStatus,
-  getCriticalRangeForAge,
-  getNormalRangeForAge,
-  getOptimalRangeForAge,
-} from "@/lib/biomarkerNorms";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cn } from "@/lib/utils";
 import expertDoctor from "@/assets/energy/expert-doctor.jpg";
 
@@ -101,50 +97,12 @@ const statusColorMap: Record<string, string> = {
   optimal: "text-status-optimal",
 };
 
-function MarkerScale({ marker }: { marker: DemoMarker }) {
-  const normal = getNormalRangeForAge(marker.biomarker, 40, "female");
-  const optimal = getOptimalRangeForAge(marker.biomarker, 40, "female");
-  const critical = getCriticalRangeForAge(marker.biomarker, 40, "female");
-  const points = [
-    marker.value,
-    normal.min,
-    normal.max,
-    optimal.min,
-    optimal.max,
-    critical.min,
-    critical.max,
-  ].filter((value): value is number => value !== null && value !== undefined);
-
-  const dataMin = Math.min(...points);
-  const dataMax = Math.max(...points);
-  const range = dataMax - dataMin;
-  const padding = range * 0.15 || 1;
-  const position = Math.max(1, Math.min(99, ((marker.value - (dataMin - padding)) / (range + padding * 2)) * 100));
-  const optMin = optimal.min ?? normal.min;
-  const optMax = optimal.max ?? normal.max;
-
-  let optimalText = "";
-  if (optMin !== null && optMax !== null) optimalText = `${optMin} – ${optMax} ${marker.unit}`;
-  else if (optMax !== null) optimalText = `≤ ${optMax} ${marker.unit}`;
-  else if (optMin !== null) optimalText = `≥ ${optMin} ${marker.unit}`;
-
-  return (
-    <div className="space-y-3">
-      <div className="relative h-1.5 rounded-full bg-[linear-gradient(90deg,hsl(var(--status-critical))_0%,hsl(var(--status-acceptable))_22%,hsl(var(--status-optimal))_40%,hsl(var(--status-optimal))_60%,hsl(var(--status-acceptable))_78%,hsl(var(--status-critical))_100%)]">
-        <span
-          aria-hidden
-          className="absolute -top-1.5 h-[18px] w-0.5 -translate-x-1/2 rounded-full bg-foreground shadow-sm"
-          style={{ left: `${position}%` }}
-        />
-      </div>
-      {optimalText && (
-        <p className="text-xs text-muted-foreground">
-          Оптимальный диапазон: <span className="font-mono font-medium tabular-nums text-foreground">{optimalText}</span>
-        </p>
-      )}
-    </div>
-  );
-}
+const statusBgMap: Record<string, string> = {
+  critical: "bg-status-critical/5 border-status-critical/15",
+  risk: "bg-status-risk/5 border-status-risk/15",
+  acceptable: "bg-status-acceptable/5 border-status-acceptable/15",
+  optimal: "bg-status-optimal/5 border-status-optimal/15",
+};
 
 function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -152,27 +110,27 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
   const key = status.status as keyof typeof statusColorMap;
 
   return (
-    <div className="border-b border-border last:border-b-0">
+    <div className={cn("rounded-xl border", statusBgMap[key])}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="grid min-h-[72px] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-3 text-left sm:min-h-[64px] sm:px-5"
+        className="flex min-h-[56px] w-full items-center justify-between gap-3 p-4 text-left"
       >
-        <span className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-          <span className="truncate text-sm font-semibold text-foreground sm:text-base">{marker.name}</span>
-          <span className="font-mono text-[11px] text-muted-foreground">{marker.code}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-sm font-semibold text-foreground">{marker.name}</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">({marker.code})</span>
         </span>
-        <span className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 whitespace-nowrap sm:gap-2.5">
+        <span className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
             {marker.value}
           </span>
-          <span className="text-[11px] text-muted-foreground sm:text-xs">{marker.unit}</span>
-          <span className={cn("ml-0.5 text-[9px]", statusColorMap[key])}>●</span>
-          <span className={cn("text-[11px] font-medium lowercase sm:text-xs", statusColorMap[key])}>{status.label}</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">{marker.unit}</span>
+          <span className={cn("text-[10px]", statusColorMap[key])}>●</span>
+          <span className={cn("text-xs font-medium", statusColorMap[key])}>{status.label}</span>
           <ChevronDown
             className={cn(
-              "ml-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
               open && "rotate-180",
             )}
             aria-hidden
@@ -181,9 +139,18 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
       </button>
 
       {open && (
-        <div className="space-y-4 px-4 pb-5 sm:px-5">
-          <MarkerScale marker={marker} />
-          <p className="text-sm leading-relaxed text-muted-foreground">{marker.commentary}</p>
+        <div className="space-y-3 px-4 pb-4">
+          <BiomarkerScale
+            biomarker={marker.biomarker}
+            value={marker.value}
+            age={40}
+            gender="female"
+            unit={marker.unit}
+            showHeader
+          />
+          <div className="border-t border-border/20 pt-3 text-sm leading-relaxed text-muted-foreground">
+            {marker.commentary}
+          </div>
         </div>
       )}
     </div>
@@ -193,35 +160,38 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 export function EnergyExpertResult() {
   return (
     <section className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto w-full max-w-[64rem] px-4 py-14 sm:px-6 md:py-16">
-        <div>
-          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
-          </p>
-        </div>
-
-        <div className="mt-9 flex flex-col items-center border-b border-border pb-9 text-center sm:mt-10 sm:pb-10">
+      <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <div className="flex min-w-0 gap-4 rounded-xl border border-border bg-card p-4 sm:gap-5 sm:p-5 lg:sticky lg:top-20 lg:block lg:self-start">
           <img
             src={expertDoctor}
             alt="Врач Анна Ковалёва"
             width={768}
             height={896}
             loading="lazy"
-            sizes="144px"
-            className="h-32 w-32 rounded-full border border-border object-cover object-top sm:h-36 sm:w-36"
+            sizes="(min-width: 1024px) 320px, 40vw"
+            className="aspect-[4/5] w-20 shrink-0 rounded-lg object-cover object-top sm:w-40 lg:w-full"
           />
-          <div className="mt-5 font-display text-xl text-foreground sm:text-2xl">Д-р Анна Ковалёва</div>
-          <div className="mt-1 text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Составила состав чекапа и правила интерпретации показателей ниже.
-          </p>
+          <div>
+            <div className="mt-0 text-base font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</div>
+            <div className="text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Составила состав чекапа и правила интерпретации результатов.
+            </p>
+          </div>
         </div>
 
-        <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card sm:mt-10">
-          {markers.map((m, i) => (
-            <MarkerCard key={m.code} marker={m} defaultOpen={i === 0} />
-          ))}
+
+        <div className="min-w-0">
+          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
+          </p>
+
+          <div className="mt-5 space-y-3">
+            {markers.map((m, i) => (
+              <MarkerCard key={m.code} marker={m} defaultOpen={i === 0} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
