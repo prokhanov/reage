@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReAge - Сервис по управлению здоровьем</title>
+    <meta
+      name="description"
+      content="ReAge — регулярный мониторинг здоровья по 100+ биомаркерам. Расшифровываем анализы, отслеживаем динамику и помогаем принять верные решения."
+    />
+    <meta name="author" content="ReAge" />
+
+    <!-- Yandex.Metrika counter (loader deferred to idle to keep FCP fast) -->
+    <script type="text/javascript">
+      // Ставим stub сразу, чтобы `ym(...)` работал синхронно и очередил вызовы.
+      window.ym = window.ym || function () { (window.ym.a = window.ym.a || []).push(arguments); };
+      window.ym.l = 1 * new Date();
+      ym(109706546, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+      (function () {
+        function loadYm() {
+          for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === 'https://mc.yandex.ru/metrika/tag.js?id=109706546') return; }
+          var s = document.createElement('script'); s.async = true; s.src = 'https://mc.yandex.ru/metrika/tag.js?id=109706546';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(s, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadYm, { timeout: 4000 });
+          else setTimeout(loadYm, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
+    <!-- /Yandex.Metrika counter -->
+
+
+
+    <link rel="canonical" href="https://reage.life/" />
+    <meta property="og:title" content="ReAge — Система наблюдения за здоровьем" />
+    <meta
+      property="og:description"
+      content="Постоянный мониторинг здоровья по биомаркерам: расшифровка анализов и персональные рекомендации."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://reage.life/" />
+    <meta property="og:site_name" content="ReAge" />
+
+    <meta property="og:image" content="https://reage.life/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="ReAge — Система наблюдения за здоровьем по биомаркерам" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@ReAge" />
+    <meta name="twitter:title" content="ReAge — Платформа наблюдения за здоровьем" />
+    <meta
+      name="twitter:description"
+      content="Мониторинг здоровья по биомаркерам (100+): расшифровка анализов и персональные рекомендации."
+    />
+    <meta name="twitter:image" content="https://reage.life/og-image.jpg" />
+
+    <script>
+      (function () {
+        var DIAG_EVENT_LIMIT = 24;
+
+        function shortHash(input) {
+          var hash = 2166136261;
+          for (var i = 0; i < input.length; i++) {
+            hash ^= input.charCodeAt(i);
+            hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+          }
+          return (hash >>> 0).toString(36).toUpperCase().slice(0, 6);
+        }
+
+        function shortUrl(value) {
+          try {
+            var url = new URL(value, location.href);
+            return url.pathname.split('/').pop() || url.pathname || value;
+          } catch (e) {
+            return String(value || '').slice(0, 96);
+          }
+        }
+
+        function getConnectionInfo() {
+          var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!connection) return 'unknown';
+          return [connection.effectiveType, connection.downlink ? connection.downlink + 'mbps' : '', connection.saveData ? 'saveData' : '']
+            .filter(Boolean)
+            .join('/');
+        }
+
+        function getAssetSnapshot() {
+          var css = [];
+          var js = [];
+          var links = document.querySelectorAll('link[rel="stylesheet"]');
+          var scripts = document.querySelectorAll('script[src]');
+          for (var i = 0; i < links.length; i++) css.push(shortUrl(links[i].href));
+          for (var j = 0; j < scripts.length; j++) js.push(shortUrl(scripts[j].src));
+          return { css: css.slice(0, 8), js: js.slice(0, 8) };
+        }
+
+        function buildPayload(reason, detail) {
+          var assets = getAssetSnapshot();
+          var errors = (window.__RL_BOOT_DIAG__ && window.__RL_BOOT_DIAG__.events) || [];
+          var seed = [
+            reason,
+            detail || '',
+            location.href,
+            navigator.userAgent,
+            assets.css.join(','),
+            assets.js.join(','),
+            errors.map(function (event) { return event.type + ':' + event.detail; }).join('|'),
+          ].join('|');
+          return {
+            reason: reason,
+            detail: String(detail || '').slice(0, 260),
+            code: shortHash(seed),
+            href: location.href,
+            ua: navigator.userAgent,
+            viewport: window.innerWidth + 'x' + window.innerHeight,
+            dpr: window.devicePixelRatio || 1,
+            connection: getConnectionInfo(),
+            readyState: document.readyState,
+            css: assets.css,
+            js: assets.js,
+            errors: errors.slice(-8),
+          };
+        }
+
+        function sendDiagnostic(reason, detail) {
+          var payload = buildPayload(reason, detail);
+          try { console.warn('[RL-DIAG]', payload); } catch (e) {}
+          try {
+            if (typeof window.ym === 'function') {
+              window.ym(109706546, 'reachGoal', 'front_load_issue', {
+                reason: payload.reason,
+                code: payload.code,
+                detail: payload.detail,
+                viewport: payload.viewport,
+                connection: payload.connection,
+                css_count: payload.css.length,
+                js_count: payload.js.length,
+              });
+              window.ym(109706546, 'params', { front_load_issue: payload });
+            }
+          } catch (e) {}
+          return payload;
+        }
+
+        // Баннер показываем только на лендинге: во внутренних разделах он пугает
+        // пациентов и не несёт пользы (телеметрия при этом уходит везде).
+        function isLandingRoute() {
+          var path = location.pathname || '/';
+          return path === '/' || path === '/index.html';
+        }
+
+        function renderDiagnosticPanel(payload) {
+          var panel = document.getElementById('rl-load-diagnostics');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'rl-load-diagnostics';
+            panel.setAttribute('role', 'status');
+            panel.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2147483647;max-width:calc(100vw - 16px);background:#1f0b0b;color:#fff;border:2px solid #ff5a5f;border-radius:8px;padding:8px 10px;font:12px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.35);text-align:left;white-space:normal;';
+            document.documentElement.appendChild(panel);
+          }
+          panel.textContent = 'ReAge: ошибка загрузки ' + payload.reason + ' • код ' + payload.code + ' • CSS ' + payload.css.length + ' • JS ' + payload.js.length + ' • ' + payload.connection;
+        }
+
+        // Через 5 секунд приложение обычно уже дорисовалось (ретрай CSS / медленная
+        // сеть). Показываем баннер только если проблема реально осталась.
+        function pageLooksBroken() {
+          var root = document.getElementById('root');
+          var rendered = !!(root && root.children && root.children.length > 0);
+          return !checkCssApplied(true) || !rendered;
+        }
+
+        var pendingPanelTimer = null;
+        var pendingPayload = null;
+
+        function showDiagnostic(reason, detail, immediate) {
+          var payload = sendDiagnostic(reason, detail);
+          if (!isLandingRoute() && !immediate) return payload;
+          if (immediate) {
+            renderDiagnosticPanel(payload);
+            return payload;
+          }
+          pendingPayload = payload;
+          if (pendingPanelTimer !== null) return payload;
+          pendingPanelTimer = setTimeout(function () {
+            pendingPanelTimer = null;
+            if (!pageLooksBroken()) return;
+            renderDiagnosticPanel(pendingPayload || payload);
+          }, 5000);
+          return payload;
+        }
+
+        function recordDiagnostic(type, detail, critical) {
+          var event = {
+            type: String(type || 'UNKNOWN').slice(0, 48),
+            detail: String(detail || '').slice(0, 180),
+            at: Math.round(performance.now()),
+          };
+          var diag = window.__RL_BOOT_DIAG__;
+          if (diag) {
+            diag.events.push(event);
+            if (diag.events.length > DIAG_EVENT_LIMIT) diag.events.shift();
+          }
+          if (critical) showDiagnostic(event.type, event.detail);
+        }
+
+        function checkCssApplied(silent) {
+          if (!document.body) return true;
+          var probe = document.createElement('div');
+          probe.className = 'hidden text-primary bg-background';
+          probe.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;';
+          document.body.appendChild(probe);
+          var cssWorks = false;
+          try { cssWorks = getComputedStyle(probe).display === 'none'; } catch (e) {}
+          if (probe.parentNode) probe.parentNode.removeChild(probe);
+          if (!cssWorks && !silent) {
+            recordDiagnostic('CSS_MISSING', 'Tailwind utility classes are not applied', true);
+          }
+          return cssWorks;
+        }
+
+        function scheduleCssChecks() {
+          // Ранняя проверка — «тихая» (только запись события), чтобы не пугать
+          // пользователей на медленных сетях. Показ — только по поздней проверке.
+          setTimeout(function () { checkCssApplied(true); }, 2500);
+          setTimeout(function () { checkCssApplied(false); }, 7000);
+        }
+
+        window.__RL_BOOT_DIAG__ = window.__RL_BOOT_DIAG__ || {
+          events: [],
+          record: recordDiagnostic,
+          // Ручной вызов из консоли рисует панель сразу и на любом маршруте.
+          show: function (reason, detail) { return showDiagnostic(reason, detail, true); },
+          payload: buildPayload,
+          checkCss: checkCssApplied,
+        };
+
+        window.addEventListener('error', function (event) {
+          var target = event && event.target;
+          if (target && target !== window && (target.src || target.href)) {
+            var url = target.src || target.href;
+            var type = target.tagName === 'LINK' ? 'LINK_ERROR' : target.tagName === 'SCRIPT' ? 'SCRIPT_ERROR' : 'RESOURCE_ERROR';
+            recordDiagnostic(type, shortUrl(url), /\/assets\//.test(url));
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event && event.reason;
+          var message = (reason && (reason.message || reason.toString())) || '';
+          if (/Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|Loading chunk/i.test(message)) {
+            recordDiagnostic('CHUNK_REJECTION', message, true);
+          }
+        });
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleCssChecks, { once: true });
+        else scheduleCssChecks();
+
+        function isAssetCss(link) {
+          return link && link.rel === "stylesheet" && link.href && link.href.indexOf("/assets/") !== -1;
+        }
+
+        function forceReloadOnce(reason) {
+          try {
+            if (sessionStorage.getItem("rl-chunk-reloaded") === "1") return;
+            sessionStorage.setItem("rl-chunk-reloaded", "1");
+          } catch (e) {}
+          recordDiagnostic('FORCE_RELOAD', reason, false);
+          console.warn("[RL] " + reason + " — reloading once");
+          location.reload();
+        }
+
+        function retry(link) {
+          if (link.dataset.rlRetried) return;
+          link.dataset.rlRetried = "true";
+          try {
+            console.warn("[RL] CSS load failed, retrying:", link.href);
+            var separator = link.href.indexOf("?") === -1 ? "?" : "&";
+            var newLink = document.createElement("link");
+            newLink.rel = "stylesheet";
+            newLink.href = link.href + separator + "retry=" + Date.now();
+            if (link.crossOrigin) newLink.crossOrigin = link.crossOrigin;
+            // Если ретрай тоже упал — значит asset реально удалён (deploy race,
+            // старый закешированный HTML). Форсируем reload, чтобы получить свежий index.html.
+            newLink.addEventListener("error", function () {
+              recordDiagnostic('CSS_RETRY_FAILED', shortUrl(link.href), true);
+              forceReloadOnce("CSS retry also failed for " + link.href);
+            }, { once: true });
+            if (link.parentNode) link.parentNode.insertBefore(newLink, link.nextSibling);
+          } catch (e) {
+            // If retry fails, leave the original link for inspection.
+          }
+        }
+
+        function watch(link) {
+          if (!isAssetCss(link) || link.dataset.rlWatched) return;
+          link.dataset.rlWatched = "true";
+          link.addEventListener("error", function () {
+            recordDiagnostic('CSS_ASSET_ERROR', shortUrl(link.href), true);
+            retry(link);
+          }, { once: true });
+        }
+
+
+        var links = document.querySelectorAll('link[rel="stylesheet"]');
+        for (var i = 0; i < links.length; i++) watch(links[i]);
+
+        if ("MutationObserver" in window) {
+          new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+              var added = mutations[i].addedNodes;
+              for (var j = 0; j < added.length; j++) {
+                if (added[j].tagName === "LINK") watch(added[j]);
+              }
+            }
+          }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+      })();
+    </script>
+
+    <!--
+      Fallback "shell" styles: if the main CSS asset fails to load (stale cache,
+      network failure, adblock), the first paint still has a readable background,
+      text color and a constrained logo instead of a giant unstyled image.
+    -->
+    <style>
+      html, body { background-color: #0b0f19; color: #ffffff; }
+      body { margin: 0; font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif; line-height: 1.5; }
+      #rl-boot { background-color: #0b0f19; color: #9333ea; }
+      img, picture, picture img { max-width: 100%; height: auto; }
+      svg { max-width: 100%; }
+    </style>
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..600,0..100,0..1&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "ReAge",
+        "url": "https://reage.life",
+
+        "sameAs": []
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ReAge - Сервис по управлению здоровьем",
+        "url": "https://reage.life",
+        "description": "ReAge — мониторинг здоровья по биомаркерам (100+). Расшифровываем анализы, отслеживаем динамику и помогаем принять верные решения."
+
+      }
+    </script>
+
+    <!-- Top.Mail.Ru counter (loader deferred to idle) -->
+    <script type="text/javascript">
+      var _tmr = window._tmr || (window._tmr = []);
+      try {
+        var __tmrOrigPush = _tmr.push.bind(_tmr);
+        _tmr.push = function () {
+          try { console.log("[vk] _tmr.push", Array.prototype.slice.call(arguments)); } catch (e) {}
+          return __tmrOrigPush.apply(_tmr, arguments);
+        };
+      } catch (e) { console.log("[vk] wrap _tmr.push failed", e); }
+      _tmr.push({id: "3780512", type: "pageView", start: (new Date()).getTime()});
+      (function () {
+        function loadTmr() {
+          if (document.getElementById('tmr-code')) return;
+          var ts = document.createElement('script'); ts.type = 'text/javascript'; ts.async = true; ts.id = 'tmr-code';
+          ts.src = 'https://top-fwz1.mail.ru/js/code.js';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(ts, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadTmr, { timeout: 4000 });
+          else setTimeout(loadTmr, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
+    <!-- /Top.Mail.Ru counter -->
+
+    <!-- Telegram Pixel (deferred to idle) -->
+    <script type="text/javascript">
+      (function () {
+        window.tgpTrackId = 'U8ii6Wnr';
+        function loadTgp() {
+          var s = document.createElement('script'); s.async = true; s.src = 'https://telegram.org/js/pixel.js';
+          var f = document.getElementsByTagName('script')[0]; f.parentNode.insertBefore(s, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadTgp, { timeout: 4000 });
+          else setTimeout(loadTgp, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
+    <!-- /Telegram Pixel -->
+
+
+
+    <!-- Jivo (deferred to idle to keep landing fast) -->
+    <script type="text/javascript">
+      (function () {
+        function loadJivo() {
+          var s = document.createElement('script');
+          s.src = '//code.jivo.ru/widget/U83zBCpUF9';
+          s.async = true;
+          var f = document.getElementsByTagName('script')[0];
+          f.parentNode.insertBefore(s, f);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadJivo, { timeout: 4000 });
+          else setTimeout(loadJivo, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
+  
+    <link rel="dns-prefetch" href="https://api.reage.life" />
+  </head>
+
+  <body>
+    <noscript
+      ><div><img src="https://mc.yandex.ru/watch/109706546" style="position:absolute; left:-9999px;" alt="" /></div
+    ></noscript>
+    <noscript
+      ><div>
+        <img
+          src="https://top-fwz1.mail.ru/counter?id=3780512;js=na"
+          style="position:absolute;left:-9999px;"
+          alt="Top.Mail.Ru"
+        /></div
+    ></noscript>
+    <div id="root">
+      <div
+        id="rl-boot"
+        style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b0f19;color:hsl(270,90%,60%);z-index:9999;"
+      >
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="animation:rlspin 1s linear infinite;"
+          aria-hidden="true"
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
+        <style>
+          @keyframes rlspin{to{transform:rotate(360deg)}}
+        </style>
+      </div>
+    </div>
+    <script>
+      (function () {
+        // Once React mounts anything real, hide the boot loader.
+        var boot = document.getElementById('rl-boot');
+        var mo = new MutationObserver(function () {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 1) {
+            if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
+            mo.disconnect();
+          }
+        });
+        mo.observe(document.getElementById('root'), { childList: true, subtree: false });
+
+        // If boot loader is still visible after 20s — silently reload once per session.
+        setTimeout(function () {
+          if (!document.getElementById('rl-boot')) return;
+          var already = false;
+          try { already = sessionStorage.getItem('rl-chunk-reloaded') === '1'; } catch (e) {}
+          if (already) return;
+          try { sessionStorage.setItem('rl-chunk-reloaded', '1'); } catch (e) {}
+          location.reload();
+        }, 20000);
+
+        // ChunkLoadError handler: dynamic import() failed (network/proxy/adblock).
+        // Auto-reload once; if it already happened, stay silent.
+        function handleChunkError(err) {
+          var msg = (err && (err.message || err.toString())) || '';
+          var isChunk = /ChunkLoadError|Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|Importing a module script failed/i.test(msg);
+          if (!isChunk) return;
+          var already = false;
+          try { already = sessionStorage.getItem('rl-chunk-reloaded') === '1'; } catch (e) {}
+          if (already) return;
+          try { sessionStorage.setItem('rl-chunk-reloaded', '1'); } catch (e) {}
+          console.warn('[RL] chunk load failed, reloading once:', msg);
+          location.reload();
+        }
+        window.addEventListener('error', function (e) {
+          handleChunkError(e && (e.error || { message: e.message }));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          handleChunkError(e && e.reason);
+        });
+        // Clear the "already reloaded" flag once app boots successfully.
+        window.addEventListener('load', function () {
+          setTimeout(function () {
+            try { sessionStorage.removeItem('rl-chunk-reloaded'); } catch (e) {}
+          }, 5000);
+        });
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx?t=1788783389100"></script>
+
+    <!-- Callibri call tracking (deferred to idle to keep landing fast) -->
+    <script type="text/javascript">
+      (function () {
+        var SRC = 'https://cdn.callibri.ru/callibri.js';
+        function loadCallibri() {
+          for (var i = 0; i < document.scripts.length; i++) {
+            if (document.scripts[i].src === SRC) return;
+          }
+          var s = document.createElement('script');
+          s.src = SRC;
+          s.type = 'text/javascript';
+          s.charset = 'utf-8';
+          s.defer = true;
+          document.body.appendChild(s);
+        }
+        function onIdle() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(loadCallibri, { timeout: 4000 });
+          else setTimeout(loadCallibri, 2000);
+        }
+        if (document.readyState === 'complete') onIdle();
+        else window.addEventListener('load', onIdle, { once: true });
+      })();
+    </script>
+  </body>
+
+</html>
