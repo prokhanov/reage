@@ -49,8 +49,11 @@ export function EnergyHero({ onAddToCart }: Props) {
           </span>
 
           <h1 className="font-display mt-4 text-balance text-[1.85rem] leading-[1.1] text-foreground sm:mt-6 sm:text-4xl xl:text-5xl">
-            Чекап по энергии с полной расшифровкой на понятном языке
+            Чекап по энергии
           </h1>
+          <p className="font-display mt-2 text-balance text-lg leading-snug text-muted-foreground sm:text-xl xl:text-2xl">
+            с полной расшифровкой на понятном языке
+          </p>
           <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-4 xl:text-lg">
             Чекап для тех, кто просыпается уставшим. Шесть анализов, которые чаще всего
             объясняют нехватку энергии.
