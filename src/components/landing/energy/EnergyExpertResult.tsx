@@ -102,7 +102,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
         className="flex min-h-[56px] w-full items-center justify-between gap-3 p-4 text-left"
       >
         <span className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-sm font-semibold text-foreground">{marker.name}</span>
+          <span className="truncate text-base font-semibold text-foreground">{marker.name}</span>
           <span className="hidden text-xs text-muted-foreground sm:inline">({marker.code})</span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -132,7 +132,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
             unit={marker.unit}
             showHeader
           />
-          <div className="border-t border-border/20 pt-3 text-sm leading-relaxed text-muted-foreground">
+          <div className="border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
             {marker.commentary}
           </div>
         </div>
@@ -157,7 +157,7 @@ export function EnergyExpertResult() {
           />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-base font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</span>
+              <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</span>
               <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                 Эксперт ReAge
               </span>
@@ -201,8 +201,8 @@ export function EnergyExpertResult() {
         </div>
 
         <div className="min-w-0">
-          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Пример результата</h2>
+          <p className="mt-2 text-base text-muted-foreground">
             Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
           </p>
 

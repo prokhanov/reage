@@ -58,10 +58,10 @@ export function EnergyIncluded() {
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
         <div className="max-w-2xl">
-          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
+          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
             Что входит в ReAge Energy
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground md:text-base">
+          <p className="mt-2 text-base text-muted-foreground md:text-lg">
             Двадцать показателей, с которых начинается разбор причин усталости.
           </p>
         </div>
@@ -74,8 +74,8 @@ export function EnergyIncluded() {
                   <item.icon className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-display text-base text-foreground md:text-lg">{item.title}</h3>
-                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                  <h3 className="font-display text-lg text-foreground md:text-xl">{item.title}</h3>
+                  <p className="mt-0.5 text-base leading-relaxed text-muted-foreground">{item.description}</p>
                 </div>
               </li>
             ))}
@@ -85,7 +85,7 @@ export function EnergyIncluded() {
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex w-full items-center justify-center gap-1.5 py-4 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="flex w-full items-center justify-center gap-1.5 py-4 text-base text-muted-foreground transition-colors hover:text-foreground"
             >
               {expanded ? "свернуть" : `показать ещё ${hiddenCount}`}
               <ChevronDown

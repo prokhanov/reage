@@ -1,35 +1,102 @@
-import { ArrowRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const checkups = [
+type Accent = "info" | "accent" | "primary";
+
+interface Checkup {
+  title: string;
+  text: string;
+  price: string;
+  tag: string;
+  accent: Accent;
+  visual: JSX.Element;
+}
+
+const diamond = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <path d="M50 0 L100 50 L50 100 L0 50 Z" />
+  </svg>
+);
+const circle = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <circle cx="50" cy="50" r="40" />
+  </svg>
+);
+const wave = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <path d="M0 60 Q25 20 50 60 T100 60 V100 H0 Z" />
+  </svg>
+);
+const square = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <rect x="15" y="15" width="70" height="70" rx="18" />
+  </svg>
+);
+const triangle = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <path d="M50 10 L95 90 H5 Z" />
+  </svg>
+);
+const ring = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <path d="M50 5a45 45 0 1 0 0 90 45 45 0 0 0 0-90Zm0 22a23 23 0 1 1 0 46 23 23 0 0 1 0-46Z" />
+  </svg>
+);
+
+const checkups: Checkup[] = [
   {
     title: "Чекап для мужчин",
     text: "Гормоны, метаболизм, сердце",
     price: "9 990 ₽",
     tag: "Мужское здоровье",
-    accent: "info" as const,
-    visual: (
-      <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-        <path d="M50 0 L100 50 L50 100 L0 50 Z" />
-      </svg>
-    ),
+    accent: "info",
+    visual: diamond,
   },
   {
     title: "Чекап для женщин",
     text: "Железо, щитовидная железа, обмен веществ",
     price: "9 990 ₽",
     tag: "Женское здоровье",
-    accent: "accent" as const,
-    visual: (
-      <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-        <circle cx="50" cy="50" r="40" />
-      </svg>
-    ),
+    accent: "accent",
+    visual: circle,
+  },
+  {
+    title: "Чекап сердца и сосудов",
+    text: "Липиды, воспаление, риск атеросклероза",
+    price: "8 490 ₽",
+    tag: "Кардиориск",
+    accent: "primary",
+    visual: wave,
+  },
+  {
+    title: "Чекап обмена веществ",
+    text: "Сахар, инсулин, печень и вес",
+    price: "7 990 ₽",
+    tag: "Метаболизм",
+    accent: "info",
+    visual: square,
+  },
+  {
+    title: "Чекап щитовидной железы",
+    text: "ТТГ, Т3, Т4 и антитела",
+    price: "6 490 ₽",
+    tag: "Гормоны",
+    accent: "accent",
+    visual: triangle,
+  },
+  {
+    title: "Чекап иммунитета",
+    text: "Витамины, воспаление, дефициты",
+    price: "7 490 ₽",
+    tag: "Защита организма",
+    accent: "primary",
+    visual: ring,
   },
 ];
 
 const accentClasses: Record<
-  (typeof checkups)[number]["accent"],
+  Accent,
   { text: string; border: string; bg: string; glowFrom: string; glowTo: string }
 > = {
   info: {
@@ -46,48 +113,100 @@ const accentClasses: Record<
     glowFrom: "from-accent/40",
     glowTo: "to-accent/10",
   },
+  primary: {
+    text: "text-primary",
+    border: "border-primary/30",
+    bg: "bg-primary/10",
+    glowFrom: "from-primary/40",
+    glowTo: "to-primary/10",
+  },
 };
 
 export function EnergyOtherCheckups() {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
+
+  const update = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanPrev(el.scrollLeft > 8);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [update]);
+
+  const scrollBy = (dir: 1 | -1) => {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: "smooth" });
+  };
+
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
         <div className="mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
+            <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
               Другие чекапы <span className="text-primary">ReAge</span>
             </h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground md:text-base">
+            <p className="mt-2 max-w-md text-base text-muted-foreground md:text-lg">
               Выберите персональную программу для глубокого анализа состояния организма.
             </p>
           </div>
-          <div className="hidden h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent md:block" />
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollBy(-1)}
+              disabled={!canPrev}
+              aria-label="Предыдущие чекапы"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:opacity-40"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollBy(1)}
+              disabled={!canNext}
+              aria-label="Следующие чекапы"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:opacity-40"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
+        <div
+          ref={trackRef}
+          onScroll={update}
+          className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:-mx-2 md:gap-6 md:px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {checkups.map((c) => {
             const a = accentClasses[c.accent];
             return (
               <Link
                 key={c.title}
                 to="/"
-                className="group relative block rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative block w-[85vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[22rem] md:w-[24rem]"
               >
-                {/* Glow */}
                 <div
                   className={`absolute -inset-0.5 rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60`}
                   aria-hidden
                 />
 
-                <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 backdrop-blur-sm transition-colors duration-300 group-hover:border-border-strong/80 md:p-8">
-                  {/* Soft radial accent */}
+                <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 backdrop-blur-sm transition-colors duration-300 md:p-8">
                   <div
                     className={`absolute -right-12 -top-12 h-48 w-48 rounded-full ${a.bg} blur-3xl transition duration-500 group-hover:opacity-80`}
                     aria-hidden
                   />
 
                   <span
-                    className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+                    className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
                   >
                     {c.tag}
                   </span>
@@ -96,7 +215,7 @@ export function EnergyOtherCheckups() {
                     <h3 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
                       {c.title}
                     </h3>
-                    <p className="mt-2 max-w-[28ch] text-sm leading-relaxed text-muted-foreground md:text-base">
+                    <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
                       {c.text}
                     </p>
 
@@ -114,7 +233,6 @@ export function EnergyOtherCheckups() {
                     </div>
                   </div>
 
-                  {/* Visual accent */}
                   <div
                     className={`absolute bottom-0 right-0 h-32 w-32 ${a.text} opacity-10 transition-opacity duration-500 group-hover:opacity-20`}
                     aria-hidden

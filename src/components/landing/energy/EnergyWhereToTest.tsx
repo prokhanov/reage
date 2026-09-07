@@ -146,10 +146,10 @@ export function EnergyWhereToTest() {
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
+            <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
               Сдайте анализы сегодня
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground md:text-base">
+            <p className="mt-2 text-base text-muted-foreground md:text-lg">
               Выберите удобное отделение — записываться заранее не нужно.
             </p>
           </div>
@@ -197,7 +197,7 @@ export function EnergyWhereToTest() {
                     "Государственная аккредитация лаборатории",
                     "Результаты доступны онлайн в личном кабинете",
                   ].map((text) => (
-                    <li key={text} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li key={text} className="flex items-start gap-3 text-base text-muted-foreground">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                       <span className="min-w-0">{text}</span>
                     </li>
@@ -205,7 +205,7 @@ export function EnergyWhereToTest() {
                 </ul>
 
                 <div className="mt-auto space-y-3 pt-8">
-                  <p className="text-center text-sm text-muted-foreground">
+                  <p className="text-center text-base text-muted-foreground">
                     Выберите отделение на карте или найдём ближайшее автоматически
                   </p>
                   <Button
@@ -241,7 +241,7 @@ export function EnergyWhereToTest() {
                   </button>
                 </div>
 
-                <h3 className="mt-3 text-lg font-semibold leading-snug text-foreground">
+                <h3 className="mt-3 text-xl font-semibold leading-snug text-foreground">
                   {selected.title}
                 </h3>
 
