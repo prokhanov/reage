@@ -25,7 +25,7 @@ export default function Energy() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
+    <div className="min-h-screen max-lg:overflow-x-clip bg-background">
       <PageMeta
         title="ReAge Energy — чекап при усталости: 6 анализов на энергию"
         description="Чекап ReAge Energy: ОАК, ферритин, витамин D, ТТГ, глюкоза и HbA1c за 5 990 ₽. Анализы в LabQuest, результаты с разбором в ReAge за 1–2 дня."
