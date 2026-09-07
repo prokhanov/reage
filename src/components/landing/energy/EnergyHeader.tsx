@@ -13,7 +13,7 @@ export function EnergyHeader({ cartCount }: Props) {
     <header className="sticky top-0 z-30 border-b hairline bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-[72rem] items-center justify-between px-4 md:h-16 md:px-6">
         <Link to="/" aria-label="ReAge — на главную" className="flex items-center">
-          <ThemedLogo className="h-7 w-auto" eager />
+          <ThemedLogo className="h-8 w-auto" eager />
         </Link>
 
         <button
