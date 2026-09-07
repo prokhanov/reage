@@ -5,10 +5,11 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 
 interface Props {
   cartCount: number;
+  onOpenCart: () => void;
 }
 
 /** Максимально лёгкая шапка лендинга: логотип + корзина. Без навигации. */
-export function EnergyHeader({ cartCount }: Props) {
+export function EnergyHeader({ cartCount, onOpenCart }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b hairline bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-[72rem] items-center justify-between px-4 md:h-16 md:px-6">
@@ -18,6 +19,7 @@ export function EnergyHeader({ cartCount }: Props) {
 
         <button
           type="button"
+          onClick={onOpenCart}
           className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-3 text-sm text-foreground transition-colors hover:bg-muted"
           aria-label={cartCount > 0 ? `Корзина, товаров: ${cartCount}` : "Корзина, пусто"}
         >
