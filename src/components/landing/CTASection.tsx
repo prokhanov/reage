@@ -98,7 +98,7 @@ export function Footer() {
         {/* Top: brand + contacts */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
           <div className="md:col-span-7 lg:col-span-8 flex justify-center md:justify-start">
-            <ThemedLogo className="h-24 md:h-32 w-auto mb-3" />
+            <ThemedLogo className="h-[4.8rem] md:h-[6.4rem] w-auto mb-3" />
           </div>
 
 
