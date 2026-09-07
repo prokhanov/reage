@@ -187,7 +187,7 @@ export function EnergyExpertResult() {
             Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
           </p>
 
-          <div className="mt-5 space-y-3">
+          <div className="mt-5 space-y-3 overflow-y-auto pr-1 lg:h-[520px] lg:pr-2">
             {markers.map((m, i) => (
               <MarkerCard key={m.code} marker={m} defaultOpen={i === 0} />
             ))}
