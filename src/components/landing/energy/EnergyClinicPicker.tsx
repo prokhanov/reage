@@ -58,11 +58,13 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const [locating, setLocating] = useState(false);
   const [geoNote, setGeoNote] = useState<string | null>(null);
   const [mapHeight, setMapHeight] = useState(420);
+  const [isWide, setIsWide] = useState(false);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      setMapHeight(w < 640 ? 300 : w < 1024 ? 360 : layout === "stack" ? 360 : 440);
+      setMapHeight(w < 640 ? 260 : w < 1024 ? 340 : layout === "stack" ? 360 : 440);
+      setIsWide(w >= 1024);
     };
     update();
     window.addEventListener("resize", update);
@@ -193,7 +195,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
           className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
             layout === "section" ? "order-2 lg:order-1" : ""
           }`}
-          style={layout === "section" ? { minHeight: undefined } : undefined}
+          style={layout === "section" && isWide ? { minHeight: mapHeight } : undefined}
 
         >
           {!selected ? (
@@ -315,7 +317,11 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         </div>
 
         {/* Карта */}
-        <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
+        <div
+          className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
+            layout === "section" ? "order-1 lg:order-2" : ""
+          }`}
+        >
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
             <LabLocationsMap
               key={city}
