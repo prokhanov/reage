@@ -163,14 +163,14 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
     <div className="min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {header}
-        <div className="inline-flex shrink-0 rounded-xl border border-border bg-card p-1">
+        <div className="flex w-full shrink-0 rounded-xl border border-border bg-card p-1 sm:w-auto">
           {CITIES.map((c) => (
             <button
               key={c.key}
               type="button"
               onClick={() => selectCity(c.key)}
               aria-pressed={city === c.key}
-              className={`min-h-11 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              className={`min-h-11 flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-none sm:px-4 ${
                 city === c.key
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -180,6 +180,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
             </button>
           ))}
         </div>
+
       </div>
 
       <div
@@ -187,10 +188,13 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
           layout === "section" ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
         }`}
       >
-        {/* Левая панель */}
+        {/* Левая панель (на мобильном — под картой) */}
         <div
-          className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-5"
-          style={layout === "section" ? { minHeight: mapHeight } : undefined}
+          className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
+            layout === "section" ? "order-2 lg:order-1" : ""
+          }`}
+          style={layout === "section" ? { minHeight: undefined } : undefined}
+
         >
           {!selected ? (
             <div className="flex flex-1 flex-col">
