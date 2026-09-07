@@ -37,7 +37,7 @@ export default function Energy() {
         <EnergyIncluded />
         <EnergyWhereToTest />
         <EnergyExpertResult />
-        <EnergyHowItWorks />
+        <EnergyHowItWorks onAddToCart={handleAddToCart} />
         <EnergyOtherCheckups />
       </main>
       <div id="energy-page-end" />
