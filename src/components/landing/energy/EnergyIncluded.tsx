@@ -1,4 +1,8 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type MarkerColor = "primary" | "accent" | "info";
 
@@ -91,6 +95,8 @@ function IncludedItemRow({ item }: { item: IncludedItem }) {
 }
 
 export function EnergyIncluded() {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
@@ -104,14 +110,49 @@ export function EnergyIncluded() {
         </div>
 
         <div className="mt-6 rounded-2xl border border-border bg-card shadow-sm sm:mt-8">
-          <ul className="divide-y divide-border px-4 sm:px-6">
-            {items.map((item) => (
-              <IncludedItemRow key={item.title} item={item} />
-            ))}
-          </ul>
+          <div className={cn("relative", !expanded && "max-h-[320px] overflow-hidden")}>
+            <ul className="divide-y divide-border px-4 sm:px-6">
+              {items.map((item) => (
+                <IncludedItemRow key={item.title} item={item} />
+              ))}
+            </ul>
+
+            {!expanded && (
+              <>
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-card via-card/80 to-transparent"
+                  aria-hidden
+                />
+                <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-card via-card/60 to-transparent pb-4 pt-10">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setExpanded(true)}
+                    className="gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Показать все
+                    <ChevronDown className="h-4 w-4" aria-hidden />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="flex items-center justify-between border-t border-border px-4 py-4 text-xs text-muted-foreground sm:px-6">
             <span className="font-medium">6 показателей</span>
-            <span className="font-mono text-[10px] uppercase tracking-wider">Результаты за 1–2 дня</span>
+            {expanded ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpanded(false)}
+                className="h-auto gap-1.5 px-0 py-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                Свернуть
+                <ChevronDown className="h-3.5 w-3.5 rotate-180" aria-hidden />
+              </Button>
+            ) : (
+              <span className="font-mono text-[10px] uppercase tracking-wider">Результаты за 1–2 дня</span>
+            )}
           </div>
         </div>
       </div>
