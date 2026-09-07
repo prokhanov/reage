@@ -17,6 +17,13 @@ export default function SubscriptionSuccess() {
   const invId = searchParams.get("InvId");
   const navigate = useNavigate();
   const [status, setStatus] = useState<"waiting" | "active" | "admin_test" | "timeout">("waiting");
+  const isEnergyOrder = !!invId && Number(invId) >= 900000000;
+
+  // Робокасса использует один общий Success URL. Гостевые заказы ReAge Energy
+  // (InvId из отдельной последовательности) уводим на свою страницу результата.
+  useEffect(() => {
+    if (isEnergyOrder) navigate(`/energy/success?InvId=${invId}`, { replace: true });
+  }, [isEnergyOrder, invId, navigate]);
   const [registerReturnStep, setRegisterReturnStep] = useState<string | null>(null);
   const registerReturnStepRef = useRef<string | null>(null);
 
@@ -34,7 +41,7 @@ export default function SubscriptionSuccess() {
     let attempt = 0;
 
     const check = async () => {
-      if (cancelled) return;
+      if (cancelled || isEnergyOrder) return;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 

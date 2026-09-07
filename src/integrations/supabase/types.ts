@@ -1108,6 +1108,78 @@ export type Database = {
         }
         Relationships: []
       }
+      energy_orders: {
+        Row: {
+          bundle: string
+          clinic_address: string | null
+          clinic_id: string | null
+          clinic_title: string | null
+          created_at: string
+          discount_amount: number
+          email: string
+          id: string
+          inv_id: number
+          is_test: boolean
+          original_amount: number
+          out_sum: number
+          paid_amount: number | null
+          paid_at: string | null
+          phone: string
+          promo_code: string | null
+          raw_callback: Json | null
+          robokassa_signature: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          bundle?: string
+          clinic_address?: string | null
+          clinic_id?: string | null
+          clinic_title?: string | null
+          created_at?: string
+          discount_amount?: number
+          email: string
+          id?: string
+          inv_id?: number
+          is_test?: boolean
+          original_amount: number
+          out_sum: number
+          paid_amount?: number | null
+          paid_at?: string | null
+          phone: string
+          promo_code?: string | null
+          raw_callback?: Json | null
+          robokassa_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          bundle?: string
+          clinic_address?: string | null
+          clinic_id?: string | null
+          clinic_title?: string | null
+          created_at?: string
+          discount_amount?: number
+          email?: string
+          id?: string
+          inv_id?: number
+          is_test?: boolean
+          original_amount?: number
+          out_sum?: number
+          paid_amount?: number | null
+          paid_at?: string | null
+          phone?: string
+          promo_code?: string | null
+          raw_callback?: Json | null
+          robokassa_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       health_model_settings: {
         Row: {
           description: string | null

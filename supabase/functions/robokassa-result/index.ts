@@ -108,6 +108,84 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (orderErr || !order) {
+    // Заказ мог быть гостевым (лендинг ReAge Energy) — ищем в energy_orders
+    const { data: energyOrder } = await admin
+      .from("energy_orders")
+      .select("id, inv_id, out_sum, status, is_test")
+      .eq("inv_id", invId)
+      .maybeSingle();
+
+    if (energyOrder) {
+      const eIsTest = energyOrder.is_test === true || isTestParam;
+      const ePassword2 = eIsTest ? testPassword2 : livePassword2;
+      if (!ePassword2) {
+        await admin.from("payment_callback_log").insert({
+          ...logBase,
+          signature_valid: false,
+          error: eIsTest
+            ? "ROBOKASSA_TEST_PASSWORD_2 not configured"
+            : "ROBOKASSA_PASSWORD_2 not configured",
+        });
+        return textPlain("server misconfigured", 500);
+      }
+
+      const eExpected = buildResultSignature(outSum, invId, ePassword2, shp).toLowerCase();
+      if (eExpected !== signature) {
+        await admin.from("payment_callback_log").insert({
+          ...logBase,
+          signature_valid: false,
+          error: `energy: signature mismatch (mode=${eIsTest ? "test" : "live"})`,
+        });
+        return textPlain("bad sign", 400);
+      }
+
+      if (energyOrder.status === "paid") {
+        await admin.from("payment_callback_log").insert({
+          ...logBase,
+          signature_valid: true,
+          error: "energy: already paid (idempotent)",
+        });
+        return textPlain(`OK${invId}`);
+      }
+
+      const ePaid = Number(outSum);
+      if (Math.abs(ePaid - Number(energyOrder.out_sum)) > 0.01) {
+        await admin.from("energy_orders").update({
+          status: "failed",
+          paid_amount: ePaid,
+          robokassa_signature: signature,
+          raw_callback: all,
+        }).eq("inv_id", invId);
+        await admin.from("payment_callback_log").insert({
+          ...logBase,
+          signature_valid: true,
+          error: `energy: amount mismatch expected=${energyOrder.out_sum} got=${ePaid}`,
+        });
+        return textPlain("amount mismatch", 400);
+      }
+
+      const { error: eUpdErr } = await admin
+        .from("energy_orders")
+        .update({
+          status: "paid",
+          paid_amount: ePaid,
+          robokassa_signature: signature,
+          raw_callback: all,
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("inv_id", invId);
+
+      await admin.from("payment_callback_log").insert({
+        ...logBase,
+        signature_valid: true,
+        error: eUpdErr ? `energy: update failed: ${eUpdErr.message}` : null,
+      });
+
+      if (eUpdErr) return textPlain("db error", 500);
+      return textPlain(`OK${invId}`);
+    }
+
     await admin.from("payment_callback_log").insert({
       ...logBase,
       signature_valid: false,
@@ -115,6 +193,7 @@ Deno.serve(async (req) => {
     });
     return textPlain("order not found", 404);
   }
+
 
   const isTest = order.is_test === true || isTestParam;
   const isAdminTest = order.admin_test === true;

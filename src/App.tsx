@@ -49,6 +49,7 @@ const Prescriptions = lazy(() => import("./pages/Prescriptions"));
 const MyState = lazy(() => import("./pages/MyState"));
 const HealthAssistant = lazy(() => import("./pages/HealthAssistant"));
 const Subscription = lazy(() => import("./pages/Subscription"));
+const EnergyPaymentResult = lazy(() => import("./pages/EnergyPaymentResult"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const SubscriptionFail = lazy(() => import("./pages/SubscriptionFail"));
 const HealthStrategy = lazy(() => import("./pages/HealthStrategy"));
@@ -128,6 +129,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/energy" element={<Energy />} />
+            <Route path="/energy/success" element={<EnergyPaymentResult mode="success" />} />
+            <Route path="/energy/fail" element={<EnergyPaymentResult mode="fail" />} />
             {/* Публичный пример отчёта — рендерится как Dialog поверх лендинга. */}
             <Route
               path="/example-report"
