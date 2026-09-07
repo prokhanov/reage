@@ -192,6 +192,11 @@ export function EnergyExpertResult() {
                 <span>Услуга оплачивается отдельно.</span>
               </div>
             </div>
+
+            <Button className="mt-4 w-full gap-2" size="default">
+              <FileText className="h-4 w-4" aria-hidden />
+              Посмотреть пример расшифровки
+            </Button>
           </div>
         </div>
 
