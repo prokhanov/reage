@@ -151,17 +151,6 @@ export function EnergyWhereToTest() {
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        {/* Партнёрская плашка */}
-        <div className="mt-5 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 md:mt-6">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold tracking-tight text-primary-foreground">
-            LQ
-          </span>
-          <p className="min-w-0 text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">партнёр — LabQuest</span> · 400+
-            отделений по России, гос. аккредитация
-          </p>
-        </div>
-
         <div className="mt-4 inline-flex rounded-xl border border-border bg-card p-1">
           {CITIES.map((c) => (
             <button
