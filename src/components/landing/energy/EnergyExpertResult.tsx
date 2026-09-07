@@ -148,60 +148,63 @@ export function EnergyExpertResult() {
   return (
     <section className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-        <div className="flex min-w-0 gap-4 rounded-xl border border-border bg-card p-4 sm:gap-5 sm:p-5 lg:sticky lg:top-20 lg:block lg:self-start">
-          <img
-            src={expertDoctor}
-            alt="Врач Анна Ковалёва"
-            width={768}
-            height={896}
-            loading="lazy"
-            sizes="(min-width: 1024px) 340px, 40vw"
-            className="aspect-[4/5] w-24 shrink-0 rounded-lg object-cover object-top sm:w-44 lg:w-full"
-          />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</span>
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                Эксперт ReAge
-              </span>
+        <div className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5 lg:sticky lg:top-20 lg:self-start">
+          <div className="flex min-w-0 gap-4 sm:gap-5 lg:block">
+            <img
+              src={expertDoctor}
+              alt="Врач Анна Ковалёва"
+              width={768}
+              height={896}
+              loading="lazy"
+              sizes="(min-width: 1024px) 340px, 40vw"
+              className="aspect-[4/5] w-24 shrink-0 rounded-lg object-cover object-top sm:w-44 lg:w-full"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</span>
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                  Эксперт ReAge
+                </span>
+              </div>
+
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                  <span className="truncate">Врач-эндокринолог</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                  <span className="truncate">Кандидат медицинских наук</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                  <span>Стаж 12+ лет</span>
+                </div>
+              </div>
+
+              <p className="mt-3 border-t border-border/20 pt-3 text-sm text-muted-foreground">
+                Составила состав чекапа и правила интерпретации результатов.
+              </p>
+
+              <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  <span>Консультация по желанию. Врач подробно расскажет по итогам анализов.</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  <span>Услуга оплачивается отдельно.</span>
+                </div>
+              </div>
             </div>
-
-            <div className="mt-2 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                <span className="truncate">Врач-эндокринолог</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                <span className="truncate">Кандидат медицинских наук</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                <span>Стаж 12+ лет</span>
-              </div>
-            </div>
-
-            <p className="mt-3 border-t border-border/20 pt-3 text-sm text-muted-foreground">
-              Составила состав чекапа и правила интерпретации результатов.
-            </p>
-
-            <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                <span>Консультация по желанию. Врач подробно расскажет по итогам анализов.</span>
-              </div>
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                <span>Услуга оплачивается отдельно.</span>
-              </div>
-            </div>
-
-            <Button className="mt-4 h-12 w-full gap-2 text-base" size="lg">
-              <FileText className="h-4 w-4" aria-hidden />
-              Посмотреть пример расшифровки
-            </Button>
           </div>
+
+          <Button className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base" size="lg">
+            <FileText className="h-4 w-4 shrink-0" aria-hidden />
+            Посмотреть пример расшифровки
+          </Button>
         </div>
+
 
         <div className="min-w-0">
           <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Пример результата</h2>
