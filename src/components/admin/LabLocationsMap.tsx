@@ -228,6 +228,7 @@ function ClusterLayer({
   selectedSelectButtonLabel,
   selectedId,
   onSelect,
+  selectOnMarkerClick,
 }: {
   items: LabMapItem[];
   showPartnerButton: boolean;
@@ -238,6 +239,7 @@ function ClusterLayer({
   selectedSelectButtonLabel: string;
   selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
+  selectOnMarkerClick?: boolean;
 }) {
   const map = useMap();
   const onSelectRef = useRef(onSelect);
@@ -257,6 +259,7 @@ function ClusterLayer({
       ? (L as unknown as MarkerClusterFactory).markerClusterGroup({
           showCoverageOnHover: false,
           spiderfyOnMaxZoom: true,
+          zoomToBoundsOnClick: true,
           removeOutsideVisibleBounds: false,
           animate: false,
           animateAddingMarkers: false,
@@ -302,6 +305,9 @@ function ClusterLayer({
           ${actions}
         </div>
       `;
+      if (selectOnMarkerClick) {
+        m.on("click", () => onSelectRef.current?.(it));
+      }
       const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
       if (showSelectButton && onSelect && !isSelected) {
         popup.on("popupopen", (e) => {
@@ -317,7 +323,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId, selectOnMarkerClick]);
   return null;
 }
 
@@ -381,6 +387,7 @@ export default function LabLocationsMap({
   selectedSelectButtonLabel = "Лаборатория выбрана",
   selectedId = null,
   onSelect,
+  selectOnMarkerClick = false,
   hideControls = false,
   hideAttribution = false,
   scrollWheelZoomDelay = 500,
@@ -405,6 +412,7 @@ export default function LabLocationsMap({
   selectedSelectButtonLabel?: string;
   selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
+  selectOnMarkerClick?: boolean;
   hideControls?: boolean;
   hideAttribution?: boolean;
   scrollWheelZoomDelay?: number;
@@ -639,6 +647,7 @@ export default function LabLocationsMap({
             selectedSelectButtonLabel={selectedSelectButtonLabel}
             selectedId={selectedId}
             onSelect={onSelect}
+            selectOnMarkerClick={selectOnMarkerClick}
           />
         </MapContainer>
         {!hideAttribution && (
