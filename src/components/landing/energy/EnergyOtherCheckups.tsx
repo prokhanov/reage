@@ -184,11 +184,11 @@ export function EnergyOtherCheckups() {
         <div className="relative">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent md:w-14"
+            className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-background via-background/80 to-transparent transition-opacity duration-300 md:w-10 ${canPrev ? "opacity-100" : "opacity-0"}`}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent md:w-14"
+            className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-background via-background/80 to-transparent transition-opacity duration-300 md:w-10 ${canNext ? "opacity-100" : "opacity-0"}`}
           />
           <div
             ref={trackRef}
