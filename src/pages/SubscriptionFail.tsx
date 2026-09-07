@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,6 +8,17 @@ import { Button } from "@/components/ui/button";
  * Никакой логики активации, только информация и ссылка вернуться к тарифам.
  */
 export default function SubscriptionFail() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const invId = searchParams.get("InvId");
+
+  // Общий Fail URL Робокассы: гостевые заказы ReAge Energy уводим на свою страницу.
+  useEffect(() => {
+    if (invId && Number(invId) >= 900000000) {
+      navigate(`/energy/fail?InvId=${invId}`, { replace: true });
+    }
+  }, [invId, navigate]);
+
   const returnTo = typeof window !== "undefined"
     ? window.localStorage.getItem("reage:register:returnToStep")
     : null;
