@@ -248,10 +248,11 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                     setSelectedId(null);
                     setGeoNote(null);
                   }}
-                  className="shrink-0 text-sm font-medium text-primary hover:underline"
+                  className="-my-2 -mr-2 shrink-0 px-2 py-2 text-sm font-medium text-primary hover:underline"
                 >
                   Изменить
                 </button>
+
               </div>
 
               <h3 className="mt-3 text-xl font-semibold leading-snug text-foreground">

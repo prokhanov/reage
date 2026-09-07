@@ -67,15 +67,16 @@ export function EnergyIncluded() {
         </div>
 
         <div className="mt-6 rounded-2xl border border-border bg-card sm:mt-8">
-          <ul className="grid gap-x-12 gap-y-6 p-6 sm:p-8 md:grid-cols-2 md:gap-y-7">
+          <ul className="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2 sm:p-8 sm:gap-y-6 md:gap-x-12 md:gap-y-7">
             {visibleItems.map((item) => (
-              <li key={item.title} className="flex min-w-0 items-center gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <li key={item.title} className="flex min-w-0 items-center gap-3 sm:gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-11 sm:w-11">
                   <item.icon className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-display text-lg text-foreground md:text-xl">{item.title}</h3>
-                  <p className="mt-0.5 text-base leading-relaxed text-muted-foreground">{item.description}</p>
+                  <h3 className="font-display text-base text-foreground sm:text-lg md:text-xl">{item.title}</h3>
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground sm:text-base">{item.description}</p>
+
                 </div>
               </li>
             ))}
@@ -85,7 +86,7 @@ export function EnergyIncluded() {
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex w-full items-center justify-center gap-1.5 py-4 text-base text-muted-foreground transition-colors hover:text-foreground"
+              className="flex min-h-12 w-full items-center justify-center gap-1.5 px-4 py-4 text-base text-muted-foreground transition-colors hover:text-foreground"
             >
               {expanded ? "свернуть" : `показать ещё ${hiddenCount}`}
               <ChevronDown

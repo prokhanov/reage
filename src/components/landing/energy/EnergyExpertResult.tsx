@@ -99,7 +99,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex min-h-[56px] w-full items-center justify-between gap-3 p-4 text-left"
+        className="flex min-h-[56px] w-full items-center justify-between gap-2 p-4 text-left"
       >
         <span className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-base font-semibold text-foreground">{marker.name}</span>
@@ -111,15 +111,18 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
           </span>
           <span className="hidden text-xs text-muted-foreground sm:inline">{marker.unit}</span>
           <span className={cn("text-[10px]", statusColorMap[key])}>●</span>
-          <span className={cn("text-xs font-medium", statusColorMap[key])}>{status.label}</span>
+          <span className={cn("hidden text-xs font-medium min-[380px]:inline", statusColorMap[key])}>
+            {status.label}
+          </span>
           <ChevronDown
             className={cn(
-              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+              "h-5 w-5 shrink-0 text-muted-foreground transition-transform",
               open && "rotate-180",
             )}
             aria-hidden
           />
         </span>
+
       </button>
 
       {open && (
