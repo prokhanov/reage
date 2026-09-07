@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
@@ -41,6 +42,7 @@ export function EnergyCart() {
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
   const [agree, setAgree] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   const discount = appliedPromo ? Math.round(BUNDLE_PRICE * appliedPromo.discount) : 0;
   const total = BUNDLE_PRICE - discount;
@@ -85,10 +87,42 @@ export function EnergyCart() {
     notify.success("Промокод применён", `Скидка ${Math.round(value * 100)}%`);
   };
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setTouched(true);
-    if (!canPay) return;
-    notify.info("Оплата скоро будет доступна", "Подключаем платёжную страницу банка.");
+    if (!canPay || paying) return;
+    setPaying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("energy-create-payment", {
+        body: {
+          bundle: "energy",
+          email: email.trim(),
+          phone: phone.trim(),
+          promoCode: appliedPromo?.code,
+          clinic: clinic
+            ? {
+                id: String(clinic.id ?? ""),
+                title: clinic.title,
+                address: clinic.address_short || clinic.full_address,
+              }
+            : null,
+        },
+      });
+
+      const errMsg = (data as { error?: string } | null)?.error;
+      if (errMsg) {
+        notify.error("Не удалось перейти к оплате", errMsg);
+        return;
+      }
+      if (error) throw error;
+      const url = (data as { url?: string } | null)?.url;
+      if (!url) throw new Error("Не получен платёжный URL");
+      window.location.href = url;
+    } catch (e) {
+      console.error("energy payment error", e);
+      notify.error("Ошибка оплаты", "Попробуйте ещё раз или напишите нам в чат.");
+    } finally {
+      setPaying(false);
+    }
   };
 
   return (
@@ -235,10 +269,10 @@ export function EnergyCart() {
             <Button
               type="button"
               onClick={handlePay}
-              disabled={!agree}
+              disabled={!agree || paying}
               className="h-12 w-full text-base"
             >
-              Перейти к оплате · {money(total)}
+              {paying ? "Переходим к оплате…" : `Перейти к оплате · ${money(total)}`}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               Оплата на защищённой странице банка-эквайера
