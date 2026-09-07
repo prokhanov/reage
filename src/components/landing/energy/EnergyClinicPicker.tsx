@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import labquestLogo from "@/assets/labquest-logo.png.asset.json";
+import labquestLogo from "@/assets/labquest-logo.png";
 import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap")) as typeof LabLocationsMapType;
@@ -197,7 +197,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               <div className="flex flex-col items-center text-center">
                 <div className="flex h-20 w-40 items-center justify-center rounded-xl bg-white p-3">
                   <img
-                    src={labquestLogo.url}
+                    src={labquestLogo}
                     alt="LabQuest"
                     className="max-h-full max-w-full object-contain"
                   />
