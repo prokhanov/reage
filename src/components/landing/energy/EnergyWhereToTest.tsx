@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react";
+import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
