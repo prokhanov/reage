@@ -144,29 +144,32 @@ export function EnergyWhereToTest() {
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
-        <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
-          Где сдавать анализы
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground md:text-base">
-          Выберите удобное отделение — записываться заранее не нужно.
-        </p>
-
-        <div className="mt-4 inline-flex rounded-xl border border-border bg-card p-1">
-          {CITIES.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => selectCity(c.key)}
-              aria-pressed={city === c.key}
-              className={`min-h-11 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                city === c.key
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
+              Где сдавать анализы
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground md:text-base">
+              Выберите удобное отделение — записываться заранее не нужно.
+            </p>
+          </div>
+          <div className="inline-flex shrink-0 rounded-xl border border-border bg-card p-1">
+            {CITIES.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => selectCity(c.key)}
+                aria-pressed={city === c.key}
+                className={`min-h-11 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  city === c.key
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mt-5 grid gap-4 md:mt-6 md:gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
