@@ -102,7 +102,8 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
 
   const pickNearestTo = useCallback(
     (pos: [number, number] | null) => {
-      const pool = cityItems.length ? cityItems : items;
+      // С реальной геолокацией ищем по всем городам, без неё — в пределах выбранного города.
+      const pool = pos ? items : cityItems.length ? cityItems : items;
       if (!pool.length) return null;
       const base = pos ?? CITIES.find((c) => c.key === city)!.center;
       let best = pool[0];
@@ -139,7 +140,14 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         const pos: [number, number] = [p.coords.latitude, p.coords.longitude];
         setUserPos(pos);
         const near = pickNearestTo(pos);
-        if (near) setSelectedId(near.id);
+        if (near) {
+          const nearCity = cityOf(near);
+          if (nearCity !== city) {
+            setCity(nearCity);
+            if (typeof window !== "undefined") window.localStorage.setItem("energy_city", nearCity);
+          }
+          setSelectedId(near.id);
+        }
         setLocating(false);
       },
       () => fallback(),
