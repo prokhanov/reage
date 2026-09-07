@@ -160,33 +160,34 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 export function EnergyExpertResult() {
   return (
     <section className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto w-full max-w-[60rem] px-4 py-14 sm:px-6 md:py-16">
-        <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
-        </p>
-
-        <div className="mt-6 grid w-full items-start gap-6 sm:mt-8 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:gap-10">
-          <div className="flex min-w-0 items-center gap-4 rounded-xl border border-border bg-card p-4 sm:p-5 lg:sticky lg:top-24 lg:flex-col lg:items-start lg:self-start">
-            <img
-              src={expertDoctor}
-              alt="Врач Анна Ковалёва"
-              width={768}
-              height={896}
-              loading="lazy"
-              sizes="(min-width: 1024px) 120px, 25vw"
-              className="h-20 w-20 shrink-0 rounded-full object-cover object-top sm:h-28 sm:w-28"
-            />
-            <div className="min-w-0">
-              <div className="text-base font-medium text-foreground">Д-р Анна Ковалёва</div>
-              <div className="text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Составила состав чекапа и правила интерпретации результатов.
-              </p>
-            </div>
+      <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <div className="flex min-w-0 gap-4 rounded-xl border border-border bg-card p-4 sm:gap-5 sm:p-5 lg:sticky lg:top-20 lg:block lg:self-start">
+          <img
+            src={expertDoctor}
+            alt="Врач Анна Ковалёва"
+            width={768}
+            height={896}
+            loading="lazy"
+            sizes="(min-width: 1024px) 320px, 40vw"
+            className="aspect-[4/5] w-20 shrink-0 rounded-lg object-cover object-top sm:w-40 lg:w-full"
+          />
+          <div>
+            <div className="mt-0 text-base font-medium text-foreground lg:mt-4">Д-р Анна Ковалёва</div>
+            <div className="text-sm text-muted-foreground">Эндокринолог, стаж 10+ лет</div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Составила состав чекапа и правила интерпретации результатов.
+            </p>
           </div>
+        </div>
 
-          <div className="min-w-0 space-y-3">
+
+        <div className="min-w-0">
+          <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">Пример результата</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
+          </p>
+
+          <div className="mt-5 space-y-3">
             {markers.map((m, i) => (
               <MarkerCard key={m.code} marker={m} defaultOpen={i === 0} />
             ))}
@@ -196,4 +197,3 @@ export function EnergyExpertResult() {
     </section>
   );
 }
-
