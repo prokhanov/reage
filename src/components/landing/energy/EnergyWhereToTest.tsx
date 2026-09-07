@@ -1,12 +1,11 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, MapPin, Search } from "lucide-react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Clock, Crosshair, MapPin, Navigation } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import type { LabMapItem } from "@/components/admin/LabLocationsMap";
+import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
 
-const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap"));
+const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap")) as typeof LabLocationsMapType;
 
 type CityKey = "msk" | "spb";
 
@@ -24,67 +23,39 @@ function detectCity(): CityKey {
   return "msk";
 }
 
+function distanceKm(a: [number, number], b: [number, number]) {
+  const R = 6371;
+  const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+  const dLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const lat1 = (a[0] * Math.PI) / 180;
+  const lat2 = (b[0] * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+const formatDistance = (km: number) =>
+  km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(km < 10 ? 1 : 0)} км`;
+
 export function EnergyWhereToTest() {
   const [items, setItems] = useState<LabMapItem[]>([]);
-  const [query, setQuery] = useState("");
-  const [showAll, setShowAll] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [confirmedId, setConfirmedId] = useState<string | null>(null);
   const [city, setCity] = useState<CityKey>(detectCity);
-  const [cityTouched, setCityTouched] = useState(false);
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [geoNote, setGeoNote] = useState<string | null>(null);
   const [mapHeight, setMapHeight] = useState(420);
-  const [showMap, setShowMap] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      setMapHeight(w < 640 ? 320 : w < 1024 ? 380 : 420);
-      setIsDesktop(w >= 1024);
+      setMapHeight(w < 640 ? 320 : w < 1024 ? 380 : 440);
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.localStorage.getItem("energy_city")) return;
-    let cancelled = false;
-    const ctrl = new AbortController();
-    const timer = window.setTimeout(() => ctrl.abort(), 2000);
-    (async () => {
-      try {
-        const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
-        const geo = (await res.json()) as { region?: string; city?: string; latitude?: number };
-        if (cancelled) return;
-        const text = `${geo.region ?? ""} ${geo.city ?? ""}`.toLowerCase();
-        const isSpb =
-          text.includes("petersburg") ||
-          text.includes("петербург") ||
-          text.includes("leningrad") ||
-          (typeof geo.latitude === "number" && geo.latitude > 58 && geo.latitude < 61);
-        if (isSpb) setCity((c) => (cityTouched ? c : "spb"));
-      } catch {
-        /* геолокация недоступна — остаёмся на Москве */
-      } finally {
-        window.clearTimeout(timer);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      ctrl.abort();
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const selectCity = (next: CityKey) => {
-    setCityTouched(true);
-    setCity(next);
-    setSelectedId(null);
-    setShowAll(false);
-    if (typeof window !== "undefined") window.localStorage.setItem("energy_city", next);
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -105,17 +76,69 @@ export function EnergyWhereToTest() {
 
   const cityItems = useMemo(() => items.filter((i) => cityOf(i) === city), [items, city]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return cityItems;
-    return cityItems.filter((i) =>
-      [i.title, i.metro, i.city, i.address_short, i.full_address]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q)),
-    );
-  }, [cityItems, query]);
+  const selected = useMemo(
+    () => cityItems.find((i) => i.id === selectedId) ?? null,
+    [cityItems, selectedId],
+  );
 
-  const visible = showAll ? filtered : filtered.slice(0, 3);
+  const selectCity = (next: CityKey) => {
+    setCity(next);
+    setSelectedId(null);
+    setConfirmedId(null);
+    setGeoNote(null);
+    if (typeof window !== "undefined") window.localStorage.setItem("energy_city", next);
+  };
+
+  const pickNearestTo = useCallback(
+    (pos: [number, number] | null) => {
+      const pool = cityItems.length ? cityItems : items;
+      if (!pool.length) return null;
+      const base = pos ?? CITIES.find((c) => c.key === city)!.center;
+      let best = pool[0];
+      let bestD = Infinity;
+      for (const it of pool) {
+        const d = distanceKm(base, [it.lat, it.lng]);
+        if (d < bestD) {
+          bestD = d;
+          best = it;
+        }
+      }
+      return best;
+    },
+    [cityItems, items, city],
+  );
+
+  const handleLocate = () => {
+    setGeoNote(null);
+    const fallback = () => {
+      const near = pickNearestTo(null);
+      if (near) {
+        setSelectedId(near.id);
+        setGeoNote("Геолокация недоступна — показали отделение в центре выбранного города.");
+      }
+      setLocating(false);
+    };
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      fallback();
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const pos: [number, number] = [p.coords.latitude, p.coords.longitude];
+        setUserPos(pos);
+        const near = pickNearestTo(pos);
+        if (near) setSelectedId(near.id);
+        setLocating(false);
+      },
+      () => fallback(),
+      { timeout: 8000, maximumAge: 300000 },
+    );
+  };
+
+  const selectedHours = selected ? normalizeHours(selected.hours ?? []) : [];
+  const selectedDistance =
+    selected && userPos ? distanceKm(userPos, [selected.lat, selected.lng]) : null;
 
   return (
     <section className="overflow-x-hidden border-b hairline">
@@ -127,7 +150,18 @@ export function EnergyWhereToTest() {
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        <div className="mt-5 inline-flex rounded-xl border border-border bg-card p-1 md:mt-6">
+        {/* Партнёрская плашка */}
+        <div className="mt-5 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 md:mt-6">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold tracking-tight text-primary-foreground">
+            LQ
+          </span>
+          <p className="min-w-0 text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">партнёр — LabQuest</span> · 400+
+            отделений по России, гос. аккредитация
+          </p>
+        </div>
+
+        <div className="mt-4 inline-flex rounded-xl border border-border bg-card p-1">
           {CITIES.map((c) => (
             <button
               key={c.key}
@@ -145,88 +179,118 @@ export function EnergyWhereToTest() {
           ))}
         </div>
 
-        <div className="mt-5 grid gap-5 md:mt-6 md:gap-6 lg:grid-cols-2">
-          <div className="min-w-0">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={city === "spb" ? "Адрес или метро" : "Адрес или метро"}
-                className="h-12 pl-9 text-base md:h-10 md:text-sm"
-                aria-label="Поиск отделения по адресу или метро"
-              />
-            </div>
-
-            <ul className="mt-4 space-y-2 md:space-y-3">
-              {visible.map((loc) => (
-                <li
-                  key={loc.id}
-                  className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 md:items-start md:p-4"
+        <div className="mt-5 grid gap-4 md:mt-6 md:gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+          {/* Левая панель */}
+          <div
+            className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-5"
+            style={{ minHeight: mapHeight }}
+          >
+            {!selected ? (
+              <div className="flex flex-1 flex-col items-center justify-center text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <MapPin className="h-7 w-7 text-muted-foreground" aria-hidden />
+                </span>
+                <p className="mt-4 text-base font-medium text-foreground">
+                  Выберите клинику на карте
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  или найдём ближайшую к вам автоматически
+                </p>
+                <Button
+                  type="button"
+                  onClick={handleLocate}
+                  disabled={locating || items.length === 0}
+                  className="mt-6 h-12 w-full gap-2 text-base"
                 >
-                  <div className="min-w-0">
-                    <div className="truncate text-[15px] font-medium text-foreground md:text-sm">
-                      {loc.title}
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground md:mt-1">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                      <span className="truncate">
-                        {loc.metro ? `м. ${loc.metro} · ` : ""}
-                        {loc.address_short || loc.full_address}
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    variant={selectedId === loc.id ? "default" : "outline"}
-                    size="sm"
-                    className="h-11 shrink-0 md:h-9"
-                    onClick={() => setSelectedId(loc.id)}
+                  <Crosshair className="h-4 w-4" aria-hidden />
+                  {locating ? "Определяем…" : "Определить ближайшую"}
+                </Button>
+                {geoNote && (
+                  <p className="mt-3 text-xs text-muted-foreground">{geoNote}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Выбранное отделение
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(null);
+                      setConfirmedId(null);
+                      setGeoNote(null);
+                    }}
+                    className="shrink-0 text-sm font-medium text-primary hover:underline"
                   >
-                    {selectedId === loc.id ? "Выбрано" : "Выбрать"}
+                    Изменить
+                  </button>
+                </div>
+
+                <h3 className="mt-3 text-lg font-semibold leading-snug text-foreground">
+                  {selected.title}
+                </h3>
+
+                <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0">
+                    {selected.metro ? `м. ${selected.metro} · ` : ""}
+                    {selected.address_short || selected.full_address}
+                  </span>
+                </div>
+
+                {selectedHours.length > 0 && (
+                  <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0">{selectedHours.slice(0, 3).join(" · ")}</span>
+                  </div>
+                )}
+
+                <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
+                  <Navigation className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                  <span>
+                    {selectedDistance !== null
+                      ? `${formatDistance(selectedDistance)} от вас`
+                      : "Расстояние — после определения геолокации"}
+                  </span>
+                </div>
+
+                {geoNote && <p className="mt-3 text-xs text-muted-foreground">{geoNote}</p>}
+
+                <div className="mt-auto space-y-2 pt-6">
+                  {!userPos && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleLocate}
+                      disabled={locating}
+                      className="h-11 w-full gap-2"
+                    >
+                      <Crosshair className="h-4 w-4" aria-hidden />
+                      {locating ? "Определяем…" : "Определить ближайшую"}
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={() => setConfirmedId(selected.id)}
+                    className="h-12 w-full text-base"
+                  >
+                    {confirmedId === selected.id ? "✓ Отделение выбрано" : "Выбрать это отделение"}
                   </Button>
-                </li>
-              ))}
-              {visible.length === 0 && (
-                <li className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-                  Ничего не нашлось — попробуйте другой запрос.
-                </li>
-              )}
-            </ul>
-
-            {filtered.length > 3 && (
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-              >
-                {showAll ? "Свернуть список" : `Показать все адреса (${filtered.length})`}
-              </button>
-            )}
-
-            {/* Мобильный переключатель карты — карта не грузится, пока её не открыли */}
-            {!showMap && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowMap(true)}
-                className="mt-3 h-12 w-full gap-2 text-base lg:hidden"
-              >
-                <MapIcon className="h-4 w-4" aria-hidden />
-                Показать на карте
-              </Button>
+                </div>
+              </div>
             )}
           </div>
 
-          <div
-            className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
-              showMap ? "" : "hidden lg:block"
-            }`}
-          >
-            <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
-              {(showMap || isDesktop) && (
+          {/* Карта */}
+          <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
+            <Suspense
+              fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}
+            >
               <LabLocationsMap
                 key={city}
-                items={filtered}
+                items={cityItems}
                 center={CITIES.find((c) => c.key === city)!.center}
                 zoom={CITIES.find((c) => c.key === city)!.zoom}
                 height={mapHeight}
@@ -234,17 +298,22 @@ export function EnergyWhereToTest() {
                 hideControls
                 clusterMarkers
                 showSelectButton
+                selectOnMarkerClick
                 selectedId={selectedId ?? undefined}
                 focusOnSelected
                 focusZoom={15}
-                onSelect={(item) => setSelectedId(item.id)}
+                onSelect={(item) => {
+                  setSelectedId(item.id);
+                  setConfirmedId(null);
+                }}
               />
-              )}
             </Suspense>
           </div>
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Клик по группе точек на карте приближает её к этой группе отделений.
+        </p>
       </div>
     </section>
   );
-
 }
