@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import labquestLogo from "@/assets/labquest-logo.png.asset.json";
 import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap")) as typeof LabLocationsMapType;
@@ -150,17 +151,6 @@ export function EnergyWhereToTest() {
           Выберите удобное отделение — записываться заранее не нужно.
         </p>
 
-        {/* Партнёрская плашка */}
-        <div className="mt-5 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 md:mt-6">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold tracking-tight text-primary-foreground">
-            LQ
-          </span>
-          <p className="min-w-0 text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">партнёр — LabQuest</span> · 400+
-            отделений по России, гос. аккредитация
-          </p>
-        </div>
-
         <div className="mt-4 inline-flex rounded-xl border border-border bg-card p-1">
           {CITIES.map((c) => (
             <button
@@ -187,14 +177,15 @@ export function EnergyWhereToTest() {
           >
             {!selected ? (
               <div className="flex flex-1 flex-col">
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-base font-bold tracking-tight text-primary-foreground">
-                    LQ
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">LabQuest</p>
-                    <p className="text-sm text-muted-foreground">официальный партнёр ReAge</p>
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex h-20 w-40 items-center justify-center rounded-xl bg-white p-3">
+                    <img
+                      src={labquestLogo.url}
+                      alt="LabQuest"
+                      className="max-h-full max-w-full object-contain"
+                    />
                   </div>
+                  <p className="mt-3 text-sm font-medium text-foreground">Официальный партнёр ReAge</p>
                 </div>
 
                 <ul className="mt-5 space-y-3">
