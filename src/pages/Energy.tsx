@@ -14,9 +14,17 @@ import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherChec
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { reachGoal } from "@/lib/yandexMetrika";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 function EnergyContent() {
   const { addToCart, inCart, openCart } = useEnergyOrder();
+  const { setTheme } = useTheme();
+
+  // На странице Energy по умолчанию используем светлую тему
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
 
   const handleAddToCart = () => {
     reachGoal("energy_add_to_cart");
