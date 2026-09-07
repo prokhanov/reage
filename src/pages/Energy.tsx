@@ -19,6 +19,12 @@ import { useEffect } from "react";
 
 function EnergyContent() {
   const { addToCart, inCart, openCart } = useEnergyOrder();
+  const { setTheme } = useTheme();
+
+  // На странице Energy по умолчанию используем светлую тему
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
 
   const handleAddToCart = () => {
     reachGoal("energy_add_to_cart");
