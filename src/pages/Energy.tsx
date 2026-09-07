@@ -2,8 +2,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { PageMeta } from "@/components/PageMeta";
+import { Footer } from "@/components/landing/CTASection";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
-import { EnergyFooter } from "@/components/landing/energy/EnergyFooter";
 import { EnergyHeader } from "@/components/landing/energy/EnergyHeader";
 import { EnergyHero } from "@/components/landing/energy/EnergyHero";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
@@ -41,7 +41,7 @@ export default function Energy() {
         <EnergyOtherCheckups />
       </main>
       <div id="energy-page-end" />
-      <EnergyFooter />
+      <Footer />
       <EnergyStickyCta
         cartCount={cartCount}
         onAddToCart={handleAddToCart}
