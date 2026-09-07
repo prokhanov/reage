@@ -221,7 +221,7 @@ export function EnergyCart() {
               type="button"
               onClick={handlePay}
               disabled={!agree}
-              className="h-13 w-full py-3.5 text-base"
+              className="h-12 w-full text-base"
             >
               Перейти к оплате · {money(total)}
             </Button>
