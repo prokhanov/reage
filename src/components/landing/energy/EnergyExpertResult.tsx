@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Award, ChevronDown, Clock, MessageCircle, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
