@@ -1,27 +1,26 @@
-import { useState } from "react";
-import { toast } from "sonner";
-
 import { PageMeta } from "@/components/PageMeta";
 import { Footer } from "@/components/landing/CTASection";
+import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHeader } from "@/components/landing/energy/EnergyHeader";
 import { EnergyHero } from "@/components/landing/energy/EnergyHero";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { EnergyIncluded } from "@/components/landing/energy/EnergyIncluded";
+import {
+  EnergyOrderProvider,
+  useEnergyOrder,
+} from "@/components/landing/energy/EnergyOrderContext";
 import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherCheckups";
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { reachGoal } from "@/lib/yandexMetrika";
 
-export default function Energy() {
-  const [cartCount, setCartCount] = useState(0);
+function EnergyContent() {
+  const { addToCart, inCart, openCart } = useEnergyOrder();
 
   const handleAddToCart = () => {
-    setCartCount((v) => v + 1);
     reachGoal("energy_add_to_cart");
-    toast.success("ReAge Energy добавлен в корзину", {
-      description: "Оформление заказа скоро будет доступно.",
-    });
+    addToCart();
   };
 
   return (
@@ -31,7 +30,7 @@ export default function Energy() {
         description="Чекап ReAge Energy: ОАК, ферритин, витамин D, ТТГ, глюкоза и HbA1c за 5 990 ₽. Анализы в LabQuest, результаты с разбором в ReAge за 1–2 дня."
         canonical="/energy"
       />
-      <EnergyHeader cartCount={cartCount} />
+      <EnergyHeader cartCount={inCart ? 1 : 0} onOpenCart={openCart} />
       <main className="pb-20 lg:pb-0">
         <EnergyHero onAddToCart={handleAddToCart} />
         <EnergyIncluded />
@@ -43,11 +42,20 @@ export default function Energy() {
       <div id="energy-page-end" />
       <Footer />
       <EnergyStickyCta
-        cartCount={cartCount}
+        cartCount={inCart ? 1 : 0}
         onAddToCart={handleAddToCart}
         anchorId="energy-hero-cta"
         hideNearId="energy-page-end"
       />
+      <EnergyCart />
     </div>
+  );
+}
+
+export default function Energy() {
+  return (
+    <EnergyOrderProvider>
+      <EnergyContent />
+    </EnergyOrderProvider>
   );
 }
