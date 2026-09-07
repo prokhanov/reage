@@ -43,18 +43,18 @@ export function EnergyHero({ onAddToCart }: Props) {
 
       <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
         <div className="lg:w-[48%] lg:pr-8">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             Анализы сдаются в LabQuest
           </span>
 
-          <h1 className="font-display mt-4 text-balance text-[1.85rem] leading-[1.1] text-foreground sm:mt-6 sm:text-4xl xl:text-5xl">
+          <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:mt-6 sm:text-[2.75rem] xl:text-[3.4rem]">
             Чекап по энергии
           </h1>
-          <p className="font-display mt-2 text-balance text-lg leading-snug text-muted-foreground sm:text-xl xl:text-2xl">
+          <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
             с полной расшифровкой на понятном языке
           </p>
-          <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-4 xl:text-lg">
+          <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
             Чекап для тех, кто просыпается уставшим. Шесть анализов, которые чаще всего
             объясняют нехватку энергии.
           </p>
@@ -64,7 +64,7 @@ export function EnergyHero({ onAddToCart }: Props) {
             {facts.map((f) => (
               <li
                 key={f.title}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] text-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm text-foreground"
               >
                 <f.icon className="h-3.5 w-3.5 text-primary" aria-hidden />
                 {f.title}
@@ -78,8 +78,8 @@ export function EnergyHero({ onAddToCart }: Props) {
               <div key={f.title} className="rounded-xl border border-border bg-card/70 p-4">
                 <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
                 <div className="mt-2">
-                  <dt className="text-sm font-medium text-foreground">{f.title}</dt>
-                  <dd className="text-xs leading-snug text-muted-foreground">{f.text}</dd>
+                  <dt className="text-base font-medium text-foreground">{f.title}</dt>
+                  <dd className="text-sm leading-snug text-muted-foreground">{f.text}</dd>
                 </div>
               </div>
             ))}
@@ -93,14 +93,14 @@ export function EnergyHero({ onAddToCart }: Props) {
               id="energy-hero-cta"
               size="lg"
               onClick={onAddToCart}
-              className="h-[52px] w-full gap-2 text-base sm:h-11 sm:w-auto sm:text-sm"
+              className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
             >
               Добавить в корзину
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
 
-          <p className="mt-3 text-sm text-muted-foreground">Результаты в ReAge</p>
+          <p className="mt-3 text-base text-muted-foreground">Результаты в ReAge</p>
         </div>
 
         {/* Фото на мобильном — после CTA */}
