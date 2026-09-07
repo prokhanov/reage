@@ -147,7 +147,7 @@ export function EnergyWhereToTest() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
-              Где сдавать анализы
+              Сдайте анализы сегодня
             </h2>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">
               Выберите удобное отделение — записываться заранее не нужно.
