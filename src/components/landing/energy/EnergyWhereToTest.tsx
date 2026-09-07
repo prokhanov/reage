@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import labquestLogo from "@/assets/labquest-logo.png.asset.json";
 import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
 
 const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap")) as typeof LabLocationsMapType;
