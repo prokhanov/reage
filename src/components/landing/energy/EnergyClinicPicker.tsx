@@ -233,6 +233,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 <Button
                   type="button"
                   onClick={handleLocate}
+                  size="lg"
                   disabled={locating || items.length === 0}
                   className="h-12 w-full gap-2 text-base"
                 >
@@ -296,6 +297,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                   <Button
                     type="button"
                     variant="outline"
+                    size="lg"
                     onClick={handleLocate}
                     disabled={locating}
                     className="h-11 w-full gap-2"
@@ -307,6 +309,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 <Button
                   type="button"
                   onClick={() => onConfirm(selected)}
+                  size="lg"
                   className="h-12 w-full text-base"
                 >
                   {confirmed?.id === selected.id ? "✓ Отделение выбрано" : "Выбрать это отделение"}

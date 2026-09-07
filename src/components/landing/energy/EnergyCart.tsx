@@ -173,6 +173,7 @@ export function EnergyCart() {
                   type="button"
                   variant="outline"
                   onClick={() => setPickerOpen(true)}
+                  size="lg"
                   className="h-12 w-full gap-2 text-base"
                 >
                   <MapPin className="h-4 w-4" aria-hidden />
@@ -227,7 +228,7 @@ export function EnergyCart() {
                   onChange={(e) => setPromo(e.target.value)}
                   className="h-12"
                 />
-                <Button type="button" variant="secondary" onClick={applyPromo} className="h-12 shrink-0">
+                <Button type="button" size="lg" variant="secondary" onClick={applyPromo} className="h-12 shrink-0">
                   Применить
                 </Button>
               </div>
@@ -258,7 +259,7 @@ export function EnergyCart() {
               <Checkbox
                 checked={agree}
                 onCheckedChange={(v) => setAgree(v === true)}
-                className="mt-0.5"
+                className="mt-0.5 h-5 w-5"
                 aria-label="Согласие с офертой"
               />
               <span>
@@ -270,6 +271,7 @@ export function EnergyCart() {
               type="button"
               onClick={handlePay}
               disabled={!agree || paying}
+              size="lg"
               className="h-12 w-full text-base"
             >
               {paying ? "Переходим к оплате…" : `Перейти к оплате · ${money(total)}`}

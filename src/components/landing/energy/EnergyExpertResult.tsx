@@ -196,7 +196,7 @@ export function EnergyExpertResult() {
               </div>
             </div>
 
-            <Button className="mt-4 w-full gap-2" size="default">
+            <Button className="mt-4 h-12 w-full gap-2 text-base" size="lg">
               <FileText className="h-4 w-4" aria-hidden />
               Посмотреть пример расшифровки
             </Button>
