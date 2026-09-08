@@ -102,6 +102,7 @@ export function EnergyCart() {
           email: email.trim(),
           phone: phone.trim(),
           promoCode: appliedPromo?.code,
+          consultation: consult,
           clinic: clinic
             ? {
                 id: String(clinic.id ?? ""),
@@ -285,6 +286,12 @@ export function EnergyCart() {
                   <span>бандл «Энергия»</span>
                   <span className="font-mono-tech">{money(BUNDLE_PRICE)}</span>
                 </div>
+                {consult && (
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>консультация врача</span>
+                    <span className="font-mono-tech">{money(CONSULT_PRICE)}</span>
+                  </div>
+                )}
                 {appliedPromo && (
                   <div className="flex items-center justify-between text-primary">
                     <span>скидка · {appliedPromo.code}</span>
