@@ -16,6 +16,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import heroBase40 from "@/assets/energy/hero-base40.jpg";
+import heroCardio from "@/assets/energy/hero-cardio.jpg";
+import heroIron from "@/assets/energy/hero-iron.jpg";
+import heroKidney from "@/assets/energy/hero-kidney.jpg";
+import heroLiver from "@/assets/energy/hero-liver.jpg";
+import heroMetabolic from "@/assets/energy/hero-metabolic.jpg";
+import heroThyroid from "@/assets/energy/hero-thyroid.jpg";
+import heroWoman from "@/assets/energy/hero-woman.jpg";
+
 export type CheckupAccent = "primary" | "accent" | "info";
 export type CheckupShape =
   | "spark"
@@ -45,6 +54,11 @@ export interface Checkup {
   price: number;
   accent: CheckupAccent;
   shape: CheckupShape;
+  /** Фото для hero-блока страницы чекапа. */
+  heroImage: string;
+  heroAlt: string;
+  /** Две строки подписи поверх фото. */
+  heroCaption: [string, string];
   /** H1 на странице чекапа. */
   heroTitle: string;
   /** Подзаголовок под H1. */
@@ -72,6 +86,9 @@ export const CHECKUPS: Checkup[] = [
     price: 5990,
     accent: "primary",
     shape: "spark",
+    heroImage: heroWoman,
+    heroAlt: "Девушка с закрытыми глазами на солнце",
+    heroCaption: ["Больше энергии", "для важных вещей"],
     heroTitle: "Чекап по энергии",
     heroSubtitle: SUBTITLE,
     lead: "Чекап для тех, кто просыпается уставшим. Семь анализов, которые чаще всего объясняют нехватку энергии.",
@@ -103,6 +120,9 @@ export const CHECKUPS: Checkup[] = [
     price: 3990,
     accent: "info",
     shape: "diamond",
+    heroImage: heroThyroid,
+    heroAlt: "Женщина у окна в тёплом свете",
+    heroCaption: ["Спокойный обмен", "и ровное состояние"],
     heroTitle: "Чекап щитовидной железы",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, у кого зябкость, отёчность, сухая кожа, скачки веса или тревожность без причины. Проверяем работу щитовидной железы и аутоиммунный фон.",
@@ -130,6 +150,9 @@ export const CHECKUPS: Checkup[] = [
     price: 5990,
     accent: "accent",
     shape: "circle",
+    heroImage: heroIron,
+    heroAlt: "Девушка с чашкой у окна",
+    heroCaption: ["Силы и тепло", "каждый день"],
     heroTitle: "Чекап на железодефицит",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, кто быстро устаёт, мёрзнет, теряет волосы или замечает бледность. Полный обмен железа, а не один ферритин.",
@@ -160,6 +183,9 @@ export const CHECKUPS: Checkup[] = [
     price: 7990,
     accent: "primary",
     shape: "wave",
+    heroImage: heroCardio,
+    heroAlt: "Мужчина на утренней прогулке",
+    heroCaption: ["Сердце в ресурсе", "на годы вперёд"],
     heroTitle: "Чекап сердца и сосудов после 40",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, кому важно узнать про атеросклероз заранее. Липиды, воспаление, наследственный риск и работа почек в одном наборе.",
@@ -192,6 +218,9 @@ export const CHECKUPS: Checkup[] = [
     price: 6990,
     accent: "info",
     shape: "square",
+    heroImage: heroMetabolic,
+    heroAlt: "Женщина готовит лёгкий завтрак",
+    heroCaption: ["Ровная энергия", "без скачков сахара"],
     heroTitle: "Чекап обмена веществ",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, у кого вес растёт, тянет на сладкое и падает энергия после еды. Сахар, инсулин, печень и почки вместе.",
@@ -223,6 +252,9 @@ export const CHECKUPS: Checkup[] = [
     price: 4990,
     accent: "accent",
     shape: "triangle",
+    heroImage: heroLiver,
+    heroAlt: "Мужчина отдыхает на диване у окна",
+    heroCaption: ["Лёгкость", "и чистый обмен"],
     heroTitle: "Чекап печени",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, у кого тяжесть в правом боку, лишний вес или изменения в прошлых анализах. Оцениваем работу печени и риск фиброза.",
@@ -255,6 +287,9 @@ export const CHECKUPS: Checkup[] = [
     price: 4990,
     accent: "primary",
     shape: "ring",
+    heroImage: heroKidney,
+    heroAlt: "Женщина пьёт воду у окна",
+    heroCaption: ["Тихая работа почек", "под контролем"],
     heroTitle: "Чекап почек",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, у кого давление, диабет или отёки по утрам. Почки долго молчат — эти четыре показателя показывают проблему рано.",
@@ -283,6 +318,9 @@ export const CHECKUPS: Checkup[] = [
     price: 7990,
     accent: "info",
     shape: "plus",
+    heroImage: heroBase40,
+    heroAlt: "Пара средних лет в светлом интерьере",
+    heroCaption: ["Полная картина", "здоровья за один визит"],
     heroTitle: "Базовый чекап после 40",
     heroSubtitle: SUBTITLE,
     lead: "Для ежегодной проверки, когда жалоб нет. Кровь, сахар, липиды, печень, почки и щитовидная железа за один визит.",
