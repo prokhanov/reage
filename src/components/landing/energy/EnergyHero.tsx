@@ -1,10 +1,7 @@
 import { FlaskConical, Building2, Clock, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import heroWoman from "@/assets/energy/hero-woman.jpg";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
-
-import { accentClasses, checkupShape } from "./checkupShapes";
 
 interface Props {
   onAddToCart: () => void;
@@ -13,7 +10,6 @@ interface Props {
 
 export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
   const isEnergy = checkup.slug === "energy";
-  const a = accentClasses[checkup.accent];
 
   const facts = [
     {
@@ -25,11 +21,11 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
     { icon: Clock, title: "1–2 дня", text: "Готовность результатов" },
   ];
 
-  const visual = isEnergy ? (
+  const visual = (
     <>
       <img
-        src={heroWoman}
-        alt="Девушка с закрытыми глазами на солнце"
+        src={checkup.heroImage}
+        alt={checkup.heroAlt}
         width={1024}
         height={1024}
         sizes="52vw"
@@ -43,25 +39,12 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
         className="absolute right-10 top-12 text-right text-xs font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80"
         style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
       >
-        <span className="whitespace-nowrap">Больше энергии</span>
+        <span className="whitespace-nowrap">{checkup.heroCaption[0]}</span>
         <br />
-        <span className="whitespace-nowrap">для важных вещей</span>
+        <span className="whitespace-nowrap">{checkup.heroCaption[1]}</span>
         <span className="mt-3 ml-auto block h-px w-16 bg-foreground/30" />
       </p>
     </>
-  ) : (
-    <div className="relative h-full w-full overflow-hidden">
-      <div
-        className={`absolute -right-24 top-1/4 h-[26rem] w-[26rem] rounded-full ${a.bg} blur-3xl`}
-        aria-hidden
-      />
-      <div
-        className={`absolute inset-y-0 right-[6%] my-auto h-[22rem] w-[22rem] ${a.text} opacity-20`}
-        aria-hidden
-      >
-        {checkupShape(checkup.shape)}
-      </div>
-    </div>
   );
 
   return (
