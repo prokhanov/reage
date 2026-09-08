@@ -17,7 +17,18 @@ const ROBOKASSA_URL = "https://auth.robokassa.ru/Merchant/Index.aspx";
 // Каталог бандлов — источник правды по цене на сервере.
 const BUNDLES: Record<string, { title: string; price: number }> = {
   energy: { title: "ReAge Energy — чекап по энергии", price: 5990 },
+  thyroid: { title: "ReAge Thyroid — чекап щитовидной железы", price: 3990 },
+  iron: { title: "ReAge Iron — чекап на железодефицит", price: 5990 },
+  "cardio-risk-40": { title: "ReAge CardioRisk 40+ — чекап сердца и сосудов", price: 7990 },
+  metabolic: { title: "ReAge Metabolic — чекап обмена веществ", price: 6990 },
+  liver: { title: "ReAge Liver & Fibrosis — чекап печени", price: 4990 },
+  kidney: { title: "ReAge Kidney Risk — чекап почек", price: 4990 },
+  "base-40": { title: "ReAge Base 40+ — базовый чекап", price: 7990 },
 };
+
+// Дополнительная услуга: онлайн-разбор результатов врачом.
+const CONSULT_PRICE = 4900;
+const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
