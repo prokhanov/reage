@@ -43,55 +43,69 @@ const ring = (
     <path d="M50 5a45 45 0 1 0 0 90 45 45 0 0 0 0-90Zm0 22a23 23 0 1 1 0 46 23 23 0 0 1 0-46Z" />
   </svg>
 );
+const plus = (
+  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
+    <rect x="35" y="10" width="30" height="80" rx="10" />
+    <rect x="10" y="35" width="80" height="30" rx="10" />
+  </svg>
+);
 
 const checkups: Checkup[] = [
   {
-    title: "Чекап для мужчин",
-    text: "Гормоны, метаболизм, сердце",
-    price: "9 990 ₽",
-    tag: "Мужское здоровье",
+    title: "ReAge Thyroid",
+    text: "ТТГ, Т4 свободный, антитела к тиреопероксидазе",
+    price: "3 990 ₽",
+    tag: "Щитовидная железа",
     accent: "info",
     visual: diamond,
   },
   {
-    title: "Чекап для женщин",
-    text: "Железо, щитовидная железа, обмен веществ",
-    price: "9 990 ₽",
-    tag: "Женское здоровье",
+    title: "ReAge Iron",
+    text: "ОАК, ферритин, железо, трансферрин, ОЖСС, насыщение",
+    price: "5 990 ₽",
+    tag: "Железодефицит",
     accent: "accent",
     visual: circle,
   },
   {
-    title: "Чекап сердца и сосудов",
-    text: "Липиды, воспаление, риск атеросклероза",
-    price: "8 490 ₽",
-    tag: "Кардиориск",
+    title: "ReAge CardioRisk 40+",
+    text: "Липиды, воспаление, риск атеросклероза, ApoB",
+    price: "7 990 ₽",
+    tag: "Сердце и сосуды",
     accent: "primary",
     visual: wave,
   },
   {
-    title: "Чекап обмена веществ",
+    title: "ReAge Metabolic",
     text: "Сахар, инсулин, печень и вес",
-    price: "7 990 ₽",
+    price: "6 990 ₽",
     tag: "Метаболизм",
     accent: "info",
     visual: square,
   },
   {
-    title: "Чекап щитовидной железы",
-    text: "ТТГ, Т3, Т4 и антитела",
-    price: "6 490 ₽",
-    tag: "Гормоны",
+    title: "ReAge Liver & Fibrosis",
+    text: "Ферменты печени, альбумин, FIB-4",
+    price: "4 990 ₽",
+    tag: "Печень",
     accent: "accent",
     visual: triangle,
   },
   {
-    title: "Чекап иммунитета",
-    text: "Витамины, воспаление, дефициты",
-    price: "7 490 ₽",
-    tag: "Защита организма",
+    title: "ReAge Kidney Risk",
+    text: "Креатинин, eGFR, общий анализ мочи, ACR",
+    price: "4 990 ₽",
+    tag: "Почки",
     accent: "primary",
     visual: ring,
+  },
+  {
+    title: "ReAge Base 40+",
+    text: "Базовая панель после 40 лет",
+    price: "7 990 ₽",
+    tag: "Базовый чекап",
+    accent: "info",
+    visual: plus,
   },
 ];
 
@@ -195,63 +209,63 @@ export function EnergyOtherCheckups() {
             onScroll={update}
             className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:-mx-2 md:gap-7 md:px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-          {checkups.map((c) => {
-            const a = accentClasses[c.accent];
-            return (
-              <Link
-                key={c.title}
-                to="/"
-                className="group relative block w-[88vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] md:w-[30rem]"
-              >
-                <div
-                  className={`absolute -inset-0.5 rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60`}
-                  aria-hidden
-                />
-
-                <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 backdrop-blur-sm transition-colors duration-300 md:p-8">
+            {checkups.map((c) => {
+              const a = accentClasses[c.accent];
+              return (
+                <Link
+                  key={c.title}
+                  to="/"
+                  className="group relative block w-[88vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] md:w-[30rem]"
+                >
                   <div
-                    className={`absolute -right-12 -top-12 h-48 w-48 rounded-full ${a.bg} blur-3xl transition duration-500 group-hover:opacity-80`}
+                    className={`absolute -inset-0.5 rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60`}
                     aria-hidden
                   />
 
-                  <span
-                    className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
-                  >
-                    {c.tag}
-                  </span>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 backdrop-blur-sm transition-colors duration-300 md:p-8">
+                    <div
+                      className={`absolute -right-12 -top-12 h-48 w-48 rounded-full ${a.bg} blur-3xl transition duration-500 group-hover:opacity-80`}
+                      aria-hidden
+                    />
 
-                  <div className="relative mt-auto">
-                    <h3 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
-                      {c.title}
-                    </h3>
-                    <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
-                      {c.text}
-                    </p>
+                    <span
+                      className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+                    >
+                      {c.tag}
+                    </span>
 
-                    <div className="mt-6 flex items-center justify-between gap-4 md:mt-8">
-                      <div>
-                        <span className="label-mono mb-1 block">Стоимость</span>
-                        <span className="font-display text-2xl font-semibold text-foreground">
-                          {c.price}
+                    <div className="relative mt-auto">
+                      <h3 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
+                        {c.title}
+                      </h3>
+                      <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
+                        {c.text}
+                      </p>
+
+                      <div className="mt-6 flex items-center justify-between gap-4 md:mt-8">
+                        <div>
+                          <span className="label-mono mb-1 block">Стоимость</span>
+                          <span className="font-display text-2xl font-semibold text-foreground">
+                            {c.price}
+                          </span>
+                        </div>
+                        <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                          Подробнее
+                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                         </span>
                       </div>
-                      <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                        Подробнее
-                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                      </span>
+                    </div>
+
+                    <div
+                      className={`absolute bottom-0 right-0 h-32 w-32 ${a.text} opacity-10 transition-opacity duration-500 group-hover:opacity-20`}
+                      aria-hidden
+                    >
+                      {c.visual}
                     </div>
                   </div>
-
-                  <div
-                    className={`absolute bottom-0 right-0 h-32 w-32 ${a.text} opacity-10 transition-opacity duration-500 group-hover:opacity-20`}
-                    aria-hidden
-                  >
-                    {c.visual}
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

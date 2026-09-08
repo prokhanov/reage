@@ -133,7 +133,7 @@ export function EnergyHowItWorks({ onAddToCart }: Props) {
               onClick={onAddToCart}
               className="h-12 w-full text-base md:w-auto md:px-8"
             >
-              Добавить в корзину — 2 990 ₽
+              Добавить в корзину — 5 990 ₽
             </Button>
           </div>
         )}
