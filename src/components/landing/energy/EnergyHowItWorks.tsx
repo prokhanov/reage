@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { ENERGY_CHECKUP, money } from "@/data/checkups";
 
 interface Props {
   onAddToCart?: () => void;
+  /** Цена текущего чекапа для CTA. */
+  price?: number;
 }
 
 const steps = [
