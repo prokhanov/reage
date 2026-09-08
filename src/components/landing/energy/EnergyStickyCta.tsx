@@ -56,7 +56,7 @@ export function EnergyStickyCta({ cartCount, onAddToCart, anchorId, hideNearId }
           {cartCount > 0 && (
             <div className="truncate text-xs text-muted-foreground">ReAge Energy в корзине</div>
           )}
-          <div className="font-mono-tech text-lg text-foreground">2 990 ₽</div>
+          <div className="font-mono-tech text-lg text-foreground">5 990 ₽</div>
         </div>
         <Button
           size="lg"

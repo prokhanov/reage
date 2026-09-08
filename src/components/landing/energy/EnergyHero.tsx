@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import heroWoman from "@/assets/energy/hero-woman.jpg";
 
 const facts = [
-  { icon: FlaskConical, title: "6 анализов", text: "Ключевые причины усталости" },
+  { icon: FlaskConical, title: "7 показателей", text: "Ключевые причины усталости" },
   { icon: Building2, title: "LabQuest", text: "Сеть лабораторий" },
   { icon: Clock, title: "1–2 дня", text: "Готовность результатов" },
 ];
@@ -87,7 +87,7 @@ export function EnergyHero({ onAddToCart }: Props) {
 
           <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
-              2 990 ₽
+              5 990 ₽
             </div>
             <Button
               id="energy-hero-cta"
