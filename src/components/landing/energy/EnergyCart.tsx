@@ -48,7 +48,7 @@ export function EnergyCart() {
   const [paying, setPaying] = useState(false);
 
   const discount = appliedPromo ? Math.round(BUNDLE_PRICE * appliedPromo.discount) : 0;
-  const total = BUNDLE_PRICE - discount;
+  const total = BUNDLE_PRICE - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
