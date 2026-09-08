@@ -43,6 +43,7 @@ export function EnergyCart() {
   const [phone, setPhone] = useState("");
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [consult, setConsult] = useState(false);
   const [agree, setAgree] = useState(false);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
