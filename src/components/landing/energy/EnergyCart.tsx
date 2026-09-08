@@ -225,7 +225,53 @@ export function EnergyCart() {
               </div>
             </Step>
 
-            <Step n={4} title="Промокод">
+            <Step n={4} title="Добавить консультацию">
+              <label
+                className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
+                  consult ? "border-primary bg-primary/5" : "border-border bg-card"
+                }`}
+              >
+                <Checkbox
+                  checked={consult}
+                  onCheckedChange={(v) => setConsult(v === true)}
+                  className="mt-1 h-5 w-5"
+                  aria-label="Добавить консультацию врача"
+                />
+                <img
+                  src={expertDoctor}
+                  alt="Врач Анна Ковалёва"
+                  loading="lazy"
+                  className="h-16 w-14 shrink-0 rounded-lg object-cover object-top"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-base font-semibold text-foreground">Консультация врача</span>
+                    <span className="font-mono-tech shrink-0 text-base text-foreground">
+                      +{money(CONSULT_PRICE)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">
+                    Д-р Анна Ковалёва · разбор результатов 40 минут онлайн
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Эндокринолог
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      К.м.н.
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Стаж 12+ лет
+                    </span>
+                  </div>
+                </div>
+              </label>
+            </Step>
+
+            <Step n={5} title="Промокод">
               <div className="flex gap-2">
                 <Input
                   placeholder="промокод"
