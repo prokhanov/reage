@@ -12,6 +12,8 @@ import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 
+import { markersLabel, money } from "@/data/checkups";
+
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
