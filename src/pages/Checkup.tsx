@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
+
+import NotFound from "@/pages/NotFound";
 import { useTheme } from "next-themes";
 
 import { PageMeta } from "@/components/PageMeta";
