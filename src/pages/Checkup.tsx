@@ -79,7 +79,7 @@ export default function Checkup() {
   const { slug } = useParams();
   const checkup = getCheckupBySlug(slug);
 
-  if (!checkup) return <Navigate to="/404" replace />;
+  if (!checkup) return <NotFound />;
   if (checkup.slug === "energy") return <Navigate to="/energy" replace />;
 
   return <CheckupPage key={checkup.slug} checkup={checkup} />;
