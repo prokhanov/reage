@@ -96,7 +96,7 @@ export function EnergyCart() {
     try {
       const { data, error } = await supabase.functions.invoke("energy-create-payment", {
         body: {
-          bundle: "energy",
+          bundle: checkup.bundle,
           email: email.trim(),
           phone: phone.trim(),
           promoCode: appliedPromo?.code,
@@ -143,10 +143,14 @@ export function EnergyCart() {
             <Step n={1} title="Ваш заказ">
               <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-4">
                 <div className="min-w-0">
-                  <div className="text-base font-semibold text-foreground">ReAge Energy</div>
-                  <div className="text-sm text-muted-foreground">{BUNDLE_MARKERS} показателей</div>
+                  <div className="text-base font-semibold text-foreground">{checkup.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {markersLabel(checkup.markers.length)}
+                  </div>
                 </div>
-                <div className="font-mono-tech text-base text-foreground">{money(BUNDLE_PRICE)}</div>
+                <div className="font-mono-tech text-base text-foreground">
+                  {money(checkup.price)}
+                </div>
               </div>
             </Step>
 
