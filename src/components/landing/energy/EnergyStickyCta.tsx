@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ENERGY_CHECKUP, money } from "@/data/checkups";
 
 interface Props {
   cartCount: number;
@@ -9,13 +10,22 @@ interface Props {
   anchorId: string;
   /** id элемента, рядом с которым панель прячется (футер) */
   hideNearId?: string;
+  price?: number;
+  name?: string;
 }
 
 /**
  * Мобильная нижняя панель покупки. Появляется, когда основная кнопка hero
  * ушла из вьюпорта, и прячется у футера. На десктопе не рендерится.
  */
-export function EnergyStickyCta({ cartCount, onAddToCart, anchorId, hideNearId }: Props) {
+export function EnergyStickyCta({
+  cartCount,
+  onAddToCart,
+  anchorId,
+  hideNearId,
+  price = ENERGY_CHECKUP.price,
+  name = ENERGY_CHECKUP.name,
+}: Props) {
   const [pastHero, setPastHero] = useState(false);
   const [nearEnd, setNearEnd] = useState(false);
 
@@ -54,9 +64,9 @@ export function EnergyStickyCta({ cartCount, onAddToCart, anchorId, hideNearId }
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0">
           {cartCount > 0 && (
-            <div className="truncate text-xs text-muted-foreground">ReAge Energy в корзине</div>
+            <div className="truncate text-xs text-muted-foreground">{name} в корзине</div>
           )}
-          <div className="font-mono-tech text-lg text-foreground">5 990 ₽</div>
+          <div className="font-mono-tech text-lg text-foreground">{money(price)}</div>
         </div>
         <Button
           size="lg"

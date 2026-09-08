@@ -12,15 +12,13 @@ import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 
+import { markersLabel, money } from "@/data/checkups";
+
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
-const BUNDLE_PRICE = 5990;
-const BUNDLE_MARKERS = 7;
 const CONSULT_PRICE = 4900;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
-
-const money = (v: number) => `${v.toLocaleString("ru-RU")} ₽`;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -37,7 +35,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic } = useEnergyOrder();
+  const { cartOpen, closeCart, clinic, setClinic, checkup } = useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -48,8 +46,8 @@ export function EnergyCart() {
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
-  const discount = appliedPromo ? Math.round(BUNDLE_PRICE * appliedPromo.discount) : 0;
-  const total = BUNDLE_PRICE - discount + (consult ? CONSULT_PRICE : 0);
+  const discount = appliedPromo ? Math.round(checkup.price * appliedPromo.discount) : 0;
+  const total = checkup.price - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -98,7 +96,7 @@ export function EnergyCart() {
     try {
       const { data, error } = await supabase.functions.invoke("energy-create-payment", {
         body: {
-          bundle: "energy",
+          bundle: checkup.bundle,
           email: email.trim(),
           phone: phone.trim(),
           promoCode: appliedPromo?.code,
@@ -145,10 +143,14 @@ export function EnergyCart() {
             <Step n={1} title="Ваш заказ">
               <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-4">
                 <div className="min-w-0">
-                  <div className="text-base font-semibold text-foreground">ReAge Energy</div>
-                  <div className="text-sm text-muted-foreground">{BUNDLE_MARKERS} показателей</div>
+                  <div className="text-base font-semibold text-foreground">{checkup.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {markersLabel(checkup.markers.length)}
+                  </div>
                 </div>
-                <div className="font-mono-tech text-base text-foreground">{money(BUNDLE_PRICE)}</div>
+                <div className="font-mono-tech text-base text-foreground">
+                  {money(checkup.price)}
+                </div>
               </div>
             </Step>
 
@@ -285,8 +287,8 @@ export function EnergyCart() {
               </div>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>бандл «Энергия»</span>
-                  <span className="font-mono-tech">{money(BUNDLE_PRICE)}</span>
+                  <span>{checkup.name}</span>
+                  <span className="font-mono-tech">{money(checkup.price)}</span>
                 </div>
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">

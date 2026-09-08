@@ -15,6 +15,14 @@ const entries: SitemapEntry[] = [
   { path: "/example-report", changefreq: "weekly", priority: "0.8" },
   { path: "/prep", changefreq: "monthly", priority: "0.7" },
   { path: "/business", changefreq: "monthly", priority: "0.8" },
+  { path: "/energy", changefreq: "weekly", priority: "0.9" },
+  { path: "/checkup/thyroid", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/iron", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/cardio-risk-40", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/metabolic", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/liver", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/kidney", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/base-40", changefreq: "weekly", priority: "0.8" },
 ];
 
 const xml = [

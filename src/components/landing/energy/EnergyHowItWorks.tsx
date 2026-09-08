@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { ENERGY_CHECKUP, money } from "@/data/checkups";
 
 interface Props {
   onAddToCart?: () => void;
+  /** Цена текущего чекапа для CTA. */
+  price?: number;
 }
 
 const steps = [
@@ -91,7 +94,7 @@ const accentClasses: Record<
   },
 };
 
-export function EnergyHowItWorks({ onAddToCart }: Props) {
+export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: Props) {
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
@@ -133,7 +136,7 @@ export function EnergyHowItWorks({ onAddToCart }: Props) {
               onClick={onAddToCart}
               className="h-12 w-full text-base md:w-auto md:px-8"
             >
-              Добавить в корзину — 5 990 ₽
+              Добавить в корзину — {money(price)}
             </Button>
           </div>
         )}

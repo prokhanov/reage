@@ -17,7 +17,18 @@ const ROBOKASSA_URL = "https://auth.robokassa.ru/Merchant/Index.aspx";
 // Каталог бандлов — источник правды по цене на сервере.
 const BUNDLES: Record<string, { title: string; price: number }> = {
   energy: { title: "ReAge Energy — чекап по энергии", price: 5990 },
+  thyroid: { title: "ReAge Thyroid — чекап щитовидной железы", price: 3990 },
+  iron: { title: "ReAge Iron — чекап на железодефицит", price: 5990 },
+  "cardio-risk-40": { title: "ReAge CardioRisk 40+ — чекап сердца и сосудов", price: 7990 },
+  metabolic: { title: "ReAge Metabolic — чекап обмена веществ", price: 6990 },
+  liver: { title: "ReAge Liver & Fibrosis — чекап печени", price: 4990 },
+  kidney: { title: "ReAge Kidney Risk — чекап почек", price: 4990 },
+  "base-40": { title: "ReAge Base 40+ — базовый чекап", price: 7990 },
 };
+
+// Дополнительная услуга: онлайн-разбор результатов врачом.
+const CONSULT_PRICE = 4900;
+const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
@@ -54,12 +65,14 @@ Deno.serve(async (req) => {
       phone,
       promoCode,
       clinic,
+      consultation,
     } = body as {
       bundle?: string;
       email?: string;
       phone?: string;
       promoCode?: string;
       clinic?: { id?: string; title?: string; address?: string } | null;
+      consultation?: boolean;
     };
 
     const product = BUNDLES[bundle];
@@ -89,11 +102,14 @@ Deno.serve(async (req) => {
       }, 500);
     }
 
-    const original = product.price;
+    const withConsult = consultation === true;
+    const consultAmount = withConsult ? CONSULT_PRICE : 0;
+    const original = product.price + consultAmount;
     const code = (promoCode ?? "").trim().toUpperCase();
     const rate = code ? PROMOS[code] : undefined;
     if (code && !rate) return json({ error: "Промокод не найден" }, 400);
-    const discount = rate ? Math.round(original * rate) : 0;
+    // Скидка по промокоду применяется только к набору анализов, не к консультации.
+    const discount = rate ? Math.round(product.price * rate) : 0;
     const finalAmount = original - discount;
     if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
     const outSum = finalAmount.toFixed(2);
@@ -140,11 +156,23 @@ Deno.serve(async (req) => {
         {
           name: product.title.slice(0, 128),
           quantity: 1,
-          sum: Number(finalAmount.toFixed(2)),
+          sum: Number((product.price - discount).toFixed(2)),
           payment_method: "full_payment",
           payment_object: "service",
           tax: "none",
         },
+        ...(withConsult
+          ? [
+              {
+                name: CONSULT_TITLE,
+                quantity: 1,
+                sum: Number(consultAmount.toFixed(2)),
+                payment_method: "full_payment",
+                payment_object: "service",
+                tax: "none",
+              },
+            ]
+          : []),
       ],
     };
     const receiptEncoded = encodeURIComponent(JSON.stringify(receipt));
@@ -157,7 +185,7 @@ Deno.serve(async (req) => {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
-      Description: `ReAge Energy: заказ #${invId}${isTest ? " (TEST)" : ""}`,
+      Description: `${product.title}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",

@@ -2,144 +2,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type Accent = "info" | "accent" | "primary";
+import { CHECKUPS, money } from "@/data/checkups";
 
-interface Checkup {
-  title: string;
-  text: string;
-  price: string;
-  tag: string;
-  accent: Accent;
-  visual: JSX.Element;
+import { accentClasses, checkupShape } from "./checkupShapes";
+
+interface Props {
+  /** Текущий чекап скрывается из карусели. */
+  currentSlug?: string;
 }
 
-const diamond = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <path d="M50 0 L100 50 L50 100 L0 50 Z" />
-  </svg>
-);
-const circle = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <circle cx="50" cy="50" r="40" />
-  </svg>
-);
-const wave = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <path d="M0 60 Q25 20 50 60 T100 60 V100 H0 Z" />
-  </svg>
-);
-const square = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <rect x="15" y="15" width="70" height="70" rx="18" />
-  </svg>
-);
-const triangle = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <path d="M50 10 L95 90 H5 Z" />
-  </svg>
-);
-const ring = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <path d="M50 5a45 45 0 1 0 0 90 45 45 0 0 0 0-90Zm0 22a23 23 0 1 1 0 46 23 23 0 0 1 0-46Z" />
-  </svg>
-);
-const plus = (
-  <svg viewBox="0 0 100 100" className="h-full w-full fill-current">
-    <rect x="35" y="10" width="30" height="80" rx="10" />
-    <rect x="10" y="35" width="80" height="30" rx="10" />
-  </svg>
-);
-
-const checkups: Checkup[] = [
-  {
-    title: "ReAge Thyroid",
-    text: "ТТГ, Т4 свободный, антитела к тиреопероксидазе",
-    price: "3 990 ₽",
-    tag: "Щитовидная железа",
-    accent: "info",
-    visual: diamond,
-  },
-  {
-    title: "ReAge Iron",
-    text: "ОАК, ферритин, железо, трансферрин, ОЖСС, насыщение",
-    price: "5 990 ₽",
-    tag: "Железодефицит",
-    accent: "accent",
-    visual: circle,
-  },
-  {
-    title: "ReAge CardioRisk 40+",
-    text: "Липиды, воспаление, риск атеросклероза, ApoB",
-    price: "7 990 ₽",
-    tag: "Сердце и сосуды",
-    accent: "primary",
-    visual: wave,
-  },
-  {
-    title: "ReAge Metabolic",
-    text: "Сахар, инсулин, печень и вес",
-    price: "6 990 ₽",
-    tag: "Метаболизм",
-    accent: "info",
-    visual: square,
-  },
-  {
-    title: "ReAge Liver & Fibrosis",
-    text: "Ферменты печени, альбумин, FIB-4",
-    price: "4 990 ₽",
-    tag: "Печень",
-    accent: "accent",
-    visual: triangle,
-  },
-  {
-    title: "ReAge Kidney Risk",
-    text: "Креатинин, eGFR, общий анализ мочи, ACR",
-    price: "4 990 ₽",
-    tag: "Почки",
-    accent: "primary",
-    visual: ring,
-  },
-  {
-    title: "ReAge Base 40+",
-    text: "Базовая панель после 40 лет",
-    price: "7 990 ₽",
-    tag: "Базовый чекап",
-    accent: "info",
-    visual: plus,
-  },
-];
-
-const accentClasses: Record<
-  Accent,
-  { text: string; border: string; bg: string; glowFrom: string; glowTo: string }
-> = {
-  info: {
-    text: "text-info",
-    border: "border-info/30",
-    bg: "bg-info/10",
-    glowFrom: "from-info/40",
-    glowTo: "to-info/10",
-  },
-  accent: {
-    text: "text-accent",
-    border: "border-accent/30",
-    bg: "bg-accent/10",
-    glowFrom: "from-accent/40",
-    glowTo: "to-accent/10",
-  },
-  primary: {
-    text: "text-primary",
-    border: "border-primary/30",
-    bg: "bg-primary/10",
-    glowFrom: "from-primary/40",
-    glowTo: "to-primary/10",
-  },
-};
-
-export function EnergyOtherCheckups() {
+export function EnergyOtherCheckups({ currentSlug }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
+
+  const items = CHECKUPS.filter((c) => c.slug !== currentSlug);
 
   const update = useCallback(() => {
     const el = trackRef.current;
@@ -209,12 +86,12 @@ export function EnergyOtherCheckups() {
             onScroll={update}
             className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:-mx-2 md:gap-7 md:px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {checkups.map((c) => {
+            {items.map((c) => {
               const a = accentClasses[c.accent];
               return (
                 <Link
-                  key={c.title}
-                  to="/"
+                  key={c.slug}
+                  to={c.href}
                   className="group relative block w-[88vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] md:w-[30rem]"
                 >
                   <div
@@ -236,17 +113,17 @@ export function EnergyOtherCheckups() {
 
                     <div className="relative mt-auto">
                       <h3 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
-                        {c.title}
+                        {c.name}
                       </h3>
                       <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
-                        {c.text}
+                        {c.cardText}
                       </p>
 
                       <div className="mt-6 flex items-center justify-between gap-4 md:mt-8">
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="font-display text-2xl font-semibold text-foreground">
-                            {c.price}
+                            {money(c.price)}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
@@ -260,7 +137,7 @@ export function EnergyOtherCheckups() {
                       className={`absolute bottom-0 right-0 h-32 w-32 ${a.text} opacity-10 transition-opacity duration-500 group-hover:opacity-20`}
                       aria-hidden
                     >
-                      {c.visual}
+                      {checkupShape(c.shape)}
                     </div>
                   </div>
                 </Link>

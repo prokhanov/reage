@@ -1,8 +1,10 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
+import { ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
 
 interface EnergyOrderValue {
+  checkup: Checkup;
   clinic: LabMapItem | null;
   setClinic: (item: LabMapItem | null) => void;
   cartOpen: boolean;
@@ -14,13 +16,20 @@ interface EnergyOrderValue {
 
 const EnergyOrderContext = createContext<EnergyOrderValue | null>(null);
 
-export function EnergyOrderProvider({ children }: { children: ReactNode }) {
+export function EnergyOrderProvider({
+  children,
+  checkup = ENERGY_CHECKUP,
+}: {
+  children: ReactNode;
+  checkup?: Checkup;
+}) {
   const [clinic, setClinic] = useState<LabMapItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [inCart, setInCart] = useState(false);
 
   const value = useMemo<EnergyOrderValue>(
     () => ({
+      checkup,
       clinic,
       setClinic,
       cartOpen,
@@ -32,7 +41,7 @@ export function EnergyOrderProvider({ children }: { children: ReactNode }) {
         setCartOpen(true);
       },
     }),
-    [clinic, cartOpen, inCart],
+    [checkup, clinic, cartOpen, inCart],
   );
 
   return <EnergyOrderContext.Provider value={value}>{children}</EnergyOrderContext.Provider>;
