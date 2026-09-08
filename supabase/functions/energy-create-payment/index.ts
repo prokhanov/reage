@@ -156,11 +156,23 @@ Deno.serve(async (req) => {
         {
           name: product.title.slice(0, 128),
           quantity: 1,
-          sum: Number(finalAmount.toFixed(2)),
+          sum: Number((product.price - discount).toFixed(2)),
           payment_method: "full_payment",
           payment_object: "service",
           tax: "none",
         },
+        ...(withConsult
+          ? [
+              {
+                name: CONSULT_TITLE,
+                quantity: 1,
+                sum: Number(consultAmount.toFixed(2)),
+                payment_method: "full_payment",
+                payment_object: "service",
+                tax: "none",
+              },
+            ]
+          : []),
       ],
     };
     const receiptEncoded = encodeURIComponent(JSON.stringify(receipt));
@@ -173,7 +185,7 @@ Deno.serve(async (req) => {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
-      Description: `ReAge Energy: заказ #${invId}${isTest ? " (TEST)" : ""}`,
+      Description: `${product.title}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",
