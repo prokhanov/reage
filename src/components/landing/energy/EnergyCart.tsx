@@ -17,6 +17,7 @@ import { useEnergyOrder } from "./EnergyOrderContext";
 
 const BUNDLE_PRICE = 5990;
 const BUNDLE_MARKERS = 20;
+const CONSULT_PRICE = 4900;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 const money = (v: number) => `${v.toLocaleString("ru-RU")} ₽`;
