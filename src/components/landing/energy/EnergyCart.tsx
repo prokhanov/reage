@@ -35,7 +35,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic } = useEnergyOrder();
+  const { cartOpen, closeCart, clinic, setClinic, checkup } = useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -46,8 +46,8 @@ export function EnergyCart() {
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
-  const discount = appliedPromo ? Math.round(BUNDLE_PRICE * appliedPromo.discount) : 0;
-  const total = BUNDLE_PRICE - discount + (consult ? CONSULT_PRICE : 0);
+  const discount = appliedPromo ? Math.round(checkup.price * appliedPromo.discount) : 0;
+  const total = checkup.price - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
