@@ -116,31 +116,16 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
         </div>
 
         {/* Визуал на мобильном — после CTA */}
-        {isEnergy ? (
-          <div className="relative mt-7 h-[260px] w-full overflow-hidden rounded-2xl sm:h-[320px] lg:hidden">
-            <img
-              src={heroWoman}
-              alt="Девушка с закрытыми глазами на солнце"
-              width={1024}
-              height={1024}
-              sizes="100vw"
-              className="h-full w-full object-cover object-[50%_30%]"
-            />
-          </div>
-        ) : (
-          <div className="relative mt-7 h-[180px] w-full overflow-hidden rounded-2xl border border-border bg-card sm:h-[220px] lg:hidden">
-            <div
-              className={`absolute -right-16 -top-16 h-64 w-64 rounded-full ${a.bg} blur-3xl`}
-              aria-hidden
-            />
-            <div
-              className={`absolute inset-0 m-auto h-28 w-28 ${a.text} opacity-25 sm:h-36 sm:w-36`}
-              aria-hidden
-            >
-              {checkupShape(checkup.shape)}
-            </div>
-          </div>
-        )}
+        <div className="relative mt-7 h-[260px] w-full overflow-hidden rounded-2xl sm:h-[320px] lg:hidden">
+          <img
+            src={checkup.heroImage}
+            alt={checkup.heroAlt}
+            width={1024}
+            height={1024}
+            sizes="100vw"
+            className="h-full w-full object-cover object-[50%_30%]"
+          />
+        </div>
       </div>
     </section>
   );
