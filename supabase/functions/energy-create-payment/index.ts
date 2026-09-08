@@ -65,12 +65,14 @@ Deno.serve(async (req) => {
       phone,
       promoCode,
       clinic,
+      consultation,
     } = body as {
       bundle?: string;
       email?: string;
       phone?: string;
       promoCode?: string;
       clinic?: { id?: string; title?: string; address?: string } | null;
+      consultation?: boolean;
     };
 
     const product = BUNDLES[bundle];
@@ -100,11 +102,14 @@ Deno.serve(async (req) => {
       }, 500);
     }
 
-    const original = product.price;
+    const withConsult = consultation === true;
+    const consultAmount = withConsult ? CONSULT_PRICE : 0;
+    const original = product.price + consultAmount;
     const code = (promoCode ?? "").trim().toUpperCase();
     const rate = code ? PROMOS[code] : undefined;
     if (code && !rate) return json({ error: "Промокод не найден" }, 400);
-    const discount = rate ? Math.round(original * rate) : 0;
+    // Скидка по промокоду применяется только к набору анализов, не к консультации.
+    const discount = rate ? Math.round(product.price * rate) : 0;
     const finalAmount = original - discount;
     if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
     const outSum = finalAmount.toFixed(2);
