@@ -87,7 +87,7 @@ export function EnergyHero({ onAddToCart }: Props) {
 
           <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
-              5 990 ₽
+              2 990 ₽
             </div>
             <Button
               id="energy-hero-cta"
