@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPin } from "lucide-react";
+import { Award, Clock, MapPin, Stethoscope } from "lucide-react";
+
+import expertDoctor from "@/assets/energy/expert-doctor.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +17,7 @@ import { useEnergyOrder } from "./EnergyOrderContext";
 
 const BUNDLE_PRICE = 5990;
 const BUNDLE_MARKERS = 20;
+const CONSULT_PRICE = 4900;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 const money = (v: number) => `${v.toLocaleString("ru-RU")} ₽`;
@@ -40,12 +43,13 @@ export function EnergyCart() {
   const [phone, setPhone] = useState("");
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [consult, setConsult] = useState(false);
   const [agree, setAgree] = useState(false);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
   const discount = appliedPromo ? Math.round(BUNDLE_PRICE * appliedPromo.discount) : 0;
-  const total = BUNDLE_PRICE - discount;
+  const total = BUNDLE_PRICE - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -98,6 +102,7 @@ export function EnergyCart() {
           email: email.trim(),
           phone: phone.trim(),
           promoCode: appliedPromo?.code,
+          consultation: consult,
           clinic: clinic
             ? {
                 id: String(clinic.id ?? ""),
@@ -145,6 +150,50 @@ export function EnergyCart() {
                 </div>
                 <div className="font-mono-tech text-base text-foreground">{money(BUNDLE_PRICE)}</div>
               </div>
+
+              <label
+                className={`mt-3 flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
+                  consult ? "border-primary bg-primary/5" : "border-border bg-card"
+                }`}
+              >
+                <Checkbox
+                  checked={consult}
+                  onCheckedChange={(v) => setConsult(v === true)}
+                  className="mt-1 h-5 w-5"
+                  aria-label="Добавить консультацию врача"
+                />
+                <img
+                  src={expertDoctor}
+                  alt="Врач Анна Ковалёва"
+                  loading="lazy"
+                  className="h-16 w-14 shrink-0 rounded-lg object-cover object-top"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-base font-semibold text-foreground">Консультация врача</span>
+                    <span className="font-mono-tech shrink-0 text-base text-foreground">
+                      +{money(CONSULT_PRICE)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">
+                    Д-р Анна Ковалёва · разбор результатов 40 минут онлайн
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Эндокринолог
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      К.м.н.
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Стаж 12+ лет
+                    </span>
+                  </div>
+                </div>
+              </label>
             </Step>
 
             <Step n={2} title="Где сдать анализ">
@@ -237,6 +286,12 @@ export function EnergyCart() {
                   <span>бандл «Энергия»</span>
                   <span className="font-mono-tech">{money(BUNDLE_PRICE)}</span>
                 </div>
+                {consult && (
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>консультация врача</span>
+                    <span className="font-mono-tech">{money(CONSULT_PRICE)}</span>
+                  </div>
+                )}
                 {appliedPromo && (
                   <div className="flex items-center justify-between text-primary">
                     <span>скидка · {appliedPromo.code}</span>
