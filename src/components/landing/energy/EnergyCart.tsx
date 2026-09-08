@@ -287,8 +287,8 @@ export function EnergyCart() {
               </div>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>бандл «Энергия»</span>
-                  <span className="font-mono-tech">{money(BUNDLE_PRICE)}</span>
+                  <span>{checkup.name}</span>
+                  <span className="font-mono-tech">{money(checkup.price)}</span>
                 </div>
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
