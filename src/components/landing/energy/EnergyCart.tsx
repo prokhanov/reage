@@ -133,7 +133,7 @@ export function EnergyCart() {
       <Sheet open={cartOpen} onOpenChange={(o) => !o && closeCart()}>
         <SheetContent
           side="right"
-          className="flex w-full flex-col gap-0 p-0 sm:max-w-[30rem]"
+          className="flex h-[100dvh] w-full flex-col gap-0 p-0 sm:max-w-[30rem]"
         >
           <header className="flex items-center justify-between border-b hairline px-5 py-4">
             <SheetTitle className="font-display text-2xl text-foreground">Ваш заказ</SheetTitle>
@@ -204,6 +204,7 @@ export function EnergyCart() {
                   <Input
                     type="email"
                     inputMode="email"
+                     autoComplete="email"
                     placeholder="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -213,6 +214,7 @@ export function EnergyCart() {
                   <Input
                     type="tel"
                     inputMode="tel"
+                     autoComplete="tel"
                     placeholder="телефон"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}

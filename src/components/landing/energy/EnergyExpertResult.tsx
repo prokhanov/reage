@@ -107,7 +107,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
         </span>
         <span className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
-            {marker.value}
+            {marker.value} <span className="text-xs font-normal text-muted-foreground sm:hidden">{marker.unit}</span>
           </span>
           <span className="hidden text-xs text-muted-foreground sm:inline">{marker.unit}</span>
           <span className={cn("text-[10px]", statusColorMap[key])}>●</span>
@@ -136,7 +136,8 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
             showHeader
           />
           <div className="border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
-            {marker.commentary}
+            <span className="sm:hidden">Показатель требует внимания. В персональном отчёте вы получите понятное пояснение и дальнейшие шаги.</span>
+            <span className="hidden sm:inline">{marker.commentary}</span>
           </div>
         </div>
       )}
@@ -167,12 +168,12 @@ export function EnergyExpertResult() {
                 </span>
               </div>
 
-              <div className="mt-2 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+               <div className="mt-2 space-y-1.5">
+                 <div className="hidden items-center gap-1.5 text-sm text-muted-foreground sm:flex">
                   <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
                   <span className="truncate">Врач терапевт</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                 <div className="hidden items-center gap-1.5 text-sm text-muted-foreground sm:flex">
                   <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
                   <span className="truncate">Сердечно-сосудистый хирург</span>
                 </div>
@@ -186,11 +187,11 @@ export function EnergyExpertResult() {
                 </div>
               </div>
 
-              <p className="mt-3 border-t border-border/20 pt-3 text-sm text-muted-foreground">
+               <p className="mt-3 line-clamp-2 border-t border-border/20 pt-3 text-sm text-muted-foreground sm:line-clamp-none">
                 Врач-терапевт, сердечно-сосудистый хирург и нутрициолог с опытом более 10 лет. Помогает разобрать анализы в контексте общего состояния, образа жизни и целей пациента.
               </p>
 
-              <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
+               <div className="mt-3 hidden space-y-2 rounded-lg bg-muted/40 p-3 sm:block">
                 <div className="flex items-start gap-2 text-sm text-muted-foreground">
                   <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                   <span>Консультация по желанию. Врач подробно расскажет по итогам анализов.</span>
@@ -203,7 +204,7 @@ export function EnergyExpertResult() {
             </div>
           </div>
 
-          <Button className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base" size="lg">
+          <Button className="mt-4 hidden h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:flex sm:text-base" size="lg">
             <FileText className="h-4 w-4 shrink-0" aria-hidden />
             Посмотреть пример расшифровки
           </Button>
@@ -218,7 +219,7 @@ export function EnergyExpertResult() {
 
           <div className="mt-5 space-y-3">
             {markers.map((m) => (
-              <MarkerCard key={m.code} marker={m} defaultOpen />
+              <MarkerCard key={m.code} marker={m} defaultOpen={false} />
             ))}
           </div>
         </div>
