@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { markersLabel, money } from "@/data/checkups";
 
@@ -35,6 +36,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
+  const isMobile = useIsMobile();
   const { cartOpen, closeCart, clinic, setClinic, checkup } = useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -132,7 +134,7 @@ export function EnergyCart() {
     <>
       <Sheet open={cartOpen} onOpenChange={(o) => !o && closeCart()}>
         <SheetContent
-          side="right"
+          side={isMobile ? "bottom" : "right"}
           className="flex h-[100dvh] w-full flex-col gap-0 p-0 sm:max-w-[30rem]"
         >
           <header className="flex items-center justify-between border-b hairline px-5 py-4">
