@@ -40,7 +40,7 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
-        <div className="mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
+        <div className="mb-6 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
               Другие чекапы <span className="text-primary">ReAge</span>
@@ -50,7 +50,7 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <button
               type="button"
               onClick={() => scrollBy(-1)}
@@ -92,28 +92,28 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                 <Link
                   key={c.slug}
                   to={c.href}
-                  className="group relative block w-[88vw] shrink-0 snap-start rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] md:w-[30rem]"
+                  className="group relative block w-[calc(100vw-2.5rem)] max-w-[23rem] shrink-0 snap-start rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-[26rem] sm:max-w-none sm:rounded-[2rem] md:w-[30rem]"
                 >
                   <div
-                    className={`absolute -inset-0.5 rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60`}
+                    className={`absolute -inset-0.5 hidden rounded-[2.25rem] bg-gradient-to-r ${a.glowFrom} ${a.glowTo} opacity-20 blur-2xl transition duration-500 group-hover:opacity-60 sm:block`}
                     aria-hidden
                   />
 
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 backdrop-blur-sm transition-colors duration-300 md:p-8">
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/80 p-5 backdrop-blur-sm transition-colors duration-300 sm:rounded-[2rem] sm:p-6 md:p-8">
                     <div
                       className={`absolute -right-12 -top-12 h-48 w-48 rounded-full ${a.bg} blur-3xl transition duration-500 group-hover:opacity-80`}
                       aria-hidden
                     />
 
                     <span
-                      className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+                      className={`relative mb-4 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text} sm:mb-6`}
                     >
                       {c.tag}
                     </span>
 
                     <div className="relative mt-auto flex flex-col">
-                      <div className="min-h-[6rem]">
-                        <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+                      <div className="sm:min-h-[6rem]">
+                        <h3 className="font-display text-xl font-semibold leading-tight text-foreground sm:text-2xl md:text-3xl">
                           {c.name}
                         </h3>
                         <p className="mt-2 line-clamp-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">

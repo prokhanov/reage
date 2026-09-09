@@ -67,7 +67,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
             {checkup.heroSubtitle}
           </p>
-          <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
+          <p className="mt-3 max-w-md line-clamp-3 text-base leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none sm:text-lg xl:text-xl">
             {checkup.lead}
           </p>
 
@@ -97,7 +97,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
             ))}
           </dl>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
+          <div className="mt-6 flex flex-col items-stretch gap-4 sm:mt-8 sm:flex-row sm:items-center sm:gap-5">
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
               {money(checkup.price)}
             </div>
@@ -107,16 +107,17 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
               onClick={onAddToCart}
               className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
             >
-              Добавить в корзину
+              <span className="sm:hidden">В корзину</span>
+              <span className="hidden sm:inline">Добавить в корзину</span>
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
 
-          <p className="mt-3 text-base text-muted-foreground">Результаты в ReAge</p>
+          <p className="mt-3 text-base text-muted-foreground">Анализы в LabQuest · результаты в ReAge</p>
         </div>
 
         {/* Визуал на мобильном — после CTA */}
-        <div className="relative mt-7 h-[260px] w-full overflow-hidden rounded-2xl sm:h-[320px] lg:hidden">
+        <div className="relative mt-7 h-[260px] w-full overflow-hidden rounded-2xl min-[390px]:h-[290px] sm:h-[320px] lg:hidden">
           <img
             src={checkup.heroImage}
             alt={checkup.heroAlt}
