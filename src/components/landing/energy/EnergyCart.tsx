@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Award, Clock, MapPin, Stethoscope } from "lucide-react";
 
-import expertDoctorAsset from "@/assets/energy/reage-doctor.jpg.asset.json";
-
-const expertDoctor = expertDoctorAsset.url;
+import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
