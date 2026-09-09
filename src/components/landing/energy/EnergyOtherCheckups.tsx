@@ -111,15 +111,17 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                       {c.tag}
                     </span>
 
-                    <div className="relative mt-auto">
-                      <h3 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
-                        {c.name}
-                      </h3>
-                      <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
-                        {c.cardText}
-                      </p>
+                    <div className="relative mt-auto flex flex-col">
+                      <div className="min-h-[6rem]">
+                        <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+                          {c.name}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
+                          {c.cardText}
+                        </p>
+                      </div>
 
-                      <div className="mt-6 flex items-center justify-between gap-4 md:mt-8">
+                      <div className="mt-4 flex items-center justify-between gap-4">
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="font-display text-2xl font-semibold text-foreground">
