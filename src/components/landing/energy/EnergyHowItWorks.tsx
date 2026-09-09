@@ -9,8 +9,8 @@ interface Props {
 
 const steps = [
   {
-    title: "Выберите и оплатите чекап",
-    text: "Оплата онлайн, направление приходит на почту.",
+    title: "Оформляете чекап",
+    text: "Оплата онлайн, направление приходит на почту — всё готово к визиту в лабораторию.",
     accent: "primary" as const,
     visual: (
       <svg
@@ -29,8 +29,8 @@ const steps = [
     ),
   },
   {
-    title: "Сдайте анализы в LabQuest",
-    text: "Приходите в удобное отделение без предварительной записи.",
+    title: "Сдаёте анализы",
+    text: "Приходите в любое удобное отделение LabQuest натощак — процедура займёт 15 минут.",
     accent: "accent" as const,
     visual: (
       <svg
@@ -48,8 +48,8 @@ const steps = [
     ),
   },
   {
-    title: "Получите результаты и расшифровку в ReAge",
-    text: "Понятный результат и дальнейшие шаги — в личном кабинете.",
+    title: "Получаете разбор",
+    text: "Результаты, персональные рекомендации и понятный план действий — в личном кабинете ReAge.",
     accent: "info" as const,
     visual: (
       <svg
@@ -108,10 +108,10 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: 
             return (
               <div
                 key={i}
-                className="flex items-start gap-3 rounded-2xl border border-border bg-card/80 p-4 md:gap-4 md:p-5"
+                className="flex items-start gap-4 rounded-2xl border border-border bg-card/80 p-4 md:p-5"
               >
                 <div
-                  className={`h-12 w-12 shrink-0 rounded-xl border ${a.border} ${a.bg} p-2.5 ${a.text} md:h-16 md:w-16 md:p-3`}
+                  className={`shrink-0 rounded-xl border ${a.border} ${a.bg} p-3 ${a.text} h-14 w-14 md:h-16 md:w-16`}
                   aria-hidden
                 >
                   {s.visual}

@@ -63,7 +63,9 @@ export function EnergyStickyCta({
     >
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0">
-          {cartCount > 0 && <div className="truncate text-xs text-muted-foreground">1 товар</div>}
+          {cartCount > 0 && (
+            <div className="truncate text-xs text-muted-foreground">{name} в корзине</div>
+          )}
           <div className="font-mono-tech text-lg text-foreground">{money(price)}</div>
         </div>
         <Button
@@ -72,7 +74,7 @@ export function EnergyStickyCta({
           className="ml-auto h-12 flex-1 text-base"
           tabIndex={visible ? 0 : -1}
         >
-          {cartCount > 0 ? "Оформить" : "В корзину"}
+          {cartCount > 0 ? "Оформить" : "Добавить в корзину"}
         </Button>
       </div>
     </div>

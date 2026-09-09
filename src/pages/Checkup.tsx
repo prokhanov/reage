@@ -31,15 +31,6 @@ export function CheckupContent() {
     setTheme("light");
   }, [setTheme]);
 
-  useEffect(() => {
-    const id = "checkup-mobile-hide-jivo";
-    const style = document.createElement("style");
-    style.id = id;
-    style.textContent = `@media (max-width: 1023px) { jdiv, jdiv iframe, #jvlabelWrap { display: none !important; visibility: hidden !important; } }`;
-    document.head.appendChild(style);
-    return () => style.remove();
-  }, []);
-
   const handleAddToCart = () => {
     reachGoal(`${checkup.slug.replace(/-/g, "_")}_add_to_cart`);
     addToCart();

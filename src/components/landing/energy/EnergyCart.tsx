@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 import { markersLabel, money } from "@/data/checkups";
 
@@ -36,7 +35,6 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
-  const isMobile = useIsMobile();
   const { cartOpen, closeCart, clinic, setClinic, checkup } = useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -134,8 +132,8 @@ export function EnergyCart() {
     <>
       <Sheet open={cartOpen} onOpenChange={(o) => !o && closeCart()}>
         <SheetContent
-          side={isMobile ? "bottom" : "right"}
-          className="flex h-[100dvh] w-full flex-col gap-0 p-0 sm:max-w-[30rem]"
+          side="right"
+          className="flex w-full flex-col gap-0 p-0 sm:max-w-[30rem]"
         >
           <header className="flex items-center justify-between border-b hairline px-5 py-4">
             <SheetTitle className="font-display text-2xl text-foreground">Ваш заказ</SheetTitle>
@@ -206,7 +204,6 @@ export function EnergyCart() {
                   <Input
                     type="email"
                     inputMode="email"
-                     autoComplete="email"
                     placeholder="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -216,7 +213,6 @@ export function EnergyCart() {
                   <Input
                     type="tel"
                     inputMode="tel"
-                     autoComplete="tel"
                     placeholder="телефон"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
