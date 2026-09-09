@@ -223,24 +223,27 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                   const itemHours = normalizeHours(item.hours ?? []).slice(0, 1).join("");
                   const itemDistance = distanceKm(userPos ?? currentCity.center, [item.lat, item.lng]);
                   return (
-                    <button
+                    <Button
                       key={item.id}
                       type="button"
+                      variant="ghost"
                       onClick={() => setSelectedId(item.id)}
-                      className={`min-h-11 w-full rounded-xl border p-4 text-left transition-colors ${
+                      className={`h-auto min-h-11 w-full whitespace-normal rounded-xl border p-4 text-left transition-colors ${
                         selectedId === item.id ? "border-primary bg-primary/5" : "border-border bg-card"
                       }`}
                     >
-                      <span className="block text-base font-semibold text-foreground">{item.title}</span>
-                      <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                        {item.metro ? `м. ${item.metro} · ` : ""}
-                        {item.address_short || item.full_address}
+                      <span className="block min-w-0 w-full">
+                        <span className="block text-base font-semibold text-foreground">{item.title}</span>
+                        <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                          {item.metro ? `м. ${item.metro} · ` : ""}
+                          {item.address_short || item.full_address}
+                        </span>
+                        <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          {itemHours && <span>{itemHours}</span>}
+                          <span>{formatDistance(itemDistance)}</span>
+                        </span>
                       </span>
-                      <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        {itemHours && <span>{itemHours}</span>}
-                        <span>{formatDistance(itemDistance)}</span>
-                      </span>
-                    </button>
+                    </Button>
                   );
                 })}
                 <Button
