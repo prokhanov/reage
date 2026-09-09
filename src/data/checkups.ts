@@ -18,11 +18,15 @@ import {
 
 import heroBase40 from "@/assets/energy/hero-base40.jpg";
 import heroCardio from "@/assets/energy/hero-cardio.jpg";
+import heroFemaleHormones from "@/assets/energy/hero-female-hormones.jpg";
+import heroHair from "@/assets/energy/hero-hair.jpg";
 import heroIron from "@/assets/energy/hero-iron.jpg";
 import heroKidney from "@/assets/energy/hero-kidney.jpg";
 import heroLiver from "@/assets/energy/hero-liver.jpg";
+import heroMaleHormones from "@/assets/energy/hero-male-hormones.jpg";
 import heroMetabolic from "@/assets/energy/hero-metabolic.jpg";
 import heroThyroid from "@/assets/energy/hero-thyroid.jpg";
+import heroVitamins from "@/assets/energy/hero-vitamins.jpg";
 import heroWoman from "@/assets/energy/hero-woman.jpg";
 
 export type CheckupAccent = "primary" | "accent" | "info";
@@ -71,6 +75,8 @@ export interface Checkup {
   includedNote: string;
   seoTitle: string;
   seoDescription: string;
+  /** Дополнительные правила подготовки к сдаче именно этого чекапа. */
+  prepNotes?: string[];
   markers: CheckupMarker[];
 }
 
@@ -343,6 +349,152 @@ export const CHECKUPS: Checkup[] = [
       { title: "Креатинин", description: "нагрузка на почки", icon: Waves },
       { title: "eGFR", description: "скорость фильтрации почек", icon: Activity },
       { title: "ТТГ", description: "работа щитовидной железы", icon: Sun },
+    ],
+  },
+  {
+    slug: "vitamins",
+    bundle: "vitamins",
+    href: "/checkup/vitamins",
+    name: "ReAge Витамины и минералы",
+    tag: "Витамины и минералы",
+    price: 5990,
+    accent: "accent",
+    shape: "spark",
+    heroImage: heroVitamins,
+    heroAlt: "Женщина со стаканом воды на светлой кухне",
+    heroCaption: ["Базовые запасы", "витаминов и минералов"],
+    heroTitle: "Чекап витаминов и минералов",
+    heroSubtitle: SUBTITLE,
+    lead: "Базовая оценка витаминно-минерального статуса. Помогает проверить ключевые показатели, связанные с запасами железа, витаминами группы B, витамином D и важными микроэлементами.",
+    cardText: "7 ключевых показателей витаминно-минерального статуса.",
+    includedNote: "Семь показателей: железо, витамины группы B, витамин D и микроэлементы.",
+    seoTitle: "ReAge Витамины и минералы — чекап витаминов, железа и микроэлементов",
+    seoDescription:
+      "Чекап ReAge Витамины и минералы за 5 990 ₽: витамин D, B12, фолиевая кислота, магний, цинк, железо сывороточное и ферритин. Анализы в LabQuest, разбор в ReAge за 1–2 дня.",
+    markers: [
+      { title: "Витамин D, 25-OH", description: "иммунитет и тонус", icon: Sun },
+      { title: "Витамин B12", description: "нервная система и энергия клеток", icon: Bolt },
+      { title: "Фолиевая кислота (B9)", description: "обновление клеток крови", icon: Leaf },
+      { title: "Магний", description: "мышцы, сон и нервная система", icon: Waves },
+      { title: "Цинк", description: "иммунитет, кожа и волосы", icon: Shield },
+      { title: "Железо сывороточное", description: "железо в крови сейчас", icon: Beaker },
+      { title: "Ферритин", description: "запасы железа в тканях", icon: Battery },
+    ],
+  },
+  {
+    slug: "female-hormones",
+    bundle: "female-hormones",
+    href: "/checkup/female-hormones",
+    name: "ReAge Женские гормоны",
+    tag: "Женские гормоны",
+    price: 3990,
+    accent: "info",
+    shape: "circle",
+    heroImage: heroFemaleHormones,
+    heroAlt: "Спокойная женщина у окна в светлом интерьере",
+    heroCaption: ["Понятная картина", "гормонального фона"],
+    heroTitle: "Чекап женских гормонов",
+    heroSubtitle: SUBTITLE,
+    lead: "Базовый гормональный профиль для женщин. Позволяет оценить основные гормоны, связанные с работой репродуктивной системы и менструальным циклом. При интерпретации ReAge учитывает день цикла и дополнительный контекст.",
+    cardText: "Основные показатели женского гормонального профиля.",
+    includedNote: "Четыре базовых гормона, которые смотрят в первую очередь.",
+    seoTitle: "ReAge Женские гормоны — базовый гормональный чекап для женщин",
+    seoDescription:
+      "Чекап ReAge Женские гормоны за 3 990 ₽: ЛГ, ФСГ, эстрадиол и пролактин. Анализы в LabQuest, расшифровка ReAge с учётом дня цикла за 1–2 дня.",
+    prepNotes: [
+      "укажите день менструального цикла — он важен для расшифровки",
+      "сообщите, принимаете ли гормональные препараты или контрацептивы",
+    ],
+    markers: [
+      {
+        title: "Лютеинизирующий гормон (ЛГ)",
+        description: "регуляция овуляции",
+        icon: Activity,
+      },
+      {
+        title: "Фолликулостимулирующий гормон (ФСГ)",
+        description: "работа яичников",
+        icon: Gauge,
+      },
+      { title: "Эстрадиол", description: "основной женский гормон", icon: Sparkles },
+      { title: "Пролактин", description: "влияет на цикл и самочувствие", icon: Droplet },
+    ],
+  },
+  {
+    slug: "male-hormones",
+    bundle: "male-hormones",
+    href: "/checkup/male-hormones",
+    name: "ReAge Мужские гормоны",
+    tag: "Мужские гормоны",
+    price: 4490,
+    accent: "primary",
+    shape: "triangle",
+    heroImage: heroMaleHormones,
+    heroAlt: "Мужчина у окна в светлом интерьере",
+    heroCaption: ["Тестостерон", "в общей картине"],
+    heroTitle: "Чекап мужских гормонов",
+    heroSubtitle: SUBTITLE,
+    lead: "Комплекс основных показателей мужского гормонального профиля. Позволяет оценить уровень тестостерона и связанные с ним гормональные показатели в единой картине.",
+    cardText: "Тестостерон и основные показатели мужского гормонального профиля.",
+    includedNote: "Семь позиций, включая расчёт свободного тестостерона.",
+    seoTitle: "ReAge Мужские гормоны — чекап тестостерона и мужского профиля",
+    seoDescription:
+      "Чекап ReAge Мужские гормоны за 4 490 ₽: тестостерон общий, ГСПГ, ЛГ, ФСГ, пролактин, альбумин и расчёт свободного тестостерона. Анализы в LabQuest, разбор в ReAge.",
+    prepNotes: [
+      "сдавайте утром — уровень тестостерона меняется в течение дня",
+      "уточните требования лаборатории перед визитом",
+    ],
+    markers: [
+      { title: "Тестостерон общий", description: "основной мужской гормон", icon: Bolt },
+      { title: "ГСПГ", description: "белок, связывающий тестостерон", icon: Shield },
+      {
+        title: "Лютеинизирующий гормон (ЛГ)",
+        description: "сигнал для выработки тестостерона",
+        icon: Activity,
+      },
+      {
+        title: "Фолликулостимулирующий гормон (ФСГ)",
+        description: "работа половых желёз",
+        icon: Gauge,
+      },
+      { title: "Пролактин", description: "влияет на гормональный баланс", icon: Droplet },
+      { title: "Альбумин", description: "нужен для расчёта свободного тестостерона", icon: Beaker },
+      {
+        title: "Свободный тестостерон / индекс свободных андрогенов",
+        description: "расчётный показатель",
+        icon: Scale,
+      },
+    ],
+  },
+  {
+    slug: "hair",
+    bundle: "hair",
+    href: "/checkup/hair",
+    name: "ReAge Волосы",
+    tag: "Волосы",
+    price: 5990,
+    accent: "accent",
+    shape: "wave",
+    heroImage: heroHair,
+    heroAlt: "Женщина поправляет здоровые волосы у окна",
+    heroCaption: ["Причины выпадения", "видно в анализах"],
+    heroTitle: "Чекап при выпадении волос",
+    heroSubtitle: SUBTITLE,
+    lead: "Лабораторная оценка ключевых показателей, которые имеет смысл проверить при усиленном выпадении волос. Включает показатели обмена железа, функции щитовидной железы и некоторых витаминов и микроэлементов.",
+    cardText: "Ключевые показатели, которые стоит оценить при выпадении волос.",
+    includedNote: "Восемь показателей: железо, щитовидная железа, витамины и цинк.",
+    seoTitle: "ReAge Волосы — чекап при выпадении волос: ферритин, ТТГ, витамины",
+    seoDescription:
+      "Чекап ReAge Волосы за 5 990 ₽: общий анализ крови, ферритин, ТТГ, Т4 свободный, витамин D, B12, фолиевая кислота и цинк. Анализы в LabQuest, разбор в ReAge за 1–2 дня.",
+    markers: [
+      { title: "Общий анализ крови", description: "базовая картина крови", icon: Droplet },
+      { title: "Ферритин", description: "запасы железа в тканях", icon: Battery },
+      { title: "ТТГ", description: "работа щитовидной железы", icon: Activity },
+      { title: "Т4 свободный", description: "активный гормон щитовидной железы", icon: Bolt },
+      { title: "Витамин D, 25-OH", description: "иммунитет и тонус", icon: Sun },
+      { title: "Витамин B12", description: "нервная система и энергия клеток", icon: FlaskConical },
+      { title: "Фолиевая кислота (B9)", description: "обновление клеток", icon: Leaf },
+      { title: "Цинк", description: "рост волос и состояние кожи", icon: Shield },
     ],
   },
 ];

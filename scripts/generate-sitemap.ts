@@ -23,6 +23,10 @@ const entries: SitemapEntry[] = [
   { path: "/checkup/liver", changefreq: "weekly", priority: "0.8" },
   { path: "/checkup/kidney", changefreq: "weekly", priority: "0.8" },
   { path: "/checkup/base-40", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/vitamins", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/female-hormones", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/male-hormones", changefreq: "weekly", priority: "0.8" },
+  { path: "/checkup/hair", changefreq: "weekly", priority: "0.8" },
 ];
 
 const xml = [

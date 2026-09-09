@@ -197,6 +197,7 @@ export function EnergyCart() {
                   <li>сдавайте натощак, 8–12 часов без еды</li>
                   <li>возьмите паспорт с собой</li>
                   <li>без записи, любое отделение LabQuest</li>
+                  {checkup.prepNotes?.map((note) => <li key={note}>{note}</li>)}
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground">
                   Куда прислать результат — оба поля обязательны
