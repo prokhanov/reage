@@ -5,9 +5,7 @@ import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cn } from "@/lib/utils";
-import expertDoctorAsset from "@/assets/energy/reage-doctor.jpg.asset.json";
-
-const expertDoctor = expertDoctorAsset.url;
+import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 /**
  * Демо-карточки биомаркеров для лендинга: та же шкала и та же логика статусов,
