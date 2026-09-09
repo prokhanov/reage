@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react";
+import { CheckCircle2, Clock, Crosshair, List, Map, MapPin, Navigation } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +59,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const [geoNote, setGeoNote] = useState<string | null>(null);
   const [mapHeight, setMapHeight] = useState(420);
   const [isWide, setIsWide] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -160,6 +161,16 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const selectedHours = selected ? normalizeHours(selected.hours ?? []) : [];
   const selectedDistance =
     selected && userPos ? distanceKm(userPos, [selected.lat, selected.lng]) : null;
+  const currentCity = CITIES.find((item) => item.key === city) ?? CITIES[0];
+  const nearbyItems = useMemo(() => {
+    const base = userPos ?? currentCity.center;
+    return [...cityItems]
+      .sort(
+        (left, right) =>
+          distanceKm(base, [left.lat, left.lng]) - distanceKm(base, [right.lat, right.lng]),
+      )
+      .slice(0, 3);
+  }, [cityItems, currentCity.center, userPos]);
 
   return (
     <div className="min-w-0">
@@ -190,9 +201,66 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
           layout === "section" ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
         }`}
       >
+        {!isWide && layout === "section" && (
+          <div className="min-w-0 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-foreground">Ближайшие отделения</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="min-h-11 shrink-0 gap-2"
+                onClick={() => setMapOpen((value) => !value)}
+              >
+                {mapOpen ? <List className="h-4 w-4" aria-hidden /> : <Map className="h-4 w-4" aria-hidden />}
+                {mapOpen ? "Скрыть карту" : "На карте"}
+              </Button>
+            </div>
+
+            {!mapOpen && (
+              <div className="space-y-2">
+                {nearbyItems.map((item) => {
+                  const itemHours = normalizeHours(item.hours ?? []).slice(0, 1).join("");
+                  const itemDistance = distanceKm(userPos ?? currentCity.center, [item.lat, item.lng]);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedId(item.id)}
+                      className={`min-h-11 w-full rounded-xl border p-4 text-left transition-colors ${
+                        selectedId === item.id ? "border-primary bg-primary/5" : "border-border bg-card"
+                      }`}
+                    >
+                      <span className="block text-base font-semibold text-foreground">{item.title}</span>
+                      <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                        {item.metro ? `м. ${item.metro} · ` : ""}
+                        {item.address_short || item.full_address}
+                      </span>
+                      <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        {itemHours && <span>{itemHours}</span>}
+                        <span>{formatDistance(itemDistance)}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleLocate}
+                  disabled={locating || items.length === 0}
+                  className="h-12 w-full gap-2 text-base"
+                >
+                  <Crosshair className="h-4 w-4" aria-hidden />
+                  {locating ? "Определяем…" : "Найти ближайшее ко мне"}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Левая панель (на мобильном — под картой) */}
         <div
-          className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
+          className={`${!isWide && layout === "section" && !selected ? "hidden" : "flex"} min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
             layout === "section" ? "order-2 lg:order-1" : ""
           }`}
           style={layout === "section" && isWide ? { minHeight: mapHeight } : undefined}
@@ -321,27 +389,29 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
 
         {/* Карта */}
         <div
-          className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
+          className={`${!isWide && layout === "section" && !mapOpen ? "hidden" : "block"} min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
             layout === "section" ? "order-1 lg:order-2" : ""
           }`}
         >
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
-            <LabLocationsMap
-              key={city}
-              items={cityItems}
-              center={CITIES.find((c) => c.key === city)!.center}
-              zoom={CITIES.find((c) => c.key === city)!.zoom}
-              height={mapHeight}
-              fitToItems
-              hideControls
-              clusterMarkers
-              showSelectButton
-              selectOnMarkerClick
-              selectedId={selectedId ?? undefined}
-              focusOnSelected
-              focusZoom={15}
-              onSelect={(item) => setSelectedId(item.id)}
-            />
+            {(isWide || layout === "stack" || mapOpen) && (
+              <LabLocationsMap
+                key={city}
+                items={cityItems}
+                center={currentCity.center}
+                zoom={currentCity.zoom}
+                height={mapHeight}
+                fitToItems
+                hideControls
+                clusterMarkers
+                showSelectButton
+                selectOnMarkerClick
+                selectedId={selectedId ?? undefined}
+                focusOnSelected
+                focusZoom={15}
+                onSelect={(item) => setSelectedId(item.id)}
+              />
+            )}
           </Suspense>
         </div>
       </div>
