@@ -243,7 +243,7 @@ export function EnergyCart() {
                 />
                 <img
                   src={expertDoctor}
-                  alt="Врач Анна Ковалёва"
+                  alt="Врач Наталья Чезганова"
                   loading="lazy"
                   className="h-16 w-14 shrink-0 rounded-lg object-cover object-top"
                 />
@@ -255,20 +255,24 @@ export function EnergyCart() {
                     </span>
                   </div>
                   <div className="mt-0.5 text-sm text-muted-foreground">
-                    Д-р Анна Ковалёва · разбор результатов 40 минут онлайн
+                    Д-р Наталья Чезганова · разбор результатов 40 минут онлайн
                   </div>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Эндокринолог
+                      Терапевт
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      К.м.н.
+                      Хирург
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-primary/80" aria-hidden>●</span>
+                      Нутрициолог
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Стаж 12+ лет
+                      Стаж 10+ лет
                     </span>
                   </div>
                 </div>
