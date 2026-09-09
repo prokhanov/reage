@@ -195,7 +195,7 @@ export const CHECKUPS: Checkup[] = [
     heroTitle: "Чекап сердца и сосудов",
     heroSubtitle: SUBTITLE,
     lead: "Для тех, кому важно узнать про атеросклероз заранее. Липиды, воспаление, наследственный риск и работа почек в одном наборе.",
-    cardText: "Липиды, воспаление, риск атеросклероза, ApoB — дополнительно",
+    cardText: "Липиды, воспаление, риск атеросклероза, ApoB",
     includedNote: "Двенадцать показателей — полная картина сердечно-сосудистого риска.",
     seoTitle: "ReAge Сердце и сосуды — чекап сердца и сосудов, ApoB и Lp(a)",
     seoDescription:
@@ -212,7 +212,7 @@ export const CHECKUPS: Checkup[] = [
       { title: "HbA1c", description: "средний сахар за три месяца", icon: Gauge },
       { title: "Креатинин", description: "нагрузка на почки", icon: Beaker },
       { title: "eGFR", description: "скорость фильтрации почек", icon: Waves },
-      { title: "ApoB — дополнительно", description: "точный счёт атерогенных частиц", icon: Bolt },
+      { title: "ApoB", description: "точный счёт атерогенных частиц", icon: Bolt },
     ],
   },
   {
