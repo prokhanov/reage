@@ -75,6 +75,8 @@ export interface Checkup {
   includedNote: string;
   seoTitle: string;
   seoDescription: string;
+  /** Дополнительные правила подготовки к сдаче именно этого чекапа. */
+  prepNotes?: string[];
   markers: CheckupMarker[];
 }
 
