@@ -24,6 +24,10 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
   liver: { title: "ReAge Liver & Fibrosis — чекап печени", price: 4990 },
   kidney: { title: "ReAge Kidney Risk — чекап почек", price: 4990 },
   "base-40": { title: "ReAge Base 40+ — базовый чекап", price: 7990 },
+  vitamins: { title: "ReAge Витамины и минералы — чекап", price: 5990 },
+  "female-hormones": { title: "ReAge Женские гормоны — чекап", price: 3990 },
+  "male-hormones": { title: "ReAge Мужские гормоны — чекап", price: 4490 },
+  hair: { title: "ReAge Волосы — чекап при выпадении волос", price: 5990 },
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
