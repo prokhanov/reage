@@ -83,7 +83,7 @@ export const CHECKUPS: Checkup[] = [
     href: "/energy",
     name: "ReAge Энергия",
     tag: "Энергия и усталость",
-    price: 2990,
+    price: 5990,
     accent: "primary",
     shape: "spark",
     heroImage: heroWoman,
@@ -96,7 +96,7 @@ export const CHECKUPS: Checkup[] = [
     includedNote: "Семь ключевых показателей, с которых начинается разбор причин усталости.",
     seoTitle: "ReAge Энергия — чекап при усталости: 7 показателей на энергию",
     seoDescription:
-      "Чекап ReAge Энергия: ОАК + СОЭ + лейкоцитарная формула, ферритин, витамин D, витамин B12, ТТГ, глюкоза и HbA1c за 2 990 ₽. Анализы в LabQuest, результаты с разбором в ReAge за 1–2 дня.",
+      "Чекап ReAge Энергия: ОАК + СОЭ + лейкоцитарная формула, ферритин, витамин D, витамин B12, ТТГ, глюкоза и HbA1c за 5 990 ₽. Анализы в LabQuest, результаты с разбором в ReAge за 1–2 дня.",
     markers: [
       {
         title: "ОАК + СОЭ + лейкоцитарная формула",
