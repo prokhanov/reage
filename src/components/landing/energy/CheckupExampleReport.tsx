@@ -1,4 +1,4 @@
-import { ShoppingCart, X } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
