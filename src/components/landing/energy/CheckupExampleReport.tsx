@@ -1,101 +1,94 @@
 import { ShoppingCart } from "lucide-react";
 
-import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
-import { cn } from "@/lib/utils";
+import { BiomarkerCard } from "@/lib/reportLab/renderer/BiomarkerCard";
+import { resolveStatus } from "@/lib/reportLab/parser";
+import type { ReportBiomarker } from "@/lib/reportLab/types";
+import "@/lib/reportLab/theme.css";
+import "./checkupExampleReport.css";
 import { money, type Checkup } from "@/data/checkups";
 import {
   getCheckupExampleReport,
   type ExampleMarker,
 } from "@/data/checkupExampleReports";
 
-const statusText: Record<string, string> = {
-  critical: "text-status-critical",
-  risk: "text-status-risk",
-  acceptable: "text-status-acceptable",
-  optimal: "text-status-optimal",
+/** Формулировки строки результата — те же, что в отчётах ReAge. */
+const RESULT_PHRASE: Record<string, string> = {
+  optimal: "в оптимальном диапазоне",
+  "sub-optimal-low": "в допустимом диапазоне, ниже оптимального",
+  "sub-optimal-high": "в допустимом диапазоне, выше оптимального",
+  "warning-low": "ниже нормы",
+  "warning-high": "выше нормы",
+  "critical-low": "значительно ниже нормы",
+  "critical-high": "значительно выше нормы",
 };
 
-const statusCard: Record<string, string> = {
-  critical: "bg-status-critical/5 border-status-critical/20",
-  risk: "bg-status-risk/5 border-status-risk/20",
-  acceptable: "bg-status-acceptable/5 border-status-acceptable/20",
-  optimal: "bg-status-optimal/5 border-status-optimal/15",
-};
+function toReportBiomarker(marker: ExampleMarker, category: string): ReportBiomarker {
+  const ref = marker.biomarker as Record<string, number | null>;
+  return {
+    id: marker.code,
+    code: marker.code,
+    name: marker.name,
+    category,
+    unit: marker.unit,
+    value: marker.value,
+    normal_min: ref.normal_min ?? null,
+    normal_max: ref.normal_max ?? null,
+    normal_min_male: null,
+    normal_max_male: null,
+    normal_min_female: null,
+    normal_max_female: null,
+    optimal_min: ref.optimal_min ?? null,
+    optimal_max: ref.optimal_max ?? null,
+    optimal_min_male: null,
+    optimal_max_male: null,
+    optimal_min_female: null,
+    optimal_max_female: null,
+    critical_min: ref.critical_min ?? null,
+    critical_max: ref.critical_max ?? null,
+    critical_min_male: null,
+    critical_max_male: null,
+    critical_min_female: null,
+    critical_max_female: null,
+  } as ReportBiomarker;
+}
 
-function MarkerBlock({
-  marker,
-  age,
-  gender,
-}: {
-  marker: ExampleMarker;
-  age: number;
-  gender: "male" | "female";
-}) {
-  const status = getBiomarkerStatus(marker.value, marker.biomarker, age, gender);
-  const key = status.status as keyof typeof statusText;
+function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
-  return (
-    <article className={cn("rounded-xl border p-4 sm:p-5", statusCard[key])}>
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="min-w-0 text-base font-semibold text-foreground sm:text-lg">
-          {marker.name}
-          <span className="ml-1.5 text-xs font-normal text-muted-foreground">({marker.code})</span>
-        </h4>
-        <span className="flex shrink-0 items-center gap-1.5">
-          <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
-            {marker.value}
-          </span>
-          <span className="text-xs text-muted-foreground">{marker.unit}</span>
-          <span className={cn("text-[10px]", statusText[key])}>●</span>
-          <span className={cn("text-xs font-medium", statusText[key])}>{status.label}</span>
-        </span>
-      </header>
+/**
+ * Комментарий к показателю в структуре отчёта ReAge:
+ * образовательный абзац → строка результата → «Что это значит для вас».
+ */
+function buildCommentary(marker: ExampleMarker, status: string): string {
+  const parts: string[] = [marker.meaning.trim()];
 
-      <div className="mt-3">
-        <BiomarkerScale
-          biomarker={marker.biomarker}
-          value={marker.value}
-          age={age}
-          gender={gender}
-          unit={marker.unit}
-          showHeader
-        />
-      </div>
-
-      <div className="mt-3 space-y-3 border-t border-border/20 pt-3">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Что это значит
-          </div>
-          <p className="mt-1 text-base leading-relaxed text-muted-foreground">{marker.meaning}</p>
-        </div>
-
-        {marker.feeling && (
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Как это может ощущаться
-            </div>
-            <p className="mt-1 text-base leading-relaxed text-muted-foreground">{marker.feeling}</p>
-          </div>
-        )}
-
-        {marker.commentary && (
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Разбор показателя
-            </div>
-            <p className="mt-1 text-base leading-relaxed text-muted-foreground">
-              {marker.commentary}
-            </p>
-          </div>
-        )}
-      </div>
-    </article>
+  const phrase = RESULT_PHRASE[status] ?? "в целевом диапазоне";
+  const unit = marker.unit ? ` ${marker.unit}` : "";
+  const interpretation = marker.commentary?.trim();
+  parts.push(
+    `Ваш показатель ${marker.value}${unit} находится ${phrase}.` +
+      (interpretation ? ` ${interpretation}` : ""),
   );
+
+  if (marker.feeling && status !== "optimal") {
+    const bullets = splitSentences(marker.feeling);
+    parts.push("Что это значит для вас");
+    if (bullets.length > 1) {
+      parts.push(bullets.map((b) => `* ${b.replace(/\.$/, "")}`).join("\n"));
+    } else {
+      parts.push(marker.feeling.trim());
+    }
+    parts.push("Что с этим делать — в разделе «Рекомендации» ниже.");
+  }
+
+  return parts.join("\n\n");
 }
 
 interface Props {
@@ -106,14 +99,15 @@ interface Props {
 }
 
 /**
- * Пример расшифровки под конкретный чекап: резюме → показатели со шкалой
- * ReAge и разбором → рекомендации. Данные — из `checkupExampleReports.ts`.
+ * Супер-лайт версия отчёта ReAge под конкретный чекап: краткое резюме →
+ * карточки показателей (те же, что в больших отчётах) → рекомендации.
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
   const report = getCheckupExampleReport(checkup.slug);
   if (!report) return null;
 
   const { patient } = report;
+  const yearWord = patient.age % 10 === 1 && patient.age % 100 !== 11 ? "год" : "лет";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,55 +118,57 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
               Пример расшифровки — {checkup.name}
             </DialogTitle>
             <DialogDescription className="mt-1 text-sm">
-              {patient.name}, {patient.age} {patient.age % 10 === 1 && patient.age % 100 !== 11 ? "год" : "лет"} · демонстрационный отчёт ReAge
+              {patient.name}, {patient.age} {yearWord} · демонстрационный отчёт ReAge
             </DialogDescription>
           </div>
         </div>
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-6 px-4 py-5 sm:px-6 sm:py-6">
-            <section className="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
-              <h3 className="font-display text-lg text-foreground">Общее резюме</h3>
-              <p className="mt-2 text-base leading-relaxed text-muted-foreground">{report.intro}</p>
-            </section>
+        <ScrollArea className="min-h-0 flex-1 bg-[#ffffff]">
+          <div className="reportlab">
+            <div className="px-4 py-6 sm:px-8">
+              <section className="rl-intro-lite">
+                <h2 className="rl-lite-heading">Общее резюме</h2>
+                <p className="rl-lite-text">{report.intro}</p>
+              </section>
 
-            <section>
-              <h3 className="font-display text-lg text-foreground">Показатели чекапа</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Каждый показатель — со шкалой ReAge и пояснением, что он означает.
-              </p>
-              <div className="mt-4 space-y-3">
-                {report.markers.map((marker) => (
-                  <MarkerBlock
-                    key={marker.code}
-                    marker={marker}
-                    age={patient.age}
-                    gender={patient.gender}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {report.recommendations.length > 0 && (
-              <section>
-                <h3 className="font-display text-lg text-foreground">Рекомендации</h3>
-                <div className="mt-4 space-y-3">
-                  {report.recommendations.map((rec) => (
-                    <div key={rec.title} className="rounded-xl border border-border bg-card p-4">
-                      <div className="text-base font-semibold text-foreground">{rec.title}</div>
-                      <p className="mt-1 text-base leading-relaxed text-muted-foreground">
-                        {rec.text}
-                      </p>
-                    </div>
-                  ))}
+              <section className="mt-6">
+                <h2 className="rl-lite-heading">Интерпретация биомаркеров</h2>
+                <div className="mt-3">
+                  {report.markers.map((marker) => {
+                    const bio = toReportBiomarker(marker, checkup.slug);
+                    const status = resolveStatus(bio, patient.gender, patient.age);
+                    return (
+                      <BiomarkerCard
+                        key={marker.code}
+                        biomarker={bio}
+                        commentary={buildCommentary(marker, status)}
+                        gender={patient.gender}
+                        age={patient.age}
+                      />
+                    );
+                  })}
                 </div>
               </section>
-            )}
 
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Пример составлен на условных данных и носит демонстрационный характер. Он не является
-              медицинским заключением и не заменяет консультацию врача.
-            </p>
+              {report.recommendations.length > 0 && (
+                <section className="mt-6">
+                  <h2 className="rl-lite-heading">Рекомендации</h2>
+                  <div className="mt-3 space-y-3">
+                    {report.recommendations.map((rec) => (
+                      <div key={rec.title} className="rl-lite-rec">
+                        <div className="rl-lite-rec-title">{rec.title}</div>
+                        <p className="rl-lite-text">{rec.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <p className="rl-lite-note">
+                Пример составлен на условных данных и носит демонстрационный характер. Он не
+                является медицинским заключением и не заменяет консультацию врача.
+              </p>
+            </div>
           </div>
         </ScrollArea>
 
