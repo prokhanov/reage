@@ -5,6 +5,9 @@ import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cn } from "@/lib/utils";
+import { reachGoal } from "@/lib/yandexMetrika";
+import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
+import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 /**
