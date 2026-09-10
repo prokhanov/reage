@@ -7,6 +7,7 @@ import { BiomarkerCard } from "@/lib/reportLab/renderer/BiomarkerCard";
 import { resolveStatus } from "@/lib/reportLab/parser";
 import type { ReportBiomarker } from "@/lib/reportLab/types";
 import "@/lib/reportLab/theme.css";
+import "./checkupExampleReport.css";
 import { money, type Checkup } from "@/data/checkups";
 import {
   getCheckupExampleReport,
