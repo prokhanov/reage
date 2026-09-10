@@ -127,14 +127,6 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
               {patient.name}, {patient.age} {patient.age % 10 === 1 && patient.age % 100 !== 11 ? "год" : "лет"} · демонстрационный отчёт ReAge
             </DialogDescription>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Закрыть"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <X className="h-5 w-5" aria-hidden />
-          </button>
         </div>
 
         <ScrollArea className="min-h-0 flex-1">
