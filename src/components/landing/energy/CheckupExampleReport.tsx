@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BiomarkerCard } from "@/lib/reportLab/renderer/BiomarkerCard";
 import { resolveStatus } from "@/lib/reportLab/parser";
 import type { ReportBiomarker } from "@/lib/reportLab/types";
+import { useReportBiomarkers, type ReportBiomarkerRow } from "@/hooks/useReportBiomarkers";
 import "@/lib/reportLab/theme.css";
 import "./checkupExampleReport.css";
 import { money, type Checkup } from "@/data/checkups";
@@ -25,33 +26,42 @@ const RESULT_PHRASE: Record<string, string> = {
   "critical-high": "значительно выше нормы",
 };
 
-function toReportBiomarker(marker: ExampleMarker, category: string): ReportBiomarker {
+function toReportBiomarker(
+  marker: ExampleMarker,
+  category: string,
+  db?: ReportBiomarkerRow,
+): ReportBiomarker {
   const ref = marker.biomarker as Record<string, number | null>;
+  const pick = (key: keyof ReportBiomarkerRow) =>
+    (db?.[key] as number | null | undefined) ?? null;
+  const range = (key: keyof ReportBiomarkerRow) =>
+    db ? pick(key) : (ref[key as string] ?? null);
+
   return {
     id: marker.code,
     code: marker.code,
-    name: marker.name,
+    name: db?.name || marker.name,
     category,
-    unit: marker.unit,
+    unit: db?.unit || marker.unit,
     value: marker.value,
-    normal_min: ref.normal_min ?? null,
-    normal_max: ref.normal_max ?? null,
-    normal_min_male: null,
-    normal_max_male: null,
-    normal_min_female: null,
-    normal_max_female: null,
-    optimal_min: ref.optimal_min ?? null,
-    optimal_max: ref.optimal_max ?? null,
-    optimal_min_male: null,
-    optimal_max_male: null,
-    optimal_min_female: null,
-    optimal_max_female: null,
-    critical_min: ref.critical_min ?? null,
-    critical_max: ref.critical_max ?? null,
-    critical_min_male: null,
-    critical_max_male: null,
-    critical_min_female: null,
-    critical_max_female: null,
+    normal_min: range("normal_min"),
+    normal_max: range("normal_max"),
+    normal_min_male: pick("normal_min_male"),
+    normal_max_male: pick("normal_max_male"),
+    normal_min_female: pick("normal_min_female"),
+    normal_max_female: pick("normal_max_female"),
+    optimal_min: range("optimal_min"),
+    optimal_max: range("optimal_max"),
+    optimal_min_male: pick("optimal_min_male"),
+    optimal_max_male: pick("optimal_max_male"),
+    optimal_min_female: pick("optimal_min_female"),
+    optimal_max_female: pick("optimal_max_female"),
+    critical_min: range("critical_min"),
+    critical_max: range("critical_max"),
+    critical_min_male: pick("critical_min_male"),
+    critical_max_male: pick("critical_max_male"),
+    critical_min_female: pick("critical_min_female"),
+    critical_max_female: pick("critical_max_female"),
   } as ReportBiomarker;
 }
 
@@ -64,16 +74,22 @@ function splitSentences(text: string): string[] {
 
 /**
  * Комментарий к показателю в структуре отчёта ReAge:
- * образовательный абзац → строка результата → «Что это значит для вас».
+ * образовательный абзац (из базы) → строка результата → «Что это значит для вас».
  */
-function buildCommentary(marker: ExampleMarker, status: string): string {
-  const parts: string[] = [marker.meaning.trim()];
+function buildCommentary(
+  marker: ExampleMarker,
+  status: string,
+  db: ReportBiomarkerRow | undefined,
+  unit: string,
+): string {
+  const intro = db?.general_description?.trim() || db?.description?.trim() || marker.meaning.trim();
+  const parts: string[] = [intro];
 
   const phrase = RESULT_PHRASE[status] ?? "в целевом диапазоне";
-  const unit = marker.unit ? ` ${marker.unit}` : "";
+  const unitSuffix = unit ? ` ${unit}` : "";
   const interpretation = marker.commentary?.trim();
   parts.push(
-    `Ваш показатель ${marker.value}${unit} находится ${phrase}.` +
+    `Ваш показатель ${marker.value}${unitSuffix} находится ${phrase}.` +
       (interpretation ? ` ${interpretation}` : ""),
   );
 
@@ -90,6 +106,7 @@ function buildCommentary(marker: ExampleMarker, status: string): string {
 
   return parts.join("\n\n");
 }
+
 
 interface Props {
   checkup: Checkup;
