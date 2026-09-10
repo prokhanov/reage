@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import NotFound from "@/pages/NotFound";
 import { useTheme } from "next-themes";
@@ -80,7 +80,7 @@ export default function Checkup() {
   const checkup = getCheckupBySlug(slug);
 
   if (!checkup) return <NotFound />;
-  if (checkup.slug === "energy") return <Navigate to="/energy" replace />;
+
 
   return <CheckupPage key={checkup.slug} checkup={checkup} />;
 }
