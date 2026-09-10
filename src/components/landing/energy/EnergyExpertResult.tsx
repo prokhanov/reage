@@ -209,7 +209,14 @@ export function EnergyExpertResult() {
             </div>
           </div>
 
-          <Button className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base" size="lg">
+          <Button
+            className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base"
+            size="lg"
+            onClick={() => {
+              reachGoal(`${checkup.slug.replace(/-/g, "_")}_example_report_open`);
+              setExampleOpen(true);
+            }}
+          >
             <FileText className="h-4 w-4 shrink-0" aria-hidden />
             Посмотреть пример расшифровки
           </Button>
