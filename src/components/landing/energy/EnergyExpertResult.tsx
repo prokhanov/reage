@@ -236,6 +236,13 @@ export function EnergyExpertResult() {
           </div>
         </div>
       </div>
+
+      <CheckupExampleReport
+        checkup={checkup}
+        open={exampleOpen}
+        onOpenChange={setExampleOpen}
+        onAddToCart={addToCart}
+      />
     </section>
   );
 }
