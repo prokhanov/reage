@@ -149,15 +149,15 @@ export function EnergyExpertResult() {
     <section className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <div className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5 lg:sticky lg:top-20 lg:self-start">
-          <div className="flex min-w-0 gap-4 sm:gap-5 lg:block">
+          <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:block">
             <img
               src={expertDoctor}
               alt="Врач Наталья Чезганова"
               width={768}
               height={896}
               loading="lazy"
-              sizes="(min-width: 1024px) 340px, 40vw"
-              className="aspect-[4/5] w-24 shrink-0 rounded-lg object-cover object-top sm:w-44 lg:w-full"
+              sizes="(min-width: 1024px) 340px, 100vw"
+              className="aspect-[4/5] w-full shrink-0 rounded-lg object-cover object-top lg:w-full"
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
