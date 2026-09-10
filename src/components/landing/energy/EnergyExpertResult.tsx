@@ -148,6 +148,9 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 }
 
 export function EnergyExpertResult() {
+  const { checkup, addToCart } = useEnergyOrder();
+  const [exampleOpen, setExampleOpen] = useState(false);
+
   return (
     <section className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
