@@ -47,7 +47,7 @@ export interface CheckupMarker {
 }
 
 export interface Checkup {
-  /** Часть адреса: /checkup/<slug>. Для energy — отдельный адрес /energy. */
+  /** Часть адреса: /checkup/<slug>. */
   slug: string;
   /** Идентификатор набора на сервере (energy-create-payment). */
   bundle: string;
@@ -86,7 +86,7 @@ export const CHECKUPS: Checkup[] = [
   {
     slug: "energy",
     bundle: "energy",
-    href: "/energy",
+    href: "/checkup/energy",
     name: "ReAge Энергия",
     tag: "Энергия и усталость",
     price: 5990,

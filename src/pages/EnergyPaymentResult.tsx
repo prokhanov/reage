@@ -71,7 +71,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
           попробуйте ещё раз.
         </p>
         <Button asChild>
-          <Link to="/energy">Вернуться к чекапу</Link>
+          <Link to="/checkup/energy">Вернуться к чекапу</Link>
         </Button>
       </div>
     );
@@ -113,7 +113,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
               <Link to="/prep">Как подготовиться</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/energy">На страницу чекапа</Link>
+              <Link to="/checkup/energy">На страницу чекапа</Link>
             </Button>
           </div>
         </>
@@ -128,7 +128,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
             указанную почту. Номер заказа: {invId ?? "—"}.
           </p>
           <Button asChild variant="outline">
-            <Link to="/energy">Вернуться к чекапу</Link>
+            <Link to="/checkup/energy">Вернуться к чекапу</Link>
           </Button>
         </>
       )}
