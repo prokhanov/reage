@@ -149,7 +149,7 @@ export function EnergyExpertResult() {
     <section className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <div className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5 lg:sticky lg:top-20 lg:self-start">
-          <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row">
+          <div className="flex min-w-0 flex-col items-start gap-4 sm:gap-5 lg:flex-row">
             <img
               src={expertDoctor}
               alt="Врач Наталья Чезганова"
@@ -157,11 +157,11 @@ export function EnergyExpertResult() {
               height={896}
               loading="lazy"
               sizes="(min-width: 1024px) 112px, 100vw"
-              className="aspect-[4/5] w-full max-h-[300px] rounded-lg object-cover object-top lg:w-28 lg:max-h-none lg:shrink-0"
+              className="h-[240px] w-full shrink-0 self-start rounded-lg object-cover object-[50%_28%] sm:h-[280px] lg:h-36 lg:w-28 lg:object-[50%_20%]"
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Наталья Чезганова</span>
+                <span className="text-lg font-medium text-foreground">Д-р Наталья Чезганова</span>
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   Эксперт ReAge
                 </span>
