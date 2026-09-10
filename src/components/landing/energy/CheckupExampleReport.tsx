@@ -120,8 +120,10 @@ interface Props {
  * карточки показателей (те же, что в больших отчётах) → рекомендации.
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
+  const { rows, loading } = useReportBiomarkers();
   const report = getCheckupExampleReport(checkup.slug);
   if (!report) return null;
+
 
   const { patient } = report;
   const yearWord = patient.age % 10 === 1 && patient.age % 100 !== 11 ? "год" : "лет";
