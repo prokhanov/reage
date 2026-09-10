@@ -5,6 +5,9 @@ import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cn } from "@/lib/utils";
+import { reachGoal } from "@/lib/yandexMetrika";
+import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
+import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 /**
@@ -145,6 +148,9 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 }
 
 export function EnergyExpertResult() {
+  const { checkup, addToCart } = useEnergyOrder();
+  const [exampleOpen, setExampleOpen] = useState(false);
+
   return (
     <section className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
@@ -203,7 +209,14 @@ export function EnergyExpertResult() {
             </div>
           </div>
 
-          <Button className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base" size="lg">
+          <Button
+            className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base"
+            size="lg"
+            onClick={() => {
+              reachGoal(`${checkup.slug.replace(/-/g, "_")}_example_report_open`);
+              setExampleOpen(true);
+            }}
+          >
             <FileText className="h-4 w-4 shrink-0" aria-hidden />
             Посмотреть пример расшифровки
           </Button>
@@ -223,6 +236,13 @@ export function EnergyExpertResult() {
           </div>
         </div>
       </div>
+
+      <CheckupExampleReport
+        checkup={checkup}
+        open={exampleOpen}
+        onOpenChange={setExampleOpen}
+        onAddToCart={addToCart}
+      />
     </section>
   );
 }
