@@ -161,7 +161,7 @@ export function EnergyExpertResult() {
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Наталья Чезганова</span>
+                <span className="text-lg font-medium text-foreground">Д-р Наталья Чезганова</span>
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   Эксперт ReAge
                 </span>
