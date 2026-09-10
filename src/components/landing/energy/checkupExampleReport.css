@@ -1,0 +1,35 @@
+/* Локальные стили супер-лайт отчёта в модальном окне. Работают внутри
+   скоупа .reportlab и используют его токены. */
+.reportlab .rl-lite-heading {
+  font-family: var(--font-serif);
+  font-size: 15pt;
+  font-weight: 500;
+  color: var(--accent);
+  margin: 0 0 2mm;
+}
+.reportlab .rl-lite-text {
+  font-size: 10.5pt;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.reportlab .rl-intro-lite {
+  border: 1px solid var(--hairline-strong);
+  border-left: 3px solid var(--gold);
+  padding: 5mm 6mm;
+}
+.reportlab .rl-lite-rec {
+  border: 1px solid var(--hairline);
+  background: var(--accent-tint);
+  padding: 4mm 5mm;
+}
+.reportlab .rl-lite-rec-title {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 1.5mm;
+}
+.reportlab .rl-lite-note {
+  margin-top: 6mm;
+  font-size: 9pt;
+  color: var(--ink-muted);
+}
