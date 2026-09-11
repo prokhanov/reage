@@ -225,9 +225,7 @@ export function EnergyExpertResult() {
 
         <div className="min-w-0">
           <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Пример результата</h2>
-          <p className="mt-2 text-base text-muted-foreground">
-            Каждый показатель — со шкалой ReAge и разбором, как в персональном отчёте.
-          </p>
+
 
           <div className="mt-5 space-y-3">
             {markers.map((m) => (
