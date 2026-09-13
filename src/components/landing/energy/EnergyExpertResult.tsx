@@ -118,7 +118,15 @@ const statusBgMap: Record<string, string> = {
   optimal: "bg-status-optimal/5 border-status-optimal/15",
 };
 
-function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: boolean }) {
+function MarkerCard({
+  marker,
+  defaultOpen,
+  description,
+}: {
+  marker: DemoMarker;
+  defaultOpen: boolean;
+  description: string;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   const status = getBiomarkerStatus(marker.value, marker.biomarker, 40, "female");
   const key = status.status as keyof typeof statusColorMap;
