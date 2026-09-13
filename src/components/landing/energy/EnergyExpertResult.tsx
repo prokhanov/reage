@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, ChevronDown, Clock, FileText, MessageCircle, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
