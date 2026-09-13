@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Clock, MapPin, Stethoscope } from "lucide-react";
+import { Award, Clock, Heart, MapPin, Stethoscope } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -242,7 +242,7 @@ export function EnergyCart() {
                 />
                 <img
                   src={expertDoctor}
-                  alt="Врач Наталья Чезганова"
+                  alt="Врач ReAge"
                   loading="lazy"
                   className="h-16 w-14 shrink-0 rounded-lg object-cover object-top"
                 />
@@ -259,19 +259,19 @@ export function EnergyCart() {
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Терапевт
+                      Врач-терапевт
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Heart className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Кардиология и ССМ
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Хирург
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-primary/80" aria-hidden>●</span>
-                      Нутрициолог
+                      GMC, UK
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Стаж 10+ лет
+                      Стаж 7+ лет
                     </span>
                   </div>
                 </div>

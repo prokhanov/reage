@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, ChevronDown, Clock, FileText, MessageCircle, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
@@ -158,7 +158,7 @@ export function EnergyExpertResult() {
           <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:block">
             <img
               src={expertDoctor}
-              alt="Врач Наталья Чезганова"
+              alt="Врач ReAge"
               width={768}
               height={896}
               loading="lazy"
@@ -176,24 +176,24 @@ export function EnergyExpertResult() {
               <div className="mt-2 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">Врач терапевт</span>
+                  <span className="truncate">Врач-терапевт</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Heart className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                  <span className="truncate">Кардиология и сердечно-сосудистая медицина</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">Сердечно-сосудистый хирург</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center text-[10px] text-primary/80">●</span>
-                  <span className="truncate">Нутрициолог</span>
+                  <span className="truncate">GMC, Великобритания</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span>Стаж 10+ лет</span>
+                  <span>Стаж 7+ лет</span>
                 </div>
               </div>
 
               <p className="mt-3 border-t border-border/20 pt-3 text-sm text-muted-foreground">
-                Врач-терапевт, сердечно-сосудистый хирург и нутрициолог с опытом более 10 лет. Помогает разобрать анализы в контексте общего состояния, образа жизни и целей пациента.
+                Врач с более чем 7-летним клиническим опытом в терапии, кардиологии, сердечно-сосудистой хирургии и амбулаторной медицине. Зарегистрирована в General Medical Council (GMC), Великобритания. Помогает разобраться в результатах анализов и оценить их в контексте общего состояния здоровья.
               </p>
 
               <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
