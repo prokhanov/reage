@@ -173,8 +173,23 @@ function MarkerCard({
             unit={marker.unit}
             showHeader
           />
-          <div className="border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
-            {marker.commentary}
+          <div className="space-y-3 border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
+            <p>{description}</p>
+            <p>
+              Ваш показатель {marker.value} {marker.unit} находится {marker.resultPhrase}.{" "}
+              {marker.interpretation}
+            </p>
+            {marker.feeling && (
+              <div className="space-y-2">
+                <p className="font-medium text-foreground">Что это значит для вас</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {marker.feeling.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <p>Что с этим делать — разбирает врач в персональном отчёте.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
