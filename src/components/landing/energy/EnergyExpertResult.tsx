@@ -279,7 +279,16 @@ export function EnergyExpertResult() {
 
           <div className="mt-5 space-y-3">
             {markers.map((m) => (
-              <MarkerCard key={m.code} marker={m} defaultOpen />
+              <MarkerCard
+                key={m.code}
+                marker={m}
+                defaultOpen
+                description={
+                  rows[m.code]?.general_description?.trim() ||
+                  rows[m.code]?.description?.trim() ||
+                  m.fallbackDescription
+                }
+              />
             ))}
           </div>
         </div>
