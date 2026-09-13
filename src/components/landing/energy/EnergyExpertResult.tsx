@@ -20,7 +20,14 @@ interface DemoMarker {
   value: number;
   unit: string;
   biomarker: Record<string, number | string>;
-  commentary: string;
+  /** Запасное пояснение, если описание из базы недоступно. */
+  fallbackDescription: string;
+  /** Строка результата — как в отчёте ReAge. */
+  resultPhrase: string;
+  /** Продолжение строки результата. */
+  interpretation: string;
+  /** «Что это значит для вас» — только при отклонении. */
+  feeling?: string[];
 }
 
 const markers: DemoMarker[] = [
