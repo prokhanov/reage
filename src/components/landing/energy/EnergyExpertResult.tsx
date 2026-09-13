@@ -199,6 +199,7 @@ function MarkerCard({
 
 export function EnergyExpertResult() {
   const { checkup, addToCart } = useEnergyOrder();
+  const { rows } = useReportBiomarkers();
   const [exampleOpen, setExampleOpen] = useState(false);
 
   return (
