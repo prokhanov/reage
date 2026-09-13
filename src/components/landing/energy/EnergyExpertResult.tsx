@@ -180,7 +180,7 @@ export function EnergyExpertResult() {
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Heart className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">Кардиология и сердечно-сосудистая медицина</span>
+                  <span className="truncate">Кардиолог</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />

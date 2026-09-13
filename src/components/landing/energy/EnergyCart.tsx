@@ -263,7 +263,7 @@ export function EnergyCart() {
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Heart className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Кардиология и ССМ
+                      Кардиолог
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
