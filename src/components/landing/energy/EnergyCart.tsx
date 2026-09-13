@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Clock, MapPin, Stethoscope } from "lucide-react";
+import { Award, Clock, Heart, MapPin, Stethoscope } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
