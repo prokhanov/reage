@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { reachGoal } from "@/lib/yandexMetrika";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
+import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 /**
@@ -20,7 +21,14 @@ interface DemoMarker {
   value: number;
   unit: string;
   biomarker: Record<string, number | string>;
-  commentary: string;
+  /** Запасное пояснение, если описание из базы недоступно. */
+  fallbackDescription: string;
+  /** Строка результата — как в отчёте ReAge. */
+  resultPhrase: string;
+  /** Продолжение строки результата. */
+  interpretation: string;
+  /** «Что это значит для вас» — только при отклонении. */
+  feeling?: string[];
 }
 
 const markers: DemoMarker[] = [
@@ -38,8 +46,17 @@ const markers: DemoMarker[] = [
       critical_min: 15,
       critical_max: 300,
     },
-    commentary:
-      "Ферритин отражает запас железа в тканях — того самого железа, из которого строится гемоглобин и работают ферменты дыхательной цепи. При значении 12 нг/мл резерв практически исчерпан: гемоглобин ещё может оставаться в норме, но клеткам уже не хватает кислорода и энергии. Отсюда утренняя разбитость, зябкость, выпадение волос и падение выносливости при обычной нагрузке. Дальнейший шаг — оценить причину потери железа (питание, кровопотери, всасывание), скорректировать рацион и повторно проверить ферритин вместе с общим анализом крови через 3 месяца.",
+    fallbackDescription:
+      "Это белок, который отвечает за хранение железа в клетках организма. Он является основным показателем запасов железа. Кроме того, ферритин является белком острой фазы, то есть его уровень может повышаться при воспалительных процессах.",
+    resultPhrase: "значительно ниже нормы",
+    interpretation:
+      "Резерв практически исчерпан: гемоглобин ещё удерживается в норме, но он делает это за счёт складских запасов, и клеткам уже не хватает кислорода и энергии.",
+    feeling: [
+      "Утренняя разбитость даже после полноценного сна",
+      "Зябкость рук и ног",
+      "Выпадение волос и ломкость ногтей",
+      "Падение выносливости при обычной нагрузке",
+    ],
   },
   {
     code: "25-OH D",
@@ -55,8 +72,16 @@ const markers: DemoMarker[] = [
       critical_min: 15,
       critical_max: 120,
     },
-    commentary:
-      "Витамин D работает как гормон: участвует в обмене кальция, поддерживает мышечную силу, иммунный ответ и настроение. Значение 24 нг/мл ниже нормы и заметно ниже целевого диапазона — типичная картина для средней полосы в осенне-зимний период. Такое состояние проявляется вялостью, ноющими мышцами и частыми простудами. Требуется подбор дозы холекальциферола с учётом веса и исходного уровня, контроль показателя через 3 месяца.",
+    fallbackDescription:
+      "Этот жирорастворимый витамин на самом деле является прогормоном, влияющим на сотни процессов в организме. Он необходим для иммунитета, усвоения кальция, здоровья костей, регуляции настроения и работы эндокринной системы. Его достаточный уровень является фундаментом для гормонального здоровья.",
+    resultPhrase: "ниже нормы",
+    interpretation:
+      "Значение заметно ниже целевого диапазона — типичная картина для средней полосы в осенне-зимний период.",
+    feeling: [
+      "Вялость и сниженный фон настроения",
+      "Ноющие мышцы и тяжесть в теле",
+      "Частые простуды и долгое восстановление после них",
+    ],
   },
   {
     code: "Hb",
@@ -72,8 +97,11 @@ const markers: DemoMarker[] = [
       critical_min: 100,
       critical_max: 170,
     },
-    commentary:
-      "Гемоглобин переносит кислород от лёгких к тканям и определяет базовую выносливость. Значение 138 г/л в целевом диапазоне: явной анемии нет. Важная деталь — гемоглобин удерживается в норме за счёт расходования запасов железа, поэтому при низком ферритине нормальный гемоглобин не отменяет дефицита, а лишь показывает, что организм пока компенсирует его.",
+    fallbackDescription:
+      "Этот железосодержащий белок находится в эритроцитах и отвечает за перенос кислорода от лёгких ко всем тканям и органам. Достаточный уровень гемоглобина критически важен для энергетического обмена, физической и умственной работоспособности.",
+    resultPhrase: "в оптимальном диапазоне",
+    interpretation:
+      "Явной анемии нет. Важная деталь: нормальный гемоглобин при низком ферритине не отменяет дефицита железа — он лишь показывает, что запас ещё расходуется.",
   },
 ];
 
@@ -91,7 +119,15 @@ const statusBgMap: Record<string, string> = {
   optimal: "bg-status-optimal/5 border-status-optimal/15",
 };
 
-function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: boolean }) {
+function MarkerCard({
+  marker,
+  defaultOpen,
+  description,
+}: {
+  marker: DemoMarker;
+  defaultOpen: boolean;
+  description: string;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   const status = getBiomarkerStatus(marker.value, marker.biomarker, 40, "female");
   const key = status.status as keyof typeof statusColorMap;
@@ -138,8 +174,23 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
             unit={marker.unit}
             showHeader
           />
-          <div className="border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
-            {marker.commentary}
+          <div className="space-y-3 border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
+            <p>{description}</p>
+            <p>
+              Ваш показатель {marker.value} {marker.unit} находится {marker.resultPhrase}.{" "}
+              {marker.interpretation}
+            </p>
+            {marker.feeling && (
+              <div className="space-y-2">
+                <p className="font-medium text-foreground">Что это значит для вас</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {marker.feeling.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <p>Что с этим делать — разбирает врач в персональном отчёте.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -149,6 +200,7 @@ function MarkerCard({ marker, defaultOpen }: { marker: DemoMarker; defaultOpen: 
 
 export function EnergyExpertResult() {
   const { checkup, addToCart } = useEnergyOrder();
+  const { rows } = useReportBiomarkers();
   const [exampleOpen, setExampleOpen] = useState(false);
 
   return (
@@ -229,7 +281,16 @@ export function EnergyExpertResult() {
 
           <div className="mt-5 space-y-3">
             {markers.map((m) => (
-              <MarkerCard key={m.code} marker={m} defaultOpen />
+              <MarkerCard
+                key={m.code}
+                marker={m}
+                defaultOpen
+                description={
+                  rows[m.code]?.general_description?.trim() ||
+                  rows[m.code]?.description?.trim() ||
+                  m.fallbackDescription
+                }
+              />
             ))}
           </div>
         </div>
