@@ -168,7 +168,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
             указанную почту. Номер заказа: {invId ?? "—"}.
           </p>
           <Button asChild variant="outline">
-            <Link to="/checkup/energy">Вернуться к чекапу</Link>
+            <Link to={checkupPath}>Вернуться к чекапу</Link>
           </Button>
         </>
       )}
