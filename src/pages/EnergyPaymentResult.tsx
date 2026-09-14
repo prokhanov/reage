@@ -4,7 +4,19 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { getCheckupBySlug } from "@/data/checkups";
 import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
+
+/** Старые адреса чекапов, которые ещё могут лежать в оплаченных заказах. */
+const BUNDLE_ALIASES: Record<string, string> = {
+  "base-40": "base",
+  "cardio-risk-40": "cardio-risk",
+};
+
+function resolveCheckup(bundle?: string | null) {
+  if (!bundle) return undefined;
+  return getCheckupBySlug(BUNDLE_ALIASES[bundle] ?? bundle);
+}
 
 type OrderInfo = {
   status: string;
