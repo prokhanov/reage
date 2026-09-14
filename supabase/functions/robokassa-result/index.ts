@@ -32,6 +32,38 @@ function buildResultSignature(
   return md5(base);
 }
 
+// Уведомление в Telegram об оплате чекапа (лендинги /checkup/*).
+async function notifyTelegramCheckupPaid(
+  admin: any,
+  supabaseUrl: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const { data: settings } = await admin
+      .from("telegram_notification_settings")
+      .select("is_active, internal_secret, enabled_events")
+      .eq("singleton", true)
+      .maybeSingle();
+
+    if (!settings?.is_active || !settings.internal_secret) return;
+    if ((settings.enabled_events ?? {}).checkup_paid !== true) return;
+
+    const resp = await fetch(`${supabaseUrl}/functions/v1/telegram-notify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-secret": settings.internal_secret,
+      },
+      body: JSON.stringify({ event_type: "checkup_paid", payload }),
+    });
+    if (!resp.ok) {
+      console.error("checkup_paid telegram notify failed", resp.status, (await resp.text()).slice(0, 300));
+    }
+  } catch (e) {
+    console.error("checkup_paid telegram notify error", (e as Error).message);
+  }
+}
+
 function textPlain(body: string, status = 200): Response {
   return new Response(body, {
     status,
