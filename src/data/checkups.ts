@@ -153,7 +153,7 @@ export const CHECKUPS: Checkup[] = [
     href: "/checkup/iron",
     name: "ReAge Железо",
     tag: "Железодефицит",
-    price: 1,
+    price: 5990,
     accent: "accent",
     shape: "circle",
     heroImage: heroIron,
@@ -166,7 +166,7 @@ export const CHECKUPS: Checkup[] = [
     includedNote: "Шесть показателей: и запасы железа, и его транспорт в крови.",
     seoTitle: "ReAge Железо — чекап на железодефицит: ферритин и обмен железа",
     seoDescription:
-      "Чекап ReAge Железо за 1 ₽: общий анализ крови, ферритин, железо сывороточное, трансферрин, ОЖСС и коэффициент насыщения. Анализы в LabQuest, разбор в ReAge за 1–2 дня.",
+      "Чекап ReAge Железо за 5 990 ₽: общий анализ крови, ферритин, железо сывороточное, трансферрин, ОЖСС и коэффициент насыщения. Анализы в LabQuest, разбор в ReAge за 1–2 дня.",
     markers: [
       { title: "Общий анализ крови", description: "гемоглобин и эритроциты", icon: Droplet },
       { title: "Ферритин", description: "запасы железа в тканях", icon: Battery },
