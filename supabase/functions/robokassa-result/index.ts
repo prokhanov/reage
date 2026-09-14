@@ -111,7 +111,9 @@ Deno.serve(async (req) => {
     // Заказ мог быть гостевым (лендинг ReAge Energy) — ищем в energy_orders
     const { data: energyOrder } = await admin
       .from("energy_orders")
-      .select("id, inv_id, out_sum, status, is_test")
+      .select(
+        "id, inv_id, out_sum, status, is_test, bundle, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
+      )
       .eq("inv_id", invId)
       .maybeSingle();
 
