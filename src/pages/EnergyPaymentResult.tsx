@@ -64,6 +64,11 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
     };
   }, [invId, mode]);
 
+  useEffect(() => {
+    if (mode === "fail") goalPaymentFailed(invId);
+  }, [invId, mode]);
+
+
   if (mode === "fail") {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-16 text-center">
