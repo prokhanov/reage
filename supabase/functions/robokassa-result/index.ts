@@ -32,6 +32,38 @@ function buildResultSignature(
   return md5(base);
 }
 
+// Уведомление в Telegram об оплате чекапа (лендинги /checkup/*).
+async function notifyTelegramCheckupPaid(
+  admin: any,
+  supabaseUrl: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const { data: settings } = await admin
+      .from("telegram_notification_settings")
+      .select("is_active, internal_secret, enabled_events")
+      .eq("singleton", true)
+      .maybeSingle();
+
+    if (!settings?.is_active || !settings.internal_secret) return;
+    if ((settings.enabled_events ?? {}).checkup_paid !== true) return;
+
+    const resp = await fetch(`${supabaseUrl}/functions/v1/telegram-notify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-secret": settings.internal_secret,
+      },
+      body: JSON.stringify({ event_type: "checkup_paid", payload }),
+    });
+    if (!resp.ok) {
+      console.error("checkup_paid telegram notify failed", resp.status, (await resp.text()).slice(0, 300));
+    }
+  } catch (e) {
+    console.error("checkup_paid telegram notify error", (e as Error).message);
+  }
+}
+
 function textPlain(body: string, status = 200): Response {
   return new Response(body, {
     status,
@@ -111,7 +143,9 @@ Deno.serve(async (req) => {
     // Заказ мог быть гостевым (лендинг ReAge Energy) — ищем в energy_orders
     const { data: energyOrder } = await admin
       .from("energy_orders")
-      .select("id, inv_id, out_sum, status, is_test")
+      .select(
+        "id, inv_id, out_sum, status, is_test, bundle, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
+      )
       .eq("inv_id", invId)
       .maybeSingle();
 
@@ -183,6 +217,21 @@ Deno.serve(async (req) => {
       });
 
       if (eUpdErr) return textPlain("db error", 500);
+
+      await notifyTelegramCheckupPaid(admin, supabaseUrl, {
+        inv_id: invId,
+        bundle: (energyOrder as any).bundle ?? null,
+        email: (energyOrder as any).email ?? null,
+        phone: (energyOrder as any).phone ?? null,
+        clinic_title: (energyOrder as any).clinic_title ?? null,
+        clinic_address: (energyOrder as any).clinic_address ?? null,
+        promo_code: (energyOrder as any).promo_code ?? null,
+        original_amount: (energyOrder as any).original_amount ?? null,
+        discount_amount: (energyOrder as any).discount_amount ?? null,
+        amount: ePaid,
+        is_test: eIsTest,
+        paid_at: new Date().toISOString(),
+      });
       return textPlain(`OK${invId}`);
     }
 

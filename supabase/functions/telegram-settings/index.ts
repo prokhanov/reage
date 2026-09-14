@@ -50,6 +50,19 @@ function sampleMessage(eventType: string): string {
       "🕒 " + new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })
     );
   }
+  if (eventType === "checkup_paid") {
+    return (
+      "🧪 <b>[ТЕСТ]</b>\n" +
+      "🛒 <b>Оплачен чекап</b>\n" +
+      "📦 ReAge Витамины и минералы\n" +
+      "💵 5 990 ₽\n" +
+      "📧 ivan@example.com\n" +
+      "📱 +7 999 123-45-67\n" +
+      "📍 LabQuest · Москва, ул. Примерная, 1\n" +
+      "🧾 Заказ №123456\n" +
+      "🕒 " + new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })
+    );
+  }
   return "🧪 [ТЕСТ] Уведомление " + eventType;
 }
 
