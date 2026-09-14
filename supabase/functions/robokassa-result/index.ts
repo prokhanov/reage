@@ -185,6 +185,21 @@ Deno.serve(async (req) => {
       });
 
       if (eUpdErr) return textPlain("db error", 500);
+
+      await notifyTelegramCheckupPaid(admin, supabaseUrl, {
+        inv_id: invId,
+        bundle: (energyOrder as any).bundle ?? null,
+        email: (energyOrder as any).email ?? null,
+        phone: (energyOrder as any).phone ?? null,
+        clinic_title: (energyOrder as any).clinic_title ?? null,
+        clinic_address: (energyOrder as any).clinic_address ?? null,
+        promo_code: (energyOrder as any).promo_code ?? null,
+        original_amount: (energyOrder as any).original_amount ?? null,
+        discount_amount: (energyOrder as any).discount_amount ?? null,
+        amount: ePaid,
+        is_test: eIsTest,
+        paid_at: new Date().toISOString(),
+      });
       return textPlain(`OK${invId}`);
     }
 
