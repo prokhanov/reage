@@ -98,8 +98,8 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
   }, [invId, mode]);
 
   const checkup = resolveCheckup(order?.bundle);
-  const checkupPath = checkup ? `/checkup/${checkup.slug}` : "/checkup/energy";
-  const checkupLabel = checkup ? `На страницу ${checkup.title}` : "На страницу чекапа";
+  const checkupPath = checkup ? checkup.href : "/checkup/energy";
+  const checkupLabel = checkup ? `На страницу ${checkup.name}` : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
