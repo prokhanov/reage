@@ -20,6 +20,7 @@ import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherChec
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { getCheckupBySlug, type Checkup } from "@/data/checkups";
+import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 import { reachGoal } from "@/lib/yandexMetrika";
 
 export function CheckupContent() {
