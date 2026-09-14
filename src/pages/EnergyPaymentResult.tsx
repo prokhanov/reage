@@ -46,6 +46,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
         setOrder(info);
         if (info.status === "paid") {
           setState("paid");
+          goalPaid(invId, info.bundle);
           return;
         }
       }
