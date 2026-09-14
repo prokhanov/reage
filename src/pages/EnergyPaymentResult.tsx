@@ -80,6 +80,26 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
     if (mode === "fail") goalPaymentFailed(invId);
   }, [invId, mode]);
 
+  // В режиме ошибки тоже узнаём направление заказа, чтобы вернуть на нужный чекап.
+  useEffect(() => {
+    if (mode !== "fail" || !invId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.functions.invoke("energy-order-status", {
+        body: { invId: Number(invId) },
+      });
+      if (cancelled) return;
+      const info = data as OrderInfo | { error?: string } | null;
+      if (info && "status" in info) setOrder(info);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [invId, mode]);
+
+  const checkup = resolveCheckup(order?.bundle);
+  const checkupPath = checkup ? `/checkup/${checkup.slug}` : "/checkup/energy";
+  const checkupLabel = checkup ? `На страницу ${checkup.title}` : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
@@ -91,7 +111,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
           попробуйте ещё раз.
         </p>
         <Button asChild>
-          <Link to="/checkup/energy">Вернуться к чекапу</Link>
+          <Link to={checkupPath}>Вернуться к чекапу</Link>
         </Button>
       </div>
     );
