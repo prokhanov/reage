@@ -60,6 +60,23 @@ function formatAmount(n: unknown): string {
   return new Intl.NumberFormat("ru-RU").format(num) + " ₽";
 }
 
+const CHECKUP_TITLES: Record<string, string> = {
+  energy: "ReAge Энергия",
+  thyroid: "ReAge Щитовидная железа",
+  iron: "ReAge Железо",
+  "cardio-risk": "ReAge Сердце и сосуды",
+  "cardio-risk-40": "ReAge Сердце и сосуды",
+  metabolic: "ReAge Метаболизм",
+  liver: "ReAge Печень",
+  kidney: "ReAge Почки",
+  base: "ReAge Базовый",
+  "base-40": "ReAge Базовый",
+  vitamins: "ReAge Витамины и минералы",
+  "female-hormones": "ReAge Женские гормоны",
+  "male-hormones": "ReAge Мужские гормоны",
+  hair: "ReAge Волосы",
+};
+
 const STATUS_LABELS: Record<string, string> = {
   waiting_call: "Ожидает звонка",
   no_answer: "Не дозвонились",
