@@ -13,6 +13,7 @@ import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 
 import { markersLabel, money } from "@/data/checkups";
+import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/lib/checkupGoals";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
