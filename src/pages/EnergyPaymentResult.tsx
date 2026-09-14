@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
 
 type OrderInfo = {
   status: string;
@@ -12,6 +13,7 @@ type OrderInfo = {
   clinicTitle: string | null;
   clinicAddress: string | null;
   email: string;
+  bundle?: string | null;
 };
 
 /**
