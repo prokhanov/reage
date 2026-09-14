@@ -126,11 +126,6 @@ export function buildMessage(
     case "checkup_paid": {
       const bundle = String(payload.bundle || "—");
       const title = CHECKUP_TITLES[bundle] || bundle;
-      const original = Number(payload.original_amount);
-      const consult = isFinite(original) && original - Number(payload.amount ?? 0) >= 0
-        ? null
-        : null;
-      void consult;
       const lines = [
         prefix + "🛒 <b>Оплачен чекап</b>",
         `📦 ${e(title)}`,
