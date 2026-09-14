@@ -4,7 +4,19 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { getCheckupBySlug } from "@/data/checkups";
 import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
+
+/** Старые адреса чекапов, которые ещё могут лежать в оплаченных заказах. */
+const BUNDLE_ALIASES: Record<string, string> = {
+  "base-40": "base",
+  "cardio-risk-40": "cardio-risk",
+};
+
+function resolveCheckup(bundle?: string | null) {
+  if (!bundle) return undefined;
+  return getCheckupBySlug(BUNDLE_ALIASES[bundle] ?? bundle);
+}
 
 type OrderInfo = {
   status: string;
@@ -68,6 +80,26 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
     if (mode === "fail") goalPaymentFailed(invId);
   }, [invId, mode]);
 
+  // В режиме ошибки тоже узнаём направление заказа, чтобы вернуть на нужный чекап.
+  useEffect(() => {
+    if (mode !== "fail" || !invId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.functions.invoke("energy-order-status", {
+        body: { invId: Number(invId) },
+      });
+      if (cancelled) return;
+      const info = data as OrderInfo | { error?: string } | null;
+      if (info && "status" in info) setOrder(info);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [invId, mode]);
+
+  const checkup = resolveCheckup(order?.bundle);
+  const checkupPath = checkup ? checkup.href : "/checkup/energy";
+  const checkupLabel = checkup ? `На страницу ${checkup.name}` : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
@@ -79,7 +111,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
           попробуйте ещё раз.
         </p>
         <Button asChild>
-          <Link to="/checkup/energy">Вернуться к чекапу</Link>
+          <Link to={checkupPath}>Вернуться к чекапу</Link>
         </Button>
       </div>
     );
@@ -121,7 +153,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
               <Link to="/prep">Как подготовиться</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/checkup/energy">На страницу чекапа</Link>
+              <Link to={checkupPath}>{checkupLabel}</Link>
             </Button>
           </div>
         </>
@@ -136,7 +168,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
             указанную почту. Номер заказа: {invId ?? "—"}.
           </p>
           <Button asChild variant="outline">
-            <Link to="/checkup/energy">Вернуться к чекапу</Link>
+            <Link to={checkupPath}>Вернуться к чекапу</Link>
           </Button>
         </>
       )}
