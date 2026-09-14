@@ -123,6 +123,30 @@ export function buildMessage(
         `🕒 ${e(formatDate(payload.start_date || new Date().toISOString()))}`
       );
     }
+    case "checkup_paid": {
+      const bundle = String(payload.bundle || "—");
+      const title = CHECKUP_TITLES[bundle] || bundle;
+      const original = Number(payload.original_amount);
+      const consult = isFinite(original) && original - Number(payload.amount ?? 0) >= 0
+        ? null
+        : null;
+      void consult;
+      const lines = [
+        prefix + "🛒 <b>Оплачен чекап</b>",
+        `📦 ${e(title)}`,
+        `💵 ${e(formatAmount(payload.amount))}`,
+        `📧 ${e(payload.email || "—")}`,
+        `📱 ${e(payload.phone || "—")}`,
+      ];
+      if (payload.clinic_title || payload.clinic_address) {
+        lines.push(`📍 ${e([payload.clinic_title, payload.clinic_address].filter(Boolean).join(" · "))}`);
+      }
+      if (payload.promo_code) lines.push(`🏷 Промокод: ${e(payload.promo_code)}`);
+      if (payload.inv_id) lines.push(`🧾 Заказ №${e(payload.inv_id)}`);
+      if (payload.is_test) lines.push("⚠️ Тестовый платёж");
+      lines.push(`🕒 ${e(formatDate(String(payload.paid_at || new Date().toISOString())))}`);
+      return lines.join("\n");
+    }
     case "booking_status_changed": {
       // Prefer custom per-status template from settings if available
       const key: string | null = payload.template_key || null;
