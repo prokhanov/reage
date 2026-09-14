@@ -153,7 +153,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
               <Link to="/prep">Как подготовиться</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/checkup/energy">На страницу чекапа</Link>
+              <Link to={checkupPath}>{checkupLabel}</Link>
             </Button>
           </div>
         </>
