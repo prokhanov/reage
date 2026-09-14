@@ -13,6 +13,7 @@ import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 
 import { markersLabel, money } from "@/data/checkups";
+import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/lib/checkupGoals";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
@@ -119,6 +120,8 @@ export function EnergyCart() {
       if (error) throw error;
       const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("Не получен платёжный URL");
+      rememberCheckupOrder(invIdFromPaymentUrl(url), checkup.slug);
+      goalPaymentClick(checkup.slug);
       window.location.href = url;
     } catch (e) {
       console.error("energy payment error", e);

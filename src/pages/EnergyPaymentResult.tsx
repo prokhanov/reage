@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
 
 type OrderInfo = {
   status: string;
@@ -12,6 +13,7 @@ type OrderInfo = {
   clinicTitle: string | null;
   clinicAddress: string | null;
   email: string;
+  bundle?: string | null;
 };
 
 /**
@@ -44,6 +46,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
         setOrder(info);
         if (info.status === "paid") {
           setState("paid");
+          goalPaid(invId, info.bundle);
           return;
         }
       }
@@ -60,6 +63,11 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
       cancelled = true;
     };
   }, [invId, mode]);
+
+  useEffect(() => {
+    if (mode === "fail") goalPaymentFailed(invId);
+  }, [invId, mode]);
+
 
   if (mode === "fail") {
     return (
