@@ -18,7 +18,7 @@ const ROBOKASSA_URL = "https://auth.robokassa.ru/Merchant/Index.aspx";
 const BUNDLES: Record<string, { title: string; price: number }> = {
   energy: { title: "ReAge Energy — чекап по энергии", price: 5990 },
   thyroid: { title: "ReAge Thyroid — чекап щитовидной железы", price: 3990 },
-  iron: { title: "ReAge Iron — чекап на железодефицит", price: 5990 },
+  iron: { title: "ReAge Iron — чекап на железодефицит", price: 1 },
   "cardio-risk": { title: "ReAge Сердце и сосуды — чекап сердца и сосудов", price: 7990 },
   "cardio-risk-40": { title: "ReAge Сердце и сосуды — чекап сердца и сосудов", price: 7990 },
   metabolic: { title: "ReAge Metabolic — чекап обмена веществ", price: 6990 },
