@@ -31,6 +31,20 @@ export function CheckupContent() {
     setTheme("light");
   }, [setTheme]);
 
+  // Трекер активного поведения (цели active_time_*) — как на главной
+  useEffect(() => {
+    const startTracker = () => initActiveTimeTracker();
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number };
+    const idleId = w.requestIdleCallback
+      ? w.requestIdleCallback(startTracker, { timeout: 3000 })
+      : (window.setTimeout(startTracker, 1500) as unknown as number);
+    return () => {
+      const wc = window as Window & { cancelIdleCallback?: (id: number) => void };
+      if (wc.cancelIdleCallback) wc.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
+  }, []);
+
   const handleAddToCart = () => {
     reachGoal(`${checkup.slug.replace(/-/g, "_")}_add_to_cart`);
     addToCart();
