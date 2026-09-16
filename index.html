@@ -318,6 +318,50 @@
             }
           }).observe(document.documentElement, { childList: true, subtree: true });
         }
+
+        // Яндекс.Вебвизор снимает копию DOM и подтягивает стили только по обычным
+        // тегам <link rel="stylesheet">. Beasties отдаёт основной CSS как
+        // <link rel="preload" as="style" onload="this.rel='stylesheet'"> — такую
+        // конструкцию Вебвизор не забирает, и записи визитов выглядят без стилей.
+        // После полной загрузки (в простое) дублируем каждый CSS-ассет обычной
+        // ссылкой: файл уже в кэше, повторной сетевой загрузки нет, на скорость
+        // первого экрана это не влияет.
+        function ensurePlainStylesheetLinks() {
+          try {
+            // Ищем все CSS-ассеты: и те, что ещё остались preload'ами, и те, что
+            // уже подменились на stylesheet через onload — Вебвизор сериализует
+            // исходный HTML, где это был preload.
+            var hrefs = [];
+            var seen = {};
+            var candidates = document.querySelectorAll('link[as="style"], link[rel="preload"]');
+            for (var i = 0; i < candidates.length; i++) {
+              var link = candidates[i];
+              var href = link.href;
+              if (!href || href.indexOf('/assets/') === -1 || href.indexOf('.css') === -1) continue;
+              if (seen[href]) continue;
+              seen[href] = true;
+              hrefs.push({ href: href, crossOrigin: link.crossOrigin });
+            }
+
+            for (var k = 0; k < hrefs.length; k++) {
+              if (document.querySelector('link[data-rl-webvisor][href="' + hrefs[k].href + '"]')) continue;
+              var plain = document.createElement('link');
+              plain.rel = 'stylesheet';
+              if (hrefs[k].crossOrigin) plain.crossOrigin = hrefs[k].crossOrigin;
+              plain.href = hrefs[k].href;
+              plain.setAttribute('data-rl-webvisor', '1');
+              document.head.appendChild(plain);
+            }
+          } catch (e) {}
+        }
+
+        function scheduleWebvisorStylesheets() {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(ensurePlainStylesheetLinks, { timeout: 4000 });
+          else setTimeout(ensurePlainStylesheetLinks, 2000);
+        }
+
+        if (document.readyState === 'complete') scheduleWebvisorStylesheets();
+        else window.addEventListener('load', scheduleWebvisorStylesheets, { once: true });
       })();
     </script>
 
