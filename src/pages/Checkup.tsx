@@ -24,7 +24,7 @@ import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 import { reachGoal } from "@/lib/yandexMetrika";
 
 export function CheckupContent() {
-  const { addToCart, inCart, openCart, checkup } = useEnergyOrder();
+  const { addToCart, inCart, openCart, checkup, count } = useEnergyOrder();
   const { setTheme } = useTheme();
 
   // На страницах чекапов по умолчанию используем светлую тему
@@ -47,7 +47,7 @@ export function CheckupContent() {
   }, []);
 
   const handleAddToCart = () => {
-    reachGoal(`${checkup.slug.replace(/-/g, "_")}_add_to_cart`);
+    if (!inCart) reachGoal(`${checkup.slug.replace(/-/g, "_")}_add_to_cart`);
     addToCart();
   };
 
@@ -58,7 +58,7 @@ export function CheckupContent() {
         description={checkup.seoDescription}
         canonical={checkup.href}
       />
-      <EnergyHeader cartCount={inCart ? 1 : 0} onOpenCart={openCart} />
+      <EnergyHeader cartCount={count} onOpenCart={openCart} />
       <main className="pb-20 lg:pb-0">
         <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} />
         <EnergyIncluded checkup={checkup} />
@@ -70,7 +70,8 @@ export function CheckupContent() {
       <div id="energy-page-end" />
       <Footer />
       <EnergyStickyCta
-        cartCount={inCart ? 1 : 0}
+        cartCount={count}
+        inCart={inCart}
         onAddToCart={handleAddToCart}
         anchorId="energy-hero-cta"
         hideNearId="energy-page-end"
