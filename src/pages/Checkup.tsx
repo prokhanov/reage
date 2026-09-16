@@ -94,8 +94,14 @@ export default function Checkup() {
   const { slug } = useParams();
   const checkup = getCheckupBySlug(slug);
 
-  if (!checkup) return <NotFound />;
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
+  }, [slug]);
 
+  if (!checkup) return <NotFound />;
 
   return <CheckupPage key={checkup.slug} checkup={checkup} />;
 }
