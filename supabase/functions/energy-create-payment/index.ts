@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const {
       bundle = "energy",
+      bundles,
       email,
       phone,
       promoCode,
@@ -74,6 +75,7 @@ Deno.serve(async (req) => {
       consultation,
     } = body as {
       bundle?: string;
+      bundles?: string[];
       email?: string;
       phone?: string;
       promoCode?: string;
@@ -81,8 +83,13 @@ Deno.serve(async (req) => {
       consultation?: boolean;
     };
 
-    const product = BUNDLES[bundle];
-    if (!product) return json({ error: "Неизвестный набор анализов" }, 400);
+    // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
+    const bundleList = Array.isArray(bundles) && bundles.length > 0 ? bundles : [bundle];
+    const uniqueBundles = [...new Set(bundleList.map((b) => String(b)))];
+    const products = uniqueBundles.map((b) => BUNDLES[b]);
+    if (products.some((p) => !p)) return json({ error: "Неизвестный набор анализов" }, 400);
+    const items = products as { title: string; price: number }[];
+    const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
 
     const emailClean = (email ?? "").trim().toLowerCase();
     const phoneClean = (phone ?? "").trim();
@@ -110,12 +117,12 @@ Deno.serve(async (req) => {
 
     const withConsult = consultation === true;
     const consultAmount = withConsult ? CONSULT_PRICE : 0;
-    const original = product.price + consultAmount;
+    const original = itemsSum + consultAmount;
     const code = (promoCode ?? "").trim().toUpperCase();
     const rate = code ? PROMOS[code] : undefined;
     if (code && !rate) return json({ error: "Промокод не найден" }, 400);
     // Скидка по промокоду применяется только к набору анализов, не к консультации.
-    const discount = rate ? Math.round(product.price * rate) : 0;
+    const discount = rate ? Math.round(itemsSum * rate) : 0;
     const finalAmount = original - discount;
     if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
     const outSum = finalAmount.toFixed(2);
@@ -133,7 +140,8 @@ Deno.serve(async (req) => {
       .from("energy_orders")
       .insert({
         user_id: userId,
-        bundle,
+        bundle: uniqueBundles[0],
+        bundles: uniqueBundles,
         email: emailClean,
         phone: phoneClean,
         clinic_id: clinic?.id ?? null,
@@ -159,14 +167,20 @@ Deno.serve(async (req) => {
     const receipt = {
       sno: "usn_income_outcome",
       items: [
-        {
-          name: product.title.slice(0, 128),
-          quantity: 1,
-          sum: Number((product.price - discount).toFixed(2)),
-          payment_method: "full_payment",
-          payment_object: "service",
-          tax: "none",
-        },
+        // Скидку распределяем по позициям пропорционально, остаток кладём в первую.
+        ...items.map((p, i) => {
+          const share = i === items.length - 1
+            ? discount - items.slice(0, -1).reduce((acc, x) => acc + Math.round((discount * x.price) / itemsSum), 0)
+            : Math.round((discount * p.price) / itemsSum);
+          return {
+            name: p.title.slice(0, 128),
+            quantity: 1,
+            sum: Number((p.price - share).toFixed(2)),
+            payment_method: "full_payment",
+            payment_object: "service",
+            tax: "none",
+          };
+        }),
         ...(withConsult
           ? [
               {
@@ -191,7 +205,7 @@ Deno.serve(async (req) => {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
-      Description: `${product.title}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
+      Description: `${items.map((p) => p.title).join(" + ")}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",
