@@ -328,18 +328,27 @@
         // первого экрана это не влияет.
         function ensurePlainStylesheetLinks() {
           try {
+            // Ищем все CSS-ассеты: и те, что ещё остались preload'ами, и те, что
+            // уже подменились на stylesheet через onload — Вебвизор сериализует
+            // исходный HTML, где это был preload.
+            var hrefs = [];
             var seen = {};
-            var current = document.querySelectorAll('link[rel="stylesheet"]');
-            for (var i = 0; i < current.length; i++) seen[current[i].href] = true;
-
-            var preloads = document.querySelectorAll('link[rel="preload"][as="style"]');
-            for (var k = 0; k < preloads.length; k++) {
-              var href = preloads[k].href;
-              if (!href || href.indexOf('/assets/') === -1 || seen[href]) continue;
+            var candidates = document.querySelectorAll('link[as="style"], link[rel="preload"]');
+            for (var i = 0; i < candidates.length; i++) {
+              var link = candidates[i];
+              var href = link.href;
+              if (!href || href.indexOf('/assets/') === -1 || href.indexOf('.css') === -1) continue;
+              if (seen[href]) continue;
               seen[href] = true;
+              hrefs.push({ href: href, crossOrigin: link.crossOrigin });
+            }
+
+            for (var k = 0; k < hrefs.length; k++) {
+              if (document.querySelector('link[data-rl-webvisor][href="' + hrefs[k].href + '"]')) continue;
               var plain = document.createElement('link');
               plain.rel = 'stylesheet';
-              plain.href = href;
+              if (hrefs[k].crossOrigin) plain.crossOrigin = hrefs[k].crossOrigin;
+              plain.href = hrefs[k].href;
               plain.setAttribute('data-rl-webvisor', '1');
               document.head.appendChild(plain);
             }
