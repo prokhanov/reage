@@ -1,6 +1,6 @@
 /**
  * Цели Яндекс.Метрики для воронки оплаты чекапов.
- * Для каждого шага отправляем пару целей: по направлению (<slug>_...) и общую (checkup_...).
+ * Для каждого шага отправляем цель по каждому чекапу заказа (<slug>_...) и одну общую (checkup_...).
  */
 import { CHECKUPS } from "@/data/checkups";
 import { reachGoal } from "@/lib/yandexMetrika";
@@ -8,34 +8,47 @@ import { reachGoal } from "@/lib/yandexMetrika";
 const ORDER_KEY = "reage:checkup:lastOrder";
 const SENT_PREFIX = "reage:checkup:goalSent:";
 
-type StoredOrder = { invId: string; slug: string };
+type StoredOrder = { invId: string; slug?: string; slugs?: string[] };
 
-/** Запоминаем, какой чекап оплачивается, чтобы узнать его на странице возврата. */
-export function rememberCheckupOrder(invId: string | null, slug: string) {
+/** Запоминаем, какие чекапы оплачиваются, чтобы узнать их на странице возврата. */
+export function rememberCheckupOrder(invId: string | null, slugs: string[] | string) {
   try {
-    const payload: StoredOrder = { invId: invId ?? "", slug };
+    const list = Array.isArray(slugs) ? slugs : [slugs];
+    const payload: StoredOrder = { invId: invId ?? "", slug: list[0], slugs: list };
     localStorage.setItem(ORDER_KEY, JSON.stringify(payload));
   } catch {
     /* noop */
   }
 }
 
-/** Достаём slug заказа: сперва из памяти браузера, затем по bundle из БД. */
-export function resolveCheckupSlug(invId: string | null, bundle?: string | null): string | null {
+function slugFromBundle(bundle: string): string | null {
+  const match = CHECKUPS.find((c) => c.bundle === bundle || c.slug === bundle);
+  return match ? match.slug : null;
+}
+
+/** Достаём slug'и заказа: сперва из памяти браузера, затем по bundle из БД. */
+export function resolveCheckupSlugs(
+  invId: string | null,
+  bundle?: string | null,
+  bundles?: string[] | null,
+): string[] {
   try {
     const raw = localStorage.getItem(ORDER_KEY);
     if (raw) {
       const stored = JSON.parse(raw) as StoredOrder;
-      if (stored?.slug && (!invId || !stored.invId || stored.invId === invId)) return stored.slug;
+      const list = stored?.slugs?.length ? stored.slugs : stored?.slug ? [stored.slug] : [];
+      if (list.length && (!invId || !stored.invId || stored.invId === invId)) return list;
     }
   } catch {
     /* noop */
   }
-  if (bundle) {
-    const match = CHECKUPS.find((c) => c.bundle === bundle || c.slug === bundle);
-    if (match) return match.slug;
-  }
-  return null;
+  const source = bundles?.length ? bundles : bundle ? [bundle] : [];
+  return source.map(slugFromBundle).filter((s): s is string => Boolean(s));
+}
+
+/** Совместимость: один slug заказа. */
+export function resolveCheckupSlug(invId: string | null, bundle?: string | null): string | null {
+  return resolveCheckupSlugs(invId, bundle)[0] ?? null;
 }
 
 /** Достаём номер заказа из платёжного URL Робокассы. */
@@ -47,17 +60,17 @@ export function invIdFromPaymentUrl(url: string): string | null {
   }
 }
 
-function send(slug: string | null, suffix: string) {
-  if (slug) reachGoal(`${slug.replace(/-/g, "_")}_${suffix}`);
+function send(slugs: string[], suffix: string) {
+  for (const slug of slugs) reachGoal(`${slug.replace(/-/g, "_")}_${suffix}`);
   reachGoal(`checkup_${suffix}`);
 }
 
-export function goalPaymentClick(slug: string) {
-  send(slug, "payment_click");
+export function goalPaymentClick(slugs: string[] | string) {
+  send(Array.isArray(slugs) ? slugs : [slugs], "payment_click");
 }
 
 /** Отправляем один раз на заказ (страница возврата может опрашивать статус повторно). */
-function sendOnce(key: string, slug: string | null, suffix: string) {
+function sendOnce(key: string, slugs: string[], suffix: string) {
   try {
     const storageKey = `${SENT_PREFIX}${suffix}:${key}`;
     if (sessionStorage.getItem(storageKey)) return;
@@ -65,13 +78,17 @@ function sendOnce(key: string, slug: string | null, suffix: string) {
   } catch {
     /* noop */
   }
-  send(slug, suffix);
+  send(slugs, suffix);
 }
 
-export function goalPaid(invId: string | null, bundle?: string | null) {
-  sendOnce(invId ?? "unknown", resolveCheckupSlug(invId, bundle), "paid");
+export function goalPaid(invId: string | null, bundle?: string | null, bundles?: string[] | null) {
+  sendOnce(invId ?? "unknown", resolveCheckupSlugs(invId, bundle, bundles), "paid");
 }
 
-export function goalPaymentFailed(invId: string | null, bundle?: string | null) {
-  sendOnce(invId ?? "unknown", resolveCheckupSlug(invId, bundle), "payment_failed");
+export function goalPaymentFailed(
+  invId: string | null,
+  bundle?: string | null,
+  bundles?: string[] | null,
+) {
+  sendOnce(invId ?? "unknown", resolveCheckupSlugs(invId, bundle, bundles), "payment_failed");
 }

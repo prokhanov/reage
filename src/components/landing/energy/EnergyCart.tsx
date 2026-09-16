@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Clock, Heart, MapPin, Stethoscope } from "lucide-react";
+import { Award, Clock, Heart, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -36,7 +36,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic, checkup } = useEnergyOrder();
+  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
+    useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -47,12 +48,13 @@ export function EnergyCart() {
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
-  const discount = appliedPromo ? Math.round(checkup.price * appliedPromo.discount) : 0;
-  const total = checkup.price - discount + (consult ? CONSULT_PRICE : 0);
+  const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
+  const discount = appliedPromo ? Math.round(itemsSum * appliedPromo.discount) : 0;
+  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
-  const canPay = emailValid && phoneValid && agree;
+  const canPay = emailValid && phoneValid && agree && items.length > 0;
 
   // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
   useEffect(() => {
@@ -97,7 +99,8 @@ export function EnergyCart() {
     try {
       const { data, error } = await supabase.functions.invoke("energy-create-payment", {
         body: {
-          bundle: checkup.bundle,
+          bundle: items[0]?.bundle ?? checkup.bundle,
+          bundles: items.map((item) => item.bundle),
           email: email.trim(),
           phone: phone.trim(),
           promoCode: appliedPromo?.code,
@@ -120,8 +123,9 @@ export function EnergyCart() {
       if (error) throw error;
       const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("Не получен платёжный URL");
-      rememberCheckupOrder(invIdFromPaymentUrl(url), checkup.slug);
-      goalPaymentClick(checkup.slug);
+      const slugs = items.map((item) => item.slug);
+      rememberCheckupOrder(invIdFromPaymentUrl(url), slugs);
+      goalPaymentClick(slugs);
       window.location.href = url;
     } catch (e) {
       console.error("energy payment error", e);
@@ -144,17 +148,40 @@ export function EnergyCart() {
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
             <Step n={1} title="Ваш заказ">
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-4">
-                <div className="min-w-0">
-                  <div className="text-base font-semibold text-foreground">{checkup.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {markersLabel(checkup.markers.length)}
-                  </div>
+              {items.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
+                  Корзина пуста. Добавьте чекап — можно выбрать сразу несколько.
                 </div>
-                <div className="font-mono-tech text-base text-foreground">
-                  {money(checkup.price)}
+              ) : (
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <div
+                      key={item.slug}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-base font-semibold text-foreground">{item.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {markersLabel(item.markers.length)}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-mono-tech text-base text-foreground">
+                          {money(item.price)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.slug)}
+                          aria-label={`Удалить ${item.name}`}
+                          className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          <X className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </Step>
 
             <Step n={2} title="Где сдать анализ">
@@ -294,10 +321,15 @@ export function EnergyCart() {
                 </Button>
               </div>
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span>{checkup.name}</span>
-                  <span className="font-mono-tech">{money(checkup.price)}</span>
-                </div>
+                {items.map((item) => (
+                  <div
+                    key={item.slug}
+                    className="flex items-center justify-between text-muted-foreground"
+                  >
+                    <span>{item.name}</span>
+                    <span className="font-mono-tech">{money(item.price)}</span>
+                  </div>
+                ))}
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>консультация врача</span>
@@ -337,7 +369,7 @@ export function EnergyCart() {
             <Button
               type="button"
               onClick={handlePay}
-              disabled={!agree || paying}
+              disabled={!agree || paying || items.length === 0}
               size="lg"
               className="h-12 w-full text-base"
             >

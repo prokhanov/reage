@@ -15,6 +15,13 @@
       "when": 1789417657356,
       "tag": "0001_enable_checkup_paid_telegram_event",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789571580651,
+      "tag": "0002_energy_orders_bundles",
+      "breakpoints": true
     }
   ]
 }

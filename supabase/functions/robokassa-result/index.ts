@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
       )
       .eq("inv_id", invId)
       .maybeSingle();
@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
       await notifyTelegramCheckupPaid(admin, supabaseUrl, {
         inv_id: invId,
         bundle: (energyOrder as any).bundle ?? null,
+        bundles: (energyOrder as any).bundles ?? null,
         email: (energyOrder as any).email ?? null,
         phone: (energyOrder as any).phone ?? null,
         clinic_title: (energyOrder as any).clinic_title ?? null,

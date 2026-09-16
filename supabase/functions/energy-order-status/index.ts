@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin
       .from("energy_orders")
-      .select("status, is_test, out_sum, clinic_title, clinic_address, email, bundle")
+      .select("status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles")
       .eq("inv_id", invId)
       .maybeSingle();
 
@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
     return json({
       status: data.status,
       bundle: data.bundle,
+      bundles: (data as { bundles?: string[] | null }).bundles ?? null,
       isTest: data.is_test,
       outSum: Number(data.out_sum),
       clinicTitle: data.clinic_title,

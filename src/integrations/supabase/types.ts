@@ -1111,6 +1111,7 @@ export type Database = {
       energy_orders: {
         Row: {
           bundle: string
+          bundles: string[] | null
           clinic_address: string | null
           clinic_id: string | null
           clinic_title: string | null
@@ -1134,6 +1135,7 @@ export type Database = {
         }
         Insert: {
           bundle?: string
+          bundles?: string[] | null
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null
@@ -1157,6 +1159,7 @@ export type Database = {
         }
         Update: {
           bundle?: string
+          bundles?: string[] | null
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null

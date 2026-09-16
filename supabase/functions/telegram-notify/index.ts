@@ -141,10 +141,12 @@ export function buildMessage(
       );
     }
     case "checkup_paid": {
-      const bundle = String(payload.bundle || "—");
-      const title = CHECKUP_TITLES[bundle] || bundle;
+      const list: string[] = Array.isArray(payload.bundles) && payload.bundles.length
+        ? payload.bundles.map((b: unknown) => String(b))
+        : [String(payload.bundle || "—")];
+      const title = list.map((b) => CHECKUP_TITLES[b] || b).join("\n📦 ");
       const lines = [
-        prefix + "🛒 <b>Оплачен чекап</b>",
+        prefix + (list.length > 1 ? "🛒 <b>Оплачены чекапы</b>" : "🛒 <b>Оплачен чекап</b>"),
         `📦 ${e(title)}`,
         `💵 ${e(formatAmount(payload.amount))}`,
         `📧 ${e(payload.email || "—")}`,

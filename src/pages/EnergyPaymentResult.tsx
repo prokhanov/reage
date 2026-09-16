@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getCheckupBySlug } from "@/data/checkups";
 import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
+import { clearCheckupCart } from "@/components/landing/energy/EnergyOrderContext";
 
 /** Старые адреса чекапов, которые ещё могут лежать в оплаченных заказах. */
 const BUNDLE_ALIASES: Record<string, string> = {
@@ -18,6 +19,11 @@ function resolveCheckup(bundle?: string | null) {
   return getCheckupBySlug(BUNDLE_ALIASES[bundle] ?? bundle);
 }
 
+function resolveCheckups(order?: OrderInfo | null) {
+  const list = order?.bundles?.length ? order.bundles : order?.bundle ? [order.bundle] : [];
+  return list.map(resolveCheckup).filter(Boolean) as NonNullable<ReturnType<typeof resolveCheckup>>[];
+}
+
 type OrderInfo = {
   status: string;
   isTest: boolean;
@@ -26,6 +32,7 @@ type OrderInfo = {
   clinicAddress: string | null;
   email: string;
   bundle?: string | null;
+  bundles?: string[] | null;
 };
 
 /**
@@ -58,7 +65,8 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
         setOrder(info);
         if (info.status === "paid") {
           setState("paid");
-          goalPaid(invId, info.bundle);
+          goalPaid(invId, info.bundle, info.bundles);
+          clearCheckupCart();
           return;
         }
       }
@@ -97,9 +105,15 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
     };
   }, [invId, mode]);
 
-  const checkup = resolveCheckup(order?.bundle);
+  const checkups = resolveCheckups(order);
+  const checkup = checkups[0];
   const checkupPath = checkup ? checkup.href : "/checkup/energy";
-  const checkupLabel = checkup ? `На страницу ${checkup.name}` : "На страницу чекапа";
+  const checkupLabel =
+    checkups.length > 1
+      ? "К страницам чекапов"
+      : checkup
+        ? `На страницу ${checkup.name}`
+        : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
@@ -131,6 +145,13 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
         <>
           <CheckCircle2 className="mx-auto mb-6 h-14 w-14 text-primary" />
           <h1 className="mb-3 text-2xl font-bold md:text-3xl">Заказ оплачен</h1>
+          {checkups.length > 0 && (
+            <ul className="mx-auto mb-4 max-w-md space-y-1 text-base text-foreground">
+              {checkups.map((c) => (
+                <li key={c.slug}>{c.name}</li>
+              ))}
+            </ul>
+          )}
           <p className="mb-6 text-muted-foreground">
             Направление и инструкции придут на {order?.email ?? "указанную почту"}. Сдать
             анализы можно в любой рабочий день, без записи.
