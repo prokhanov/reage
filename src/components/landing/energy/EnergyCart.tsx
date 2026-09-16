@@ -18,7 +18,7 @@ import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/l
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
-const CONSULT_PRICE = 4900;
+const CONSULT_PRICE = 3500;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {

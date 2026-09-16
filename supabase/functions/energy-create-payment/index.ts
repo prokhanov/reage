@@ -33,7 +33,7 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
-const CONSULT_PRICE = 4900;
+const CONSULT_PRICE = 3500;
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
