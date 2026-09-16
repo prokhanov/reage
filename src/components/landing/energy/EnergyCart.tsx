@@ -36,7 +36,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem, clearCart } =
+  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
     useEnergyOrder();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
