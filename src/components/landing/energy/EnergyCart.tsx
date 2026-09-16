@@ -123,8 +123,9 @@ export function EnergyCart() {
       if (error) throw error;
       const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("Не получен платёжный URL");
-      rememberCheckupOrder(invIdFromPaymentUrl(url), checkup.slug);
-      goalPaymentClick(checkup.slug);
+      const slugs = items.map((item) => item.slug);
+      rememberCheckupOrder(invIdFromPaymentUrl(url), slugs);
+      goalPaymentClick(slugs);
       window.location.href = url;
     } catch (e) {
       console.error("energy payment error", e);

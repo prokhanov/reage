@@ -27,6 +27,11 @@ function writeCart(slugs: string[]) {
   }
 }
 
+/** Очистить корзину вне провайдера (например, после успешной оплаты). */
+export function clearCheckupCart() {
+  writeCart([]);
+}
+
 interface EnergyOrderValue {
   /** Чекап текущей страницы */
   checkup: Checkup;
