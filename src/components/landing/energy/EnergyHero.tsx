@@ -6,9 +6,11 @@ import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checku
 interface Props {
   onAddToCart: () => void;
   checkup?: Checkup;
+  /** Чекап уже добавлен в корзину */
+  inCart?: boolean;
 }
 
-export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
+export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = false }: Props) {
   const isEnergy = checkup.slug === "energy";
 
   const facts = [
@@ -107,7 +109,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP }: Props) {
               onClick={onAddToCart}
               className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
             >
-              Добавить в корзину
+              {inCart ? "В корзине · Оформить" : "Добавить в корзину"}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>

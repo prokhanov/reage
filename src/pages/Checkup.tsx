@@ -60,7 +60,7 @@ export function CheckupContent() {
       />
       <EnergyHeader cartCount={count} onOpenCart={openCart} />
       <main className="pb-20 lg:pb-0">
-        <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} />
+        <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} inCart={inCart} />
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
         <EnergyExpertResult />
