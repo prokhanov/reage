@@ -19,4 +19,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Правило: при добавлении/удалении роута в src/App.tsx синхронизируй список ниже.
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
 
+# Архивируем ассеты сборки, чтобы старые хэшированные CSS/JS не пропадали после
+# деплоя (нужно Вебвизору и клиентам со старым закэшированным index.html).
+COPY deploy/nginx/40-archive-assets.sh /docker-entrypoint.d/40-archive-assets.sh
+RUN chmod +x /docker-entrypoint.d/40-archive-assets.sh && mkdir -p /var/www/assets-archive
+
 EXPOSE 80
