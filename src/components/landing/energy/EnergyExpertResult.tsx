@@ -9,6 +9,7 @@ import { reachGoal } from "@/lib/yandexMetrika";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
 import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
+import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
 /**
@@ -201,6 +202,7 @@ function MarkerCard({
 export function EnergyExpertResult() {
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
+  const { doctor } = useCheckupSettings();
   const [exampleOpen, setExampleOpen] = useState(false);
 
   return (
@@ -219,33 +221,32 @@ export function EnergyExpertResult() {
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-lg font-medium text-foreground lg:mt-4">Д-р Наталья Чезганова</span>
+                <span className="text-lg font-medium text-foreground lg:mt-4">{`Д-р ${doctor.name}`}</span>
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   Эксперт ReAge
                 </span>
               </div>
 
               <div className="mt-2 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">Врач-терапевт</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Heart className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">Кардиолог</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Award className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span className="truncate">GMC, Великобритания</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
-                  <span>Стаж 7+ лет</span>
-                </div>
+                {doctor.specialty && (
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Stethoscope className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                    <span className="truncate">{doctor.specialty}</span>
+                  </div>
+                )}
+                {doctor.credentials.map((line, i) => {
+                  const Icon = i === 0 ? Heart : i === 1 ? Award : Clock;
+                  return (
+                    <div key={line} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Icon className="h-4 w-4 shrink-0 text-primary/80" aria-hidden />
+                      <span className="truncate">{line}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <p className="mt-3 border-t border-border/20 pt-3 text-sm text-muted-foreground">
-                Врач с более чем 7-летним клиническим опытом в терапии, кардиологии, сердечно-сосудистой хирургии и амбулаторной медицине. Зарегистрирована в General Medical Council (GMC), Великобритания. Помогает разобраться в результатах анализов и оценить их в контексте общего состояния здоровья.
+                {doctor.description}
               </p>
 
               <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">

@@ -15,10 +15,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { markersLabel, money } from "@/data/checkups";
 import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/lib/checkupGoals";
 
+import { useCheckupSettings } from "@/hooks/useCheckupSettings";
+
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
-const CONSULT_PRICE = 3500;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -38,6 +39,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 export function EnergyCart() {
   const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
     useEnergyOrder();
+  const { doctor } = useCheckupSettings();
+  const CONSULT_PRICE = doctor.consultation_price;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -258,6 +261,7 @@ export function EnergyCart() {
               </div>
             </Step>
 
+            {doctor.consultation_enabled && (
             <Step n={4} title="Добавить консультацию">
               <label
                 className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
@@ -284,29 +288,29 @@ export function EnergyCart() {
                     </span>
                   </div>
                   <div className="mt-0.5 text-sm text-muted-foreground">
-                    Д-р Наталья Чезганова · разбор результатов 40 минут онлайн
+                    {`Д-р ${doctor.name} · разбор результатов 40 минут онлайн`}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Врач-терапевт
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Heart className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Кардиолог
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Award className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      GMC, UK
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Стаж 7+ лет
-                    </span>
+                    {doctor.specialty && (
+                      <span className="inline-flex items-center gap-1">
+                        <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                        {doctor.specialty}
+                      </span>
+                    )}
+                    {doctor.credentials.map((line, i) => {
+                      const Icon = i === 0 ? Heart : i === 1 ? Award : Clock;
+                      return (
+                        <span key={line} className="inline-flex items-center gap-1">
+                          <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                          {line}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </label>
             </Step>
+            )}
 
             <Step n={5} title="Промокод">
               <div className="flex gap-2">

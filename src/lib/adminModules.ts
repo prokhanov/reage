@@ -15,7 +15,8 @@ export type AdminModule =
   | "telegram_settings"
   | "lab_locations"
   | "report_visuals"
-  | "scale_preview";
+  | "scale_preview"
+  | "checkups";
 
 export interface AdminModuleDef {
   value: AdminModule;
@@ -36,6 +37,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { value: "email_settings", label: "Email — рассылки", path: "/admin/email-settings" },
   { value: "sms_settings", label: "SMS — рассылки", path: "/admin/sms-settings" },
   { value: "telegram_settings", label: "Telegram — уведомления", path: "/admin/telegram-settings" },
+  { value: "checkups", label: "Чекапы — цены и врач", path: "/admin/checkups" },
   { value: "lab_locations", label: "Лаборатории на карте", path: "/admin/labs" },
   { value: "report_visuals", label: "Визуал отчётов", path: "/admin/report-visuals" },
   { value: "scale_preview", label: "Превью шкалы", path: "/admin/scale-preview" },

@@ -566,6 +566,39 @@ export type Database = {
           },
         ]
       }
+      checkup_doctor_settings: {
+        Row: {
+          consultation_enabled: boolean
+          consultation_price: number
+          credentials: string[]
+          description: string
+          id: string
+          name: string
+          specialty: string
+          updated_at: string
+        }
+        Insert: {
+          consultation_enabled?: boolean
+          consultation_price?: number
+          credentials?: string[]
+          description?: string
+          id?: string
+          name: string
+          specialty?: string
+          updated_at?: string
+        }
+        Update: {
+          consultation_enabled?: boolean
+          consultation_price?: number
+          credentials?: string[]
+          description?: string
+          id?: string
+          name?: string
+          specialty?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checkup_prices: {
         Row: {
           price: number
@@ -587,6 +620,27 @@ export type Database = {
           title?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      checkup_settings: {
+        Row: {
+          is_active: boolean
+          price: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          is_active?: boolean
+          price: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          is_active?: boolean
+          price?: number
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3586,6 +3640,7 @@ export type Database = {
         | "lab_locations"
         | "report_visuals"
         | "scale_preview"
+        | "checkups"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       drip_delay_unit: "minutes" | "hours" | "days"
@@ -3757,6 +3812,7 @@ export const Constants = {
         "lab_locations",
         "report_visuals",
         "scale_preview",
+        "checkups",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],

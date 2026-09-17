@@ -1,0 +1,1 @@
+ALTER TYPE public.admin_module ADD VALUE IF NOT EXISTS 'checkups';
