@@ -261,6 +261,7 @@ export function EnergyCart() {
               </div>
             </Step>
 
+            {doctor.consultation_enabled && (
             <Step n={4} title="Добавить консультацию">
               <label
                 className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
@@ -309,6 +310,7 @@ export function EnergyCart() {
                 </div>
               </label>
             </Step>
+            )}
 
             <Step n={5} title="Промокод">
               <div className="flex gap-2">
