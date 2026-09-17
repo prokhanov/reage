@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, RotateCcw } from "lucide-react";
+import { Settings2, RotateCcw, Plus, Minus } from "lucide-react";
 
 export type LabMapItem = {
   id: string;
@@ -237,6 +237,7 @@ function ClusterLayer({
   selectedId,
   onSelect,
   selectOnMarkerClick,
+  stableRendering,
 }: {
   items: LabMapItem[];
   showPartnerButton: boolean;
@@ -248,6 +249,7 @@ function ClusterLayer({
   selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
   selectOnMarkerClick?: boolean;
+  stableRendering: boolean;
 }) {
   const map = useMap();
   const onSelectRef = useRef(onSelect);
@@ -263,9 +265,12 @@ function ClusterLayer({
 
   useEffect(() => {
     if (!items.length) return;
-    const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
-    pane.style.zIndex = "680";
-    pane.style.pointerEvents = "auto";
+    const markerPane = stableRendering ? "markerPane" : LAB_MARKER_PANE;
+    if (!stableRendering) {
+      const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
+      pane.style.zIndex = "680";
+      pane.style.pointerEvents = "auto";
+    }
 
     const icon = buildIcon();
     const markerLayer = clusterMarkers
@@ -277,7 +282,7 @@ function ClusterLayer({
           animate: false,
           animateAddingMarkers: false,
           maxClusterRadius: 50,
-          clusterPane: LAB_MARKER_PANE,
+          clusterPane: markerPane,
           iconCreateFunction: (c: { getChildCount: () => number }) => {
             const count = c.getChildCount();
             const size = count < 10 ? 34 : count < 100 ? 40 : 48;
@@ -291,7 +296,7 @@ function ClusterLayer({
       : L.layerGroup();
 
     items.forEach((it) => {
-      const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
+      const m = L.marker([it.lat, it.lng], { icon, pane: markerPane, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = normalizeHours(it.hours ?? []).filter(Boolean);
       const isSelected = selectedIdRef.current === it.id;
@@ -336,7 +341,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectOnMarkerClick]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectOnMarkerClick, stableRendering]);
   return null;
 }
 
@@ -436,6 +441,7 @@ export default function LabLocationsMap({
 
 }) {
   useTheme();
+  const mapRef = useRef<L.Map | null>(null);
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
   const [filtersLocal, setFiltersLocal] = useState<TileFilters>(filtersProp ?? DEFAULT_FILTERS);
   const styleKey = styleKeyProp ?? styleKeyLocal;
@@ -625,9 +631,10 @@ export default function LabLocationsMap({
       </div>
       )}
 
-      <div className="rounded-lg border border-border overflow-hidden bg-card">
+      <div className="relative rounded-lg border border-border overflow-hidden bg-card">
         <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
+          ref={mapRef}
           center={center}
           zoom={zoomProp ?? 10}
           scrollWheelZoom={false}
@@ -650,7 +657,7 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          <CustomZoomControl />
+          {!stableRendering && <CustomZoomControl />}
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
           {focusOnSelected && (
@@ -673,8 +680,35 @@ export default function LabLocationsMap({
             selectedId={selectedId}
             onSelect={onSelect}
             selectOnMarkerClick={selectOnMarkerClick}
+            stableRendering={stableRendering}
           />
         </MapContainer>
+        {stableRendering && (
+          <div className="absolute right-3 top-3 z-[900] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-md">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-none border-b border-border"
+              aria-label="Приблизить"
+              title="Приблизить"
+              onClick={() => mapRef.current?.zoomIn()}
+            >
+              <Plus className="h-5 w-5" aria-hidden />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-none"
+              aria-label="Отдалить"
+              title="Отдалить"
+              onClick={() => mapRef.current?.zoomOut()}
+            >
+              <Minus className="h-5 w-5" aria-hidden />
+            </Button>
+          </div>
+        )}
         {!hideAttribution && (
           <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
             <span>{style.attribution}</span>
