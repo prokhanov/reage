@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Check, Clock, FlaskConical, Gift } from "lucide-react";
+import { ArrowRight, Check, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
@@ -11,17 +11,7 @@ interface Props {
 }
 
 export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = false }: Props) {
-  const isEnergy = checkup.slug === "energy";
 
-  const facts = [
-    {
-      icon: FlaskConical,
-      title: markersLabel(checkup.markers.length),
-      text: isEnergy ? "Ключевые причины усталости" : "В одном заборе крови",
-    },
-    { icon: Building2, title: "LabQuest", text: "Сеть лабораторий" },
-    { icon: Clock, title: "1–2 дня", text: "Готовность результатов" },
-  ];
 
   const visual = (
     <>
