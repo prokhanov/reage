@@ -17,12 +17,22 @@ export function EnergyHeader({ cartCount, onOpenCart }: Props) {
           <ThemedLogo className="h-[2.7rem] w-auto" eager />
         </Link>
 
-        <button
-          type="button"
-          onClick={onOpenCart}
-          className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-3 text-sm text-foreground transition-colors hover:bg-muted"
-          aria-label={cartCount > 0 ? `Корзина, товаров: ${cartCount}` : "Корзина, пусто"}
-        >
+        <div className="flex items-center gap-4 md:gap-6">
+          <a
+            href="tel:+79959984638"
+            className="hidden text-sm font-medium text-foreground hover:text-primary sm:inline"
+            aria-label="Позвонить ReAge"
+          >
+            +7 (995) 998-46-38
+          </a>
+
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-3 text-sm text-foreground transition-colors hover:bg-muted"
+            aria-label={cartCount > 0 ? `Корзина, товаров: ${cartCount}` : "Корзина, пусто"}
+          >
+
 
           <span className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -34,6 +44,7 @@ export function EnergyHeader({ cartCount, onOpenCart }: Props) {
           </span>
           <span className="hidden sm:inline">Корзина</span>
         </button>
+        </div>
       </div>
     </header>
   );
