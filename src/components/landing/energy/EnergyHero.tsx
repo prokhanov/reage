@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Clock, FlaskConical, Gift } from "lucide-react";
+import { ArrowRight, Building2, Check, Clock, FlaskConical, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
