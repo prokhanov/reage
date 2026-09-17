@@ -84,7 +84,7 @@ export interface Checkup {
   markers: CheckupMarker[];
 }
 
-const SUBTITLE = "с полной расшифровкой и персональными рекомендациями";
+const SUBTITLE = "с понятной расшифровкой и персональными рекомендациями";
 
 export const CHECKUPS: Checkup[] = [
   {
