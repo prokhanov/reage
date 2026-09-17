@@ -193,7 +193,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         {/* Левая панель (на мобильном — под картой) */}
         <div
           className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
-            layout === "section" ? "order-2 lg:order-1" : ""
+            layout === "section" ? "order-2 lg:order-1" : "order-2"
           }`}
           style={layout === "section" && isWide ? { minHeight: mapHeight } : undefined}
 
@@ -322,7 +322,9 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         {/* Карта */}
         <div
           className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
-            layout === "section" ? "order-1 lg:order-2" : ""
+            layout === "section"
+              ? "order-1 lg:order-2"
+              : "order-1 sticky top-0 z-10 shadow-sm"
           }`}
         >
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
