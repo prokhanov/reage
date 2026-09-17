@@ -42,6 +42,7 @@ const adminNavItems: Array<{ to: string; label: string; icon: any; module: Admin
   { to: "/admin/user-management", label: "Пользователи", icon: Briefcase, module: "user_management" },
   { to: "/admin/subscription-plans", label: "Тарифы", icon: CreditCard, module: "subscription_plans" },
   { to: "/admin/payment-gateway", label: "Платёжный шлюз", icon: CreditCard, module: "payment_gateway" },
+  { to: "/admin/checkup-prices", label: "Цены чекапов", icon: Ticket, module: "payment_gateway" },
   { to: "/admin/promo-codes", label: "Промокоды", icon: Ticket, module: "promo_codes" },
   { to: "/admin/report-visuals", label: "Тест отчета", icon: Eye, module: "report_visuals" },
   { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings, module: "ai_settings" },
