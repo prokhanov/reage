@@ -33,7 +33,7 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
-const CONSULT_PRICE = 3500;
+const CONSULT_PRICE_FALLBACK = 3500;
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
@@ -88,8 +88,7 @@ Deno.serve(async (req) => {
     const uniqueBundles = [...new Set(bundleList.map((b) => String(b)))];
     const products = uniqueBundles.map((b) => BUNDLES[b]);
     if (products.some((p) => !p)) return json({ error: "Неизвестный набор анализов" }, 400);
-    const items = products as { title: string; price: number }[];
-    const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
+    const items = (products as { title: string; price: number }[]).map((p) => ({ ...p }));
 
     const emailClean = (email ?? "").trim().toLowerCase();
     const phoneClean = (phone ?? "").trim();
@@ -101,6 +100,30 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
+
+    // Цены администрируются в разделе «Чекапы» админки; каталог в коде — запасной вариант.
+    const PRICE_ALIASES: Record<string, string> = {
+      "cardio-risk-40": "cardio-risk",
+      "base-40": "base",
+    };
+    const { data: priceRows } = await admin
+      .from("checkup_settings")
+      .select("slug, price");
+    const priceMap = new Map((priceRows ?? []).map((r) => [r.slug as string, r.price as number]));
+    uniqueBundles.forEach((b, i) => {
+      const slug = PRICE_ALIASES[b] ?? b;
+      const override = priceMap.get(slug);
+      if (typeof override === "number") items[i].price = override;
+    });
+    const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
+
+    const { data: doctorRow } = await admin
+      .from("checkup_doctor_settings")
+      .select("consultation_price")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const CONSULT_PRICE = doctorRow?.consultation_price ?? CONSULT_PRICE_FALLBACK;
 
     const { data: gateway } = await admin
       .from("payment_gateway_settings")
