@@ -69,6 +69,8 @@ export interface Checkup {
   heroSubtitle: string;
   /** Абзац «для кого» под подзаголовком. */
   lead: string;
+  /** Список с галочками вместо lead, если задан. */
+  leadBullets?: string[];
   /** Короткое описание для карточки в карусели. */
   cardText: string;
   /** Подпись под списком показателей. */
