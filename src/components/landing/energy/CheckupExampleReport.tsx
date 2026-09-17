@@ -65,9 +65,9 @@ function toReportBiomarker(
   } as ReportBiomarker;
 }
 
-function splitSentences(text: string): string[] {
+function splitFeelingItems(text: string): string[] {
   return text
-    .split(/(?<=[.!?])\s+/)
+    .split(/(?<=[.!?])\s+|[;,]\s*/)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -94,13 +94,9 @@ function buildCommentary(
   );
 
   if (marker.feeling && status !== "optimal") {
-    const bullets = splitSentences(marker.feeling);
-    parts.push("Что это значит для вас");
-    if (bullets.length > 1) {
-      parts.push(bullets.map((b) => `* ${b.replace(/\.$/, "")}`).join("\n"));
-    } else {
-      parts.push(marker.feeling.trim());
-    }
+    const bullets = splitFeelingItems(marker.feeling);
+    parts.push("**Что это значит для вас**");
+    parts.push(bullets.map((bullet) => `- ${bullet.replace(/\.$/, "")}`).join("\n"));
     parts.push("Что с этим делать — в разделе «Рекомендации» ниже.");
   }
 
