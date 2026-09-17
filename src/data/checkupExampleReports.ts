@@ -690,6 +690,14 @@ export const UNIVERSAL_EXAMPLE_REPORT: CheckupExampleReport = {
   ],
 };
 
-export function getCheckupExampleReport(_slug: string): CheckupExampleReport | undefined {
-  return UNIVERSAL_EXAMPLE_REPORT;
+/** Алиасы старых путей чекапов. */
+const SLUG_ALIASES: Record<string, string> = {
+  "cardio-risk-40": "cardio-risk",
+  "base-40": "base",
+};
+
+export function getCheckupExampleReport(slug: string | undefined): CheckupExampleReport | undefined {
+  if (!slug) return UNIVERSAL_EXAMPLE_REPORT;
+  const key = SLUG_ALIASES[slug] || slug;
+  return CHECKUP_EXAMPLE_REPORTS[key] || UNIVERSAL_EXAMPLE_REPORT;
 }
