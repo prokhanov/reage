@@ -94,6 +94,9 @@ const REF: Record<string, ExampleRef> = {
   TEST: { name: "Тестостерон общий", unit: "нмоль/л", normal_min: 12, normal_max: 33, optimal_min: 16, optimal_max: 28, critical_min: 8, critical_max: 40 },
   SHBG: { name: "ГСПГ", unit: "нмоль/л", normal_min: 13, normal_max: 71, optimal_min: 20, optimal_max: 50, critical_min: 8, critical_max: 110 },
   FTEST: { name: "Свободный тестостерон (расчётный)", unit: "пмоль/л", normal_min: 225, normal_max: 600, optimal_min: 280, optimal_max: 520, critical_min: 150, critical_max: 800 },
+  "LH-M": { name: "ЛГ", unit: "МЕ/л", normal_min: 1.7, normal_max: 8.6, optimal_min: 2.5, optimal_max: 6.5, critical_min: 0.8, critical_max: 15 },
+  "FSH-M": { name: "ФСГ", unit: "МЕ/л", normal_min: 1.5, normal_max: 12.4, optimal_min: 2, optimal_max: 8, critical_min: 0.7, critical_max: 20 },
+  "PRL-M": { name: "Пролактин", unit: "мМЕ/л", normal_min: 73, normal_max: 407, optimal_min: 100, optimal_max: 320, critical_min: 40, critical_max: 900 },
 };
 
 interface MarkerText {
