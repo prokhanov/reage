@@ -20,7 +20,7 @@ export function EnergyHeader({ cartCount, onOpenCart }: Props) {
         <div className="flex items-center gap-4 md:gap-6">
           <a
             href="tel:+79959984638"
-            className="hidden text-sm font-medium text-foreground hover:text-primary sm:inline"
+            className="whitespace-nowrap text-xs font-medium text-foreground hover:text-primary sm:text-sm"
             aria-label="Позвонить ReAge"
           >
             +7 (995) 998-46-38
