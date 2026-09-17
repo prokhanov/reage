@@ -79,7 +79,7 @@ export function EnergyStickyCta({
           className="ml-auto h-12 flex-1 text-base"
           tabIndex={visible ? 0 : -1}
         >
-          {inCart ? "Оформить" : "Добавить в корзину"}
+          Купить — {money(price)}
         </Button>
       </div>
     </div>
