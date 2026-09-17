@@ -502,35 +502,6 @@ All colors MUST be HSL.
   z-index: 0;
   isolation: isolate;
 }
-.leaflet-container .leaflet-top,
-.leaflet-container .leaflet-bottom {
-  z-index: 800 !important;
-}
-.leaflet-container .leaflet-control-zoom {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  margin-top: 12px !important;
-  margin-right: 12px !important;
-  border: 1px solid hsl(var(--border)) !important;
-  box-shadow: var(--shadow-md) !important;
-}
-.leaflet-container .leaflet-control-zoom-in,
-.leaflet-container .leaflet-control-zoom-out {
-  display: flex !important;
-  width: 36px !important;
-  height: 36px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-  font: 600 22px/1 var(--font-sans) !important;
-}
-.leaflet-container .leaflet-control-zoom-in:hover,
-.leaflet-container .leaflet-control-zoom-out:hover {
-  background: hsl(var(--muted)) !important;
-  color: hsl(var(--primary)) !important;
-}
 .lab-map-marker {
   background: transparent !important;
   border: none !important;
