@@ -147,7 +147,8 @@ function InvalidateSize({ afterDialogAnimation = false }: { afterDialogAnimation
     const container = map.getContainer();
     const resizeTarget = container.parentElement ?? container;
     const ro = new ResizeObserver(() => requestAnimationFrame(invalidate));
-    ro.observe(resizeTarget);
+    ro.observe(container);
+    if (resizeTarget !== container) ro.observe(resizeTarget);
     resizeTarget.addEventListener("transitionend", invalidate);
     resizeTarget.addEventListener("animationend", invalidate);
     window.addEventListener("resize", invalidate);
