@@ -64,9 +64,20 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
             {checkup.heroSubtitle}
           </p>
-          <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
-            {checkup.lead}
-          </p>
+          {checkup.leadBullets ? (
+            <ul className="mt-4 max-w-md space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg">
+              {checkup.leadBullets.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
+              {checkup.lead}
+            </p>
+          )}
 
           {/* Мобильные чипсы: коротко, без тяжёлых карточек */}
           <ul className="mt-5 flex flex-wrap gap-2 lg:hidden">
