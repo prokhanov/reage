@@ -122,6 +122,7 @@ interface Props {
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
   const { rows, loading } = useReportBiomarkers();
+  const { priceOf } = useCheckupPrices();
   const report = getCheckupExampleReport(checkup.slug);
   if (!report) return null;
 
