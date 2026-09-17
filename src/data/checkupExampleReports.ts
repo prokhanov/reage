@@ -94,6 +94,9 @@ const REF: Record<string, ExampleRef> = {
   TEST: { name: "Тестостерон общий", unit: "нмоль/л", normal_min: 12, normal_max: 33, optimal_min: 16, optimal_max: 28, critical_min: 8, critical_max: 40 },
   SHBG: { name: "ГСПГ", unit: "нмоль/л", normal_min: 13, normal_max: 71, optimal_min: 20, optimal_max: 50, critical_min: 8, critical_max: 110 },
   FTEST: { name: "Свободный тестостерон (расчётный)", unit: "пмоль/л", normal_min: 225, normal_max: 600, optimal_min: 280, optimal_max: 520, critical_min: 150, critical_max: 800 },
+  "LH-M": { name: "ЛГ", unit: "МЕ/л", normal_min: 1.7, normal_max: 8.6, optimal_min: 2.5, optimal_max: 6.5, critical_min: 0.8, critical_max: 15 },
+  "FSH-M": { name: "ФСГ", unit: "МЕ/л", normal_min: 1.5, normal_max: 12.4, optimal_min: 2, optimal_max: 8, critical_min: 0.7, critical_max: 20 },
+  "PRL-M": { name: "Пролактин", unit: "мМЕ/л", normal_min: 73, normal_max: 407, optimal_min: 100, optimal_max: 320, critical_min: 40, critical_max: 900 },
 };
 
 interface MarkerText {
@@ -429,9 +432,9 @@ export const CHECKUP_EXAMPLE_REPORTS: Record<string, CheckupExampleReport> = {
           "11,2 нмоль/л ниже целевого диапазона. Прежде чем говорить о дефиците, анализ обязательно повторяют утром до 10:00 натощак минимум дважды — суточные колебания достигают 30%. Частые обратимые причины низкого тестостерона: лишний вес, дефицит сна, хронический стресс и жёсткие диеты, поэтому разбор начинают с них.",
       }),
       m("SHBG", 38, { meaning: "ГСПГ связывает тестостерон и делает его недоступным для тканей. Значение в норме, то есть занижение общего тестостерона не объясняется транспортным белком." }),
-      m("LH", 5.1, { meaning: "ЛГ — сигнал гипофиза яичкам вырабатывать тестостерон. Нормальный ЛГ при низком тестостероне говорит скорее о функциональных причинах, чем о поражении гипофиза." }),
-      m("FSH", 4.2, { meaning: "ФСГ отвечает за сперматогенез и дополняет картину работы половых желёз. Значение в норме." }),
-      m("PRL", 240, { meaning: "Пролактин в избытке подавляет выработку тестостерона. Здесь значение в норме — эта причина исключена." }),
+      m("LH-M", 5.1, { meaning: "ЛГ — сигнал гипофиза яичкам вырабатывать тестостерон. Нормальный ЛГ при низком тестостероне говорит скорее о функциональных причинах, чем о поражении гипофиза." }),
+      m("FSH-M", 4.2, { meaning: "ФСГ отвечает за сперматогенез и дополняет картину работы половых желёз. Значение в норме." }),
+      m("PRL-M", 240, { meaning: "Пролактин в избытке подавляет выработку тестостерона. Здесь значение в норме — эта причина исключена." }),
       m("ALB", 46, { meaning: T.ALBok + " Альбумин нужен для расчёта свободного тестостерона." }),
       m("FTEST", 232, { meaning: "Свободный тестостерон рассчитывается по общему тестостерону, ГСПГ и альбумину и точнее отражает доступную тканям фракцию. Значение у нижней границы нормы — согласуется с общим тестостероном." }),
     ],
@@ -520,6 +523,14 @@ export const UNIVERSAL_EXAMPLE_REPORT: CheckupExampleReport = {
   ],
 };
 
-export function getCheckupExampleReport(_slug: string): CheckupExampleReport | undefined {
-  return UNIVERSAL_EXAMPLE_REPORT;
+/** Алиасы старых путей чекапов. */
+const SLUG_ALIASES: Record<string, string> = {
+  "cardio-risk-40": "cardio-risk",
+  "base-40": "base",
+};
+
+export function getCheckupExampleReport(slug: string | undefined): CheckupExampleReport | undefined {
+  if (!slug) return UNIVERSAL_EXAMPLE_REPORT;
+  const key = SLUG_ALIASES[slug] || slug;
+  return CHECKUP_EXAMPLE_REPORTS[key] || UNIVERSAL_EXAMPLE_REPORT;
 }
