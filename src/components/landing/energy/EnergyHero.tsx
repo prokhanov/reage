@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Check, Clock, FlaskConical, Gift } from "lucide-react";
+import { ArrowRight, Check, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
@@ -11,17 +11,7 @@ interface Props {
 }
 
 export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = false }: Props) {
-  const isEnergy = checkup.slug === "energy";
 
-  const facts = [
-    {
-      icon: FlaskConical,
-      title: markersLabel(checkup.markers.length),
-      text: isEnergy ? "Ключевые причины усталости" : "В одном заборе крови",
-    },
-    { icon: Building2, title: "LabQuest", text: "Сеть лабораторий" },
-    { icon: Clock, title: "1–2 дня", text: "Готовность результатов" },
-  ];
 
   const visual = (
     <>
@@ -79,54 +69,36 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
             </p>
           )}
 
-          {/* Мобильные чипсы: коротко, без тяжёлых карточек */}
-          <ul className="mt-5 flex flex-wrap gap-2 lg:hidden">
-            {facts.map((f) => (
-              <li
-                key={f.title}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm text-foreground"
-              >
-                <f.icon className="h-3.5 w-3.5 text-primary" aria-hidden />
-                {f.title}
-              </li>
-            ))}
-          </ul>
+          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
+            <p className="text-sm text-muted-foreground sm:text-base">
+              {markersLabel(checkup.markers.length)} · LabQuest
+            </p>
 
-          {/* Десктопные карточки-факты */}
-          <dl className="mt-7 hidden gap-3 lg:grid lg:grid-cols-3">
-            {facts.map((f) => (
-              <div key={f.title} className="rounded-xl border border-border bg-card/70 p-4">
-                <f.icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-                <div className="mt-2">
-                  <dt className="text-base font-medium text-foreground">{f.title}</dt>
-                  <dd className="text-sm leading-snug text-muted-foreground">{f.text}</dd>
-                </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
+                {money(checkup.price)}
               </div>
-            ))}
-          </dl>
-
-          <div className="mt-6 flex flex-col items-start gap-4 sm:mt-8">
-            <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
-              {money(checkup.price)}
-            </div>
-            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
               {checkup.cbcBonusEnabled && (
-                <div className="inline-flex h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
-                  <Gift className="h-5 w-5" aria-hidden />
+                <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm font-medium text-primary sm:text-base">
+                  <Gift className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
                   + ОАК в подарок
                 </div>
               )}
-              <Button
-                id="energy-hero-cta"
-                size="lg"
-                onClick={onAddToCart}
-                className="h-[52px] flex-1 gap-2 text-base sm:h-12 sm:flex-initial"
-              >
-                Купить
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Button>
             </div>
+
+            <p className="text-sm text-muted-foreground sm:text-base">результат за 1–2 дня</p>
+
+            <Button
+              id="energy-hero-cta"
+              size="lg"
+              onClick={onAddToCart}
+              className="mt-1 h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
+            >
+              Купить
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Button>
           </div>
+
         </div>
 
         {/* Визуал на мобильном — после CTA */}
