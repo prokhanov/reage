@@ -156,11 +156,11 @@ export function EnergyCart() {
                   Корзина пуста. Добавьте чекап — можно выбрать сразу несколько.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="rounded-xl border border-border bg-card">
                   {items.map((item) => (
                     <div
                       key={item.slug}
-                      className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                      className="flex items-start justify-between gap-3 border-b border-border p-4 last:border-b-0"
                     >
                       <div className="min-w-0">
                         <div className="text-base font-semibold text-foreground">{item.name}</div>
@@ -183,8 +183,8 @@ export function EnergyCart() {
                       </div>
                     </div>
                   ))}
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <ul className="space-y-2">
+                  <div className="p-4 pt-0">
+                    <ul className="space-y-2 border-t border-border pt-4">
                       <li className="flex items-start gap-3">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
                         <span className="text-sm text-muted-foreground">
