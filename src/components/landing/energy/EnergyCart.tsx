@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Clock, Heart, MapPin, Stethoscope, X } from "lucide-react";
+import { Award, Check, Clock, Heart, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -183,6 +183,22 @@ export function EnergyCart() {
                       </div>
                     </div>
                   ))}
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-3">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+                        <span className="text-sm text-muted-foreground">
+                          расшифровка простым языком по каждому показателю
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+                        <span className="text-sm text-muted-foreground">
+                          план действий — что делать с результатом
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               )}
             </Step>
