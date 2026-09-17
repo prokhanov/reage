@@ -534,18 +534,16 @@ All colors MUST be HSL.
 .lab-map-marker {
   background: transparent !important;
   border: none !important;
-  width: 30px !important;
-  height: 40px !important;
+  width: 28px !important;
+  height: 36px !important;
   opacity: 1 !important;
   pointer-events: auto !important;
   transform-style: flat !important;
   backface-visibility: visible !important;
-  filter: drop-shadow(0 2px 4px hsl(var(--foreground) / 0.25));
 }
-.lab-map-marker svg,
 .lab-map-marker img {
-  width: 30px !important;
-  height: 40px !important;
+  width: 28px !important;
+  height: 36px !important;
   display: block !important;
   max-width: none !important;
   opacity: 1 !important;

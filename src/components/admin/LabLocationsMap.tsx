@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, RotateCcw, Plus, Minus } from "lucide-react";
+import { Settings2, RotateCcw } from "lucide-react";
+import locationIconUrl from "@/assets/location_icon.png";
 
 export type LabMapItem = {
   id: string;
@@ -110,18 +111,13 @@ const DEFAULT_FILTERS: TileFilters = {
   hueRotate: 0,
 };
 
-const MARKER_SVG = `<svg width="30" height="40" viewBox="0 0 30 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
-  <path d="M15 39C15 39 28 24.6 28 15A13 13 0 1 0 2 15c0 9.6 13 24 13 24Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" stroke-width="2.5" stroke-linejoin="round"/>
-  <circle cx="15" cy="15" r="5" fill="hsl(var(--background))"/>
-</svg>`;
-
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
-    html: MARKER_SVG,
-    iconSize: [30, 40],
-    iconAnchor: [15, 40],
-    popupAnchor: [0, -36],
+    html: `<img src="${locationIconUrl}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
+    iconSize: [28, 36],
+    iconAnchor: [14, 36],
+    popupAnchor: [0, -32],
   });
 
 function CustomZoomControl() {
@@ -206,22 +202,18 @@ function FocusSelected({
   items,
   selectedId,
   zoom,
-  animate = true,
 }: {
   items: LabMapItem[];
   selectedId?: string | null;
   zoom: number;
-  animate?: boolean;
 }) {
   const map = useMap();
   useEffect(() => {
     if (!selectedId) return;
     const target = items.find((i) => i.id === selectedId);
     if (!target) return;
-    const targetZoom = Math.max(map.getZoom(), zoom);
-    if (animate) map.flyTo([target.lat, target.lng], targetZoom, { duration: 0.8 });
-    else map.setView([target.lat, target.lng], targetZoom, { animate: false });
-  }, [selectedId, items, map, zoom, animate]);
+    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), zoom), { duration: 0.8 });
+  }, [selectedId, items, map, zoom]);
   return null;
 }
 
@@ -237,7 +229,6 @@ function ClusterLayer({
   selectedId,
   onSelect,
   selectOnMarkerClick,
-  stableRendering,
 }: {
   items: LabMapItem[];
   showPartnerButton: boolean;
@@ -249,28 +240,19 @@ function ClusterLayer({
   selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
   selectOnMarkerClick?: boolean;
-  stableRendering: boolean;
 }) {
   const map = useMap();
   const onSelectRef = useRef(onSelect);
-  const selectedIdRef = useRef(selectedId);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
   useEffect(() => {
-    selectedIdRef.current = selectedId;
-  }, [selectedId]);
-
-  useEffect(() => {
     if (!items.length) return;
-    const markerPane = stableRendering ? "markerPane" : LAB_MARKER_PANE;
-    if (!stableRendering) {
-      const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
-      pane.style.zIndex = "680";
-      pane.style.pointerEvents = "auto";
-    }
+    const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
+    pane.style.zIndex = "680";
+    pane.style.pointerEvents = "auto";
 
     const icon = buildIcon();
     const markerLayer = clusterMarkers
@@ -282,7 +264,7 @@ function ClusterLayer({
           animate: false,
           animateAddingMarkers: false,
           maxClusterRadius: 50,
-          clusterPane: markerPane,
+          clusterPane: LAB_MARKER_PANE,
           iconCreateFunction: (c: { getChildCount: () => number }) => {
             const count = c.getChildCount();
             const size = count < 10 ? 34 : count < 100 ? 40 : 48;
@@ -296,10 +278,10 @@ function ClusterLayer({
       : L.layerGroup();
 
     items.forEach((it) => {
-      const m = L.marker([it.lat, it.lng], { icon, pane: markerPane, riseOnHover: true, zIndexOffset: 1000 });
+      const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = normalizeHours(it.hours ?? []).filter(Boolean);
-      const isSelected = selectedIdRef.current === it.id;
+      const isSelected = selectedId === it.id;
 
       const partnerBtn =
         showPartnerButton && it.page_url
@@ -341,7 +323,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectOnMarkerClick, stableRendering]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId, selectOnMarkerClick]);
   return null;
 }
 
@@ -411,7 +393,6 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay = 500,
   focusOnSelected = false,
   focusZoom = 15,
-  stableRendering = false,
 
 }: {
   items: LabMapItem[];
@@ -437,11 +418,9 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay?: number;
   focusOnSelected?: boolean;
   focusZoom?: number;
-  stableRendering?: boolean;
 
 }) {
   useTheme();
-  const mapRef = useRef<L.Map | null>(null);
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
   const [filtersLocal, setFiltersLocal] = useState<TileFilters>(filtersProp ?? DEFAULT_FILTERS);
   const styleKey = styleKeyProp ?? styleKeyLocal;
@@ -631,18 +610,14 @@ export default function LabLocationsMap({
       </div>
       )}
 
-      <div className="relative rounded-lg border border-border overflow-hidden bg-card">
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
         <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
-          ref={mapRef}
           center={center}
           zoom={zoomProp ?? 10}
           scrollWheelZoom={false}
           attributionControl={false}
           zoomControl={false}
-          zoomAnimation={!stableRendering}
-          fadeAnimation={!stableRendering}
-          markerZoomAnimation={!stableRendering}
           className="lab-map-tiles"
           style={{ height, width: "100%" }}
         >
@@ -657,17 +632,10 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          {!stableRendering && <CustomZoomControl />}
+          <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
-          {focusOnSelected && (
-            <FocusSelected
-              items={items}
-              selectedId={selectedId}
-              zoom={focusZoom}
-              animate={!stableRendering}
-            />
-          )}
+          {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
 
           <ClusterLayer
             items={items}
@@ -680,35 +648,8 @@ export default function LabLocationsMap({
             selectedId={selectedId}
             onSelect={onSelect}
             selectOnMarkerClick={selectOnMarkerClick}
-            stableRendering={stableRendering}
           />
         </MapContainer>
-        {stableRendering && (
-          <div className="absolute right-3 top-3 z-[900] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-md">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-none border-b border-border"
-              aria-label="Приблизить"
-              title="Приблизить"
-              onClick={() => mapRef.current?.zoomIn()}
-            >
-              <Plus className="h-5 w-5" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-none"
-              aria-label="Отдалить"
-              title="Отдалить"
-              onClick={() => mapRef.current?.zoomOut()}
-            >
-              <Minus className="h-5 w-5" aria-hidden />
-            </Button>
-          </div>
-        )}
         {!hideAttribution && (
           <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
             <span>{style.attribution}</span>

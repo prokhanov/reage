@@ -344,7 +344,6 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               selectedId={selectedId ?? undefined}
               focusOnSelected
               focusZoom={15}
-              stableRendering={layout === "stack"}
               onSelect={(item) => {
                 setSelectedId(item.id);
                 setGeoNote(null);
