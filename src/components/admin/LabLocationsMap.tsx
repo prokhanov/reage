@@ -247,10 +247,15 @@ function ClusterLayer({
 }) {
   const map = useMap();
   const onSelectRef = useRef(onSelect);
+  const selectedIdRef = useRef(selectedId);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   useEffect(() => {
     if (!items.length) return;
@@ -285,7 +290,7 @@ function ClusterLayer({
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = normalizeHours(it.hours ?? []).filter(Boolean);
-      const isSelected = selectedId === it.id;
+      const isSelected = selectedIdRef.current === it.id;
 
       const partnerBtn =
         showPartnerButton && it.page_url
@@ -327,7 +332,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId, selectOnMarkerClick]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectOnMarkerClick]);
   return null;
 }
 
@@ -397,6 +402,7 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay = 500,
   focusOnSelected = false,
   focusZoom = 15,
+  stableRendering = false,
 
 }: {
   items: LabMapItem[];
@@ -422,6 +428,7 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay?: number;
   focusOnSelected?: boolean;
   focusZoom?: number;
+  stableRendering?: boolean;
 
 }) {
   useTheme();
@@ -622,6 +629,9 @@ export default function LabLocationsMap({
           scrollWheelZoom={false}
           attributionControl={false}
           zoomControl={false}
+          zoomAnimation={!stableRendering}
+          fadeAnimation={!stableRendering}
+          markerZoomAnimation={!stableRendering}
           className="lab-map-tiles"
           style={{ height, width: "100%" }}
         >
