@@ -363,6 +363,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               }}
               clusterMarkers
               showSelectButton
+              showPartnerButton={false}
               selectOnMarkerClick
               selectedId={selectedId ?? undefined}
               focusOnSelected
