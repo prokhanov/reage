@@ -216,9 +216,9 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               {layout === "section" && (
                 <ul className="mt-5 space-y-3">
                   {[
-                    "400+ отделений по Москве, СПб и всей России",
+                    "Десятки отделений по Москве, СПб и всей России",
                     "Государственная аккредитация лаборатории",
-                    "Результаты доступны онлайн в личном кабинете",
+                    "Сдача в любой день",
                   ].map((text) => (
                     <li key={text} className="flex items-start gap-3 text-base text-muted-foreground">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
