@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, money } from "@/data/checkups";
+import { Gift } from "lucide-react";
 
 interface Props {
   onAddToCart?: () => void;
   /** Цена текущего чекапа для CTA. */
   price?: number;
+  cbcBonusEnabled?: boolean;
 }
 
 const steps = [
@@ -94,7 +96,7 @@ const accentClasses: Record<
   },
 };
 
-export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: Props) {
+export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cbcBonusEnabled = false }: Props) {
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
@@ -130,7 +132,7 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: 
         </div>
 
         {onAddToCart && (
-          <div className="mt-8 flex justify-center md:mt-10">
+          <div className="mt-8 flex flex-col items-center gap-3 md:mt-10">
             <Button
               size="lg"
               onClick={onAddToCart}
@@ -138,6 +140,12 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: 
             >
               Купить — {money(price)}
             </Button>
+            {cbcBonusEnabled && (
+              <div className="inline-flex min-h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
+                <Gift className="h-5 w-5" aria-hidden />
+                + ОАК в подарок
+              </div>
+            )}
           </div>
         )}
       </div>

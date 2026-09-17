@@ -108,13 +108,21 @@ Deno.serve(async (req) => {
     };
     const { data: priceRows } = await admin
       .from("checkup_settings")
-      .select("slug, price");
+      .select("slug, price, cbc_bonus_enabled");
     const priceMap = new Map((priceRows ?? []).map((r) => [r.slug as string, r.price as number]));
+    const cbcBonusSlugs = new Set(
+      (priceRows ?? [])
+        .filter((r) => r.cbc_bonus_enabled === true)
+        .map((r) => r.slug as string),
+    );
     uniqueBundles.forEach((b, i) => {
       const slug = PRICE_ALIASES[b] ?? b;
       const override = priceMap.get(slug);
       if (typeof override === "number") items[i].price = override;
     });
+    const bonusItems = uniqueBundles
+      .map((b) => PRICE_ALIASES[b] ?? b)
+      .filter((slug) => cbcBonusSlugs.has(slug));
     const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
 
     const { data: doctorRow } = await admin
@@ -173,6 +181,7 @@ Deno.serve(async (req) => {
         original_amount: original,
         discount_amount: discount,
         out_sum: finalAmount,
+        bonus_items: bonusItems.length > 0 ? [{ title: "Общий анализ крови", price: 990, final_price: 0, slugs: bonusItems }] : [],
         promo_code: code || null,
         status: "pending",
         is_test: isTest,

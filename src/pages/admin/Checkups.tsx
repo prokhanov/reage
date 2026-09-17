@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Stethoscope, Tag } from "lucide-react";
+import { Gift, Save, Stethoscope, Tag } from "lucide-react";
 
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
@@ -26,6 +26,7 @@ interface PriceRow {
   slug: string;
   price: number;
   is_active: boolean;
+  cbc_bonus_enabled: boolean;
 }
 
 interface DoctorRow {
@@ -50,7 +51,7 @@ export default function AdminCheckups() {
   const load = async () => {
     setLoading(true);
     const [pricesRes, doctorRes] = await Promise.all([
-      supabase.from("checkup_settings").select("slug, price, is_active"),
+      supabase.from("checkup_settings").select("slug, price, is_active, cbc_bonus_enabled"),
       supabase
         .from("checkup_doctor_settings")
         .select("*")
@@ -65,6 +66,7 @@ export default function AdminCheckups() {
         slug: c.slug,
         price: saved.get(c.slug)?.price ?? c.price,
         is_active: saved.get(c.slug)?.is_active ?? true,
+        cbc_bonus_enabled: saved.get(c.slug)?.cbc_bonus_enabled ?? false,
       })),
     );
 
@@ -85,7 +87,12 @@ export default function AdminCheckups() {
     const { error } = await supabase
       .from("checkup_settings")
       .upsert(
-        rows.map((r) => ({ slug: r.slug, price: r.price, is_active: r.is_active })),
+        rows.map((r) => ({
+          slug: r.slug,
+          price: r.price,
+          is_active: r.is_active,
+          cbc_bonus_enabled: r.cbc_bonus_enabled,
+        })),
         { onConflict: "slug" },
       );
     setSavingPrices(false);
@@ -149,6 +156,7 @@ export default function AdminCheckups() {
                   <TableHead>Чекап</TableHead>
                   <TableHead>Адрес</TableHead>
                   <TableHead className="w-40">Цена, ₽</TableHead>
+                  <TableHead className="w-40">ОАК в подарок</TableHead>
                   <TableHead className="w-32">Показывать</TableHead>
                 </TableRow>
               </TableHeader>
@@ -179,6 +187,21 @@ export default function AdminCheckups() {
                           }
                           className="h-9 w-32"
                         />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={row.cbc_bonus_enabled}
+                            onCheckedChange={(v) =>
+                              setRows((prev) =>
+                                prev.map((r) =>
+                                  r.slug === row.slug ? { ...r, cbc_bonus_enabled: v } : r,
+                                ),
+                              )
+                            }
+                          />
+                          {row.cbc_bonus_enabled && <Gift className="h-4 w-4 text-primary" aria-hidden />}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Switch

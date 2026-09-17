@@ -77,6 +77,8 @@ export interface Checkup {
   seoDescription: string;
   /** Дополнительные правила подготовки к сдаче именно этого чекапа. */
   prepNotes?: string[];
+  /** ОАК отображается подарком для этого чекапа. */
+  cbcBonusEnabled?: boolean;
   markers: CheckupMarker[];
 }
 

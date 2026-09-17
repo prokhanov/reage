@@ -66,7 +66,7 @@ export function EnergyOrderProvider({
   const [clinic, setClinic] = useState<LabMapItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
-  const { priceOf } = useCheckupSettings();
+  const { priceOf, hasCbcBonus } = useCheckupSettings();
 
   // Синхронизация между вкладками
   useEffect(() => {
@@ -94,8 +94,12 @@ export function EnergyOrderProvider({
 
   // Цены берём из настроек в админке, остальные данные — из каталога.
   const pageCheckup = useMemo<Checkup>(
-    () => ({ ...checkup, price: priceOf(checkup.slug, checkup.price) }),
-    [checkup, priceOf],
+    () => ({
+      ...checkup,
+      price: priceOf(checkup.slug, checkup.price),
+      cbcBonusEnabled: hasCbcBonus(checkup.slug),
+    }),
+    [checkup, priceOf, hasCbcBonus],
   );
 
   const items = useMemo(
@@ -103,8 +107,12 @@ export function EnergyOrderProvider({
       slugs
         .map((s) => getCheckupBySlug(s))
         .filter((c): c is Checkup => Boolean(c))
-        .map((c) => ({ ...c, price: priceOf(c.slug, c.price) })),
-    [slugs, priceOf],
+        .map((c) => ({
+          ...c,
+          price: priceOf(c.slug, c.price),
+          cbcBonusEnabled: hasCbcBonus(c.slug),
+        })),
+    [slugs, priceOf, hasCbcBonus],
   );
 
   const value = useMemo<EnergyOrderValue>(
