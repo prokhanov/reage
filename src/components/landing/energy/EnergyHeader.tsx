@@ -44,6 +44,7 @@ export function EnergyHeader({ cartCount, onOpenCart }: Props) {
           </span>
           <span className="hidden sm:inline">Корзина</span>
         </button>
+        </div>
       </div>
     </header>
   );
