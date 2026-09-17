@@ -105,25 +105,27 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
             ))}
           </dl>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
+          <div className="mt-6 flex flex-col items-start gap-4 sm:mt-8">
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
               {money(checkup.price)}
             </div>
-            {checkup.cbcBonusEnabled && (
-              <div className="inline-flex h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
-                <Gift className="h-5 w-5" aria-hidden />
-                + ОАК в подарок
-              </div>
-            )}
-            <Button
-              id="energy-hero-cta"
-              size="lg"
-              onClick={onAddToCart}
-              className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
-            >
-              Купить
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Button>
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+              {checkup.cbcBonusEnabled && (
+                <div className="inline-flex h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
+                  <Gift className="h-5 w-5" aria-hidden />
+                  + ОАК в подарок
+                </div>
+              )}
+              <Button
+                id="energy-hero-cta"
+                size="lg"
+                onClick={onAddToCart}
+                className="h-[52px] flex-1 gap-2 text-base sm:h-12 sm:flex-initial"
+              >
+                Купить
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Button>
+            </div>
           </div>
         </div>
 
