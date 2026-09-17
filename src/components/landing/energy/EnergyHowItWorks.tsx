@@ -132,7 +132,13 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cb
         </div>
 
         {onAddToCart && (
-          <div className="mt-8 flex flex-col items-center gap-3 md:mt-10">
+          <div className="mt-8 flex flex-col items-center gap-3 md:mt-10 md:flex-row md:justify-center">
+            {cbcBonusEnabled && (
+              <div className="inline-flex min-h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
+                <Gift className="h-5 w-5" aria-hidden />
+                + ОАК в подарок
+              </div>
+            )}
             <Button
               size="lg"
               onClick={onAddToCart}
@@ -140,12 +146,6 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cb
             >
               Купить — {money(price)}
             </Button>
-            {cbcBonusEnabled && (
-              <div className="inline-flex min-h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
-                <Gift className="h-5 w-5" aria-hidden />
-                + ОАК в подарок
-              </div>
-            )}
           </div>
         )}
       </div>
