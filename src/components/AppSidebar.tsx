@@ -48,6 +48,7 @@ const adminNavItems: Array<{ to: string; label: string; icon: any; module: Admin
   { to: "/admin/email-settings", label: "Email", icon: Mail, module: "email_settings" },
   { to: "/admin/sms-settings", label: "SMS", icon: MessageSquare, module: "sms_settings" },
   { to: "/admin/telegram-settings", label: "Telegram", icon: Send, module: "telegram_settings" },
+  { to: "/admin/checkups", label: "Чекапы", icon: ShoppingCart, module: "checkups" },
   { to: "/admin/labs", label: "Лаборатории", icon: MapPin, module: "lab_locations" },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical, module: "data_management" },
 ];
