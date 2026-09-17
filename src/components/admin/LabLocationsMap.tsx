@@ -13,7 +13,6 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Settings2, RotateCcw } from "lucide-react";
-import locationIconUrl from "@/assets/location_icon.png";
 
 export type LabMapItem = {
   id: string;
@@ -111,13 +110,18 @@ const DEFAULT_FILTERS: TileFilters = {
   hueRotate: 0,
 };
 
+const MARKER_SVG = `<svg width="30" height="40" viewBox="0 0 30 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+  <path d="M15 39C15 39 28 24.6 28 15A13 13 0 1 0 2 15c0 9.6 13 24 13 24Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="15" cy="15" r="5" fill="hsl(var(--background))"/>
+</svg>`;
+
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
-    html: `<img src="${locationIconUrl}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -32],
+    html: MARKER_SVG,
+    iconSize: [30, 40],
+    iconAnchor: [15, 40],
+    popupAnchor: [0, -36],
   });
 
 function CustomZoomControl() {
