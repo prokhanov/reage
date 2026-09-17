@@ -13,7 +13,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
         <div className="max-w-2xl">
           <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
-            Что входит в {checkup.name}
+             Что входит чекап? 
           </h2>
           <p className="mt-2 text-base text-muted-foreground md:text-lg">{checkup.includedNote}</p>
         </div>
@@ -21,7 +21,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
         <div className="mt-6 rounded-2xl border border-border bg-card sm:mt-8">
           <div className="flex flex-col gap-2 px-5 pt-5 sm:flex-row sm:items-start sm:justify-between sm:px-8 sm:pt-8">
             <h3 className="font-display text-xl text-foreground sm:text-2xl">
-              Что входит в {checkup.name}
+               Витамины и минералы
             </h3>
             <div className="shrink-0 text-base font-semibold text-muted-foreground">
               {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? " + 1 в подарок" : ""}
