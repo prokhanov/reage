@@ -128,7 +128,9 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
       const near = pickNearestTo(null);
       if (near) {
         setSelectedId(near.id);
-        setGeoNote("Геолокация недоступна — показали отделение в центре выбранного города.");
+        setGeoNote(
+          "Доступ к геолокации не разрешён, поэтому расстояние не посчитали. Можно выбрать любое другое отделение на карте.",
+        );
       }
       setLocating(false);
     };
