@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
+import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses, checkupShape } from "./checkupShapes";
 
@@ -16,7 +17,8 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
 
-  const items = CHECKUPS.filter((c) => c.slug !== currentSlug);
+  const { priceOf, isActive } = useCheckupSettings();
+  const items = CHECKUPS.filter((c) => c.slug !== currentSlug && isActive(c.slug));
 
   const update = useCallback(() => {
     const el = trackRef.current;
