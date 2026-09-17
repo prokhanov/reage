@@ -566,6 +566,30 @@ export type Database = {
           },
         ]
       }
+      checkup_prices: {
+        Row: {
+          price: number
+          slug: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          price: number
+          slug: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          price?: number
+          slug?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       complaints: {
         Row: {
           created_at: string
