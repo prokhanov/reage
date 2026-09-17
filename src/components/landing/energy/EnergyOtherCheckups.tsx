@@ -125,7 +125,7 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="font-display text-2xl font-semibold text-foreground">
-                            {money(c.price)}
+                            {money(priceOf(c.slug, c.price))}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">

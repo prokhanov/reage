@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
 import { CHECKUPS, ENERGY_CHECKUP, getCheckupBySlug, type Checkup } from "@/data/checkups";
+import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 const CART_KEY = "reage:checkup:cart";
 
@@ -65,6 +66,7 @@ export function EnergyOrderProvider({
   const [clinic, setClinic] = useState<LabMapItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
+  const { priceOf } = useCheckupSettings();
 
   // Синхронизация между вкладками
   useEffect(() => {
@@ -90,14 +92,24 @@ export function EnergyOrderProvider({
   );
   const clearCart = useCallback(() => update([]), [update]);
 
+  // Цены берём из настроек в админке, остальные данные — из каталога.
+  const pageCheckup = useMemo<Checkup>(
+    () => ({ ...checkup, price: priceOf(checkup.slug, checkup.price) }),
+    [checkup, priceOf],
+  );
+
   const items = useMemo(
-    () => slugs.map((s) => getCheckupBySlug(s)).filter((c): c is Checkup => Boolean(c)),
-    [slugs],
+    () =>
+      slugs
+        .map((s) => getCheckupBySlug(s))
+        .filter((c): c is Checkup => Boolean(c))
+        .map((c) => ({ ...c, price: priceOf(c.slug, c.price) })),
+    [slugs, priceOf],
   );
 
   const value = useMemo<EnergyOrderValue>(
     () => ({
-      checkup,
+      checkup: pageCheckup,
       items,
       count: items.length,
       hasItem: (slug: string) => slugs.includes(slug),
@@ -109,13 +121,13 @@ export function EnergyOrderProvider({
       cartOpen,
       openCart: () => setCartOpen(true),
       closeCart: () => setCartOpen(false),
-      inCart: slugs.includes(checkup.slug),
+      inCart: slugs.includes(pageCheckup.slug),
       addToCart: () => {
-        addItem(checkup.slug);
+        addItem(pageCheckup.slug);
         setCartOpen(true);
       },
     }),
-    [checkup, items, slugs, addItem, removeItem, clearCart, clinic, cartOpen],
+    [pageCheckup, items, slugs, addItem, removeItem, clearCart, clinic, cartOpen],
   );
 
   return <EnergyOrderContext.Provider value={value}>{children}</EnergyOrderContext.Provider>;
