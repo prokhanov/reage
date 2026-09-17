@@ -338,10 +338,13 @@ function ClusterLayer({
           ${actions}
         </div>
       `;
-      if (selectOnMarkerClick) {
-        m.on("click", () => onSelectRef.current?.(it));
-      }
       const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
+      if (selectOnMarkerClick) {
+        m.on("click", () => {
+          m.openPopup();
+          onSelectRef.current?.(it);
+        });
+      }
       if (showSelectButton && onSelect && !isSelected) {
         popup.on("popupopen", (e) => {
           const node = (e as unknown as { popup: L.Popup }).popup.getElement();
