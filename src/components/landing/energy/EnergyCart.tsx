@@ -384,7 +384,12 @@ export function EnergyCart() {
       </Sheet>
 
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="max-h-[90vh] max-w-[52rem] overflow-y-auto">
+        <DialogContent
+          className="max-h-[90vh] max-w-[52rem] overflow-y-auto"
+          onAnimationEnd={(event) => {
+            if (event.currentTarget === event.target) window.dispatchEvent(new Event("resize"));
+          }}
+        >
           <DialogTitle className="font-display text-2xl text-foreground">Выберите отделение</DialogTitle>
           <EnergyClinicPicker
             layout="stack"
