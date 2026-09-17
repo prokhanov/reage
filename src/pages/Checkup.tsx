@@ -5,6 +5,7 @@ import NotFound from "@/pages/NotFound";
 import { useTheme } from "next-themes";
 
 import { PageMeta } from "@/components/PageMeta";
+import { useCheckupPrices } from "@/hooks/useCheckupPrices";
 import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
@@ -26,6 +27,7 @@ import { reachGoal } from "@/lib/yandexMetrika";
 export function CheckupContent() {
   const { addToCart, inCart, openCart, checkup, count } = useEnergyOrder();
   const { setTheme } = useTheme();
+  const { priceOf } = useCheckupPrices();
 
   // На страницах чекапов по умолчанию используем светлую тему
   useEffect(() => {
@@ -64,7 +66,7 @@ export function CheckupContent() {
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
         <EnergyExpertResult />
-        <EnergyHowItWorks onAddToCart={handleAddToCart} price={checkup.price} />
+        <EnergyHowItWorks onAddToCart={handleAddToCart} price={priceOf(checkup)} />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />
@@ -75,7 +77,7 @@ export function CheckupContent() {
         onAddToCart={handleAddToCart}
         anchorId="energy-hero-cta"
         hideNearId="energy-page-end"
-        price={checkup.price}
+        price={priceOf(checkup)}
         name={checkup.name}
       />
       <EnergyCart />

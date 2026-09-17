@@ -2,6 +2,7 @@ import { FlaskConical, Building2, Clock, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
+import { useCheckupPrices } from "@/hooks/useCheckupPrices";
 
 interface Props {
   onAddToCart: () => void;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = false }: Props) {
+  const { priceOf } = useCheckupPrices();
   const isEnergy = checkup.slug === "energy";
 
   const facts = [
@@ -96,7 +98,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
 
           <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-5">
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
-              {money(checkup.price)}
+              {money(priceOf(checkup))}
             </div>
             <Button
               id="energy-hero-cta"

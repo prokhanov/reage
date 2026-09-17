@@ -74,6 +74,7 @@ const SmsSettings = lazy(() => import("./pages/admin/SmsSettings"));
 const TelegramSettings = lazy(() => import("./pages/admin/TelegramSettings"));
 const LabLocations = lazy(() => import("./pages/admin/LabLocations"));
 const PromoCodes = lazy(() => import("./pages/admin/PromoCodes"));
+const CheckupPrices = lazy(() => import("./pages/admin/CheckupPrices"));
 
 // Internal service pages (Playwright PDF renderer, standalone report)
 const ReportPreview = lazy(() => import("./pages/internal/ReportPreview"));
@@ -345,6 +346,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <PromoCodes />
+                  </SuperAdminRoute>
+                }
+              />
+              <Route
+                path="/admin/checkup-prices"
+                element={
+                  <SuperAdminRoute>
+                    <CheckupPrices />
                   </SuperAdminRoute>
                 }
               />
