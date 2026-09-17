@@ -188,13 +188,13 @@ export function EnergyCart() {
                       <li className="flex items-start gap-3">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
                         <span className="text-sm text-muted-foreground">
-                          расшифровка простым языком по каждому показателю
+                          Расшифровка простым языком по каждому показателю
                         </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
                         <span className="text-sm text-muted-foreground">
-                          план действий — что делать с результатом
+                          План действий — что делать с результатом
                         </span>
                       </li>
                     </ul>
@@ -208,14 +208,14 @@ export function EnergyCart() {
                 <div className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                      выбрано на карте
+                      Выбрано на карте
                     </span>
                     <button
                       type="button"
                       onClick={() => setPickerOpen(true)}
                       className="shrink-0 text-sm font-medium text-primary underline-offset-4 hover:underline"
                     >
-                      изменить
+                      Изменить
                     </button>
                   </div>
                   <div className="mt-3 text-base font-semibold text-foreground">{clinic.title}</div>
@@ -241,9 +241,8 @@ export function EnergyCart() {
             <Step n={3} title="Подготовка и результат">
               <div className="rounded-xl border border-border bg-card p-4">
                 <ul className="list-disc space-y-1.5 pl-5 text-sm text-foreground">
-                  <li>сдавайте натощак, 8–12 часов без еды</li>
-                  <li>возьмите паспорт с собой</li>
-                  <li>без записи, любое отделение LabQuest</li>
+                  <li>Сдавайте натощак, 8–12 часов без еды</li>
+                  <li>Возьмите паспорт с собой</li>
                   {checkup.prepNotes?.map((note) => <li key={note}>{note}</li>)}
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground">
@@ -352,13 +351,13 @@ export function EnergyCart() {
                 ))}
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
-                    <span>консультация врача</span>
+                    <span>Консультация врача</span>
                     <span className="font-mono-tech">{money(CONSULT_PRICE)}</span>
                   </div>
                 )}
                 {appliedPromo && (
                   <div className="flex items-center justify-between text-primary">
-                    <span>скидка · {appliedPromo.code}</span>
+                    <span>Скидка · {appliedPromo.code}</span>
                     <span className="font-mono-tech">−{money(discount)}</span>
                   </div>
                 )}
