@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock, Crosshair, MapPin, Minus, Navigation, Plus } from "lucide-react";
+import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,11 +59,6 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const [geoNote, setGeoNote] = useState<string | null>(null);
   const [mapHeight, setMapHeight] = useState(420);
   const [isWide, setIsWide] = useState(false);
-  const [mapControls, setMapControls] = useState<{ zoomIn: () => void; zoomOut: () => void } | null>(null);
-  const handleMapControlsReady = useCallback(
-    (controls: { zoomIn: () => void; zoomOut: () => void }) => setMapControls(controls),
-    [],
-  );
 
   useEffect(() => {
     const update = () => {
@@ -334,35 +329,6 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               : "order-1 sticky top-0 z-10 shadow-sm"
           }`}
         >
-          {layout === "stack" && (
-            <div className="flex h-12 items-center justify-between border-b border-border bg-card px-3">
-              <span className="text-sm font-medium text-foreground">Масштаб карты</span>
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9"
-                  aria-label="Отдалить карту"
-                  onClick={() => mapControls?.zoomOut()}
-                  disabled={!mapControls}
-                >
-                  <Minus className="h-5 w-5" aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9"
-                  aria-label="Приблизить карту"
-                  onClick={() => mapControls?.zoomIn()}
-                  disabled={!mapControls}
-                >
-                  <Plus className="h-5 w-5" aria-hidden />
-                </Button>
-              </div>
-            </div>
-          )}
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
             <LabLocationsMap
               key={city}
@@ -376,10 +342,9 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               showSelectButton
               selectOnMarkerClick
               selectedId={selectedId ?? undefined}
-              focusOnSelected={layout === "section"}
+              focusOnSelected
               focusZoom={15}
               stableRendering={layout === "stack"}
-              onMapControlsReady={handleMapControlsReady}
               onSelect={(item) => {
                 setSelectedId(item.id);
                 setGeoNote(null);

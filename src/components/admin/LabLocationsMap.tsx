@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, RotateCcw } from "lucide-react";
+import { Settings2, RotateCcw, Plus, Minus } from "lucide-react";
 
 export type LabMapItem = {
   id: string;
@@ -161,22 +161,6 @@ function InvalidateSize() {
   return null;
 }
 
-function MapControlsBridge({
-  onReady,
-}: {
-  onReady?: (controls: { zoomIn: () => void; zoomOut: () => void }) => void;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    if (!onReady) return;
-    onReady({
-      zoomIn: () => map.zoomIn(1, { animate: false }),
-      zoomOut: () => map.zoomOut(1, { animate: false }),
-    });
-  }, [map, onReady]);
-  return null;
-}
-
 function DelayedScrollWheelZoom({ delay = 500 }: { delay?: number }) {
   const map = useMap();
   useEffect(() => {
@@ -298,6 +282,7 @@ function ClusterLayer({
           animate: false,
           animateAddingMarkers: false,
           maxClusterRadius: 50,
+          clusterPane: markerPane,
           iconCreateFunction: (c: { getChildCount: () => number }) => {
             const count = c.getChildCount();
             const size = count < 10 ? 34 : count < 100 ? 40 : 48;
@@ -338,13 +323,10 @@ function ClusterLayer({
           ${actions}
         </div>
       `;
-      const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
       if (selectOnMarkerClick) {
-        m.on("click", () => {
-          m.openPopup();
-          onSelectRef.current?.(it);
-        });
+        m.on("click", () => onSelectRef.current?.(it));
       }
+      const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
       if (showSelectButton && onSelect && !isSelected) {
         popup.on("popupopen", (e) => {
           const node = (e as unknown as { popup: L.Popup }).popup.getElement();
@@ -430,7 +412,6 @@ export default function LabLocationsMap({
   focusOnSelected = false,
   focusZoom = 15,
   stableRendering = false,
-  onMapControlsReady,
 
 }: {
   items: LabMapItem[];
@@ -457,10 +438,10 @@ export default function LabLocationsMap({
   focusOnSelected?: boolean;
   focusZoom?: number;
   stableRendering?: boolean;
-  onMapControlsReady?: (controls: { zoomIn: () => void; zoomOut: () => void }) => void;
 
 }) {
   useTheme();
+  const mapRef = useRef<L.Map | null>(null);
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
   const [filtersLocal, setFiltersLocal] = useState<TileFilters>(filtersProp ?? DEFAULT_FILTERS);
   const styleKey = styleKeyProp ?? styleKeyLocal;
@@ -653,6 +634,7 @@ export default function LabLocationsMap({
       <div className="relative rounded-lg border border-border overflow-hidden bg-card">
         <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
+          ref={mapRef}
           center={center}
           zoom={zoomProp ?? 10}
           scrollWheelZoom={false}
@@ -675,7 +657,6 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          <MapControlsBridge onReady={onMapControlsReady} />
           {!stableRendering && <CustomZoomControl />}
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
@@ -702,6 +683,32 @@ export default function LabLocationsMap({
             stableRendering={stableRendering}
           />
         </MapContainer>
+        {stableRendering && (
+          <div className="absolute right-3 top-3 z-[900] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-md">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-none border-b border-border"
+              aria-label="Приблизить"
+              title="Приблизить"
+              onClick={() => mapRef.current?.zoomIn()}
+            >
+              <Plus className="h-5 w-5" aria-hidden />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-none"
+              aria-label="Отдалить"
+              title="Отдалить"
+              onClick={() => mapRef.current?.zoomOut()}
+            >
+              <Minus className="h-5 w-5" aria-hidden />
+            </Button>
+          </div>
+        )}
         {!hideAttribution && (
           <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
             <span>{style.attribution}</span>
