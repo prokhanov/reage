@@ -27,6 +27,7 @@ import { reachGoal } from "@/lib/yandexMetrika";
 export function CheckupContent() {
   const { addToCart, inCart, openCart, checkup, count } = useEnergyOrder();
   const { setTheme } = useTheme();
+  const { priceOf } = useCheckupPrices();
 
   // На страницах чекапов по умолчанию используем светлую тему
   useEffect(() => {
