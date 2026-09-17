@@ -288,7 +288,6 @@ function ClusterLayer({
 
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
-      const phones = (it.phones ?? []).filter(Boolean);
       const hours = normalizeHours(it.hours ?? []).filter(Boolean);
       const isSelected = selectedId === it.id;
 
@@ -309,7 +308,6 @@ function ClusterLayer({
       const html = `
         <div class="lab-popup">
           <div class="lab-popup-title">${escapeHtml(it.title)}</div>
-          ${phones.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Телефоны</div>${phones.map((p) => `<a href="tel:${escapeAttr(p)}" class="lab-popup-link">${escapeHtml(p)}</a>`).join("<br/>")}</div>` : ""}
           ${hours.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Часы работы</div>${hours.map(escapeHtml).join("<br/>")}</div>` : ""}
           ${actions}
         </div>
