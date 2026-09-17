@@ -625,18 +625,21 @@ export type Database = {
       }
       checkup_settings: {
         Row: {
+          cbc_bonus_enabled: boolean
           is_active: boolean
           price: number
           slug: string
           updated_at: string
         }
         Insert: {
+          cbc_bonus_enabled?: boolean
           is_active?: boolean
           price: number
           slug: string
           updated_at?: string
         }
         Update: {
+          cbc_bonus_enabled?: boolean
           is_active?: boolean
           price?: number
           slug?: string
@@ -1188,6 +1191,7 @@ export type Database = {
       }
       energy_orders: {
         Row: {
+          bonus_items: Json
           bundle: string
           bundles: string[] | null
           clinic_address: string | null
@@ -1212,6 +1216,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
           clinic_address?: string | null
@@ -1236,6 +1241,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
           clinic_address?: string | null

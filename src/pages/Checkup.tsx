@@ -64,7 +64,11 @@ export function CheckupContent() {
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
         <EnergyExpertResult />
-        <EnergyHowItWorks onAddToCart={handleAddToCart} price={checkup.price} />
+        <EnergyHowItWorks
+          onAddToCart={handleAddToCart}
+          price={checkup.price}
+          cbcBonusEnabled={checkup.cbcBonusEnabled}
+        />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />

@@ -1,4 +1,4 @@
-import { FlaskConical, Building2, Clock, ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, Clock, FlaskConical, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
@@ -98,6 +98,12 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
             <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
               {money(checkup.price)}
             </div>
+            {checkup.cbcBonusEnabled && (
+              <div className="inline-flex h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
+                <Gift className="h-5 w-5" aria-hidden />
+                + ОАК в подарок
+              </div>
+            )}
             <Button
               id="energy-hero-cta"
               size="lg"

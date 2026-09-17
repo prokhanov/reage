@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Check, Clock, Heart, MapPin, Stethoscope, X } from "lucide-react";
+import { Award, Check, Clock, Gift, Heart, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -21,6 +21,7 @@ import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
+const CBC_BONUS_PRICE = 990;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -54,6 +55,7 @@ export function EnergyCart() {
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = appliedPromo ? Math.round(itemsSum * appliedPromo.discount) : 0;
   const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
+  const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -183,6 +185,23 @@ export function EnergyCart() {
                       </div>
                     </div>
                   ))}
+                  {hasCbcBonus && (
+                    <div className="flex items-start justify-between gap-3 border-b border-border p-4">
+                      <div className="min-w-0 flex items-start gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning">
+                          <Gift className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-base font-semibold text-foreground">Общий анализ крови</div>
+                          <div className="text-sm text-muted-foreground">В подарок</div>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right font-mono-tech text-base">
+                        <span className="mr-2 text-muted-foreground line-through">{money(CBC_BONUS_PRICE)}</span>
+                        <span className="text-foreground">0 ₽</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="p-4 pt-0">
                     <ul className="space-y-2 border-t border-border pt-4">
                       <li className="flex items-start gap-3">
@@ -349,6 +368,15 @@ export function EnergyCart() {
                     <span className="font-mono-tech">{money(item.price)}</span>
                   </div>
                 ))}
+                {hasCbcBonus && (
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>Общий анализ крови</span>
+                    <span className="font-mono-tech">
+                      <span className="mr-2 line-through">{money(CBC_BONUS_PRICE)}</span>
+                      <span className="text-foreground">0 ₽</span>
+                    </span>
+                  </div>
+                )}
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Консультация врача</span>

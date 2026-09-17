@@ -6,6 +6,7 @@ export interface CheckupPriceRow {
   slug: string;
   price: number;
   is_active: boolean;
+  cbc_bonus_enabled: boolean;
 }
 
 export interface CheckupDoctor {
@@ -45,7 +46,7 @@ async function load(force = false): Promise<CheckupSettingsData> {
 
   inflight = (async () => {
     const [pricesRes, doctorRes] = await Promise.all([
-      supabase.from("checkup_settings").select("slug, price, is_active"),
+      supabase.from("checkup_settings").select("slug, price, is_active, cbc_bonus_enabled"),
       supabase
         .from("checkup_doctor_settings")
         .select("*")
@@ -60,6 +61,7 @@ async function load(force = false): Promise<CheckupSettingsData> {
         slug: row.slug,
         price: row.price,
         is_active: row.is_active,
+        cbc_bonus_enabled: row.cbc_bonus_enabled ?? false,
       };
     }
 
@@ -125,7 +127,12 @@ export function useCheckupSettings() {
     [data],
   );
 
+  const hasCbcBonus = useCallback(
+    (slug: string) => data.prices[slug]?.cbc_bonus_enabled ?? false,
+    [data],
+  );
+
   const refresh = useCallback(() => load(true).then(setData), []);
 
-  return { prices: data.prices, doctor: data.doctor, priceOf, isActive, loading, refresh };
+  return { prices: data.prices, doctor: data.doctor, priceOf, isActive, hasCbcBonus, loading, refresh };
 }

@@ -1,3 +1,5 @@
+import { Gift } from "lucide-react";
+
 import type { Checkup } from "@/data/checkups";
 import { ENERGY_CHECKUP } from "@/data/checkups";
 
@@ -17,6 +19,14 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
         </div>
 
         <div className="mt-6 rounded-2xl border border-border bg-card sm:mt-8">
+          <div className="flex flex-col gap-2 px-5 pt-5 sm:flex-row sm:items-start sm:justify-between sm:px-8 sm:pt-8">
+            <h3 className="font-display text-xl text-foreground sm:text-2xl">
+              Что входит в {checkup.name}
+            </h3>
+            <div className="shrink-0 text-base font-semibold text-muted-foreground">
+              {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? " + 1 в подарок" : ""}
+            </div>
+          </div>
           <ul className="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2 sm:p-8 sm:gap-y-6 md:gap-x-12 md:gap-y-7">
             {checkup.markers.map((item) => (
               <li key={item.title} className="flex min-w-0 items-center gap-3 sm:gap-4">
@@ -34,6 +44,28 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
               </li>
             ))}
           </ul>
+          {checkup.cbcBonusEnabled && (
+            <div className="mx-5 border-t border-dashed border-border px-0 py-5 sm:mx-8 sm:py-6">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning sm:h-11 sm:w-11">
+                  <Gift className="h-5 w-5" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-display text-base text-foreground sm:text-lg md:text-xl">
+                      Общий анализ крови
+                    </h3>
+                    <span className="rounded-full bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+                      в подарок
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    воспаление и риск анемии — в этом же заборе крови, без доплаты
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
