@@ -376,7 +376,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               showSelectButton
               selectOnMarkerClick
               selectedId={selectedId ?? undefined}
-              focusOnSelected
+              focusOnSelected={layout === "section"}
               focusZoom={15}
               stableRendering={layout === "stack"}
               onMapControlsReady={handleMapControlsReady}
