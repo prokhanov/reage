@@ -684,12 +684,12 @@ export default function LabLocationsMap({
           />
         </MapContainer>
         {stableRendering && (
-          <div className="absolute right-3 top-3 z-[900] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-md">
+          <div className="pointer-events-auto absolute right-3 top-3 z-[2000] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-none border-b border-border"
+              className="h-10 w-10 rounded-none border-b border-border bg-card text-foreground hover:bg-muted"
               aria-label="Приблизить"
               title="Приблизить"
               onClick={() => mapRef.current?.zoomIn()}
@@ -700,7 +700,7 @@ export default function LabLocationsMap({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-none"
+              className="h-10 w-10 rounded-none bg-card text-foreground hover:bg-muted"
               aria-label="Отдалить"
               title="Отдалить"
               onClick={() => mapRef.current?.zoomOut()}
