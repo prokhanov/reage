@@ -226,6 +226,44 @@ function FocusSelected({
   return null;
 }
 
+function SelectedMarkerOverlay({
+  items,
+  selectedId,
+  enabled,
+}: {
+  items: LabMapItem[];
+  selectedId?: string | null;
+  enabled: boolean;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!enabled || !selectedId) return;
+    const target = items.find((item) => item.id === selectedId);
+    if (!target) return;
+
+    const paneName = "selected-lab-marker-pane";
+    const pane = map.getPane(paneName) ?? map.createPane(paneName);
+    pane.style.zIndex = "675";
+    pane.style.pointerEvents = "none";
+
+    const marker = L.marker([target.lat, target.lng], {
+      icon: buildIcon(),
+      pane: paneName,
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 2000,
+    });
+    marker.addTo(map);
+
+    return () => {
+      marker.removeFrom(map);
+    };
+  }, [enabled, items, map, selectedId]);
+
+  return null;
+}
+
 
 function ClusterLayer({
   items,
@@ -661,6 +699,11 @@ export default function LabLocationsMap({
           <InvalidateSize afterDialogAnimation={stableRendering} />
           {fitToItems && <FitBounds items={items} />}
           {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
+          <SelectedMarkerOverlay
+            items={items}
+            selectedId={selectedId}
+            enabled={stableRendering && focusOnSelected}
+          />
 
           <ClusterLayer
             items={items}
