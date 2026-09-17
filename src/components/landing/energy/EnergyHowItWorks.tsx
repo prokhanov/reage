@@ -136,7 +136,7 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price }: 
               onClick={onAddToCart}
               className="h-12 w-full text-base md:w-auto md:px-8"
             >
-              Добавить в корзину — {money(price)}
+              Купить — {money(price)}
             </Button>
           </div>
         )}

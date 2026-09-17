@@ -210,7 +210,7 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
             }}
           >
             <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
-            Добавить в корзину — {money(checkup.price)}
+            Купить — {money(checkup.price)}
           </Button>
         </div>
       </DialogContent>
