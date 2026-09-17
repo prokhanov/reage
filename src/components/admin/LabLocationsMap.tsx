@@ -136,6 +136,15 @@ function CustomZoomControl() {
   return null;
 }
 
+function MapReady({ onReady }: { onReady?: (map: L.Map) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    onReady?.(map);
+    return () => onReady?.(null as unknown as L.Map);
+  }, [map, onReady]);
+  return null;
+}
+
 function InvalidateSize() {
   const map = useMap();
   useEffect(() => {
@@ -389,6 +398,8 @@ export default function LabLocationsMap({
   onSelect,
   selectOnMarkerClick = false,
   hideControls = false,
+  hideZoomControl = false,
+  onMapReady,
   hideAttribution = false,
   scrollWheelZoomDelay = 500,
   focusOnSelected = false,
@@ -414,6 +425,8 @@ export default function LabLocationsMap({
   onSelect?: (item: LabMapItem) => void;
   selectOnMarkerClick?: boolean;
   hideControls?: boolean;
+  hideZoomControl?: boolean;
+  onMapReady?: (map: L.Map) => void;
   hideAttribution?: boolean;
   scrollWheelZoomDelay?: number;
   focusOnSelected?: boolean;
@@ -632,7 +645,8 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          <CustomZoomControl />
+          {!hideZoomControl && <CustomZoomControl />}
+          <MapReady onReady={onMapReady} />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
           {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
