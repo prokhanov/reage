@@ -1,5 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock, Crosshair, MapPin, Navigation } from "lucide-react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, Clock, Crosshair, MapPin, Minus, Navigation, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +59,8 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const [geoNote, setGeoNote] = useState<string | null>(null);
   const [mapHeight, setMapHeight] = useState(420);
   const [isWide, setIsWide] = useState(false);
+  const mapRef = useRef<{ zoomIn: () => void; zoomOut: () => void } | null>(null);
+  const externalZoom = layout === "stack";
 
   useEffect(() => {
     const update = () => {
@@ -325,6 +327,27 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
             layout === "section" ? "order-1 lg:order-2" : ""
           }`}
         >
+          {externalZoom && (
+            <div className="flex items-center justify-end gap-2 border-b border-border bg-card px-3 py-2">
+              <span className="mr-auto text-xs text-muted-foreground">Масштаб карты</span>
+              <button
+                type="button"
+                aria-label="Отдалить"
+                onClick={() => mapRef.current?.zoomOut()}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted"
+              >
+                <Minus className="h-4 w-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                aria-label="Приблизить"
+                onClick={() => mapRef.current?.zoomIn()}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted"
+              >
+                <Plus className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )}
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
             <LabLocationsMap
               key={city}
@@ -334,6 +357,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               height={mapHeight}
               fitToItems
               hideControls
+              hideZoomControl={externalZoom}
+              onMapReady={(map) => {
+                mapRef.current = map ?? null;
+              }}
               clusterMarkers
               showSelectButton
               selectOnMarkerClick
