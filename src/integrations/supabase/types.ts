@@ -3586,6 +3586,7 @@ export type Database = {
         | "lab_locations"
         | "report_visuals"
         | "scale_preview"
+        | "checkups"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       drip_delay_unit: "minutes" | "hours" | "days"
@@ -3757,6 +3758,7 @@ export const Constants = {
         "lab_locations",
         "report_visuals",
         "scale_preview",
+        "checkups",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
