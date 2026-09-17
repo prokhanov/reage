@@ -322,7 +322,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         {/* Карта */}
         <div
           className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
-            layout === "section" ? "order-1 lg:order-2" : ""
+            layout === "section" ? "order-1 lg:order-2" : "order-1"
           }`}
         >
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
