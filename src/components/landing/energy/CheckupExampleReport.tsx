@@ -152,29 +152,28 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
 
               <section className="mt-6">
                 <h2 className="rl-lite-heading">Интерпретация биомаркеров</h2>
-                {loading ? (
-                  <div className="mt-6 flex items-center justify-center gap-2 py-10 text-sm text-[#64748b]">
+                {loading && (
+                  <div className="mt-3 flex items-center gap-2 py-2 text-sm text-[#64748b]">
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                     Загружаем описания показателей…
                   </div>
-                ) : (
-                  <div className="mt-3">
-                    {report.markers.map((marker) => {
-                      const db = rows[marker.code];
-                      const bio = toReportBiomarker(marker, checkup.slug, db);
-                      const status = resolveStatus(bio, patient.gender, patient.age);
-                      return (
-                        <BiomarkerCard
-                          key={marker.code}
-                          biomarker={bio}
-                          commentary={buildCommentary(marker, status, db, bio.unit || "")}
-                          gender={patient.gender}
-                          age={patient.age}
-                        />
-                      );
-                    })}
-                  </div>
                 )}
+                <div className="mt-3">
+                  {report.markers.map((marker) => {
+                    const db = rows[marker.code];
+                    const bio = toReportBiomarker(marker, checkup.slug, db);
+                    const status = resolveStatus(bio, patient.gender, patient.age);
+                    return (
+                      <BiomarkerCard
+                        key={marker.code}
+                        biomarker={bio}
+                        commentary={buildCommentary(marker, status, db, bio.unit || "")}
+                        gender={patient.gender}
+                        age={patient.age}
+                      />
+                    );
+                  })}
+                </div>
               </section>
 
 
