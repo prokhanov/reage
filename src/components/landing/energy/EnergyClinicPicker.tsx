@@ -344,7 +344,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               selectedId={selectedId ?? undefined}
               focusOnSelected
               focusZoom={15}
-              onSelect={(item) => setSelectedId(item.id)}
+              onSelect={(item) => {
+                setSelectedId(item.id);
+                setGeoNote(null);
+              }}
             />
           </Suspense>
         </div>
