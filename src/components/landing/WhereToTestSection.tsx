@@ -266,11 +266,8 @@ export function WhereToTestSection() {
               height={`${heightPx}px`}
               styleKey={ctx?.tile_style ?? "osm"}
               filters={ctx?.tile_filters ?? DEFAULT_FILTERS}
-              showPartnerButton={ctx?.show_partner_button ?? true}
+              showPartnerButton={false}
               showSelectButton={false}
-              partnerButtonLabel={
-                ctx?.partner_button_label ?? "Открыть на сайте провайдера ↗"
-              }
               hideControls
               hideAttribution
             />
