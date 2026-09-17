@@ -128,9 +128,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
       const near = pickNearestTo(null);
       if (near) {
         setSelectedId(near.id);
-        setGeoNote(
-          "Доступ к геолокации не разрешён, поэтому расстояние не посчитали. Можно выбрать любое другое отделение на карте.",
-        );
+        setGeoNote("Геолокация недоступна — показали отделение в центре выбранного города.");
       }
       setLocating(false);
     };
@@ -195,7 +193,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         {/* Левая панель (на мобильном — под картой) */}
         <div
           className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
-            layout === "section" ? "order-2 lg:order-1" : "order-2"
+            layout === "section" ? "order-2 lg:order-1" : ""
           }`}
           style={layout === "section" && isWide ? { minHeight: mapHeight } : undefined}
 
@@ -324,9 +322,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
         {/* Карта */}
         <div
           className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${
-            layout === "section"
-              ? "order-1 lg:order-2"
-              : "order-1 sticky top-0 z-10 shadow-sm"
+            layout === "section" ? "order-1 lg:order-2" : ""
           }`}
         >
           <Suspense fallback={<div className="w-full bg-muted/40" style={{ height: mapHeight }} />}>
@@ -344,11 +340,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               selectedId={selectedId ?? undefined}
               focusOnSelected
               focusZoom={15}
-              stableRendering={layout === "stack"}
-              onSelect={(item) => {
-                setSelectedId(item.id);
-                setGeoNote(null);
-              }}
+              onSelect={(item) => setSelectedId(item.id)}
             />
           </Suspense>
         </div>

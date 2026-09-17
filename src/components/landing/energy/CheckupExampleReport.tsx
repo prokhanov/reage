@@ -10,7 +10,6 @@ import { useReportBiomarkers, type ReportBiomarkerRow } from "@/hooks/useReportB
 import "@/lib/reportLab/theme.css";
 import "./checkupExampleReport.css";
 import { money, type Checkup } from "@/data/checkups";
-import { useCheckupPrices } from "@/hooks/useCheckupPrices";
 import {
   getCheckupExampleReport,
   type ExampleMarker,
@@ -122,7 +121,6 @@ interface Props {
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
   const { rows, loading } = useReportBiomarkers();
-  const { priceOf } = useCheckupPrices();
   const report = getCheckupExampleReport(checkup.slug);
   if (!report) return null;
 
@@ -212,7 +210,7 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
             }}
           >
             <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
-            Купить — {money(priceOf(checkup))}
+            Купить — {money(checkup.price)}
           </Button>
         </div>
       </DialogContent>

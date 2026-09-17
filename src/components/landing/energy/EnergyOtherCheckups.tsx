@@ -3,7 +3,6 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
-import { useCheckupPrices } from "@/hooks/useCheckupPrices";
 
 import { accentClasses, checkupShape } from "./checkupShapes";
 
@@ -13,7 +12,6 @@ interface Props {
 }
 
 export function EnergyOtherCheckups({ currentSlug }: Props) {
-  const { priceOf } = useCheckupPrices();
   const trackRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
@@ -127,7 +125,7 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="font-display text-2xl font-semibold text-foreground">
-                            {money(priceOf(c))}
+                            {money(c.price)}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">

@@ -22,13 +22,6 @@
       "when": 1789571580651,
       "tag": "0002_energy_orders_bundles",
       "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1789637728198,
-      "tag": "0003_create_checkup_prices",
-      "breakpoints": true
     }
   ]
 }

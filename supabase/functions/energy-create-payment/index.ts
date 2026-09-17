@@ -34,8 +34,6 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
 const CONSULT_PRICE = 3500;
-// Слаги-псевдонимы старых адресов -> актуальный слаг в таблице цен.
-const PRICE_ALIASES: Record<string, string> = { "cardio-risk-40": "cardio-risk", "base-40": "base" };
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
@@ -90,7 +88,8 @@ Deno.serve(async (req) => {
     const uniqueBundles = [...new Set(bundleList.map((b) => String(b)))];
     const products = uniqueBundles.map((b) => BUNDLES[b]);
     if (products.some((p) => !p)) return json({ error: "Неизвестный набор анализов" }, 400);
-    const items = products.map((p) => ({ ...p })) as { title: string; price: number }[];
+    const items = products as { title: string; price: number }[];
+    const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
 
     const emailClean = (email ?? "").trim().toLowerCase();
     const phoneClean = (phone ?? "").trim();
@@ -102,16 +101,6 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-
-    // Актуальные цены задаются в админке (таблица checkup_prices); каталог выше — запасной вариант.
-    const { data: priceRows } = await admin.from("checkup_prices").select("slug, price");
-    const priceMap = new Map<string, number>((priceRows ?? []).map((r) => [r.slug, r.price]));
-    uniqueBundles.forEach((b, i) => {
-      const dbPrice = priceMap.get(PRICE_ALIASES[b] ?? b);
-      if (typeof dbPrice === "number") items[i].price = dbPrice;
-    });
-    const itemsSum = items.reduce((sum, p) => sum + p.price, 0);
-    const consultPrice = priceMap.get("consultation") ?? CONSULT_PRICE;
 
     const { data: gateway } = await admin
       .from("payment_gateway_settings")
@@ -127,7 +116,7 @@ Deno.serve(async (req) => {
     }
 
     const withConsult = consultation === true;
-    const consultAmount = withConsult ? consultPrice : 0;
+    const consultAmount = withConsult ? CONSULT_PRICE : 0;
     const original = itemsSum + consultAmount;
     const code = (promoCode ?? "").trim().toUpperCase();
     const rate = code ? PROMOS[code] : undefined;

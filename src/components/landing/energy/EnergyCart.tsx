@@ -13,12 +13,12 @@ import { notify } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 
 import { markersLabel, money } from "@/data/checkups";
-import { useCheckupPrices } from "@/hooks/useCheckupPrices";
 import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/lib/checkupGoals";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 
+const CONSULT_PRICE = 3500;
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -38,7 +38,6 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 export function EnergyCart() {
   const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
     useEnergyOrder();
-  const { priceOf, consultPrice } = useCheckupPrices();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,9 +48,9 @@ export function EnergyCart() {
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
-  const itemsSum = items.reduce((sum, item) => sum + priceOf(item), 0);
+  const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = appliedPromo ? Math.round(itemsSum * appliedPromo.discount) : 0;
-  const total = itemsSum - discount + (consult ? consultPrice : 0);
+  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -168,7 +167,7 @@ export function EnergyCart() {
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-mono-tech text-base text-foreground">
-                          {money(priceOf(item))}
+                          {money(item.price)}
                         </span>
                         <button
                           type="button"
@@ -281,7 +280,7 @@ export function EnergyCart() {
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-base font-semibold text-foreground">Консультация врача</span>
                     <span className="font-mono-tech shrink-0 text-base text-foreground">
-                      +{money(consultPrice)}
+                      +{money(CONSULT_PRICE)}
                     </span>
                   </div>
                   <div className="mt-0.5 text-sm text-muted-foreground">
@@ -328,13 +327,13 @@ export function EnergyCart() {
                     className="flex items-center justify-between text-muted-foreground"
                   >
                     <span>{item.name}</span>
-                    <span className="font-mono-tech">{money(priceOf(item))}</span>
+                    <span className="font-mono-tech">{money(item.price)}</span>
                   </div>
                 ))}
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>консультация врача</span>
-                    <span className="font-mono-tech">{money(consultPrice)}</span>
+                    <span className="font-mono-tech">{money(CONSULT_PRICE)}</span>
                   </div>
                 )}
                 {appliedPromo && (
@@ -384,12 +383,7 @@ export function EnergyCart() {
       </Sheet>
 
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent
-          className="max-h-[90vh] max-w-[52rem] overflow-y-auto"
-          onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target) window.dispatchEvent(new Event("resize"));
-          }}
-        >
+        <DialogContent className="max-h-[90vh] max-w-[52rem] overflow-y-auto">
           <DialogTitle className="font-display text-2xl text-foreground">Выберите отделение</DialogTitle>
           <EnergyClinicPicker
             layout="stack"

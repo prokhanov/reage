@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Minus, Plus, Settings2, RotateCcw } from "lucide-react";
+import { Settings2, RotateCcw } from "lucide-react";
 import locationIconUrl from "@/assets/location_icon.png";
 
 export type LabMapItem = {
@@ -136,33 +136,24 @@ function CustomZoomControl() {
   return null;
 }
 
-function InvalidateSize({ afterDialogAnimation = false }: { afterDialogAnimation?: boolean }) {
+function InvalidateSize() {
   const map = useMap();
   useEffect(() => {
     const invalidate = () => map.invalidateSize({ pan: false });
-    const frame = requestAnimationFrame(invalidate);
     const t1 = setTimeout(invalidate, 80);
     const t2 = setTimeout(invalidate, 250);
-    const t3 = afterDialogAnimation ? setTimeout(invalidate, 550) : null;
     const container = map.getContainer();
     const resizeTarget = container.parentElement ?? container;
     const ro = new ResizeObserver(() => requestAnimationFrame(invalidate));
-    ro.observe(container);
-    if (resizeTarget !== container) ro.observe(resizeTarget);
-    resizeTarget.addEventListener("transitionend", invalidate);
-    resizeTarget.addEventListener("animationend", invalidate);
+    ro.observe(resizeTarget);
     window.addEventListener("resize", invalidate);
     return () => {
-      cancelAnimationFrame(frame);
       clearTimeout(t1);
       clearTimeout(t2);
-      if (t3) clearTimeout(t3);
       ro.disconnect();
-      resizeTarget.removeEventListener("transitionend", invalidate);
-      resizeTarget.removeEventListener("animationend", invalidate);
       window.removeEventListener("resize", invalidate);
     };
-  }, [afterDialogAnimation, map]);
+  }, [map]);
   return null;
 }
 
@@ -226,44 +217,6 @@ function FocusSelected({
   return null;
 }
 
-function SelectedMarkerOverlay({
-  items,
-  selectedId,
-  enabled,
-}: {
-  items: LabMapItem[];
-  selectedId?: string | null;
-  enabled: boolean;
-}) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!enabled || !selectedId) return;
-    const target = items.find((item) => item.id === selectedId);
-    if (!target) return;
-
-    const paneName = "selected-lab-marker-pane";
-    const pane = map.getPane(paneName) ?? map.createPane(paneName);
-    pane.style.zIndex = "675";
-    pane.style.pointerEvents = "none";
-
-    const marker = L.marker([target.lat, target.lng], {
-      icon: buildIcon(),
-      pane: paneName,
-      interactive: false,
-      keyboard: false,
-      zIndexOffset: 2000,
-    });
-    marker.addTo(map);
-
-    return () => {
-      marker.removeFrom(map);
-    };
-  }, [enabled, items, map, selectedId]);
-
-  return null;
-}
-
 
 function ClusterLayer({
   items,
@@ -276,7 +229,6 @@ function ClusterLayer({
   selectedId,
   onSelect,
   selectOnMarkerClick,
-  stableRendering,
 }: {
   items: LabMapItem[];
   showPartnerButton: boolean;
@@ -288,30 +240,19 @@ function ClusterLayer({
   selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
   selectOnMarkerClick?: boolean;
-  stableRendering: boolean;
 }) {
   const map = useMap();
   const onSelectRef = useRef(onSelect);
-  const selectedIdRef = useRef(selectedId);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
   useEffect(() => {
-    selectedIdRef.current = selectedId;
-  }, [selectedId]);
-
-  const selectionDependency = stableRendering ? null : selectedId;
-
-  useEffect(() => {
     if (!items.length) return;
-    const markerPane = stableRendering ? "markerPane" : LAB_MARKER_PANE;
-    if (!stableRendering) {
-      const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
-      pane.style.zIndex = "680";
-      pane.style.pointerEvents = "auto";
-    }
+    const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
+    pane.style.zIndex = "680";
+    pane.style.pointerEvents = "auto";
 
     const icon = buildIcon();
     const markerLayer = clusterMarkers
@@ -323,7 +264,7 @@ function ClusterLayer({
           animate: false,
           animateAddingMarkers: false,
           maxClusterRadius: 50,
-          clusterPane: markerPane,
+          clusterPane: LAB_MARKER_PANE,
           iconCreateFunction: (c: { getChildCount: () => number }) => {
             const count = c.getChildCount();
             const size = count < 10 ? 34 : count < 100 ? 40 : 48;
@@ -337,10 +278,10 @@ function ClusterLayer({
       : L.layerGroup();
 
     items.forEach((it) => {
-      const m = L.marker([it.lat, it.lng], { icon, pane: markerPane, riseOnHover: true, zIndexOffset: 1000 });
+      const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = normalizeHours(it.hours ?? []).filter(Boolean);
-      const isSelected = selectedIdRef.current === it.id;
+      const isSelected = selectedId === it.id;
 
       const partnerBtn =
         showPartnerButton && it.page_url
@@ -382,7 +323,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectionDependency, selectOnMarkerClick, stableRendering]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId, selectOnMarkerClick]);
   return null;
 }
 
@@ -452,7 +393,6 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay = 500,
   focusOnSelected = false,
   focusZoom = 15,
-  stableRendering = false,
 
 }: {
   items: LabMapItem[];
@@ -478,11 +418,9 @@ export default function LabLocationsMap({
   scrollWheelZoomDelay?: number;
   focusOnSelected?: boolean;
   focusZoom?: number;
-  stableRendering?: boolean;
 
 }) {
   useTheme();
-  const mapRef = useRef<L.Map | null>(null);
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
   const [filtersLocal, setFiltersLocal] = useState<TileFilters>(filtersProp ?? DEFAULT_FILTERS);
   const styleKey = styleKeyProp ?? styleKeyLocal;
@@ -672,10 +610,9 @@ export default function LabLocationsMap({
       </div>
       )}
 
-      <div className="relative rounded-lg border border-border overflow-hidden bg-card">
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
         <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
-          ref={mapRef}
           center={center}
           zoom={zoomProp ?? 10}
           scrollWheelZoom={false}
@@ -695,15 +632,10 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          {!stableRendering && <CustomZoomControl />}
-          <InvalidateSize afterDialogAnimation={stableRendering} />
+          <CustomZoomControl />
+          <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
           {focusOnSelected && <FocusSelected items={items} selectedId={selectedId} zoom={focusZoom} />}
-          <SelectedMarkerOverlay
-            items={items}
-            selectedId={selectedId}
-            enabled={stableRendering && focusOnSelected}
-          />
 
           <ClusterLayer
             items={items}
@@ -716,35 +648,8 @@ export default function LabLocationsMap({
             selectedId={selectedId}
             onSelect={onSelect}
             selectOnMarkerClick={selectOnMarkerClick}
-            stableRendering={stableRendering}
           />
         </MapContainer>
-        {stableRendering && (
-          <div className="pointer-events-auto absolute right-3 top-3 z-[900] flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-md">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-none border-b border-border bg-card text-foreground hover:bg-muted"
-              aria-label="Приблизить"
-              title="Приблизить"
-              onClick={() => mapRef.current?.zoomIn()}
-            >
-              <Plus className="h-5 w-5" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-none bg-card text-foreground hover:bg-muted"
-              aria-label="Отдалить"
-              title="Отдалить"
-              onClick={() => mapRef.current?.zoomOut()}
-            >
-              <Minus className="h-5 w-5" aria-hidden />
-            </Button>
-          </div>
-        )}
         {!hideAttribution && (
           <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
             <span>{style.attribution}</span>
