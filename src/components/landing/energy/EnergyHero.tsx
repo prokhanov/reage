@@ -104,7 +104,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
               onClick={onAddToCart}
               className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
             >
-              Купить — {money(checkup.price)}
+              Купить
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
