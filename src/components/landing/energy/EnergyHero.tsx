@@ -71,7 +71,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
             <p className="text-sm text-muted-foreground sm:text-base">
-              {markersLabel(checkup.markers.length)} · LabQuest
+              27 показателей
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
