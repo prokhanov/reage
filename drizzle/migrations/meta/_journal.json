@@ -36,6 +36,13 @@
       "when": 1789641092876,
       "tag": "0004_create_checkup_settings_and_doctor",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789660866787,
+      "tag": "0005_add_checkup_cbc_bonus_settings",
+      "breakpoints": true
     }
   ]
 }
