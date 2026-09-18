@@ -211,7 +211,7 @@ export function MainCheckupsSection() {
               </p>
 
               <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                <div className="whitespace-nowrap font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
                   {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
                 </div>
                 <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">
@@ -244,7 +244,7 @@ export function MainCheckupsSection() {
               </p>
 
               <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="flex items-baseline gap-2 font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                <div className="flex flex-wrap items-baseline gap-2 font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
                   <span className="text-base font-medium text-background/60">от</span>
                   {money(YEARLY_PRICE)}
                   <span className="text-lg text-background/70">/год</span>
