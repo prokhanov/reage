@@ -129,23 +129,25 @@ function MainNewContent() {
       </header>
 
       <main>
-        <section className="relative border-b border-border/60">
-          <div className="mx-auto grid w-full max-w-[80rem] items-center gap-5 px-4 pb-8 pt-10 sm:px-6 sm:py-12 lg:min-h-[680px] lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:py-14 xl:min-h-[720px]">
-            <div className="mx-auto flex max-w-2xl flex-col items-center text-center lg:mx-0 lg:items-start lg:text-left">
-              <p className="mb-5 text-xs font-semibold uppercase text-primary sm:text-sm">Персональный контроль здоровья</p>
-              <h1 className="font-display text-[2.6rem] leading-[1.04] text-foreground sm:text-6xl lg:text-[4.4rem] xl:text-[5rem]">
+        <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
+          <div className="mx-auto grid w-full max-w-[72rem] items-center gap-5 px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:min-h-[640px] lg:grid-cols-[48%_52%] lg:gap-0 lg:pb-20 lg:pt-24 xl:min-h-[700px]">
+            <div className="mx-auto flex w-full max-w-md flex-col items-center text-center lg:mx-0 lg:items-start lg:pr-8 lg:text-left">
+              <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium uppercase text-muted-foreground">
+                Персональный контроль здоровья
+              </p>
+              <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
                 Анализы, которые наконец понятны
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-xl lg:text-2xl">
+              <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
                 ReAge переводит результаты крови на человеческий язык — от одного показателя до полной картины организма, с разбором врача.
               </p>
-              <Button id="main-new-hero-cta" size="lg" onClick={scrollToCheckups} className="mt-8 h-14 w-full gap-2 px-7 text-base sm:w-auto">
+              <Button id="main-new-hero-cta" size="lg" onClick={scrollToCheckups} className="mt-6 h-[52px] w-full gap-2 text-base sm:mt-8 sm:h-12 sm:w-auto">
                 Выбрать чекап
                 <ArrowDown className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="flex items-end justify-center lg:self-stretch">
+            <div className="mt-7 flex items-end justify-center sm:mt-9 lg:mt-0 lg:self-stretch">
               <HeroVisual />
             </div>
           </div>
