@@ -18,12 +18,12 @@ type Symptom = {
 };
 
 const SYMPTOMS: Symptom[] = [
-  { id: "tired", label: "часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
-  { id: "hair", label: "слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
-  { id: "weight", label: "проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
-  { id: "heart", label: "сердце и давление", slugs: ["cardio-risk", "base"] },
-  { id: "liver", label: "тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
-  { id: "all", label: "хочу полную картину сразу", slugs: [], full: true },
+  { id: "tired", label: "Часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
+  { id: "hair", label: "Слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
+  { id: "weight", label: "Проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
+  { id: "heart", label: "Сердце и давление", slugs: ["cardio-risk", "base"] },
+  { id: "liver", label: "Тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
+  { id: "all", label: "Хочу полную картину сразу", slugs: [], full: true },
 ];
 
 export function MainCheckupsSection() {
@@ -51,7 +51,7 @@ export function MainCheckupsSection() {
         <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-foreground sm:text-base">
-              не знаете, с чего начать?
+              Не знаете, с чего начать?
             </p>
             {selected && (
               <button
@@ -60,7 +60,7 @@ export function MainCheckupsSection() {
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-                сбросить
+                Сбросить
               </button>
             )}
           </div>
