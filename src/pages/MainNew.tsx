@@ -18,8 +18,7 @@ import { FULL_CHECKUP } from "@/data/fullCheckup";
 
 function HeroVisual() {
   return (
-    <div className="relative mx-auto h-[390px] w-full max-w-[520px] sm:h-[500px] lg:h-[590px] lg:max-w-[610px]">
-      <div className="absolute inset-x-[8%] bottom-0 top-[4%] rounded-[2rem] border border-border/60 bg-muted/45" />
+    <div className="relative mx-auto h-[390px] w-full max-w-[520px] overflow-hidden sm:h-[500px] lg:h-[590px] lg:max-w-[610px]">
       <SmartPicture
         avif={heroPeopleAvif}
         src={heroPeople}
@@ -28,11 +27,15 @@ function HeroVisual() {
         height={1600}
         fetchpriority="high"
         decoding="async"
-        className="pointer-events-none absolute inset-x-[7%] bottom-0 h-[96%] w-[86%] object-contain object-bottom"
+        className="pointer-events-none absolute inset-0 h-full w-full object-contain object-bottom"
         style={{
-          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 84%, transparent 100%)",
-          maskImage: "linear-gradient(to bottom, black 0%, black 84%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 90%, transparent 100%)",
+          maskImage: "linear-gradient(to bottom, black 0%, black 90%, transparent 100%)",
         }}
+      />
+      <div
+        className="absolute -left-[16%] -top-[10%] h-[120%] w-[34%] rounded-[100%] bg-background"
+        aria-hidden
       />
 
       <div className="absolute left-0 top-[32%] w-[148px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:left-[2%] sm:w-[180px] sm:p-4">
