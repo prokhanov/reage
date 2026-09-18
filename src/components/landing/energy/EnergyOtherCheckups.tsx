@@ -19,7 +19,9 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
   const [canNext, setCanNext] = useState(true);
 
   const { priceOf, isActive } = useCheckupSettings();
-  const items = CHECKUPS.filter((c) => c.slug !== currentSlug && isActive(c.slug));
+  const items = [FULL_CHECKUP, ...CHECKUPS].filter(
+    (c) => c.slug !== currentSlug && isActive(c.slug),
+  );
 
   const update = useCallback(() => {
     const el = trackRef.current;
