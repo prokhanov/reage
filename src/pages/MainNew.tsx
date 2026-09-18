@@ -203,20 +203,21 @@ function MainNewContent() {
             <a href="tel:+79959984638" className="whitespace-nowrap text-[11px] font-medium text-foreground transition-colors hover:text-primary sm:text-sm">
               +7 (995) 998-46-38
             </a>
-            <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-10 w-10 sm:h-11 sm:w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
-              <ShoppingCart className="h-5 w-5" />
-              {count > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{count}</span>
-              )}
-            </Button>
 
             <Button
               asChild
               type="button"
               size="sm"
-              className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 lg:inline-flex"
+              className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 md:inline-flex"
             >
               <Link to="/monitoring">{YEARLY_MONITORING_LABEL}</Link>
+            </Button>
+
+            <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-10 w-10 sm:h-11 sm:w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{count}</span>
+              )}
             </Button>
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
