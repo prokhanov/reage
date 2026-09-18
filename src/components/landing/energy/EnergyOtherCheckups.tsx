@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses, checkupShape } from "./checkupShapes";
