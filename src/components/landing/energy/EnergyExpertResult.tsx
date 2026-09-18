@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { reachGoal } from "@/lib/yandexMetrika";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
+import { DemoReportDialog } from "@/components/landing/energy/DemoReportDialog";
 import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
@@ -199,7 +200,7 @@ function MarkerCard({
   );
 }
 
-export function EnergyExpertResult() {
+export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolean } = {}) {
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
@@ -271,7 +272,7 @@ export function EnergyExpertResult() {
             }}
           >
             <FileText className="h-4 w-4 shrink-0" aria-hidden />
-            Посмотреть пример расшифровки
+            {demoReport ? "Посмотреть пример отчёта" : "Посмотреть пример расшифровки"}
           </Button>
         </div>
 
@@ -297,12 +298,16 @@ export function EnergyExpertResult() {
         </div>
       </div>
 
-      <CheckupExampleReport
-        checkup={checkup}
-        open={exampleOpen}
-        onOpenChange={setExampleOpen}
-        onAddToCart={addToCart}
-      />
+      {demoReport ? (
+        <DemoReportDialog open={exampleOpen} onOpenChange={setExampleOpen} />
+      ) : (
+        <CheckupExampleReport
+          checkup={checkup}
+          open={exampleOpen}
+          onOpenChange={setExampleOpen}
+          onAddToCart={addToCart}
+        />
+      )}
     </section>
   );
 }

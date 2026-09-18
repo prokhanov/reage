@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { PageMeta } from "@/components/PageMeta";
 import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
+import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHeader } from "@/components/landing/energy/EnergyHeader";
 import {
   EnergyOrderProvider,
@@ -57,6 +58,7 @@ function FullCheckupContent() {
         <FullCheckupHero checkup={checkup} onAddToCart={handleAddToCart} />
         <FullCheckupIncluded />
         <EnergyWhereToTest />
+        <EnergyExpertResult demoReport />
       </main>
       <div id="energy-page-end" />
       <Footer />
