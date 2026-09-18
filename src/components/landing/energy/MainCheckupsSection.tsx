@@ -59,11 +59,11 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
           {c.cardText}
         </p>
 
-        <div className="mt-6 flex items-center justify-between gap-4">
-          <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
+          <div className="whitespace-nowrap font-mono-tech text-[1.5rem] leading-none text-foreground sm:text-[1.75rem]">
             {money(priceOf(c.slug, c.price))}
           </div>
-          <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+          <span className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
             Подробнее
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
@@ -211,7 +211,7 @@ export function MainCheckupsSection() {
               </p>
 
               <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                <div className="whitespace-nowrap font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
                   {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
                 </div>
                 <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">
@@ -244,7 +244,7 @@ export function MainCheckupsSection() {
               </p>
 
               <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="flex items-baseline gap-2 font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                <div className="flex flex-wrap items-baseline gap-2 font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
                   <span className="text-base font-medium text-background/60">от</span>
                   {money(YEARLY_PRICE)}
                   <span className="text-lg text-background/70">/год</span>
