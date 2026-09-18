@@ -35,8 +35,40 @@ interface CheckupSettingsData {
   doctor: CheckupDoctor;
 }
 
+/**
+ * Кэш последних настроек в localStorage: без него первый рендер показывает
+ * хардкод-цену из каталога, и через секунду она «прыгает» на цену из базы.
+ */
+const STORAGE_KEY = "reage:checkup:settings";
+
+function readStoredSettings(): CheckupSettingsData | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.prices) return null;
+    return {
+      prices: parsed.prices as Record<string, CheckupPriceRow>,
+      doctor: (parsed.doctor as CheckupDoctor) ?? DEFAULT_DOCTOR,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSettings(data: CheckupSettingsData) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    /* noop */
+  }
+}
+
 /** Кэш на уровне модуля, чтобы не перезапрашивать на каждой странице чекапа. */
-let cache: CheckupSettingsData | null = null;
+let cache: CheckupSettingsData | null =
+  typeof window !== "undefined" ? readStoredSettings() : null;
+/** Данные из localStorage — стартовые, но запрос в базу всё равно нужен. */
+let cacheIsStale = cache !== null;
 let inflight: Promise<CheckupSettingsData> | null = null;
 const listeners = new Set<(data: CheckupSettingsData) => void>();
 
