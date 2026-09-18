@@ -130,7 +130,7 @@ function MainNewContent() {
 
       <main>
         <section className="relative border-b border-border/60">
-          <div className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[80rem] items-center gap-5 px-4 pb-8 pt-10 sm:min-h-[calc(100svh-5rem)] sm:px-6 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:py-14">
+          <div className="mx-auto grid w-full max-w-[80rem] items-center gap-5 px-4 pb-8 pt-10 sm:px-6 sm:py-12 lg:min-h-[680px] lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:py-14 xl:min-h-[720px]">
             <div className="mx-auto flex max-w-2xl flex-col items-center text-center lg:mx-0 lg:items-start lg:text-left">
               <p className="mb-5 text-xs font-semibold uppercase text-primary sm:text-sm">Персональный контроль здоровья</p>
               <h1 className="font-display text-[2.6rem] leading-[1.04] text-foreground sm:text-6xl lg:text-[4.4rem] xl:text-[5rem]">
