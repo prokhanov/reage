@@ -1,0 +1,169 @@
+import { useEffect } from "react";
+import { useTheme } from "next-themes";
+import { Activity, ArrowDown, FlaskConical, HeartPulse, ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
+import heroPeople from "@/assets/landing-v2/hero-couple-v9.webp?url";
+import { PageMeta } from "@/components/PageMeta";
+import { SmartPicture } from "@/components/landing/SmartPicture";
+import { EnergyCart } from "@/components/landing/energy/EnergyCart";
+import {
+  EnergyOrderProvider,
+  useEnergyOrder,
+} from "@/components/landing/energy/EnergyOrderContext";
+import { Button } from "@/components/ui/button";
+import { ThemedLogo } from "@/components/ThemedLogo";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
+
+function HeroVisual() {
+  return (
+    <div className="relative mx-auto h-[390px] w-full max-w-[520px] sm:h-[500px] lg:h-[590px] lg:max-w-[610px]">
+      <div className="absolute inset-x-[8%] bottom-0 top-[4%] rounded-[2rem] border border-border/60 bg-muted/45" />
+      <SmartPicture
+        avif={heroPeopleAvif}
+        src={heroPeople}
+        alt="Пара изучает персональный отчёт ReAge"
+        width={1600}
+        height={1600}
+        fetchpriority="high"
+        decoding="async"
+        className="pointer-events-none absolute inset-x-[7%] bottom-0 h-[96%] w-[86%] object-contain object-bottom"
+        style={{
+          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 84%, transparent 100%)",
+          maskImage: "linear-gradient(to bottom, black 0%, black 84%, transparent 100%)",
+        }}
+      />
+
+      <div className="absolute left-0 top-[32%] w-[148px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:left-[2%] sm:w-[180px] sm:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">Биовозраст</span>
+          <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
+        </div>
+        <div className="mt-2 flex items-end gap-1.5">
+          <span className="font-display text-3xl leading-none text-foreground sm:text-4xl">34,2</span>
+          <span className="pb-0.5 text-[10px] text-muted-foreground sm:text-xs">года</span>
+        </div>
+      </div>
+
+      <div className="absolute right-0 top-[20%] w-[154px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:right-[1%] sm:w-[190px] sm:p-4">
+        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
+          <FlaskConical className="h-3.5 w-3.5 text-primary" />
+          Биомаркеры
+        </div>
+        <div className="space-y-2 text-[11px] sm:text-xs">
+          <div className="flex items-center justify-between"><span>Витамин D</span><strong>62</strong></div>
+          <div className="flex items-center justify-between"><span>Ферритин</span><strong>38</strong></div>
+          <div className="flex items-center justify-between"><span>HbA1c</span><strong className="text-warning">5,8%</strong></div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-[12%] left-[2%] w-[162px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:left-[5%] sm:w-[200px] sm:p-4">
+        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
+          <HeartPulse className="h-3.5 w-3.5 text-success" />
+          Системы организма
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Сердце</span><strong>92%</strong></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[92%] rounded-full bg-success" /></div>
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Метаболизм</span><strong>78%</strong></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-[5%] right-0 w-[150px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:right-[2%] sm:w-[184px] sm:p-4">
+        <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
+          <Activity className="h-3.5 w-3.5 text-primary" />
+          Индекс здоровья
+        </div>
+        <div className="font-display text-3xl leading-none text-foreground sm:text-4xl">84%</div>
+        <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs">Хороший результат</p>
+      </div>
+    </div>
+  );
+}
+
+function MainNewContent() {
+  const { count, openCart } = useEnergyOrder();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
+
+  const scrollToCheckups = () => {
+    document.getElementById("checkups")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+      <PageMeta
+        title="ReAge — анализы, которые наконец понятны"
+        description="ReAge переводит результаты анализов на понятный язык и помогает увидеть полную картину здоровья."
+        canonical="/main_new"
+      />
+
+      <header className="relative z-30 border-b border-border/70 bg-background/90 backdrop-blur-lg">
+        <div className="mx-auto flex h-16 w-full max-w-[80rem] items-center justify-between gap-4 px-4 sm:h-20 sm:px-6 lg:px-8">
+          <Link to="/main_new" aria-label="ReAge" className="flex shrink-0 items-center">
+            <ThemedLogo eager className="h-11 w-auto sm:h-12" />
+          </Link>
+
+          <nav className="hidden items-center gap-7 lg:flex" aria-label="Навигация по странице">
+            <a href="#checkups" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Чекапы</a>
+            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Как это работает</a>
+          </nav>
+
+          <div className="flex items-center gap-1 sm:gap-3">
+            <a href="tel:+79959984638" className="whitespace-nowrap text-[11px] font-medium text-foreground transition-colors hover:text-primary sm:text-sm">
+              +7 (995) 998-46-38
+            </a>
+            <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-11 w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{count}</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section className="relative border-b border-border/60">
+          <div className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[80rem] items-center gap-5 px-4 pb-8 pt-10 sm:min-h-[calc(100svh-5rem)] sm:px-6 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:py-14">
+            <div className="mx-auto flex max-w-2xl flex-col items-center text-center lg:mx-0 lg:items-start lg:text-left">
+              <p className="mb-5 text-xs font-semibold uppercase text-primary sm:text-sm">Персональный контроль здоровья</p>
+              <h1 className="font-display text-[2.6rem] leading-[1.04] text-foreground sm:text-6xl lg:text-[4.4rem] xl:text-[5rem]">
+                Анализы, которые наконец понятны
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-xl lg:text-2xl">
+                ReAge переводит результаты крови на человеческий язык — от одного показателя до полной картины организма, с разбором врача.
+              </p>
+              <Button id="main-new-hero-cta" size="lg" onClick={scrollToCheckups} className="mt-8 h-14 w-full gap-2 px-7 text-base sm:w-auto">
+                Выбрать чекап
+                <ArrowDown className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-end justify-center lg:self-stretch">
+              <HeroVisual />
+            </div>
+          </div>
+        </section>
+
+        <div id="checkups" className="scroll-mt-20" aria-hidden />
+        <div id="how-it-works" className="scroll-mt-20" aria-hidden />
+      </main>
+
+      <EnergyCart />
+    </div>
+  );
+}
+
+export default function MainNew() {
+  return (
+    <EnergyOrderProvider checkup={FULL_CHECKUP}>
+      <MainNewContent />
+    </EnergyOrderProvider>
+  );
+}
