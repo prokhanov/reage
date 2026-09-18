@@ -200,14 +200,20 @@ function MarkerCard({
   );
 }
 
-export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolean } = {}) {
+export function EnergyExpertResult({
+  demoReport = false,
+  id,
+}: {
+  demoReport?: boolean;
+  id?: string;
+} = {}) {
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
   const [exampleOpen, setExampleOpen] = useState(false);
 
   return (
-    <section className="border-b hairline max-lg:overflow-x-clip">
+    <section id={id} className="border-b hairline max-lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[72rem] items-start gap-6 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <div className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5 lg:sticky lg:top-20 lg:self-start">
           <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:block">
