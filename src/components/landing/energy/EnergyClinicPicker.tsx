@@ -191,10 +191,11 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
 
       <div
         className={`mt-5 grid gap-4 md:gap-5 ${
-          layout === "section" ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
+          layout === "section" && !readOnly ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
         }`}
       >
         {/* Левая панель (на мобильном — под картой) */}
+        {!readOnly && (
         <div
           className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
             layout === "section" ? "order-2 lg:order-1" : ""
