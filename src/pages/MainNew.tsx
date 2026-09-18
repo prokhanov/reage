@@ -166,6 +166,7 @@ function MainNewContent() {
         <EnergyExpertResult demoReport />
         <MainWhereToTest />
         <EnergyHowItWorks id="how-it-works" />
+        <MainQuestionCta />
       </main>
 
       <Footer />
