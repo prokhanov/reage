@@ -33,7 +33,7 @@ export function MainCheckupsSection() {
   const selected = SYMPTOMS.find((s) => s.id === active) ?? null;
   const all = CHECKUPS.filter((c) => isActive(c.slug));
   const simple = selected ? all.filter((c) => selected.slugs.includes(c.slug)) : all;
-  const showFull = !selected || selected.full === true || selected.slugs.length === 0;
+
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
