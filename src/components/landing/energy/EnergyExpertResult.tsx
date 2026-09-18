@@ -271,7 +271,7 @@ export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolea
             }}
           >
             <FileText className="h-4 w-4 shrink-0" aria-hidden />
-            Посмотреть пример расшифровки
+            {demoReport ? "Посмотреть пример отчёта" : "Посмотреть пример расшифровки"}
           </Button>
         </div>
 
