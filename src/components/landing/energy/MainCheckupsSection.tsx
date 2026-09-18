@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown, X } from "lucide-react";
+import { ArrowRight, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -100,9 +100,6 @@ export function MainCheckupsSection() {
     setActive((prev) => (prev === id ? null : id));
   }
 
-  function reset() {
-    setActive(null);
-  }
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
