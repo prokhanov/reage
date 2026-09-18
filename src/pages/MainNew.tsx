@@ -9,6 +9,7 @@ import { PageMeta } from "@/components/PageMeta";
 import { SmartPicture } from "@/components/landing/SmartPicture";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
+import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
 import {
@@ -162,7 +163,7 @@ function MainNewContent() {
         <MainCheckupsSection />
         <EnergyExpertResult demoReport />
         <MainWhereToTest />
-        <div id="how-it-works" className="scroll-mt-20" aria-hidden />
+        <EnergyHowItWorks id="how-it-works" />
       </main>
 
       <EnergyCart />
