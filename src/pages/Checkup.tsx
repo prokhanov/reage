@@ -58,7 +58,7 @@ export function CheckupContent() {
         description={checkup.seoDescription}
         canonical={checkup.href}
       />
-      <EnergyHeader cartCount={count} onOpenCart={openCart} />
+      <EnergyHeader cartCount={count} onOpenCart={openCart} logoHref={checkup.href} />
       <main className="pb-20 lg:pb-0">
         <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} inCart={inCart} />
         <EnergyIncluded checkup={checkup} />
