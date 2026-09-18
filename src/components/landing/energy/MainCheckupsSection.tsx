@@ -86,8 +86,47 @@ export function MainCheckupsSection() {
           </div>
         </div>
 
+        {/* Остальные чекапы */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {simple.map((c) => {
+            const a = accentClasses[c.accent];
+            return (
+              <Link
+                key={c.slug}
+                to={c.href}
+                className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
+              >
+                <span
+                  className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+                >
+                  {c.tag}
+                </span>
+
+                <div className="flex grow flex-col">
+                  <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
+                    {c.name}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 max-w-[30ch] text-base leading-relaxed text-muted-foreground">
+                    {c.cardText}
+                  </p>
+
+                  <div className="mt-6 flex items-center justify-between gap-4">
+                    <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
+                      {money(priceOf(c.slug, c.price))}
+                    </div>
+                    <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                      Подробнее
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
         {/* Полный чекап и годовой мониторинг — всегда на виду, 2 столбца */}
-        <div className="mb-8 grid grid-cols-1 gap-5 md:mb-10 md:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 md:grid-cols-2">
           <Link
             to={FULL_CHECKUP.href}
             className="group relative block overflow-hidden rounded-[2rem] bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
@@ -153,44 +192,6 @@ export function MainCheckupsSection() {
           </div>
         </div>
 
-        {/* Остальные чекапы */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {simple.map((c) => {
-            const a = accentClasses[c.accent];
-            return (
-              <Link
-                key={c.slug}
-                to={c.href}
-                className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
-              >
-                <span
-                  className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
-                >
-                  {c.tag}
-                </span>
-
-                <div className="flex grow flex-col">
-                  <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
-                    {c.name}
-                  </h3>
-                  <p className="mt-2 line-clamp-2 max-w-[30ch] text-base leading-relaxed text-muted-foreground">
-                    {c.cardText}
-                  </p>
-
-                  <div className="mt-6 flex items-center justify-between gap-4">
-                    <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
-                      {money(priceOf(c.slug, c.price))}
-                    </div>
-                    <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                      Подробнее
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
