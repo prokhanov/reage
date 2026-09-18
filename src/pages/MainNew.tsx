@@ -45,6 +45,8 @@ const navItems = [
   { label: "Вопросы", href: "#questions" },
 ];
 
+const YEARLY_MONITORING_LABEL = "Годовой мониторинг";
+
 function scrollToAnchor(href: string) {
   const id = href.replace("#", "");
   const el = document.getElementById(id);
@@ -178,7 +180,7 @@ function MainNewContent() {
             <ThemedLogo eager className="h-10 w-auto sm:h-12" />
           </Link>
 
-          <nav className="hidden items-center gap-6 xl:flex" aria-label="Навигация по странице">
+          <nav className="hidden items-center gap-4 lg:flex xl:gap-6" aria-label="Навигация по странице">
             {navItems.map((item) => {
               const isActive = activeHref === item.href;
               return (
@@ -208,13 +210,22 @@ function MainNewContent() {
               )}
             </Button>
 
+            <Button
+              asChild
+              type="button"
+              size="sm"
+              className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 lg:inline-flex"
+            >
+              <Link to="/monitoring">{YEARLY_MONITORING_LABEL}</Link>
+            </Button>
+
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 xl:hidden"
+                  className="h-10 w-10 lg:hidden"
                   aria-label="Открыть меню"
                 >
                   <Menu className="h-5 w-5" />
@@ -244,6 +255,13 @@ function MainNewContent() {
                       </button>
                     );
                   })}
+                  <Link
+                    to="/monitoring"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-2 rounded-lg bg-foreground px-3 py-3 text-center text-base font-semibold text-background transition-colors hover:bg-foreground/90"
+                  >
+                    {YEARLY_MONITORING_LABEL}
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
