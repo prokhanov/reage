@@ -48,9 +48,11 @@ interface Props {
   layout?: "section" | "stack";
   /** Дополнительный контент справа от переключателя городов. */
   header?: React.ReactNode;
+  /** Только просмотр: скрыть выбор отделения, карта без клика по точкам. */
+  readOnly?: boolean;
 }
 
-export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header }: Props) {
+export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, readOnly = false }: Props) {
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(confirmed?.id ?? null);
   const [city, setCity] = useState<CityKey>(() => (confirmed ? cityOf(confirmed) : detectCity()));
