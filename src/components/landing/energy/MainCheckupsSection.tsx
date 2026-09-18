@@ -47,7 +47,47 @@ export function MainCheckupsSection() {
           </p>
         </div>
 
+        {/* Фильтр по симптомам */}
+        <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-foreground sm:text-base">
+              не знаете, с чего начать?
+            </p>
+            {selected && (
+              <button
+                type="button"
+                onClick={() => setActive(null)}
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+                сбросить
+              </button>
+            )}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {SYMPTOMS.map((s) => {
+              const on = active === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setActive(on ? null : s.id)}
+                  className={`rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
+                    on
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Полный чекап — первый */}
+        {showFull && (
         <Link
           to={FULL_CHECKUP.href}
           className="group relative mb-8 block overflow-hidden rounded-[2rem] bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8 md:mb-10"
