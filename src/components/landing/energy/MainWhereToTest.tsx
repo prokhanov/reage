@@ -1,8 +1,8 @@
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 
-export function MainWhereToTest() {
+export function MainWhereToTest({ id }: { id?: string }) {
   return (
-    <section className="overflow-x-hidden border-b hairline">
+    <section id={id} className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
         <EnergyClinicPicker
           confirmed={null}
