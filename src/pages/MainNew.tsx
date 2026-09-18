@@ -157,7 +157,7 @@ function MainNewContent() {
           </div>
         </section>
 
-        <div id="checkups" className="scroll-mt-20" aria-hidden />
+        <MainCheckupsSection />
         <div id="how-it-works" className="scroll-mt-20" aria-hidden />
       </main>
 
