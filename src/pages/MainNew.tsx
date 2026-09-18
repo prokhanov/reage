@@ -45,6 +45,8 @@ const navItems = [
   { label: "Вопросы", href: "#questions" },
 ];
 
+const YEARLY_MONITORING_LABEL = "Годовой мониторинг";
+
 function scrollToAnchor(href: string) {
   const id = href.replace("#", "");
   const el = document.getElementById(id);
