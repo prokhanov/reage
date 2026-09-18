@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown, X } from "lucide-react";
+import { ArrowRight, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -100,9 +100,6 @@ export function MainCheckupsSection() {
     setActive((prev) => (prev === id ? null : id));
   }
 
-  function reset() {
-    setActive(null);
-  }
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
@@ -152,18 +149,7 @@ export function MainCheckupsSection() {
 
           {/* Пилюли */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={reset}
-              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
-                active === null
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-foreground hover:bg-muted/70"
-              }`}
-            >
-              Все
-              <X className="h-3.5 w-3.5" />
-            </button>
+
             {currentFilters.map((f) => {
               const on = active === f.id;
               return (
