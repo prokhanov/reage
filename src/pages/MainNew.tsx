@@ -10,6 +10,7 @@ import { SmartPicture } from "@/components/landing/SmartPicture";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
+import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
 import {
   EnergyOrderProvider,
   useEnergyOrder,
