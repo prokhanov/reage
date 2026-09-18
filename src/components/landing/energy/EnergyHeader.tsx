@@ -6,14 +6,15 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 interface Props {
   cartCount: number;
   onOpenCart: () => void;
+  logoHref?: string;
 }
 
 /** Максимально лёгкая шапка лендинга: логотип + корзина. Без навигации. */
-export function EnergyHeader({ cartCount, onOpenCart }: Props) {
+export function EnergyHeader({ cartCount, onOpenCart, logoHref = "/" }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b hairline bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-[72rem] items-center justify-between px-4 md:h-16 md:px-6">
-        <Link to="/" aria-label="ReAge — на главную" className="flex items-center">
+        <Link to={logoHref} aria-label="ReAge" className="flex items-center">
           <ThemedLogo className="h-[2.7rem] w-auto" eager />
         </Link>
 
