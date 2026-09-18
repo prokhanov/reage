@@ -28,6 +28,7 @@ const MainNew = lazy(() => import("./pages/MainNew"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
 const FullCheckup = lazy(() => import("./pages/FullCheckup"));
+const CheckupCatalog = lazy(() => import("./pages/CheckupCatalog"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const RegisterStaff = lazy(() => import("./pages/RegisterStaff"));
