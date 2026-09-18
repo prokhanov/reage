@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowRight, Crown, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -9,31 +9,100 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import { accentClasses } from "./checkupShapes";
 
 const YEARLY_PRICE = 69990;
+const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
 
-type Symptom = {
+type Tab = "feeling" | "system";
+
+type Filter = {
   id: string;
   label: string;
   slugs: string[];
-  full?: boolean;
 };
 
-const SYMPTOMS: Symptom[] = [
+const FEELINGS: Filter[] = [
   { id: "tired", label: "Часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
   { id: "hair", label: "Слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
   { id: "weight", label: "Проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
   { id: "heart", label: "Сердце и давление", slugs: ["cardio-risk", "base"] },
   { id: "liver", label: "Тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
-  { id: "all", label: "Хочу полную картину сразу", slugs: [], full: true },
 ];
+
+const SYSTEMS: Filter[] = [
+  { id: "thyroid", label: "Щитовидная железа", slugs: ["thyroid"] },
+  { id: "heart", label: "Сердце и сосуды", slugs: ["cardio-risk"] },
+  { id: "liver", label: "Печень", slugs: ["liver"] },
+  { id: "kidney", label: "Почки", slugs: ["kidney"] },
+  { id: "female", label: "Женское здоровье", slugs: ["female-hormones"] },
+  { id: "male", label: "Мужское здоровье", slugs: ["male-hormones"] },
+];
+
+function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
+  const { priceOf } = useCheckupSettings();
+  const a = accentClasses[c.accent];
+  return (
+    <Link
+      key={c.slug}
+      to={c.href}
+      className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
+    >
+      <span
+        className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+      >
+        {c.tag}
+      </span>
+
+      <div className="flex grow flex-col">
+        <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
+          {c.name}
+        </h3>
+        <p className="mt-2 line-clamp-2 max-w-[30ch] text-base leading-relaxed text-muted-foreground">
+          {c.cardText}
+        </p>
+
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
+            {money(priceOf(c.slug, c.price))}
+          </div>
+          <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+            Подробнее
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export function MainCheckupsSection() {
   const { priceOf, isActive } = useCheckupSettings();
+  const [tab, setTab] = useState<Tab>("feeling");
   const [active, setActive] = useState<string | null>(null);
 
-  const selected = SYMPTOMS.find((s) => s.id === active) ?? null;
-  const all = CHECKUPS.filter((c) => isActive(c.slug));
-  const simple = selected ? all.filter((c) => selected.slugs.includes(c.slug)) : all;
+  const all = useMemo(() => CHECKUPS.filter((c) => isActive(c.slug)), [isActive]);
 
+  const currentFilters = tab === "feeling" ? FEELINGS : SYSTEMS;
+  const selected = currentFilters.find((f) => f.id === active) ?? null;
+
+  const visible = useMemo(() => {
+    if (selected) {
+      return all.filter((c) => selected.slugs.includes(c.slug));
+    }
+    // Если ничего не выбрано — показываем 3 популярных чекапа
+    const popular = POPULAR_SLUGS.map((slug) => all.find((c) => c.slug === slug)).filter(
+      Boolean
+    ) as (typeof CHECKUPS)[number][];
+    return popular.length ? popular : all.slice(0, 3);
+  }, [all, selected]);
+
+  const showPopularLabel = !selected;
+
+  function toggleFilter(id: string) {
+    setActive((prev) => (prev === id ? null : id));
+  }
+
+  function reset() {
+    setActive(null);
+  }
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
@@ -47,82 +116,86 @@ export function MainCheckupsSection() {
           </p>
         </div>
 
-        {/* Фильтр по симптомам */}
+        {/* Фильтр */}
         <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-foreground sm:text-base">
-              Не знаете, с чего начать?
-            </p>
-            {selected && (
-              <button
-                type="button"
-                onClick={() => setActive(null)}
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <X className="h-3.5 w-3.5" />
-                Сбросить
-              </button>
-            )}
+          {/* Табы */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setTab("feeling");
+                setActive(null);
+              }}
+              className={`rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
+                tab === "feeling"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground hover:bg-muted/70"
+              }`}
+            >
+              По ощущению
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTab("system");
+                setActive(null);
+              }}
+              className={`rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
+                tab === "system"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground hover:bg-muted/70"
+              }`}
+            >
+              По системе или органу
+            </button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {SYMPTOMS.map((s) => {
-              const on = active === s.id;
+
+          {/* Пилюли */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
+                active === null
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground hover:bg-muted/70"
+              }`}
+            >
+              Все
+              <X className="h-3.5 w-3.5" />
+            </button>
+            {currentFilters.map((f) => {
+              const on = active === f.id;
               return (
                 <button
-                  key={s.id}
+                  key={f.id}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => setActive(on ? null : s.id)}
+                  onClick={() => toggleFilter(f.id)}
                   className={`rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
                     on
                       ? "bg-foreground text-background"
                       : "bg-muted text-foreground hover:bg-muted/70"
                   }`}
                 >
-                  {s.label}
+                  {f.label}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Остальные чекапы */}
+        {showPopularLabel && (
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Популярные
+          </h3>
+        )}
+
+        {/* Чекапы */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {simple.map((c) => {
-            const a = accentClasses[c.accent];
-            return (
-              <Link
-                key={c.slug}
-                to={c.href}
-                className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
-              >
-                <span
-                  className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
-                >
-                  {c.tag}
-                </span>
-
-                <div className="flex grow flex-col">
-                  <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
-                    {c.name}
-                  </h3>
-                  <p className="mt-2 line-clamp-2 max-w-[30ch] text-base leading-relaxed text-muted-foreground">
-                    {c.cardText}
-                  </p>
-
-                  <div className="mt-6 flex items-center justify-between gap-4">
-                    <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
-                      {money(priceOf(c.slug, c.price))}
-                    </div>
-                    <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                      Подробнее
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+          {visible.map((c) => (
+            <CheckupCard key={c.slug} c={c} />
+          ))}
         </div>
 
         {/* Полный чекап и годовой мониторинг — всегда на виду, 2 столбца */}
