@@ -73,7 +73,7 @@ let inflight: Promise<CheckupSettingsData> | null = null;
 const listeners = new Set<(data: CheckupSettingsData) => void>();
 
 async function load(force = false): Promise<CheckupSettingsData> {
-  if (cache && !force) return cache;
+  if (cache && !cacheIsStale && !force) return cache;
   if (inflight && !force) return inflight;
 
   inflight = (async () => {
@@ -111,6 +111,8 @@ async function load(force = false): Promise<CheckupSettingsData> {
       : DEFAULT_DOCTOR;
 
     cache = { prices, doctor };
+    cacheIsStale = false;
+    writeStoredSettings(cache);
     listeners.forEach((fn) => fn(cache as CheckupSettingsData));
     return cache;
   })();
