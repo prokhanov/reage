@@ -147,7 +147,9 @@ export const FULL_CHECKUP: Checkup = {
   href: "/checkup/full",
   name: "Полный чекап ReAge",
   tag: "Полная картина здоровья",
-  price: 25000,
+  // Держим в синхроне с ценой в админке (checkup_settings), иначе на первой
+  // загрузке пользователь на секунду видит другую цену.
+  price: 23990,
   accent: "primary",
   shape: "ring",
   heroImage: heroFull,
