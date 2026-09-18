@@ -199,7 +199,7 @@ function MarkerCard({
   );
 }
 
-export function EnergyExpertResult() {
+export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolean } = {}) {
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
