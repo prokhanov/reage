@@ -207,6 +207,73 @@ const flowCss = `
   outline: 2px solid #b58a44;
   background: rgba(181, 138, 68, 0.06);
 }
+
+@media (max-width: 767px) {
+  .rl-flow-shell {
+    background: #ffffff;
+  }
+  .rl-flow-shell .rl-flow-output {
+    padding: 0;
+  }
+  .rl-flow-shell .reportlab {
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+  .rl-flow-shell .reportlab .rl-page {
+    width: 100% !important;
+    padding: 40px 28px !important;
+  }
+  .rl-flow-shell .reportlab .rl-page.rl-cover {
+    min-height: 100dvh !important;
+    height: auto !important;
+    aspect-ratio: auto;
+    padding: 0 !important;
+  }
+  .rl-flow-shell .reportlab .rl-cover-top {
+    padding: 56px 28px 0;
+    gap: 24px;
+  }
+  .rl-flow-shell .reportlab img[data-cover-el="logo"] {
+    width: clamp(120px, 42vw, 168px) !important;
+  }
+  .rl-flow-shell .reportlab .rl-cover-center {
+    padding: 0 28px;
+  }
+  .rl-flow-shell .reportlab .rl-cover-eyebrow {
+    margin-bottom: 28px;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+  .rl-flow-shell .reportlab .rl-cover-title {
+    margin-bottom: 18px;
+    font-size: clamp(48px, 15vw, 64px);
+    line-height: 1.02;
+  }
+  .rl-flow-shell .reportlab .rl-cover-title[data-cover-el="title-subtitle"] {
+    font-size: clamp(30px, 9vw, 42px);
+    line-height: 1.1;
+  }
+  .rl-flow-shell .reportlab .rl-cover-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    padding: 24px 28px 44px;
+  }
+  .rl-flow-shell .reportlab .rl-cover-meta-item .label {
+    min-height: 0;
+    font-size: 9px;
+  }
+  .rl-flow-shell .reportlab .rl-cover-meta-item .value {
+    font-size: 22px;
+    white-space: normal;
+  }
+  .rl-flow-shell .reportlab .rl-page.rl-patient-data {
+    min-height: 100dvh !important;
+    height: auto !important;
+    aspect-ratio: auto;
+    justify-content: center;
+  }
+}
 `;
 
 interface Props {

@@ -274,10 +274,6 @@ export function EnergyExpertResult({
             size="lg"
             onClick={() => {
               reachGoal(`${checkup.slug.replace(/-/g, "_")}_example_report_open`);
-              if (demoReport && window.matchMedia("(max-width: 767px)").matches) {
-                window.location.assign("/demo-report");
-                return;
-              }
               setExampleOpen(true);
             }}
           >
