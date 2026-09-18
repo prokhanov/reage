@@ -161,6 +161,7 @@ function MainNewContent() {
 
         <MainCheckupsSection />
         <EnergyExpertResult demoReport />
+        <MainWhereToTest />
         <div id="how-it-works" className="scroll-mt-20" aria-hidden />
       </main>
 
