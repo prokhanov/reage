@@ -175,10 +175,10 @@ export function BiomarkersDeepDiveSection() {
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[150px]" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-10 md:mb-12">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-6 leading-tight animate-fade-in">
             <span className="text-foreground">Что мы </span>
             <span className="text-foreground">измеряем</span>
           </h2>

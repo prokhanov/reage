@@ -12,7 +12,7 @@ export function CTASection() {
 
 
   return (
-    <section className="relative py-12 md:py-16 overflow-hidden">
+    <section className="relative py-14 md:py-16 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
       
@@ -22,7 +22,7 @@ export function CTASection() {
         <div className="absolute inset-20 bg-accent/10 rounded-full blur-[120px] animate-float-delayed" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           {/* Main CTA Card */}
           <div className="relative rounded-3xl overflow-hidden animate-fade-in">
@@ -31,7 +31,7 @@ export function CTASection() {
             
             <div className="relative m-[2px] rounded-3xl bg-card p-8 md:p-12 lg:p-16 my-px">
               <div className="text-center max-w-2xl mx-auto">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight text-foreground whitespace-pre-line">
+                <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-6 leading-tight text-foreground whitespace-pre-line">
                   Время покажет.{"\u00A0"}{"\n"}<span className="text-foreground">Мы покажем раньше.</span>{"\n"}
                 </h2>
                 
@@ -94,7 +94,7 @@ export function Footer() {
       <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/10" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-      <div className="relative z-10 container mx-auto px-6 max-w-7xl">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         {/* Top: brand + contacts */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
           <div className="md:col-span-7 lg:col-span-8 flex justify-center md:justify-start">

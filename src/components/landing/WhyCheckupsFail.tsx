@@ -31,9 +31,9 @@ export function WhyCheckupsFail() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-5 leading-tight animate-fade-in">
             <span className="text-foreground">Почему Reage эффективнее</span>
             <br />
             <span className="text-foreground">обычных чекапов</span>

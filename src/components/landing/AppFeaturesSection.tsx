@@ -475,13 +475,13 @@ export function AppFeaturesSection() {
   const Widgets = widgetMap[active];
 
   return (
-    <section className="relative py-8 md:py-12 overflow-hidden bg-muted/30">
+    <section className="relative py-14 md:py-16 overflow-hidden bg-muted/30">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
 
-      <div className="container mx-auto px-4">
+      <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="text-center mb-10 md:mb-14 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-6 leading-tight">
             <span className="text-foreground">Полный контроль в вашем</span>
             <br />
             <span className="text-foreground">

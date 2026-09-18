@@ -118,11 +118,11 @@ export function FAQSection() {
       <div className="absolute top-1/2 -left-48 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute top-1/2 -right-48 w-96 h-96 bg-accent/5 rounded-full blur-[150px]" />
 
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Ответы на </span>
             <span className="text-foreground">
               ваши вопросы
