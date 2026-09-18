@@ -13,6 +13,7 @@ import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResu
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
+import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
 import {
   EnergyOrderProvider,
   useEnergyOrder,
