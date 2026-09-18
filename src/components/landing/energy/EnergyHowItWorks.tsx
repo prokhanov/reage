@@ -7,6 +7,7 @@ interface Props {
   /** Цена текущего чекапа для CTA. */
   price?: number;
   cbcBonusEnabled?: boolean;
+  id?: string;
 }
 
 const steps = [
