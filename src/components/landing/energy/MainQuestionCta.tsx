@@ -3,12 +3,12 @@ import { MessageSquare, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
-export function MainQuestionCta() {
+export function MainQuestionCta({ id }: { id?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <section className="relative overflow-hidden border-t border-border/40 bg-background py-14 md:py-20">
+      <section id={id} className="relative overflow-hidden border-t border-border/40 bg-background py-14 md:py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent" />
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">

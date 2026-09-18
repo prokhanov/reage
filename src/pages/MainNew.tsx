@@ -1,6 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Activity, ArrowDown, FlaskConical, HeartPulse, ShoppingCart } from "lucide-react";
+import {
+  Activity,
+  ArrowDown,
+  FlaskConical,
+  HeartPulse,
+  Menu,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
@@ -19,8 +27,31 @@ import {
   useEnergyOrder,
 } from "@/components/landing/energy/EnergyOrderContext";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
+
+const navItems = [
+  { label: "Чекапы", href: "#checkups" },
+  { label: "Пример результата", href: "#result" },
+  { label: "Где сдать", href: "#labs" },
+  { label: "Как это работает", href: "#how-it-works" },
+  { label: "Вопросы", href: "#questions" },
+];
+
+function scrollToAnchor(href: string) {
+  const id = href.replace("#", "");
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 function HeroVisual() {
   return (
@@ -95,13 +126,42 @@ function HeroVisual() {
 function MainNewContent() {
   const { count, openCart } = useEnergyOrder();
   const { setTheme } = useTheme();
+  const [activeHref, setActiveHref] = useState<string>("");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setTheme("light");
   }, [setTheme]);
 
+  useEffect(() => {
+    const ids = navItems.map((i) => i.href.replace("#", ""));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) {
+          setActiveHref(`#${visible.target.id}`);
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+    );
+
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const scrollToCheckups = () => {
     document.getElementById("checkups")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleNavClick = (href: string) => {
+    setMobileOpen(false);
+    setTimeout(() => scrollToAnchor(href), 150);
   };
 
   return (
@@ -112,27 +172,81 @@ function MainNewContent() {
         canonical="/main_new"
       />
 
-      <header className="relative z-30 border-b border-border/70 bg-background/90 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 w-full max-w-[80rem] items-center justify-between gap-4 px-4 sm:h-20 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-lg">
+        <div className="mx-auto flex h-16 w-full max-w-[80rem] items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-8">
           <Link to="/main_new" aria-label="ReAge" className="flex shrink-0 items-center">
-            <ThemedLogo eager className="h-11 w-auto sm:h-12" />
+            <ThemedLogo eager className="h-10 w-auto sm:h-12" />
           </Link>
 
-          <nav className="hidden items-center gap-7 lg:flex" aria-label="Навигация по странице">
-            <a href="#checkups" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Чекапы</a>
-            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Как это работает</a>
+          <nav className="hidden items-center gap-6 xl:flex" aria-label="Навигация по странице">
+            {navItems.map((item) => {
+              const isActive = activeHref === item.href;
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => handleNavClick(item.href)}
+                  className={`text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-3">
             <a href="tel:+79959984638" className="whitespace-nowrap text-[11px] font-medium text-foreground transition-colors hover:text-primary sm:text-sm">
               +7 (995) 998-46-38
             </a>
-            <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-11 w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
+            <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-10 w-10 sm:h-11 sm:w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
               <ShoppingCart className="h-5 w-5" />
               {count > 0 && (
                 <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{count}</span>
               )}
             </Button>
+
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 xl:hidden"
+                  aria-label="Открыть меню"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[min(20rem,85vw)]">
+                <SheetHeader className="text-left">
+                  <SheetTitle className="flex items-center gap-2 text-base font-semibold">
+                    <ThemedLogo className="h-8 w-auto" />
+                    Меню
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="mt-8 flex flex-col gap-2" aria-label="Мобильная навигация">
+                  {navItems.map((item) => {
+                    const isActive = activeHref === item.href;
+                    return (
+                      <button
+                        key={item.href}
+                        onClick={() => handleNavClick(item.href)}
+                        className={`rounded-lg px-3 py-3 text-left text-base transition-colors ${
+                          isActive
+                            ? "bg-muted font-semibold text-foreground"
+                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -163,10 +277,10 @@ function MainNewContent() {
         </section>
 
         <MainCheckupsSection />
-        <EnergyExpertResult demoReport />
-        <MainWhereToTest />
+        <EnergyExpertResult demoReport id="result" />
+        <MainWhereToTest id="labs" />
         <EnergyHowItWorks id="how-it-works" />
-        <MainQuestionCta />
+        <MainQuestionCta id="questions" />
       </main>
 
       <Footer />
