@@ -297,12 +297,16 @@ export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolea
         </div>
       </div>
 
-      <CheckupExampleReport
-        checkup={checkup}
-        open={exampleOpen}
-        onOpenChange={setExampleOpen}
-        onAddToCart={addToCart}
-      />
+      {demoReport ? (
+        <DemoReportDialog open={exampleOpen} onOpenChange={setExampleOpen} />
+      ) : (
+        <CheckupExampleReport
+          checkup={checkup}
+          open={exampleOpen}
+          onOpenChange={setExampleOpen}
+          onAddToCart={addToCart}
+        />
+      )}
     </section>
   );
 }
