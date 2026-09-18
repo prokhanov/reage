@@ -22,7 +22,7 @@ const prefixes = [...conf.matchAll(/location\s*\^~\s*(\/\S*)\s*\{/g)].map(
 
 const missing = routes.filter((route) => {
   const base = route.split("/:")[0] || "/";
-  if (exact.has(route) || exact.has(base)) return true ? false : false;
+  if (exact.has(route) || exact.has(base)) return false;
   return !prefixes.some((p) => route.startsWith(p) || `${base}/`.startsWith(p));
 });
 
