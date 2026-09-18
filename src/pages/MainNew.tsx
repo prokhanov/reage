@@ -8,6 +8,7 @@ import heroPeople from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { PageMeta } from "@/components/PageMeta";
 import { SmartPicture } from "@/components/landing/SmartPicture";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
+import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import {
   EnergyOrderProvider,
@@ -158,6 +159,7 @@ function MainNewContent() {
         </section>
 
         <MainCheckupsSection />
+        <EnergyExpertResult demoReport />
         <div id="how-it-works" className="scroll-mt-20" aria-hidden />
       </main>
 
