@@ -48,9 +48,11 @@ interface Props {
   layout?: "section" | "stack";
   /** Дополнительный контент справа от переключателя городов. */
   header?: React.ReactNode;
+  /** Только просмотр: скрыть выбор отделения, карта без клика по точкам. */
+  readOnly?: boolean;
 }
 
-export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header }: Props) {
+export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, readOnly = false }: Props) {
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(confirmed?.id ?? null);
   const [city, setCity] = useState<CityKey>(() => (confirmed ? cityOf(confirmed) : detectCity()));
@@ -189,10 +191,11 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
 
       <div
         className={`mt-5 grid gap-4 md:gap-5 ${
-          layout === "section" ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
+          layout === "section" && !readOnly ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
         }`}
       >
         {/* Левая панель (на мобильном — под картой) */}
+        {!readOnly && (
         <div
           className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-5 ${
             layout === "section" ? "order-2 lg:order-1" : ""
@@ -320,6 +323,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
             </div>
           )}
         </div>
+        )}
 
         {/* Карта */}
         <div
@@ -362,13 +366,13 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 mapRef.current = map ?? null;
               }}
               clusterMarkers
-              showSelectButton
+              showSelectButton={!readOnly}
               showPartnerButton={false}
-              selectOnMarkerClick
-              selectedId={selectedId ?? undefined}
-              focusOnSelected
+              selectOnMarkerClick={!readOnly}
+              selectedId={readOnly ? undefined : (selectedId ?? undefined)}
+              focusOnSelected={!readOnly}
               focusZoom={15}
-              onSelect={(item) => setSelectedId(item.id)}
+              onSelect={readOnly ? undefined : (item) => setSelectedId(item.id)}
             />
           </Suspense>
         </div>
