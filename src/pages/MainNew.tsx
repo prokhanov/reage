@@ -169,12 +169,12 @@ function MainNewContent() {
       <PageMeta
         title="ReAge — анализы, которые наконец понятны"
         description="ReAge переводит результаты анализов на понятный язык и помогает увидеть полную картину здоровья."
-        canonical="/main_new"
+        canonical="/"
       />
 
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-lg">
         <div className="mx-auto flex h-16 w-full max-w-[80rem] items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-8">
-          <Link to="/main_new" aria-label="ReAge" className="flex shrink-0 items-center">
+          <Link to="/" aria-label="ReAge" className="flex shrink-0 items-center">
             <ThemedLogo eager className="h-10 w-auto sm:h-12" />
           </Link>
 

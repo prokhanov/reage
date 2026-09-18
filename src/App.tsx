@@ -20,11 +20,11 @@ import { YandexMetrika } from "@/components/YandexMetrika";
 import { JivoVisibility } from "./components/JivoVisibility";
 
 // Statically imported — landing critical path
-import Index from "./pages/Index";
+import MainNew from "./pages/MainNew";
 import NotFound from "./pages/NotFound";
 
 // Auth / public utilities
-const MainNew = lazy(() => import("./pages/MainNew"));
+const Index = lazy(() => import("./pages/Index"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
 const FullCheckup = lazy(() => import("./pages/FullCheckup"));
@@ -130,8 +130,9 @@ const App = () => (
           <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/main_new" element={<MainNew />} />
+            <Route path="/" element={<MainNew />} />
+            <Route path="/main_new" element={<Navigate to="/" replace />} />
+            <Route path="/monitoring" element={<Index />} />
             <Route path="/energy" element={<Navigate to="/checkup/energy" replace />} />
             <Route path="/energy/success" element={<EnergyPaymentResult mode="success" />} />
             <Route path="/energy/fail" element={<EnergyPaymentResult mode="fail" />} />

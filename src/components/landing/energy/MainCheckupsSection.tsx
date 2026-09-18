@@ -104,13 +104,22 @@ export function MainCheckupsSection() {
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 sm:py-16 lg:py-20">
-        <div className="mb-8 md:mb-10">
-          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
-            Выберите чекап
-          </h2>
-          <p className="mt-2 max-w-xl text-base text-muted-foreground md:text-lg">
-            от точечной проверки одной боли до полной картины организма
-          </p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4 md:mb-10">
+          <div>
+            <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
+              Выберите чекап
+            </h2>
+            <p className="mt-2 max-w-xl text-base text-muted-foreground md:text-lg">
+              от точечной проверки одной боли до полной картины организма
+            </p>
+          </div>
+          <Link
+            to="/checkup"
+            className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
+          >
+            Посмотреть все
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </Link>
         </div>
 
         {/* Фильтр */}
@@ -218,7 +227,10 @@ export function MainCheckupsSection() {
             />
           </Link>
 
-          <div className="group relative block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8">
+          <Link
+            to="/monitoring"
+            className="group relative block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
+          >
             <div className="flex h-full flex-col">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
                 <Crown className="h-3.5 w-3.5" />

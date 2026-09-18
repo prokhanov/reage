@@ -12,6 +12,8 @@ interface SitemapEntry {
 
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
+  { path: "/monitoring", changefreq: "weekly", priority: "0.9" },
+  { path: "/checkup", changefreq: "weekly", priority: "0.9" },
   { path: "/example-report", changefreq: "weekly", priority: "0.8" },
   { path: "/prep", changefreq: "monthly", priority: "0.7" },
   { path: "/business", changefreq: "monthly", priority: "0.8" },
