@@ -105,7 +105,7 @@ export function MainCheckupsSection() {
         <div className="group relative mt-8 block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8 md:mt-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
                 <Crown className="h-3.5 w-3.5" />
                 Премиум
               </span>
