@@ -7,6 +7,7 @@ import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&
 import heroPeople from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { PageMeta } from "@/components/PageMeta";
 import { SmartPicture } from "@/components/landing/SmartPicture";
+import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
