@@ -366,13 +366,13 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 mapRef.current = map ?? null;
               }}
               clusterMarkers
-              showSelectButton
+              showSelectButton={!readOnly}
               showPartnerButton={false}
-              selectOnMarkerClick
-              selectedId={selectedId ?? undefined}
-              focusOnSelected
+              selectOnMarkerClick={!readOnly}
+              selectedId={readOnly ? undefined : (selectedId ?? undefined)}
+              focusOnSelected={!readOnly}
               focusZoom={15}
-              onSelect={(item) => setSelectedId(item.id)}
+              onSelect={readOnly ? undefined : (item) => setSelectedId(item.id)}
             />
           </Suspense>
         </div>
