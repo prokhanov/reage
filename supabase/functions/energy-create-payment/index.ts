@@ -30,7 +30,7 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
   "female-hormones": { title: "ReAge Женские гормоны — чекап", price: 3990 },
   "male-hormones": { title: "ReAge Мужские гормоны — чекап", price: 4490 },
   hair: { title: "ReAge Волосы — чекап при выпадении волос", price: 5990 },
-  full: { title: "Полный чекап ReAge — 85 показателей", price: 25000 },
+  full: { title: "Полный чекап ReAge — 83 показателя", price: 23990 },
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
