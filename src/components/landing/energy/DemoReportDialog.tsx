@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo } from "react";
+import { Suspense, lazy, useEffect, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -19,6 +19,12 @@ export function DemoReportDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const report = useMemo(() => (open ? buildLabReportFromExample() : null), [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.classList.add("hide-jivo");
+    return () => document.body.classList.remove("hide-jivo");
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
