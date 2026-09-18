@@ -68,7 +68,7 @@ export function FullCheckupHero({ checkup, onAddToCart }: Props) {
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
             <p className="text-sm text-muted-foreground sm:text-base">
-              {FULL_CHECKUP_MARKERS_COUNT} показателей · LabQuest · консультация врача включена
+              {FULL_CHECKUP_MARKERS_COUNT} показателей · Без записи
             </p>
 
             <div className="flex flex-wrap items-baseline gap-3">
