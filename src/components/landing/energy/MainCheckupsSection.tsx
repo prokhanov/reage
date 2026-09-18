@@ -124,8 +124,8 @@ export function MainCheckupsSection() {
 
         {/* Фильтр */}
         <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
-          {/* Табы — сегментированный переключатель уровня */}
-          <div className="inline-flex rounded-full bg-muted p-1">
+          {/* Табы — отдельные кнопки-переключатели */}
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => {
@@ -134,8 +134,8 @@ export function MainCheckupsSection() {
               }}
               className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                 tab === "feeling"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-foreground bg-foreground text-background"
+                  : "border border-border bg-card text-foreground hover:border-foreground/50"
               }`}
             >
               По ощущению
@@ -148,8 +148,8 @@ export function MainCheckupsSection() {
               }}
               className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                 tab === "system"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-foreground bg-foreground text-background"
+                  : "border border-border bg-card text-foreground hover:border-foreground/50"
               }`}
             >
               По системе или органу
