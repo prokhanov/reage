@@ -278,7 +278,7 @@ export function EnergyExpertResult({ demoReport = false }: { demoReport?: boolea
 
 
         <div className="min-w-0">
-          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Пример результата</h2>
+          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Получите&nbsp;полный и понятный отчет о здоровье</h2>
 
 
           <div className="mt-5 space-y-3">
