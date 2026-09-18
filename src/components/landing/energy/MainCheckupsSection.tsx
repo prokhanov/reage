@@ -59,11 +59,11 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
           {c.cardText}
         </p>
 
-        <div className="mt-6 flex items-center justify-between gap-4">
-          <div className="font-mono-tech text-[1.75rem] leading-none text-foreground">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
+          <div className="whitespace-nowrap font-mono-tech text-[1.5rem] leading-none text-foreground sm:text-[1.75rem]">
             {money(priceOf(c.slug, c.price))}
           </div>
-          <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+          <span className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
             Подробнее
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
