@@ -167,6 +167,7 @@ function MainNewContent() {
         <EnergyHowItWorks id="how-it-works" />
       </main>
 
+      <Footer />
       <EnergyCart />
     </div>
   );
