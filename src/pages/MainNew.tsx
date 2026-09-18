@@ -126,7 +126,7 @@ function HeroVisual() {
 function MainNewContent() {
   const { count, openCart } = useEnergyOrder();
   const { setTheme } = useTheme();
-  const [activeHref, setActiveHref] = useState<string>("#checkups");
+  const [activeHref, setActiveHref] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
