@@ -56,6 +56,7 @@ function FullCheckupContent() {
       <main className="pb-20 lg:pb-0">
         <FullCheckupHero checkup={checkup} onAddToCart={handleAddToCart} />
         <FullCheckupIncluded />
+        <EnergyWhereToTest />
       </main>
       <div id="energy-page-end" />
       <Footer />
