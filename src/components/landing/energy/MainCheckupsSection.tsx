@@ -129,16 +129,16 @@ export function MainCheckupsSection() {
         <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 md:grid-cols-2">
           <Link
             to={FULL_CHECKUP.href}
-            className="group relative block overflow-hidden rounded-[2rem] bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
+            className="group relative block overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
           >
             <div className="flex h-full flex-col">
-              <span className="inline-flex w-fit items-center rounded-full bg-background/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/90">
+              <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
                 {FULL_CHECKUP.tag}
               </span>
               <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
                 {FULL_CHECKUP.name}
               </h3>
-              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-background/75">
+              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-primary-foreground/75">
                 {FULL_CHECKUP_MARKERS_COUNT} показателя, понятный отчёт и консультация врача
               </p>
 
@@ -146,7 +146,7 @@ export function MainCheckupsSection() {
                 <div className="font-mono-tech text-[2rem] leading-none sm:text-4xl">
                   {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
                 </div>
-                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">
                   Подробнее
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </span>
@@ -154,7 +154,7 @@ export function MainCheckupsSection() {
             </div>
 
             <div
-              className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary/20 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
+              className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary-foreground/10 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
               aria-hidden
             />
           </Link>
