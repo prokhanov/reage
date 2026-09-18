@@ -280,7 +280,7 @@ function MainNewContent() {
                 Анализы, которые наконец понятны
               </h1>
               <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
-                ReAge переводит результаты крови на человеческий язык — от одного показателя до полной картины организма, с разбором врача.
+                ReAge переводит результаты анализов на человеческий язык, давая полную картину и конкретные рекомендации.
               </p>
               <Button id="main-new-hero-cta" size="lg" onClick={scrollToCheckups} className="mt-6 h-[52px] w-full gap-2 text-base sm:mt-8 sm:h-12 sm:w-auto">
                 Выбрать чекап
