@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 const LandingV2 = lazy(() => import("./pages/LandingV2"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
+const FullCheckup = lazy(() => import("./pages/FullCheckup"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const RegisterStaff = lazy(() => import("./pages/RegisterStaff"));
