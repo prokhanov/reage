@@ -136,6 +136,7 @@ const App = () => (
             <Route path="/energy/fail" element={<EnergyPaymentResult mode="fail" />} />
             <Route path="/checkup/cardio-risk-40" element={<Navigate to="/checkup/cardio-risk" replace />} />
             <Route path="/checkup/base-40" element={<Navigate to="/checkup/base" replace />} />
+            <Route path="/checkup/full" element={<FullCheckup />} />
             <Route path="/checkup/:slug" element={<Checkup />} />
             {/* Публичный пример отчёта — рендерится как Dialog поверх лендинга. */}
             <Route
