@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { reachGoal } from "@/lib/yandexMetrika";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
+import { DemoReportDialog } from "@/components/landing/energy/DemoReportDialog";
 import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
