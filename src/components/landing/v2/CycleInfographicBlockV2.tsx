@@ -48,10 +48,10 @@ export function CycleInfographicBlockV2() {
         style={{ width: 520, height: 520 }}
       />
 
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         {/* Заголовок */}
         <header className="text-center max-w-3xl mx-auto mb-2 md:mb-3">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in">
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl leading-tight animate-fade-in">
             <span className="text-foreground">Как это </span>
             <span className="text-foreground">работает</span>
           </h2>

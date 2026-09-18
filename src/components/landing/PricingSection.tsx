@@ -504,10 +504,10 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
 
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Варианты сопровождения</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
