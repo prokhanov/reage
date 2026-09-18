@@ -6,10 +6,12 @@ import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHeader } from "@/components/landing/energy/EnergyHeader";
+import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import {
   EnergyOrderProvider,
   useEnergyOrder,
 } from "@/components/landing/energy/EnergyOrderContext";
+import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherCheckups";
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { FullCheckupHero } from "@/components/landing/energy/FullCheckupHero";
@@ -59,6 +61,12 @@ function FullCheckupContent() {
         <FullCheckupIncluded />
         <EnergyWhereToTest />
         <EnergyExpertResult demoReport />
+        <EnergyHowItWorks
+          onAddToCart={handleAddToCart}
+          price={checkup.price}
+          cbcBonusEnabled={checkup.cbcBonusEnabled}
+        />
+        <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />
       <Footer />
