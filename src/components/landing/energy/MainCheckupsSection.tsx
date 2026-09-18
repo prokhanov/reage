@@ -33,7 +33,7 @@ export function MainCheckupsSection() {
   const selected = SYMPTOMS.find((s) => s.id === active) ?? null;
   const all = CHECKUPS.filter((c) => isActive(c.slug));
   const simple = selected ? all.filter((c) => selected.slugs.includes(c.slug)) : all;
-  const showFull = !selected || selected.full === true || selected.slugs.length === 0;
+
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
@@ -86,42 +86,72 @@ export function MainCheckupsSection() {
           </div>
         </div>
 
-        {/* Полный чекап — первый */}
-        {showFull && (
-        <Link
-          to={FULL_CHECKUP.href}
-          className="group relative mb-8 block overflow-hidden rounded-[2rem] bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8 md:mb-10"
-        >
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
+        {/* Полный чекап и годовой мониторинг — всегда на виду, 2 столбца */}
+        <div className="mb-8 grid grid-cols-1 gap-5 md:mb-10 md:grid-cols-2">
+          <Link
+            to={FULL_CHECKUP.href}
+            className="group relative block overflow-hidden rounded-[2rem] bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
+          >
+            <div className="flex h-full flex-col">
               <span className="inline-flex w-fit items-center rounded-full bg-background/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/90">
                 {FULL_CHECKUP.tag}
               </span>
-              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-4xl">
+              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
                 {FULL_CHECKUP.name}
               </h3>
-              <p className="mt-2 max-w-xl text-base leading-relaxed text-background/75 md:text-lg">
-                {FULL_CHECKUP_MARKERS_COUNT} показателей, понятный отчёт и консультация врача
+              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-background/75">
+                {FULL_CHECKUP_MARKERS_COUNT} показателя, понятный отчёт и консультация врача
               </p>
-            </div>
 
-            <div className="flex flex-col items-start gap-4 md:items-end md:text-right">
-              <div className="font-mono-tech text-[2rem] leading-none sm:text-4xl md:text-5xl">
-                {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
+              <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
+                <div className="font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                  {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
+                </div>
+                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                  Подробнее
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </span>
               </div>
-              <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                Подробнее
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </span>
             </div>
-          </div>
 
-          <div
-            className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary/20 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
-            aria-hidden
-          />
-        </Link>
-        )}
+            <div
+              className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary/20 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
+              aria-hidden
+            />
+          </Link>
+
+          <div className="group relative block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8">
+            <div className="flex h-full flex-col">
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
+                <Crown className="h-3.5 w-3.5" />
+                Премиум
+              </span>
+              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
+                Годовой мониторинг здоровья
+              </h3>
+              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-background/75">
+                Регулярные чекапы, динамика показателей и сопровождение врача весь год.
+              </p>
+
+              <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
+                <div className="flex items-baseline gap-2 font-mono-tech text-[2rem] leading-none sm:text-4xl">
+                  <span className="text-base font-medium text-background/60">от</span>
+                  {money(YEARLY_PRICE)}
+                  <span className="text-lg text-background/70">/год</span>
+                </div>
+                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-foreground">
+                  Узнать больше
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </div>
+
+            <div
+              className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
+              aria-hidden
+            />
+          </div>
+        </div>
 
         {/* Остальные чекапы */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -160,41 +190,6 @@ export function MainCheckupsSection() {
               </Link>
             );
           })}
-        </div>
-
-        {/* Годовой мониторинг — премиум-карточка */}
-        <div className="group relative mt-8 block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8 md:mt-10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
-                <Crown className="h-3.5 w-3.5" />
-                Премиум
-              </span>
-              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-4xl">
-                Годовой мониторинг здоровья
-              </h3>
-              <p className="mt-2 max-w-xl text-base leading-relaxed text-background/75 md:text-lg">
-                Регулярные чекапы, динамика показателей и сопровождение врача весь год.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-start gap-4 md:items-end md:text-right">
-              <div className="flex items-baseline gap-2 font-mono-tech text-[2rem] leading-none sm:text-4xl md:text-5xl">
-                <span className="text-base font-medium text-background/60">от</span>
-                {money(YEARLY_PRICE)}
-                <span className="text-lg text-background/70">/год</span>
-              </div>
-              <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-foreground">
-                Узнать больше
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </span>
-            </div>
-          </div>
-
-          <div
-            className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
-            aria-hidden
-          />
         </div>
       </div>
     </section>
