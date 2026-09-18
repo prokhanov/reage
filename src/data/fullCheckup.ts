@@ -145,7 +145,7 @@ export const FULL_CHECKUP: Checkup = {
   slug: "full",
   bundle: "full",
   href: "/checkup/full",
-  name: "Полный чекап ReAge",
+  name: "Полный чекап",
   tag: "Полная картина здоровья",
   // Держим в синхроне с ценой в админке (checkup_settings), иначе на первой
   // загрузке пользователь на секунду видит другую цену.

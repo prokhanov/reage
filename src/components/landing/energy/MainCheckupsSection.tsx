@@ -18,12 +18,12 @@ type Symptom = {
 };
 
 const SYMPTOMS: Symptom[] = [
-  { id: "tired", label: "часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
-  { id: "hair", label: "слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
-  { id: "weight", label: "проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
-  { id: "heart", label: "сердце и давление", slugs: ["cardio-risk", "base"] },
-  { id: "liver", label: "тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
-  { id: "all", label: "хочу полную картину сразу", slugs: [], full: true },
+  { id: "tired", label: "Часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
+  { id: "hair", label: "Слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
+  { id: "weight", label: "Проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
+  { id: "heart", label: "Сердце и давление", slugs: ["cardio-risk", "base"] },
+  { id: "liver", label: "Тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
+  { id: "all", label: "Хочу полную картину сразу", slugs: [], full: true },
 ];
 
 export function MainCheckupsSection() {
