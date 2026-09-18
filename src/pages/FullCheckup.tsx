@@ -10,6 +10,7 @@ import {
   useEnergyOrder,
 } from "@/components/landing/energy/EnergyOrderContext";
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
+import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { FullCheckupHero } from "@/components/landing/energy/FullCheckupHero";
 import { FullCheckupIncluded } from "@/components/landing/energy/FullCheckupIncluded";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
