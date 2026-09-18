@@ -1,4 +1,5 @@
-import { ArrowRight, Crown } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Crown, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -9,11 +10,30 @@ import { accentClasses } from "./checkupShapes";
 
 const YEARLY_PRICE = 69990;
 
+type Symptom = {
+  id: string;
+  label: string;
+  slugs: string[];
+  full?: boolean;
+};
+
+const SYMPTOMS: Symptom[] = [
+  { id: "tired", label: "часто устаю", slugs: ["energy", "iron", "thyroid", "vitamins"] },
+  { id: "hair", label: "слоятся ногти, выпадают волосы", slugs: ["hair", "vitamins", "iron", "thyroid"] },
+  { id: "weight", label: "проблемы с весом или сном", slugs: ["metabolic", "thyroid", "male-hormones", "female-hormones"] },
+  { id: "heart", label: "сердце и давление", slugs: ["cardio-risk", "base"] },
+  { id: "liver", label: "тяжесть, отёки, питание", slugs: ["liver", "kidney", "metabolic"] },
+  { id: "all", label: "хочу полную картину сразу", slugs: [], full: true },
+];
+
 export function MainCheckupsSection() {
   const { priceOf, isActive } = useCheckupSettings();
-  const premium = accentClasses.accent;
+  const [active, setActive] = useState<string | null>(null);
 
-  const simple = CHECKUPS.filter((c) => isActive(c.slug));
+  const selected = SYMPTOMS.find((s) => s.id === active) ?? null;
+  const all = CHECKUPS.filter((c) => isActive(c.slug));
+  const simple = selected ? all.filter((c) => selected.slugs.includes(c.slug)) : all;
+  const showFull = !selected || selected.full === true || selected.slugs.length === 0;
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
