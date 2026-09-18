@@ -21,6 +21,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CHECKUPS, money } from "@/data/checkups";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
+
+const ADMIN_CHECKUPS = [...CHECKUPS, FULL_CHECKUP];
 
 interface PriceRow {
   slug: string;
@@ -62,7 +65,7 @@ export default function AdminCheckups() {
 
     const saved = new Map((pricesRes.data ?? []).map((r) => [r.slug, r]));
     setRows(
-      CHECKUPS.map((c) => ({
+      ADMIN_CHECKUPS.map((c) => ({
         slug: c.slug,
         price: saved.get(c.slug)?.price ?? c.price,
         is_active: saved.get(c.slug)?.is_active ?? true,
@@ -162,7 +165,7 @@ export default function AdminCheckups() {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => {
-                  const checkup = CHECKUPS.find((c) => c.slug === row.slug);
+                  const checkup = ADMIN_CHECKUPS.find((c) => c.slug === row.slug);
                   return (
                     <TableRow key={row.slug}>
                       <TableCell className="whitespace-nowrap font-medium">
