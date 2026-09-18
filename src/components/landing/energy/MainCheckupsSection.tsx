@@ -51,7 +51,7 @@ export function MainCheckupsSection() {
         <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-foreground sm:text-base">
-              не знаете, с чего начать?
+              Не знаете, с чего начать?
             </p>
             {selected && (
               <button
@@ -60,7 +60,7 @@ export function MainCheckupsSection() {
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-                сбросить
+                Сбросить
               </button>
             )}
           </div>
