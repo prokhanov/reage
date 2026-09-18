@@ -260,7 +260,7 @@ export function MainCheckupsSection() {
               className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
               aria-hidden
             />
-          </div>
+          </Link>
         </div>
 
       </div>
