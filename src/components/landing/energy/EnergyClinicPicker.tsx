@@ -323,6 +323,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
             </div>
           )}
         </div>
+        )}
 
         {/* Карта */}
         <div
