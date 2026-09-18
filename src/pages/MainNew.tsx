@@ -277,10 +277,10 @@ function MainNewContent() {
         </section>
 
         <MainCheckupsSection />
-        <EnergyExpertResult demoReport />
-        <MainWhereToTest />
+        <EnergyExpertResult demoReport id="result" />
+        <MainWhereToTest id="labs" />
         <EnergyHowItWorks id="how-it-works" />
-        <MainQuestionCta />
+        <MainQuestionCta id="questions" />
       </main>
 
       <Footer />
