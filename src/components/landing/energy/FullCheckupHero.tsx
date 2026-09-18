@@ -75,7 +75,6 @@ export function FullCheckupHero({ checkup, onAddToCart }: Props) {
               <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
-              <span className="text-sm text-muted-foreground sm:text-base">разово</span>
             </div>
 
             <Button
