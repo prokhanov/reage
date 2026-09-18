@@ -1,6 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Activity, ArrowDown, FlaskConical, HeartPulse, ShoppingCart } from "lucide-react";
+import {
+  Activity,
+  ArrowDown,
+  FlaskConical,
+  HeartPulse,
+  Menu,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
@@ -19,8 +27,31 @@ import {
   useEnergyOrder,
 } from "@/components/landing/energy/EnergyOrderContext";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
+
+const navItems = [
+  { label: "Чекапы", href: "#checkups" },
+  { label: "Пример результата", href: "#result" },
+  { label: "Где сдать", href: "#labs" },
+  { label: "Как это работает", href: "#how-it-works" },
+  { label: "Вопросы", href: "#questions" },
+];
+
+function scrollToAnchor(href: string) {
+  const id = href.replace("#", "");
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 function HeroVisual() {
   return (
