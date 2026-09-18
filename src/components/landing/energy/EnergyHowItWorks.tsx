@@ -97,9 +97,9 @@ const accentClasses: Record<
   },
 };
 
-export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cbcBonusEnabled = false }: Props) {
+export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cbcBonusEnabled = false, id }: Props) {
   return (
-    <section className="overflow-x-hidden border-b hairline">
+    <section id={id} className="overflow-x-hidden border-b hairline scroll-mt-20">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
         <h2 className="font-display text-[1.7rem] leading-tight text-foreground md:text-3xl">
           Как это <span className="italic">работает</span>
