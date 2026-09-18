@@ -1,7 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
-import { CHECKUPS, ENERGY_CHECKUP, getCheckupBySlug, type Checkup } from "@/data/checkups";
+import { CHECKUPS, ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
+
+/** Каталог + полный чекап: он живёт на отдельной странице, но попадает в ту же корзину. */
+const ALL_CHECKUPS: Checkup[] = [...CHECKUPS, FULL_CHECKUP];
+
+function resolveCheckup(slug: string | undefined): Checkup | undefined {
+  return ALL_CHECKUPS.find((c) => c.slug === slug);
+}
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 const CART_KEY = "reage:checkup:cart";
@@ -14,7 +22,7 @@ function readCart(): string[] {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .filter((s): s is string => typeof s === "string")
-      .filter((s) => CHECKUPS.some((c) => c.slug === s));
+      .filter((s) => ALL_CHECKUPS.some((c) => c.slug === s));
   } catch {
     return [];
   }
@@ -105,7 +113,7 @@ export function EnergyOrderProvider({
   const items = useMemo(
     () =>
       slugs
-        .map((s) => getCheckupBySlug(s))
+        .map((s) => resolveCheckup(s))
         .filter((c): c is Checkup => Boolean(c))
         .map((c) => ({
           ...c,

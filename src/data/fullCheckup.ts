@@ -1,3 +1,5 @@
+import { FlaskConical } from "lucide-react";
+
 import heroFull from "@/assets/energy/hero-base40.jpg";
 
 import type { Checkup } from "@/data/checkups";
@@ -174,5 +176,11 @@ export const FULL_CHECKUP: Checkup = {
   seoTitle: "Полный чекап ReAge — 85 показателей с разбором и консультацией врача",
   seoDescription:
     "Полный чекап ReAge: 85 показателей по шести системам организма, понятный отчёт в личном кабинете и консультация врача. Анализы в LabQuest, 25 000 ₽.",
-  markers: [],
+  markers: FULL_CHECKUP_CATEGORIES.flatMap((category) =>
+    category.markers.map((title) => ({
+      title,
+      description: category.title,
+      icon: FlaskConical,
+    })),
+  ),
 };
