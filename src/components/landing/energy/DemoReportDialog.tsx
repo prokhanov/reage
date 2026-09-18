@@ -20,6 +20,12 @@ export function DemoReportDialog({
 }) {
   const report = useMemo(() => (open ? buildLabReportFromExample() : null), [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    document.body.classList.add("hide-jivo");
+    return () => document.body.classList.remove("hide-jivo");
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[92vh] max-h-[92vh] w-[96vw] max-w-[80rem] flex-col gap-0 overflow-hidden p-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:rounded-none max-md:border-0 max-md:[&>button]:right-3 max-md:[&>button]:top-3 max-md:[&>button]:z-[60] max-md:[&>button]:bg-background/90 max-md:[&>button]:text-foreground max-md:[&>button]:shadow-overlay">
