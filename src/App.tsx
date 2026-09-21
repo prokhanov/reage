@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 
 // Auth / public utilities
 const Index = lazy(() => import("./pages/Index"));
+const LandingV2 = lazy(() => import("./pages/LandingV2"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
 const FullCheckup = lazy(() => import("./pages/FullCheckup"));
