@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 
 // Auth / public utilities
 const Index = lazy(() => import("./pages/Index"));
+const LandingV2 = lazy(() => import("./pages/LandingV2"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
 const FullCheckup = lazy(() => import("./pages/FullCheckup"));
@@ -133,6 +134,7 @@ const App = () => (
             <Route path="/" element={<MainNew />} />
             <Route path="/main_new" element={<Navigate to="/" replace />} />
             <Route path="/monitoring" element={<Index />} />
+            <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/energy" element={<Navigate to="/checkup/energy" replace />} />
             <Route path="/energy/success" element={<EnergyPaymentResult mode="success" />} />
             <Route path="/energy/fail" element={<EnergyPaymentResult mode="fail" />} />
