@@ -11,7 +11,7 @@ if (typeof window !== "undefined") captureUtm();
 import { preloadLandingBootstrap } from "./lib/landingBootstrap";
 if (
   typeof window !== "undefined" &&
-  (window.location.pathname === "/" || window.location.pathname === "/landing-v2")
+  window.location.pathname === "/"
 ) {
   const kick = () => {
     preloadLandingBootstrap().catch(() => {
