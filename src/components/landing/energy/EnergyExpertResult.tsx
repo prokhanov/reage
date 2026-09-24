@@ -359,7 +359,6 @@ export function EnergyExpertResult({
                     <li>Пейте чай и кофе отдельно от приёмов пищи, богатых железом.</li>
                   </ul>
                 </div>
-              </div>
               </section>
             </div>
           )}
