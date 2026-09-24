@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Pill, Salad, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
@@ -301,6 +301,49 @@ export function EnergyExpertResult({
               />
             ))}
           </div>
+
+          {demoReport && (
+            <div className="mt-8">
+              <h3 className="font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
+                И конкретные рекомендации
+              </h3>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
+                    <Pill className="h-4 w-4" aria-hidden />
+                    Нутрицевтики
+                  </div>
+                  <p className="mt-2 text-lg font-semibold text-foreground">Омега-3 (EPA/DHA)</p>
+                  <dl className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <div>
+                      <dt className="inline font-medium text-foreground">Форма: </dt>
+                      <dd className="inline">триглицериды (TG) или восстановленные триглицериды (rTG)</dd>
+                    </div>
+                    <div>
+                      <dt className="inline font-medium text-foreground">Дозировка: </dt>
+                      <dd className="inline">2000 мг в сутки (суммарно EPA+DHA)</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-3 border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
+                    Снижает уровень системного воспаления, поддерживает мембраны клеток, сердце и сосуды, а также
+                    синтез стероидных гормонов.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
+                    <Salad className="h-4 w-4" aria-hidden />
+                    Питание
+                  </div>
+                  <p className="mt-2 text-lg font-semibold text-foreground">Восполнить белок и полезные жиры</p>
+                  <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+                    Увеличьте потребление качественных продуктов: жирная рыба (лосось, скумбрия), птица, яйца
+                    (особенно желтки), субпродукты (печень), авокадо, нерафинированные растительные масла, орехи и
+                    семена.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
