@@ -8,9 +8,12 @@ import { readFileSync } from "node:fs";
 const app = readFileSync("src/App.tsx", "utf8");
 const conf = readFileSync("deploy/nginx/default.conf", "utf8");
 
+// Технические страницы только для превью — намеренно отдают 404 на проде.
+const PREVIEW_ONLY = new Set(["/landing-v2"]);
+
 const routes = [...app.matchAll(/path="(\/[^"]*)"/g)]
   .map((m) => m[1])
-  .filter((p) => p !== "*" && !p.includes("*"));
+  .filter((p) => p !== "*" && !p.includes("*") && !PREVIEW_ONLY.has(p));
 
 const exact = new Set(
   [...conf.matchAll(/location\s*=\s*(\/\S*)\s*\{/g)].map((m) => m[1]),
