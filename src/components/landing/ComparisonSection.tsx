@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 type CellIcon = "yes" | "no";
 
@@ -55,6 +56,16 @@ function ComparisonRow({ feature, reage, checkup, labs, genetics }: ComparisonRo
 }
 
 export function ComparisonSection() {
+  const { data: plans } = useSubscriptionPlans();
+  const basePlan =
+    plans?.find((p) => /basic|base|базов/i.test(`${p.name} ${p.display_name}`)) ??
+    [...(plans ?? [])].sort((a, b) => a.display_order - b.display_order)[0];
+  const basePricing =
+    basePlan?.pricing.find((p) => p.period === "annual") ??
+    [...(basePlan?.pricing ?? [])].sort((a, b) => b.duration_months - a.duration_months)[0];
+  const basePrice = basePricing?.amount ?? 69990;
+  const basePriceText = `от ${new Intl.NumberFormat("ru-RU").format(basePrice).replace(/\u00a0/g, " ")}₽`;
+
   const comparisons: ComparisonRowProps[] = [
     {
       feature: "Расшифровка показателей",
@@ -114,7 +125,7 @@ export function ComparisonSection() {
     },
     {
       feature: "Цена за год",
-      reage: { text: "от 69 990₽" },
+      reage: { text: basePriceText },
       checkup: { text: "~75 000₽" },
       labs: { text: "~80 000₽" },
       genetics: { text: "~80 000₽" },
