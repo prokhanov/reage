@@ -9,6 +9,7 @@ import { reachGoal } from "@/lib/yandexMetrika";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import { CheckupExampleReport } from "@/components/landing/energy/CheckupExampleReport";
 import { DemoReportDialog } from "@/components/landing/energy/DemoReportDialog";
+import { PrescriptionCard, type PrescriptionCardData } from "@/components/prescriptions/PrescriptionCard";
 import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
@@ -120,6 +121,33 @@ const statusBgMap: Record<string, string> = {
   acceptable: "bg-status-acceptable/5 border-status-acceptable/15",
   optimal: "bg-status-optimal/5 border-status-optimal/15",
 };
+
+const demoPrescriptions: PrescriptionCardData[] = [
+  {
+    id: "demo-iron",
+    prescription: "Железо",
+    name: "Железо",
+    form: "бисглицинат железа",
+    dosage: "индивидуально после консультации с врачом",
+    how_to_take: "по схеме, назначенной врачом",
+    duration: "8–12 недель с последующим контролем",
+    reason:
+      "Ферритин снижен до 12 нг/мл при нормальном гемоглобине 138 г/л — запасы железа истощены, хотя явной анемии ещё нет.",
+    effect:
+      "Восполняет запасы железа и поддерживает перенос кислорода, уровень энергии, состояние волос и ногтей.",
+  },
+  {
+    id: "demo-vitamin-d",
+    prescription: "Витамин D3",
+    name: "Витамин D3",
+    form: "холекальциферол",
+    dosage: "индивидуально после консультации с врачом",
+    how_to_take: "во время еды, содержащей жиры",
+    duration: "8–12 недель с последующим контролем",
+    reason: "Уровень 25‑OH витамина D снижен до 24 нг/мл и находится ниже целевого диапазона.",
+    effect: "Поддерживает иммунитет, здоровье костей и мышц, настроение и восстановление.",
+  },
+];
 
 function MarkerCard({
   marker,
@@ -303,54 +331,35 @@ export function EnergyExpertResult({
           </div>
 
           {demoReport && (
-            <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-6">
-              <div className="border-b border-border/30 pb-4">
-                <h3 className="font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
-                  Рекомендации по результатам
-                </h3>
-                <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-                  Низкий ферритин при нормальном гемоглобине указывает на истощение запасов железа без явной
-                  анемии. Одновременно витамин D находится ниже целевого диапазона.
-                </p>
-              </div>
+            <div className="mt-8 space-y-6 sm:space-y-8">
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground sm:text-2xl">Рекомендации</h3>
+                  <div className="mt-2 h-1 w-20 rounded-full bg-primary" />
+                </div>
+                <div className="space-y-4">
+                  {demoPrescriptions.map((prescription, index) => (
+                    <PrescriptionCard key={prescription.id} prescription={prescription} index={index} />
+                  ))}
+                </div>
+              </section>
 
-              <div className="divide-y divide-border/30">
-                <article className="py-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-medium uppercase text-primary">Добавки</p>
-                    <span className="text-xs text-muted-foreground">Ферритин 12 · Гемоглобин 138</span>
-                  </div>
-                  <h4 className="mt-2 text-lg font-semibold text-foreground">Железо — после консультации с врачом</h4>
-                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-                    Обсудите с врачом бисглицинат железа и индивидуальную дозировку. До начала приёма важно
-                    уточнить причину дефицита; контроль ферритина и общего анализа крови — через 8–12 недель.
-                  </p>
-                </article>
-
-                <article className="py-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-medium uppercase text-primary">Добавки</p>
-                    <span className="text-xs text-muted-foreground">Витамин D 24</span>
-                  </div>
-                  <h4 className="mt-2 text-lg font-semibold text-foreground">Витамин D3</h4>
-                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-                    Подберите с врачом корректирующую дозировку холекальциферола с учётом питания, сезона и
-                    сопутствующих состояний. Повторный контроль 25‑OH витамина D — через 8–12 недель.
-                  </p>
-                </article>
-
-                <article className="pt-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-medium uppercase text-primary">Питание</p>
-                    <span className="text-xs text-muted-foreground">Ферритин 12 · Гемоглобин 138 · Витамин D 24</span>
-                  </div>
-                  <h4 className="mt-2 text-lg font-semibold text-foreground">Поддержать запасы железа и витамина D</h4>
-                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-                    Добавьте красное мясо или печень 1–2 раза в неделю, сочетая их с источниками витамина C.
-                    Жирную рыбу включайте 2–3 раза в неделю. Чай и кофе лучше пить отдельно от богатой железом еды.
-                  </p>
-                </article>
-              </div>
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground sm:text-2xl">
+                    Питание и коррекция образа жизни
+                  </h3>
+                  <div className="mt-2 h-1 w-20 rounded-full bg-primary" />
+                </div>
+                <div className="rounded-lg border border-border bg-card p-6 max-sm:border-0 max-sm:bg-transparent max-sm:p-0">
+                  <h4 className="mb-3 text-base font-semibold text-foreground">Питание</h4>
+                  <ul className="list-inside list-disc space-y-2 text-sm leading-relaxed text-foreground">
+                    <li>Добавьте красное мясо или печень 1–2 раза в неделю, сочетая их с источниками витамина C.</li>
+                    <li>Включайте жирную рыбу в рацион 2–3 раза в неделю.</li>
+                    <li>Пейте чай и кофе отдельно от приёмов пищи, богатых железом.</li>
+                  </ul>
+                </div>
+              </section>
             </div>
           )}
         </div>
