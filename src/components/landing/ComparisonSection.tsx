@@ -55,7 +55,7 @@ function ComparisonRow({ feature, reage, checkup, labs, genetics }: ComparisonRo
   );
 }
 
-export function ComparisonSection() {
+export function ComparisonSection({ hidePrice = false }: { hidePrice?: boolean } = {}) {
   const { data: plans } = useSubscriptionPlans();
   const basePlan =
     plans?.find((p) => /basic|base|базов/i.test(`${p.name} ${p.display_name}`)) ??
@@ -169,7 +169,7 @@ export function ComparisonSection() {
               </div>
 
               <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-                {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />)}
+                {(hidePrice ? comparisons.filter((r) => r.feature !== "Цена за год") : comparisons).map((row, index) => <ComparisonRow key={index} {...row} />)}
               </div>
             </div>
           </div>

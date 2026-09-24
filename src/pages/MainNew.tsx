@@ -22,6 +22,7 @@ import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import {
   EnergyOrderProvider,
   useEnergyOrder,
@@ -299,6 +300,7 @@ function MainNewContent() {
         <EnergyExpertResult demoReport id="result" />
         <MainWhereToTest id="labs" />
         <EnergyHowItWorks id="how-it-works" />
+        <ComparisonSection hidePrice />
         <MainQuestionCta id="questions" />
       </main>
 
