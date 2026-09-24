@@ -305,8 +305,7 @@ export function EnergyExpertResult({
           {demoReport && (
             <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-6">
               <div className="border-b border-border/30 pb-4">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Продолжение отчёта</p>
-                <h3 className="mt-1 font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
+                <h3 className="font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
                   Рекомендации по результатам
                 </h3>
                 <p className="mt-2 text-base leading-relaxed text-muted-foreground">
