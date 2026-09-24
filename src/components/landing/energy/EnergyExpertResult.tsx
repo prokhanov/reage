@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Pill, Salad, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, Heart, MessageCircle, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
@@ -303,44 +303,54 @@ export function EnergyExpertResult({
           </div>
 
           {demoReport && (
-            <div className="mt-8">
-              <h3 className="font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
-                И конкретные рекомендации
-              </h3>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
-                    <Pill className="h-4 w-4" aria-hidden />
-                    Нутрицевтики
+            <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-6">
+              <div className="border-b border-border/30 pb-4">
+                <p className="text-xs font-medium uppercase text-muted-foreground">Продолжение отчёта</p>
+                <h3 className="mt-1 font-display text-2xl leading-tight text-foreground md:text-[1.75rem]">
+                  Рекомендации по результатам
+                </h3>
+                <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                  Низкий ферритин при нормальном гемоглобине указывает на истощение запасов железа без явной
+                  анемии. Одновременно витамин D находится ниже целевого диапазона.
+                </p>
+              </div>
+
+              <div className="divide-y divide-border/30">
+                <article className="py-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase text-primary">Добавки</p>
+                    <span className="text-xs text-muted-foreground">Ферритин 12 · Гемоглобин 138</span>
                   </div>
-                  <p className="mt-2 text-lg font-semibold text-foreground">Омега-3 (EPA/DHA)</p>
-                  <dl className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    <div>
-                      <dt className="inline font-medium text-foreground">Форма: </dt>
-                      <dd className="inline">триглицериды (TG) или восстановленные триглицериды (rTG)</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-medium text-foreground">Дозировка: </dt>
-                      <dd className="inline">2000 мг в сутки (суммарно EPA+DHA)</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-3 border-t border-border/20 pt-3 text-base leading-relaxed text-muted-foreground">
-                    Снижает уровень системного воспаления, поддерживает мембраны клеток, сердце и сосуды, а также
-                    синтез стероидных гормонов.
+                  <h4 className="mt-2 text-lg font-semibold text-foreground">Железо — после консультации с врачом</h4>
+                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                    Обсудите с врачом бисглицинат железа и индивидуальную дозировку. До начала приёма важно
+                    уточнить причину дефицита; контроль ферритина и общего анализа крови — через 8–12 недель.
                   </p>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
-                    <Salad className="h-4 w-4" aria-hidden />
-                    Питание
+                </article>
+
+                <article className="py-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase text-primary">Добавки</p>
+                    <span className="text-xs text-muted-foreground">Витамин D 24</span>
                   </div>
-                  <p className="mt-2 text-lg font-semibold text-foreground">Восполнить белок и полезные жиры</p>
-                  <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                    Увеличьте потребление качественных продуктов: жирная рыба (лосось, скумбрия), птица, яйца
-                    (особенно желтки), субпродукты (печень), авокадо, нерафинированные растительные масла, орехи и
-                    семена.
+                  <h4 className="mt-2 text-lg font-semibold text-foreground">Витамин D3</h4>
+                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                    Подберите с врачом корректирующую дозировку холекальциферола с учётом питания, сезона и
+                    сопутствующих состояний. Повторный контроль 25‑OH витамина D — через 8–12 недель.
                   </p>
-                </div>
+                </article>
+
+                <article className="pt-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase text-primary">Питание</p>
+                    <span className="text-xs text-muted-foreground">Ферритин 12 · Гемоглобин 138 · Витамин D 24</span>
+                  </div>
+                  <h4 className="mt-2 text-lg font-semibold text-foreground">Поддержать запасы железа и витамина D</h4>
+                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                    Добавьте красное мясо или печень 1–2 раза в неделю, сочетая их с источниками витамина C.
+                    Жирную рыбу включайте 2–3 раза в неделю. Чай и кофе лучше пить отдельно от богатой железом еды.
+                  </p>
+                </article>
               </div>
             </div>
           )}
