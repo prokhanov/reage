@@ -26,7 +26,7 @@ const problems = [
 
 export function WhyCheckupsFail() {
   return (
-    <section className="relative py-6 md:py-8 overflow-hidden">
+    <section id="why" className="relative py-6 md:py-8 overflow-hidden scroll-mt-20">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />

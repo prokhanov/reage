@@ -81,6 +81,7 @@ const S = ({ children }: { children: React.ReactNode }) => (
 );
 
 const navItems = [
+  { label: "Почему мы", href: "#why" },
   { label: "Пример результата", href: "#result" },
   { label: "Где сдать", href: "#labs" },
   { label: "Чекапы", href: "#checkups" },
