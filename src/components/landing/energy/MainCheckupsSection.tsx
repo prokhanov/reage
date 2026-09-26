@@ -73,7 +73,7 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
   );
 }
 
-export function MainCheckupsSection() {
+export function MainCheckupsSection({ title = "Выберите чекап" }: { title?: string }) {
   const { priceOf, isActive } = useCheckupSettings();
   const [tab, setTab] = useState<Tab>("feeling");
   const [active, setActive] = useState<string | null>(null);
@@ -107,7 +107,7 @@ export function MainCheckupsSection() {
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4 md:mb-10">
           <div>
             <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
-              Выберите чекап
+              {title}
             </h2>
             <p className="mt-2 max-w-xl text-base text-muted-foreground md:text-lg">
               от точечной проверки одной боли до полной картины организма

@@ -40,6 +40,9 @@ const ComparisonSection = lazy(() =>
 const PricingSection = lazy(() =>
   import("@/components/landing/PricingSection").then((m) => ({ default: m.PricingSection })),
 );
+const MainCheckupsSection = lazy(() =>
+  import("@/components/landing/energy/MainCheckupsSection").then((m) => ({ default: m.MainCheckupsSection })),
+);
 const FAQSection = lazy(() =>
   import("@/components/landing/FAQSection").then((m) => ({ default: m.FAQSection })),
 );
@@ -127,6 +130,7 @@ const Index = () => {
       </EnergyOrderProvider>
       <S><AppFeaturesSection /></S>
       <S><WhereToTestSection /></S>
+      <S><MainCheckupsSection title="Программы чекапов" /></S>
       <S><PricingSection /></S>
       <S><FAQSection /></S>
       <S><CTASection /></S>
