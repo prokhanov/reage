@@ -1,15 +1,27 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown } from "lucide-react";
+import { ArrowRight, Crown, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
-import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
+import {
+  FULL_CHECKUP,
+  FULL_CHECKUP_CATEGORIES,
+  FULL_CHECKUP_MARKERS_COUNT,
+} from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses } from "./checkupShapes";
 
 const YEARLY_PRICE = 69990;
 const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
+
+function markerWord(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "показатель";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "показателя";
+  return "показателей";
+}
 
 type Tab = "feeling" | "system";
 
@@ -122,6 +134,83 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           </Link>
         </div>
 
+        {/* Полный чекап — большая карточка до фильтра */}
+        <Link
+          to={FULL_CHECKUP.href}
+          className="group relative mb-8 block overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground transition-transform duration-300 hover:-translate-y-0.5 sm:p-8 md:mb-10 md:p-10"
+        >
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+            <div className="flex flex-col">
+              <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
+                {FULL_CHECKUP.tag}
+              </span>
+              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-4xl">
+                {FULL_CHECKUP.name}
+              </h3>
+              <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-primary-foreground/75">
+                Одна точка отсчёта по всем системам организма: анализы, понятный отчёт и
+                консультация врача — вместо того, чтобы собирать картину по частям.
+              </p>
+
+              <ul className="mt-6 space-y-2.5 sm:mt-8">
+                {FULL_CHECKUP_CATEGORIES.map((cat) => (
+                  <li
+                    key={cat.title}
+                    className="flex items-center gap-3 text-sm text-primary-foreground/90 sm:text-[0.95rem]"
+                  >
+                    {/* bg-primary сливается с фоном карточки — на тёмном используем accent */}
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${cat.dotClass === "bg-primary" ? "bg-accent" : cat.dotClass}`}
+                      aria-hidden
+                    />
+                    <span>{cat.title}</span>
+                    <span className="ml-auto whitespace-nowrap font-mono-tech text-xs text-primary-foreground/60 sm:text-sm">
+                      {cat.markers.length} {markerWord(cat.markers.length)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col justify-between gap-6 lg:border-l lg:border-primary-foreground/15 lg:pl-10">
+              <ul className="space-y-3 text-sm text-primary-foreground/80">
+                <li className="flex items-center gap-3">
+                  <FileText className="h-4 w-4 shrink-0 text-primary-foreground/60" />
+                  Понятный отчёт в личном кабинете
+                </li>
+                <li className="flex items-center gap-3">
+                  <Stethoscope className="h-4 w-4 shrink-0 text-primary-foreground/60" />
+                  Консультация врача по результатам
+                </li>
+                <li className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary-foreground/60" />
+                  Сдача анализов в отделениях LabQuest
+                </li>
+              </ul>
+
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between lg:flex-col lg:items-start">
+                <div>
+                  <div className="whitespace-nowrap font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
+                    {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
+                  </div>
+                  <div className="mt-2 text-sm text-primary-foreground/70">
+                    {FULL_CHECKUP_MARKERS_COUNT} показателей · 5 систем организма
+                  </div>
+                </div>
+                <span className="inline-flex h-12 shrink-0 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">
+                  Подробнее
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary-foreground/10 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
+            aria-hidden
+          />
+        </Link>
+
         {/* Фильтр */}
         <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
           {/* Табы — отдельные кнопки-переключатели */}
@@ -193,40 +282,8 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           ))}
         </div>
 
-        {/* Полный чекап и годовой мониторинг — всегда на виду, 2 столбца */}
+        {/* Годовой мониторинг — всегда на виду */}
         <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 md:grid-cols-2">
-          <Link
-            to={FULL_CHECKUP.href}
-            className="group relative block overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
-          >
-            <div className="flex h-full flex-col">
-              <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
-                {FULL_CHECKUP.tag}
-              </span>
-              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
-                {FULL_CHECKUP.name}
-              </h3>
-              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-primary-foreground/75">
-                {FULL_CHECKUP_MARKERS_COUNT} показателя, понятный отчёт и консультация врача
-              </p>
-
-              <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="whitespace-nowrap font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
-                  {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
-                </div>
-                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">
-                  Подробнее
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-primary-foreground/10 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
-              aria-hidden
-            />
-          </Link>
-
           <Link
             to="/monitoring"
             className="group relative block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
