@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown, FileText, MapPin, Stethoscope } from "lucide-react";
+import { ArrowRight, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -12,8 +12,6 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses } from "./checkupShapes";
 
-const YEARLY_PRICE = 69990;
-const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
 
 function markerWord(n: number) {
   const mod10 = n % 10;
@@ -99,18 +97,13 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
     if (selected) {
       return all.filter((c) => selected.slugs.includes(c.slug));
     }
-    // Если ничего не выбрано — показываем 3 популярных чекапа
-    const popular = POPULAR_SLUGS.map((slug) => all.find((c) => c.slug === slug)).filter(
-      Boolean
-    ) as (typeof CHECKUPS)[number][];
-    return popular.length ? popular : all.slice(0, 3);
+    return all;
   }, [all, selected]);
-
-  const showPopularLabel = !selected;
 
   function toggleFilter(id: string) {
     setActive((prev) => (prev === id ? null : id));
   }
+
 
 
   return (
@@ -211,8 +204,19 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           />
         </Link>
 
+        {/* Другие чекапы — до фильтра */}
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Другие чекапы
+        </h3>
+        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 md:mb-10">
+          {visible.map((c) => (
+            <CheckupCard key={c.slug} c={c} />
+          ))}
+        </div>
+
         {/* Фильтр */}
-        <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
+        <div className="rounded-[2rem] border border-border bg-card p-5 sm:p-6">
+
           {/* Табы — отдельные кнопки-переключатели */}
           <div className="flex flex-wrap gap-3">
             <button
@@ -269,56 +273,6 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           </div>
         </div>
 
-        {showPopularLabel && (
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Популярные
-          </h3>
-        )}
-
-        {/* Чекапы */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((c) => (
-            <CheckupCard key={c.slug} c={c} />
-          ))}
-        </div>
-
-        {/* Годовой мониторинг — всегда на виду */}
-        <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 md:grid-cols-2">
-          <Link
-            to="/monitoring"
-            className="group relative block overflow-hidden rounded-[2rem] border border-accent/20 bg-foreground p-6 text-background transition-transform duration-300 hover:-translate-y-0.5 sm:p-8"
-          >
-            <div className="flex h-full flex-col">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-foreground">
-                <Crown className="h-3.5 w-3.5" />
-                Премиум
-              </span>
-              <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
-                Годовой мониторинг здоровья
-              </h3>
-              <p className="mt-2 max-w-[30ch] text-base leading-relaxed text-background/75">
-                Регулярные чекапы, динамика показателей и сопровождение врача весь год.
-              </p>
-
-              <div className="mt-auto flex flex-col items-start gap-4 pt-6 md:items-end md:text-right">
-                <div className="flex flex-wrap items-baseline gap-2 font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
-                  <span className="text-base font-medium text-background/60">от</span>
-                  {money(YEARLY_PRICE)}
-                  <span className="text-lg text-background/70">/год</span>
-                </div>
-                <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-foreground">
-                  Узнать больше
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
-              aria-hidden
-            />
-          </Link>
-        </div>
 
       </div>
     </section>
