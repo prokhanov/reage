@@ -132,6 +132,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<MainNew />} />
+            <Route path="/main" element={<MainNew />} />
             <Route path="/main_new" element={<Navigate to="/" replace />} />
             <Route path="/monitoring" element={<Index />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
