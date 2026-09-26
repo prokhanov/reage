@@ -75,7 +75,7 @@ const SectionFallback = () => (
  *  cv-section включает content-visibility: auto — браузер не рендерит секции
  *  вне viewport, что резко ускоряет скролл на слабых мобильных устройствах. */
 const S = ({ children }: { children: React.ReactNode }) => (
-  <section className="cv-section">
+  <section className="cv-section pt-4 md:pt-8">
     <Suspense fallback={<SectionFallback />}>{children}</Suspense>
   </section>
 );
