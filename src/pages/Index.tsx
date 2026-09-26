@@ -279,12 +279,12 @@ const Index = () => {
           />
 
           <S><WhyCheckupsFail /></S>
-          <S><ConsultationCtaBlock /></S>
           <S><ComparisonSection /></S>
         </div>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
         {/* <BenefitsSection /> */}
         <S><BiomarkersDeepDiveSection /></S>
+        <S><ConsultationCtaBlock /></S>
         {/* Без cv-section: content-visibility ломает sticky-фиксацию врача при скролле */}
         <Suspense fallback={<SectionFallback />}>
           <EnergyExpertResult demoReport id="result" />
