@@ -279,7 +279,7 @@ const Index = () => {
           />
 
           <S><WhyCheckupsFail /></S>
-          <S><ComparisonSection /></S>
+          <S><ComparisonSection hidePrice /></S>
         </div>
         {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
         {/* <BenefitsSection /> */}
