@@ -12,7 +12,6 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses } from "./checkupShapes";
 
-const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
 
 function markerWord(n: number) {
   const mod10 = n % 10;
