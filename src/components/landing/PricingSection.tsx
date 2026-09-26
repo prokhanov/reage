@@ -508,7 +508,7 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
           <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Варианты сопровождения</span>
+            <span className="text-foreground">Программы годового мониторинга</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
             Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
