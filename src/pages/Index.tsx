@@ -93,7 +93,6 @@ const navItems = [
   { label: "Пример результата", href: "#result" },
   { label: "Где сдать", href: "#labs" },
   { label: "Чекапы", href: "#checkups" },
-  { label: "Тарифы", href: "#pricing" },
   { label: "Вопросы", href: "#questions" },
 ];
 
