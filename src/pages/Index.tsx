@@ -23,9 +23,6 @@ const CycleInfographicBlock = lazy(() =>
 const EnergyExpertResult = lazy(() =>
   import("@/components/landing/energy/EnergyExpertResult").then((m) => ({ default: m.EnergyExpertResult })),
 );
-const EnergyCart = lazy(() =>
-  import("@/components/landing/energy/EnergyCart").then((m) => ({ default: m.EnergyCart })),
-);
 const EnergyOrderProvider = lazy(() =>
   import("@/components/landing/energy/EnergyOrderContext").then((m) => ({ default: m.EnergyOrderProvider })),
 );
@@ -124,7 +121,6 @@ const Index = () => {
       <S><BiomarkersDeepDiveSection /></S>
       <EnergyOrderProvider checkup={FULL_CHECKUP}>
         <S><EnergyExpertResult demoReport /></S>
-        <EnergyCart />
       </EnergyOrderProvider>
       <S><AppFeaturesSection /></S>
       <S><WhereToTestSection /></S>
