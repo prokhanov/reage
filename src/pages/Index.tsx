@@ -25,9 +25,6 @@ import {
 const WhyCheckupsFail = lazy(() =>
   import("@/components/landing/WhyCheckupsFail").then((m) => ({ default: m.WhyCheckupsFail })),
 );
-const HowItWorksBlock = lazy(() =>
-  import("@/components/landing/v2/HowItWorksBlock").then((m) => ({ default: m.HowItWorksBlock })),
-);
 const CycleInfographicBlock = lazy(() =>
   import("@/components/landing/v2/CycleInfographicBlockV2").then((m) => ({
     default: m.CycleInfographicBlockV2,
@@ -89,7 +86,6 @@ const S = ({ children }: { children: React.ReactNode }) => (
 );
 
 const navItems = [
-  { label: "Как это работает", href: "#how-it-works" },
   { label: "Пример результата", href: "#result" },
   { label: "Где сдать", href: "#labs" },
   { label: "Чекапы", href: "#checkups" },
@@ -286,7 +282,7 @@ const Index = () => {
             }}
           />
           <S><CycleInfographicBlock /></S>
-          <S><HowItWorksBlock /></S>
+
           <S><WhyCheckupsFail /></S>
           <S><ConsultationCtaBlock /></S>
           <S><ComparisonSection /></S>
