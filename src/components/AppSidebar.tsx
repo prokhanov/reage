@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState, useContext } from "react";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
@@ -443,13 +442,6 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </button>
             )}
 
-            {/* Theme Toggle */}
-            <div className={cn(
-              "mt-1 border-t hairline",
-              isOpen ? "pt-2" : "flex justify-center pt-2"
-            )}>
-              <ThemeToggle isOpen={isOpen} />
-            </div>
           </div>
         </div>
       </aside>
