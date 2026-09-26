@@ -19,8 +19,14 @@ const CycleInfographicBlock = lazy(() =>
     default: m.CycleInfographicBlockV2,
   })),
 );
-const ReportCollageBlock = lazy(() =>
-  import("@/components/landing/v2/ReportCollageBlock").then((m) => ({ default: m.ReportCollageBlock })),
+const EnergyExpertResult = lazy(() =>
+  import("@/components/landing/energy/EnergyExpertResult").then((m) => ({ default: m.EnergyExpertResult })),
+);
+const EnergyCart = lazy(() =>
+  import("@/components/landing/energy/EnergyCart").then((m) => ({ default: m.EnergyCart })),
+);
+const EnergyOrderProvider = lazy(() =>
+  import("@/components/landing/energy/EnergyOrderContext").then((m) => ({ default: m.EnergyOrderProvider })),
 );
 const BiomarkersDeepDiveSection = lazy(() =>
   import("@/components/landing/BiomarkersDeepDiveSection").then((m) => ({
