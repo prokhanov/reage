@@ -107,7 +107,7 @@ export function FAQSection() {
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
-      <section className="relative py-6 md:py-8 overflow-hidden">
+      <section id="questions" className="relative py-6 md:py-8 overflow-hidden scroll-mt-20">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       
