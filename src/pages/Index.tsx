@@ -4,6 +4,7 @@ import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 
 
 
@@ -19,8 +20,11 @@ const CycleInfographicBlock = lazy(() =>
     default: m.CycleInfographicBlockV2,
   })),
 );
-const ReportCollageBlock = lazy(() =>
-  import("@/components/landing/v2/ReportCollageBlock").then((m) => ({ default: m.ReportCollageBlock })),
+const EnergyExpertResult = lazy(() =>
+  import("@/components/landing/energy/EnergyExpertResult").then((m) => ({ default: m.EnergyExpertResult })),
+);
+const EnergyOrderProvider = lazy(() =>
+  import("@/components/landing/energy/EnergyOrderContext").then((m) => ({ default: m.EnergyOrderProvider })),
 );
 const BiomarkersDeepDiveSection = lazy(() =>
   import("@/components/landing/BiomarkersDeepDiveSection").then((m) => ({
@@ -115,7 +119,9 @@ const Index = () => {
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
       {/* <BenefitsSection /> */}
       <S><BiomarkersDeepDiveSection /></S>
-      <S><ReportCollageBlock /></S>
+      <EnergyOrderProvider checkup={FULL_CHECKUP}>
+        <S><EnergyExpertResult demoReport /></S>
+      </EnergyOrderProvider>
       <S><AppFeaturesSection /></S>
       <S><WhereToTestSection /></S>
       <S><PricingSection /></S>
