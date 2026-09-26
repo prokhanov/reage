@@ -1,15 +1,27 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown } from "lucide-react";
+import { ArrowRight, Crown, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
-import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
+import {
+  FULL_CHECKUP,
+  FULL_CHECKUP_CATEGORIES,
+  FULL_CHECKUP_MARKERS_COUNT,
+} from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses } from "./checkupShapes";
 
 const YEARLY_PRICE = 69990;
 const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
+
+function markerWord(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "показатель";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "показателя";
+  return "показателей";
+}
 
 type Tab = "feeling" | "system";
 
