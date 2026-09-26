@@ -20,11 +20,11 @@ import { YandexMetrika } from "@/components/YandexMetrika";
 import { JivoVisibility } from "./components/JivoVisibility";
 
 // Statically imported — landing critical path
-import MainNew from "./pages/MainNew";
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Auth / public utilities
-const Index = lazy(() => import("./pages/Index"));
+const MainNew = lazy(() => import("./pages/MainNew"));
 const LandingV2 = lazy(() => import("./pages/LandingV2"));
 
 const Checkup = lazy(() => import("./pages/Checkup"));
@@ -131,7 +131,7 @@ const App = () => (
           <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<MainNew />} />
+            <Route path="/" element={<Index />} />
             <Route path="/main" element={<MainNew />} />
             <Route path="/main_new" element={<Navigate to="/" replace />} />
             <Route path="/monitoring" element={<Index />} />
