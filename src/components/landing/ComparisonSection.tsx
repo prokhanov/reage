@@ -146,7 +146,7 @@ export function ComparisonSection({ hidePrice = false }: { hidePrice?: boolean }
             <span className="text-foreground">просто анализы?</span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Сравниваем подходы: что вы получаете за свои деньги
+            Сравниваем подходы к заботе о здоровье
           </p>
         </div>
 
