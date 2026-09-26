@@ -25,11 +25,6 @@ import {
 const WhyCheckupsFail = lazy(() =>
   import("@/components/landing/WhyCheckupsFail").then((m) => ({ default: m.WhyCheckupsFail })),
 );
-const CycleInfographicBlock = lazy(() =>
-  import("@/components/landing/v2/CycleInfographicBlockV2").then((m) => ({
-    default: m.CycleInfographicBlockV2,
-  })),
-);
 const EnergyExpertResult = lazy(() =>
   import("@/components/landing/energy/EnergyExpertResult").then((m) => ({ default: m.EnergyExpertResult })),
 );
