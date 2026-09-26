@@ -97,7 +97,9 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
     if (selected) {
       return all.filter((c) => selected.slugs.includes(c.slug));
     }
-    return all;
+    // Без фильтра — три популярных чекапа, как по умолчанию
+    const popular = all.filter((c) => POPULAR_SLUGS.includes(c.slug));
+    return popular.length > 0 ? popular : all;
   }, [all, selected]);
 
   function toggleFilter(id: string) {
