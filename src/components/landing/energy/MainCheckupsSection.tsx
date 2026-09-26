@@ -204,18 +204,14 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           />
         </Link>
 
-        {/* Другие чекапы — до фильтра */}
+        {/* Другие чекапы — заголовок, затем фильтр */}
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           Другие чекапы
         </h3>
-        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 md:mb-10">
-          {visible.map((c) => (
-            <CheckupCard key={c.slug} c={c} />
-          ))}
-        </div>
 
         {/* Фильтр */}
-        <div className="rounded-[2rem] border border-border bg-card p-5 sm:p-6">
+        <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
+
 
           {/* Табы — отдельные кнопки-переключатели */}
           <div className="flex flex-wrap gap-3">
