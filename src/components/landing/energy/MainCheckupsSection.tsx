@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Crown, FileText, MapPin, Stethoscope } from "lucide-react";
+import { ArrowRight, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -12,7 +12,6 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { accentClasses } from "./checkupShapes";
 
-const YEARLY_PRICE = 69990;
 const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
 
 function markerWord(n: number) {
@@ -99,18 +98,8 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
     if (selected) {
       return all.filter((c) => selected.slugs.includes(c.slug));
     }
-    // Если ничего не выбрано — показываем 3 популярных чекапа
-    const popular = POPULAR_SLUGS.map((slug) => all.find((c) => c.slug === slug)).filter(
-      Boolean
-    ) as (typeof CHECKUPS)[number][];
-    return popular.length ? popular : all.slice(0, 3);
+    return all;
   }, [all, selected]);
-
-  const showPopularLabel = !selected;
-
-  function toggleFilter(id: string) {
-    setActive((prev) => (prev === id ? null : id));
-  }
 
 
   return (
