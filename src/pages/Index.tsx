@@ -4,6 +4,7 @@ import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 
 
 
@@ -121,7 +122,10 @@ const Index = () => {
       {/* Скрыто по просьбе — блок в «черновиках», не удалять */}
       {/* <BenefitsSection /> */}
       <S><BiomarkersDeepDiveSection /></S>
-      <S><ReportCollageBlock /></S>
+      <EnergyOrderProvider checkup={FULL_CHECKUP}>
+        <S><EnergyExpertResult demoReport /></S>
+        <EnergyCart />
+      </EnergyOrderProvider>
       <S><AppFeaturesSection /></S>
       <S><WhereToTestSection /></S>
       <S><PricingSection /></S>
