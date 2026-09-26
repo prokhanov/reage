@@ -301,7 +301,7 @@ const Index = () => {
         </Suspense>
         <S><AppFeaturesSection /></S>
         <S><WhereToTestSection /></S>
-        <S><MainCheckupsSection title="Программы чекапов" /></S>
+        <S><MainCheckupsSection title="Программы разовых чекапов" /></S>
         <S><PricingSection /></S>
         <S><FAQSection /></S>
         <S><CTASection /></S>
