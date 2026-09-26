@@ -158,7 +158,11 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
                     key={cat.title}
                     className="flex items-center gap-3 text-sm text-primary-foreground/90 sm:text-[0.95rem]"
                   >
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${cat.dotClass}`} aria-hidden />
+                    {/* bg-primary сливается с фоном карточки — на тёмном используем accent */}
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${cat.dotClass === "bg-primary" ? "bg-accent" : cat.dotClass}`}
+                      aria-hidden
+                    />
                     <span>{cat.title}</span>
                     <span className="ml-auto whitespace-nowrap font-mono-tech text-xs text-primary-foreground/60 sm:text-sm">
                       {cat.markers.length} {markerWord(cat.markers.length)}
