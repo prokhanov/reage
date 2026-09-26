@@ -42,7 +42,7 @@ export function HowItWorksBlock() {
           >
             <span className="text-foreground">Что входит в </span>
             <span className="text-foreground">
-              годовую программу
+              программу
             </span>
           </h2>
         </div>
