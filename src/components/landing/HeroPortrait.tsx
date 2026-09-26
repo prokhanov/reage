@@ -2,9 +2,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun, LogIn } from "lucide-react";
+import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
-import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
@@ -385,14 +384,8 @@ function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
 
 export function HeroPortrait() {
   const navigate = useNavigate();
-  const { requestRegister } = useRegisterGuard();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
   const bp = useBreakpoint();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isDark = theme === "dark";
 
