@@ -443,13 +443,6 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </button>
             )}
 
-            {/* Theme Toggle */}
-            <div className={cn(
-              "mt-1 border-t hairline",
-              isOpen ? "pt-2" : "flex justify-center pt-2"
-            )}>
-              <ThemeToggle isOpen={isOpen} />
-            </div>
           </div>
         </div>
       </aside>
