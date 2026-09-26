@@ -101,6 +101,11 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
     return all;
   }, [all, selected]);
 
+  function toggleFilter(id: string) {
+    setActive((prev) => (prev === id ? null : id));
+  }
+
+
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
@@ -200,8 +205,19 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
           />
         </Link>
 
+        {/* Другие чекапы — до фильтра */}
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Другие чекапы
+        </h3>
+        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 md:mb-10">
+          {visible.map((c) => (
+            <CheckupCard key={c.slug} c={c} />
+          ))}
+        </div>
+
         {/* Фильтр */}
-        <div className="mb-8 rounded-[2rem] border border-border bg-card p-5 sm:p-6 md:mb-10">
+        <div className="rounded-[2rem] border border-border bg-card p-5 sm:p-6">
+
           {/* Табы — отдельные кнопки-переключатели */}
           <div className="flex flex-wrap gap-3">
             <button
