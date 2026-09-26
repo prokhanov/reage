@@ -135,7 +135,6 @@ export function ComparisonSection({ hidePrice = false }: { hidePrice?: boolean }
   return (
     <section id="comparison" className="relative py-6 md:py-8 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-1/4 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
 
