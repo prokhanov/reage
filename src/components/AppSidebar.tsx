@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState, useContext } from "react";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
