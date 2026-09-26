@@ -140,7 +140,7 @@ export function WhereToTestSection() {
           >
             <span className="text-foreground">Сдавайте анализы,</span>
             <br />
-            <span className="text-foreground">где удобно вам</span>
+            <span className="text-foreground">где удобно вам – сегодня</span>
           </h2>
           <p
             className="text-base md:text-lg text-muted-foreground animate-fade-in"
