@@ -23,6 +23,8 @@ function markerWord(n: number) {
 
 type Tab = "feeling" | "system";
 
+const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
+
 type Filter = {
   id: string;
   label: string;
