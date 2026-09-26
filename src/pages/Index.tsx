@@ -97,7 +97,7 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-clip">
       <VerifyEmailTokenHandler />
       <PasswordResetTokenHandler />
       <HeroPortrait />
@@ -120,7 +120,10 @@ const Index = () => {
       {/* <BenefitsSection /> */}
       <S><BiomarkersDeepDiveSection /></S>
       <EnergyOrderProvider checkup={FULL_CHECKUP}>
-        <S><EnergyExpertResult demoReport /></S>
+        {/* Без cv-section: content-visibility ломает sticky-фиксацию врача при скролле */}
+        <Suspense fallback={<SectionFallback />}>
+          <EnergyExpertResult demoReport />
+        </Suspense>
       </EnergyOrderProvider>
       <S><AppFeaturesSection /></S>
       <S><WhereToTestSection /></S>
