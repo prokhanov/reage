@@ -2,9 +2,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun, LogIn } from "lucide-react";
+import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
-import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
@@ -385,14 +384,8 @@ function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
 
 export function HeroPortrait() {
   const navigate = useNavigate();
-  const { requestRegister } = useRegisterGuard();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
   const bp = useBreakpoint();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isDark = theme === "dark";
 
@@ -429,52 +422,6 @@ export function HeroPortrait() {
         }}
       />
 
-      {mounted && (
-        <>
-          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-end sm:items-center justify-between gap-2 pointer-events-none">
-            <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="pointer-events-auto h-10 w-10 flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
-              aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
-            >
-              {isDark ? (
-                <Sun className="h-5 w-5 text-foreground" />
-              ) : (
-                <Moon className="h-5 w-5 text-foreground" />
-              )}
-            </button>
-
-            <div className="flex flex-row-reverse sm:flex-row items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => navigate("/auth")}
-                className="pointer-events-auto h-10 w-10 sm:w-auto sm:px-4 inline-flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm text-foreground hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
-                aria-label="Войти"
-              >
-                <LogIn className="h-5 w-5 sm:hidden" />
-                <span className="hidden sm:inline text-sm font-semibold">Войти</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-md shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
-              >
-                Оставить заявку
-                <ArrowRight className="hidden sm:inline w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-start sm:justify-center pointer-events-none">
-            <div className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
-                Москва и Санкт-Петербург
-              </span>
-            </div>
-          </div>
-        </>
-      )}
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-28 lg:pb-20">
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
