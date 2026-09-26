@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { BiomarkerComparisonDialog } from "./BiomarkerComparisonDialog";
-import { TrialOfferStrip } from "./TrialOfferStrip";
 
 import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -516,7 +515,6 @@ export function PricingSection({ showStarterPlan = false }: { showStarterPlan?: 
 
         </div>
 
-        <TrialOfferStrip />
 
 
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
