@@ -45,6 +45,10 @@ export function EnergyCart() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
   const [consult, setConsult] = useState(false);
@@ -59,7 +63,9 @@ export function EnergyCart() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
-  const canPay = emailValid && phoneValid && agree && items.length > 0;
+  const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
+  const birthValid = /^\d{4}-\d{2}-\d{2}$/.test(birthDate);
+  const canPay = emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
 
   // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
   useEffect(() => {
@@ -108,6 +114,10 @@ export function EnergyCart() {
           bundles: items.map((item) => item.bundle),
           email: email.trim(),
           phone: phone.trim(),
+          lastName: lastName.trim(),
+          firstName: firstName.trim(),
+          middleName: middleName.trim(),
+          birthDate,
           promoCode: appliedPromo?.code,
           consultation: consult,
           clinic: clinic
