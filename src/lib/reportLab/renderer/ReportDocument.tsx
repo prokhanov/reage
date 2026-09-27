@@ -40,6 +40,7 @@ export function ReportDocument({ report, signalReady }: Props) {
   const sectionEntries = getSectionEntries(doc);
   const gender = report.patient.gender;
   const age = calcAge(report.patient.birth_date, report.analysis.date);
+  const hidePatientData = report.coverOverrides?.presentation?.hidePatientData === true;
 
   useEffect(() => {
     if (!signalReady) return;
@@ -86,7 +87,9 @@ export function ReportDocument({ report, signalReady }: Props) {
       {/* Локальные @font-face: одинаковые метрики текста на всех устройствах. */}
       <style dangerouslySetInnerHTML={{ __html: reportFontFaceCss }} />
       <ReportCover report={report} />
-      <ReportPatientData report={report} entry={getPatientEntry(doc)} />
+      {!hidePatientData && (
+        <ReportPatientData report={report} entry={getPatientEntry(doc)} />
+      )}
       <ReportOverview report={report} entry={getSummaryEntry(doc)} />
       {sectionEntries.map((entry, i) => (
         <ReportSection

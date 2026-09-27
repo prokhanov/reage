@@ -30,6 +30,7 @@ export function ReportCover({ report }: Props) {
   const fullName = [patient.first_name, patient.last_name]
     .filter(Boolean)
     .join(" ");
+  const hideMeta = overrides?.presentation?.hideCoverMeta === true;
 
   const V = (name: string, value: string) =>
     isEdit ? (
@@ -137,7 +138,7 @@ export function ReportCover({ report }: Props) {
         )}
       </div>
 
-      <div className="rl-cover-meta">
+      {!hideMeta && <div className="rl-cover-meta">
         {renderEl(
           "meta-report",
           "rl-cover-meta-item",
@@ -179,7 +180,7 @@ export function ReportCover({ report }: Props) {
             <div className="value">Наталья Чезганова</div>
           </>,
         )}
-      </div>
+      </div>}
     </div>
   );
 }

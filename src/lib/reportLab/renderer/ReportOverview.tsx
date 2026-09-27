@@ -25,6 +25,7 @@ export function ReportOverview({ report, entry }: Props) {
 
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
+  const hideStats = report.coverOverrides?.presentation?.hideOverviewStats === true;
 
   return (
     <section className="rl-page" data-section-id="overview">
@@ -57,7 +58,7 @@ export function ReportOverview({ report, entry }: Props) {
 
 
 
-      <div className="rl-stats">
+      {!hideStats && <div className="rl-stats">
         <div className="rl-stat">
           <div className="label">Хронологический</div>
           <div className="value">{age ?? "—"}</div>
@@ -84,7 +85,7 @@ export function ReportOverview({ report, entry }: Props) {
           <div className="value">{report.biomarkers.length}</div>
           <div className="caption">измерений</div>
         </div>
-      </div>
+      </div>}
 
       {(summaryText || entry?.bodyHtml || summaryRow) && (
         <div className={`rl-conclusion${summaryRow ? " rl-conclusion-editable" : ""}`}>
