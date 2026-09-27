@@ -275,9 +275,46 @@ export function EnergyCart() {
                   {checkup.prepNotes?.map((note) => <li key={note}>{note}</li>)}
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  Куда прислать результат — оба поля обязательны
+                  Данные для оформления заявки в лабораторию — все поля обязательны
                 </p>
                 <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <Input
+                      placeholder="фамилия"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && lastName.trim().length <= 1}
+                    />
+                    <Input
+                      placeholder="имя"
+                      autoComplete="given-name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && firstName.trim().length <= 1}
+                    />
+                    <Input
+                      placeholder="отчество"
+                      autoComplete="additional-name"
+                      value={middleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      className="h-12"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="date"
+                      placeholder="дата рождения"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="h-12"
+                      min="1900-01-01"
+                      max={new Date().toISOString().slice(0, 10)}
+                      aria-invalid={touched && !birthValid}
+                    />
+                  </div>
                   <Input
                     type="email"
                     inputMode="email"
@@ -298,7 +335,7 @@ export function EnergyCart() {
                   />
                   {touched && !canPay && (
                     <p className="text-xs text-destructive">
-                      Укажите корректные email и телефон и подтвердите согласие.
+                      Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие.
                     </p>
                   )}
                 </div>
