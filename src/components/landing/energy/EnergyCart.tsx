@@ -329,13 +329,12 @@ export function EnergyCart() {
                   </div>
                   <div>
                     <Input
-                      type="date"
-                      placeholder="дата рождения"
+                      inputMode="numeric"
+                      autoComplete="bday"
+                      placeholder="Дата рождения"
                       value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
+                      onChange={(e) => setBirthDate(formatBirthInput(e.target.value))}
                       className="h-12"
-                      min="1900-01-01"
-                      max={new Date().toISOString().slice(0, 10)}
                       aria-invalid={touched && !birthValid}
                     />
                   </div>
