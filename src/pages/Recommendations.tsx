@@ -1028,7 +1028,7 @@ export default function Recommendations() {
                   : "Дата не указана";
                 return (
                   <div
-                    key={report.date}
+                    key={report.analysisId || report.date}
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                     className="rounded-xl border hairline bg-card p-4 cursor-pointer transition-colors hover:bg-foreground/[0.02] active:scale-[0.99]"
                   >
@@ -1106,7 +1106,7 @@ export default function Recommendations() {
               <TableBody>
                 {reports.map((report) => (
                   <TableRow 
-                    key={report.date} 
+                    key={report.analysisId || report.date} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                   >
