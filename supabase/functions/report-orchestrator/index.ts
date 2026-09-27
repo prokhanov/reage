@@ -435,6 +435,24 @@ async function handleTick(supabase: any, body: any) {
   // analyze-biomarkers мог дописать результат в фоне. Проверяем БД до того,
   // как жечь новую генерацию.
   const rescueUntil = (step as any).rescueUntil as number | undefined;
+  const emptyCatEarly = step.kind === "category" && rescueUntil
+    ? !(await getAnalysisCategories(supabase, j.analysis_id)).has((step.payload as any)?.categoryFilter?.[0])
+    : false;
+  if (emptyCatEarly) {
+    // Пустая система: ждать фоновый результат бессмысленно — пропускаем шаг.
+    const steps = [...j.steps] as any[];
+    const done = { ...steps[stepIdx] };
+    delete done.rescueUntil; delete done.rescueStartedAt; delete done.dispatchToken; delete done.dispatchStartedAt;
+    steps[stepIdx] = done;
+    const next = steps[stepIdx + 1];
+    await supabase.from("report_jobs").update({
+      steps, steps_done: stepIdx + 1, attempts: 0, error: null,
+      current_step: next?.id ?? null,
+    }).eq("id", j.id).eq("updated_at", j.updated_at);
+    console.log(`[job ${j.id}] ⏭ "${step.label}" — нет показателей, шаг пропущен`);
+    scheduleTick(j.id, 1_000);
+    return json({ success: true, skipped: step.id });
+  }
   if (rescueUntil) {
     const rescueStartedAt = ((step as any).rescueStartedAt as number | undefined) ?? 0;
     const rescued = await tryRescueStep(supabase, j, stepIdx, rescueStartedAt);
