@@ -74,6 +74,12 @@ export interface ReportRecommendationRow {
 
 /** Persisted per-analysis правки обложки V2. NULL/отсутствие = дефолтный шаблон. */
 export interface CoverOverrides {
+  /** Точечные настройки состава конкретного отчёта. */
+  presentation?: {
+    hidePatientData?: boolean;
+    hideCoverMeta?: boolean;
+    hideOverviewStats?: boolean;
+  };
   background?: {
     mode: "solid" | "gradient";
     c1?: string;
