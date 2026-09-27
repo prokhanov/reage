@@ -327,7 +327,18 @@ export default function Dashboard() {
         .maybeSingle();
       if (error) throw error;
       if (!snap) {
-        toast({ title: "Нет сохранённой стратегии", description: "Сначала выполните перерасчёт и публикацию.", variant: "destructive" });
+        // Стратегия ещё не публиковалась — собираем черновик из текущих данных
+        // и сразу открываем его на редактирование.
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error: fnErr } = await supabase.functions.invoke("compute-health-strategy", {
+          body: { userId, preview: true },
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        });
+        if (fnErr) throw fnErr;
+        if (data?.error) throw new Error(data.error);
+        setPreviewData(data);
+        setPreviewMode("edit");
+        setPreviewOpen(true);
         return;
       }
       setPreviewData({
