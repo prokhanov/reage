@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hidden_dashboard_sections text[] NOT NULL DEFAULT '{}';
