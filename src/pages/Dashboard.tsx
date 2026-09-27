@@ -330,12 +330,17 @@ export default function Dashboard() {
       if (!snap) {
         // Стратегия ещё не публиковалась — открываем пустой черновик
         // на редактирование без генерации через ИИ.
+        // Подставляем текущие значения с дашборда, чтобы форма совпадала с тем, что видно.
+        const latestA = [...(allAnalyses || [])].sort((a: any, b: any) =>
+          new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
+        ).pop() as any;
+        const r1 = (v: any) => (typeof v === "number" && isFinite(v) ? Math.round(v * 10) / 10 : null);
         setPreviewData({
-          analysis_id: null,
-          current_bio_age: null,
-          chronological_age: null,
+          analysis_id: latestA?.id ?? null,
+          current_bio_age: r1(displayBioAge),
+          chronological_age: r1(chronologicalAge),
           target_bio_age: null,
-          health_index: null,
+          health_index: typeof displayHealthIndex === "number" ? displayHealthIndex : null,
           rationale: "",
           system_goals: [],
           action_map: [],
