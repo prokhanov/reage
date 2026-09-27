@@ -29,7 +29,7 @@ export function HideableSection({ title, hidden, canEdit, onToggle, children }: 
             <div className="space-y-1">
               <div className="font-medium text-foreground">Недостаточно данных</div>
               <p className="text-sm text-muted-foreground">
-                Раздел появится, когда накопится больше показателей в анализах.
+                Раздел появится, когда накопится больше показателей.
               </p>
             </div>
           </div>
