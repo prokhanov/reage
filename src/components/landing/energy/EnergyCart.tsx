@@ -37,6 +37,29 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   );
 }
 
+// Дата рождения: текстовое поле с маской «дд.мм.гггг», чтобы placeholder показывал назначение поля,
+// а не формат даты, который браузер рисует для input type="date".
+function formatBirthInput(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}.${d.slice(2)}`;
+  return `${d.slice(0, 2)}.${d.slice(2, 4)}.${d.slice(4)}`;
+}
+
+function birthDisplayToIso(display: string): string {
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(display);
+  if (!m) return "";
+  const [, dd, mm, yyyy] = m;
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = Number(yyyy);
+  if (year < 1900 || month < 1 || month > 12 || day < 1 || day > 31) return "";
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return "";
+  if (date.getTime() > Date.now()) return "";
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function EnergyCart() {
   const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
     useEnergyOrder();
