@@ -64,7 +64,8 @@ export function EnergyCart() {
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
   const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
-  const birthValid = /^\d{4}-\d{2}-\d{2}$/.test(birthDate);
+  const birthIso = birthDisplayToIso(birthDate);
+  const birthValid = birthIso !== "";
   const canPay = emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
 
   // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
