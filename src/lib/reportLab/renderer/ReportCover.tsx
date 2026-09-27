@@ -120,7 +120,10 @@ export function ReportCover({ report }: Props) {
         </div>
       </div>
 
-      <div className="rl-cover-center">
+      <div
+        className="rl-cover-center"
+        style={hideMeta ? { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingBottom: "22mm" } : undefined}
+      >
         {renderEl(
           "eyebrow",
           "rl-cover-eyebrow",
@@ -138,13 +141,6 @@ export function ReportCover({ report }: Props) {
         )}
       </div>
 
-      {hideMeta && (
-        <div
-          className="rl-cover-meta"
-          style={{ visibility: "hidden", minHeight: "48mm", borderTop: "none" }}
-          aria-hidden="true"
-        />
-      )}
       {!hideMeta && <div className="rl-cover-meta">
         {renderEl(
           "meta-report",
