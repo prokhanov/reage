@@ -138,6 +138,7 @@ export function ReportCover({ report }: Props) {
         )}
       </div>
 
+      {hideMeta && <div className="rl-cover-meta" style={{ visibility: "hidden" }} aria-hidden="true" />}
       {!hideMeta && <div className="rl-cover-meta">
         {renderEl(
           "meta-report",
