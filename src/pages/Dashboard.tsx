@@ -22,6 +22,7 @@ import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
+import { HideableSection } from "@/components/dashboard/HideableSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
 import { RecomputeOptionsDialog, ALL_SECTIONS, type RecomputeSection } from "@/components/health-strategy/RecomputeOptionsDialog";
@@ -485,6 +486,23 @@ export default function Dashboard() {
     : latestBiomarkersMetadata?.ai_analysis?.category_scores;
   const displayAllAnalyses = analyses || [];
 
+  const hiddenSections: string[] = demoMode ? [] : (profile?.hidden_dashboard_sections || []);
+  const isHidden = (key: string) => hiddenSections.includes(key);
+  const toggleSection = async (key: string, hide: boolean) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const next = hide ? Array.from(new Set([...hiddenSections, key])) : hiddenSections.filter((k) => k !== key);
+    const prev = profile;
+    setProfile({ ...profile, hidden_dashboard_sections: next });
+    const { error } = await supabase.from("profiles").update({ hidden_dashboard_sections: next }).eq("id", userId);
+    if (error) {
+      setProfile(prev);
+      toast({ title: "Не удалось сохранить", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: hide ? "Раздел скрыт от пациента" : "Раздел снова виден пациенту" });
+    }
+  };
+
   return (
     <PageContainer width="wide">
       {/* Demo Banner */}
@@ -597,6 +615,7 @@ export default function Dashboard() {
         )}
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
+        <HideableSection title="Ваш биологический возраст" hidden={isHidden("bio_age")} canEdit={canRecalculate} onToggle={(v) => toggleSection("bio_age", v)}>
         <Card className="overflow-hidden">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
             <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
@@ -822,16 +841,23 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        </HideableSection>
+
         {/* Weight Tracker */}
-        <WeightTracker />
+        <HideableSection title="Вес" hidden={isHidden("weight")} canEdit={canRecalculate} onToggle={(v) => toggleSection("weight", v)}>
+          <WeightTracker />
+        </HideableSection>
 
         {/* System Ratings */}
-        <SystemRatingsCard
-          categoryScores={displayCategoryScores}
-          analyses={displayAllAnalyses}
-        />
+        <HideableSection title="Рейтинг систем" hidden={isHidden("system_ratings")} canEdit={canRecalculate} onToggle={(v) => toggleSection("system_ratings", v)}>
+          <SystemRatingsCard
+            categoryScores={displayCategoryScores}
+            analyses={displayAllAnalyses}
+          />
+        </HideableSection>
 
         {/* Biomarkers & Trends Tabs */}
+        <HideableSection title="Маркеры и тренды" hidden={isHidden("biomarkers")} canEdit={canRecalculate} onToggle={(v) => toggleSection("biomarkers", v)}>
         <Card className="overflow-visible">
           <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
@@ -850,6 +876,8 @@ export default function Dashboard() {
             </Tabs>
           </CardContent>
         </Card>
+        </HideableSection>
+
 
     </PageContainer>
   );

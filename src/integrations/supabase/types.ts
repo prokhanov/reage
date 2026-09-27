@@ -2228,6 +2228,7 @@ export type Database = {
           gender: string | null
           health_note: string | null
           height: number | null
+          hidden_dashboard_sections: string[]
           hrt_route: string | null
           hrt_start_date: string | null
           hrt_type: string | null
@@ -2266,6 +2267,7 @@ export type Database = {
           gender?: string | null
           health_note?: string | null
           height?: number | null
+          hidden_dashboard_sections?: string[]
           hrt_route?: string | null
           hrt_start_date?: string | null
           hrt_type?: string | null
@@ -2304,6 +2306,7 @@ export type Database = {
           gender?: string | null
           health_note?: string | null
           height?: number | null
+          hidden_dashboard_sections?: string[]
           hrt_route?: string | null
           hrt_start_date?: string | null
           hrt_type?: string | null
