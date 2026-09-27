@@ -328,16 +328,25 @@ export default function Dashboard() {
         .maybeSingle();
       if (error) throw error;
       if (!snap) {
-        // Стратегия ещё не публиковалась — собираем черновик из текущих данных
-        // и сразу открываем его на редактирование.
-        const { data: { session } } = await supabase.auth.getSession();
-        const { data, error: fnErr } = await supabase.functions.invoke("compute-health-strategy", {
-          body: { userId, preview: true },
-          headers: { Authorization: `Bearer ${session?.access_token}` },
+        // Стратегия ещё не публиковалась — открываем пустой черновик
+        // на редактирование без генерации через ИИ.
+        setPreviewData({
+          analysis_id: null,
+          current_bio_age: null,
+          chronological_age: null,
+          target_bio_age: null,
+          health_index: null,
+          rationale: "",
+          system_goals: [],
+          action_map: [],
+          cohort_percentile: null,
+          cohort_label: "",
+          trajectory: null,
+          roadmap: [],
+          key_biomarkers: [],
+          expectations: [],
+          analyses_per_year: null,
         });
-        if (fnErr) throw fnErr;
-        if (data?.error) throw new Error(data.error);
-        setPreviewData(data);
         setPreviewMode("edit");
         setPreviewOpen(true);
         return;
