@@ -185,10 +185,15 @@ async function handleStart(supabase: any, body: any) {
   if (catsErr) throw catsErr;
   if (!cats || cats.length === 0) throw new Error("В БД нет категорий биомаркеров");
 
+  // Пропускаем системы, в которых у пациента нет ни одного показателя:
+  // иначе шаг категории ничего не генерирует и job висит в ожидании.
+  const presentCats = await getAnalysisCategories(supabase, analysisId);
+  const usedCats = presentCats.size > 0 ? cats.filter((c: any) => presentCats.has(c.name)) : cats;
+
   const steps: StepDef[] = [];
   // Первый шаг "delete" совмещаем с первой категорией: первая категория идёт без skipDelete,
   // остальные — со skipDelete=true (старые данные уже удалены).
-  cats.forEach((c: any, idx: number) => {
+  usedCats.forEach((c: any, idx: number) => {
     steps.push({
       id: `category:${c.name}`,
       label: `Анализ: ${c.name}`,
@@ -430,6 +435,24 @@ async function handleTick(supabase: any, body: any) {
   // analyze-biomarkers мог дописать результат в фоне. Проверяем БД до того,
   // как жечь новую генерацию.
   const rescueUntil = (step as any).rescueUntil as number | undefined;
+  const emptyCatEarly = step.kind === "category" && rescueUntil
+    ? !(await getAnalysisCategories(supabase, j.analysis_id)).has((step.payload as any)?.categoryFilter?.[0])
+    : false;
+  if (emptyCatEarly) {
+    // Пустая система: ждать фоновый результат бессмысленно — пропускаем шаг.
+    const steps = [...j.steps] as any[];
+    const done = { ...steps[stepIdx] };
+    delete done.rescueUntil; delete done.rescueStartedAt; delete done.dispatchToken; delete done.dispatchStartedAt;
+    steps[stepIdx] = done;
+    const next = steps[stepIdx + 1];
+    await supabase.from("report_jobs").update({
+      steps, steps_done: stepIdx + 1, attempts: 0, error: null,
+      current_step: next?.id ?? null,
+    }).eq("id", j.id).eq("updated_at", j.updated_at);
+    console.log(`[job ${j.id}] ⏭ "${step.label}" — нет показателей, шаг пропущен`);
+    scheduleTick(j.id, 1_000);
+    return json({ success: true, skipped: step.id });
+  }
   if (rescueUntil) {
     const rescueStartedAt = ((step as any).rescueStartedAt as number | undefined) ?? 0;
     const rescued = await tryRescueStep(supabase, j, stepIdx, rescueStartedAt);
@@ -521,7 +544,14 @@ async function handleTick(supabase: any, body: any) {
   let stepError: string | null = null;
 
   try {
-    if (step.kind === "category" || step.kind === "prescriptions") {
+    const stepCat = step.kind === "category" ? (step.payload as any)?.categoryFilter?.[0] : null;
+    const emptyCategory = stepCat
+      ? !(await getAnalysisCategories(supabase, j.analysis_id)).has(stepCat)
+      : false;
+    if (emptyCategory) {
+      console.log(`[job ${j.id}] ⏭ "${step.label}" — у пациента нет показателей этой системы, пропускаем`);
+      stepOk = true;
+    } else if (step.kind === "category" || step.kind === "prescriptions") {
       // Шаг запускается в фоне (async): analyze-biomarkers сразу отвечает 202
       // и доделывает работу в waitUntil. Так шлюз не рвёт соединение на 150s.
       // Готовность шага определяем rescue-поллингом по БД.
@@ -965,3 +995,12 @@ async function handleRegeneratePrescriptions(supabase: any, body: any) {
 
 
 
+
+
+async function getAnalysisCategories(supabase: any, analysisId: string): Promise<Set<string>> {
+  const { data } = await supabase
+    .from("analysis_values")
+    .select("biomarkers(category)")
+    .eq("analysis_id", analysisId);
+  return new Set(((data || []) as any[]).map((v) => v.biomarkers?.category).filter(Boolean));
+}
