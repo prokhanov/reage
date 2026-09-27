@@ -1191,6 +1191,7 @@ export type Database = {
       }
       energy_orders: {
         Row: {
+          birth_date: string | null
           bonus_items: Json
           bundle: string
           bundles: string[] | null
@@ -1200,9 +1201,12 @@ export type Database = {
           created_at: string
           discount_amount: number
           email: string
+          first_name: string | null
           id: string
           inv_id: number
           is_test: boolean
+          last_name: string | null
+          middle_name: string | null
           original_amount: number
           out_sum: number
           paid_amount: number | null
@@ -1216,6 +1220,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          birth_date?: string | null
           bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
@@ -1225,9 +1230,12 @@ export type Database = {
           created_at?: string
           discount_amount?: number
           email: string
+          first_name?: string | null
           id?: string
           inv_id?: number
           is_test?: boolean
+          last_name?: string | null
+          middle_name?: string | null
           original_amount: number
           out_sum: number
           paid_amount?: number | null
@@ -1241,6 +1249,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          birth_date?: string | null
           bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
@@ -1250,9 +1259,12 @@ export type Database = {
           created_at?: string
           discount_amount?: number
           email?: string
+          first_name?: string | null
           id?: string
           inv_id?: number
           is_test?: boolean
+          last_name?: string | null
+          middle_name?: string | null
           original_amount?: number
           out_sum?: number
           paid_amount?: number | null
