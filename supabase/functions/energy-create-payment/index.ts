@@ -74,6 +74,10 @@ Deno.serve(async (req) => {
       promoCode,
       clinic,
       consultation,
+      lastName,
+      firstName,
+      middleName,
+      birthDate,
     } = body as {
       bundle?: string;
       bundles?: string[];
@@ -82,6 +86,10 @@ Deno.serve(async (req) => {
       promoCode?: string;
       clinic?: { id?: string; title?: string; address?: string } | null;
       consultation?: boolean;
+      lastName?: string;
+      firstName?: string;
+      middleName?: string;
+      birthDate?: string;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
@@ -98,6 +106,17 @@ Deno.serve(async (req) => {
     }
     if (phoneClean.replace(/\D/g, "").length < 10) {
       return json({ error: "Укажите корректный телефон" }, 400);
+    }
+
+    const lastNameClean = (lastName ?? "").trim().slice(0, 100);
+    const firstNameClean = (firstName ?? "").trim().slice(0, 100);
+    const middleNameClean = (middleName ?? "").trim().slice(0, 100);
+    const birthDateClean = (birthDate ?? "").trim();
+    if (lastNameClean.length < 2 || firstNameClean.length < 2) {
+      return json({ error: "Укажите фамилию и имя" }, 400);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDateClean) || isNaN(Date.parse(birthDateClean))) {
+      return json({ error: "Укажите дату рождения" }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -176,6 +195,10 @@ Deno.serve(async (req) => {
         bundles: uniqueBundles,
         email: emailClean,
         phone: phoneClean,
+        last_name: lastNameClean,
+        first_name: firstNameClean,
+        middle_name: middleNameClean || null,
+        birth_date: birthDateClean,
         clinic_id: clinic?.id ?? null,
         clinic_title: clinic?.title ?? null,
         clinic_address: clinic?.address ?? null,

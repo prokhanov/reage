@@ -145,13 +145,18 @@ export function buildMessage(
         ? payload.bundles.map((b: unknown) => String(b))
         : [String(payload.bundle || "—")];
       const title = list.map((b) => CHECKUP_TITLES[b] || b).join("\n📦 ");
+      const fio = [payload.last_name, payload.first_name, payload.middle_name].filter(Boolean).join(" ");
       const lines = [
         prefix + (list.length > 1 ? "🛒 <b>Оплачены чекапы</b>" : "🛒 <b>Оплачен чекап</b>"),
         `📦 ${e(title)}`,
         `💵 ${e(formatAmount(payload.amount))}`,
+      ];
+      if (fio) lines.push(`👤 ${e(fio)}`);
+      if (payload.birth_date) lines.push(`🎂 ${e(formatDate(String(payload.birth_date)))}`);
+      lines.push(
         `📧 ${e(payload.email || "—")}`,
         `📱 ${e(payload.phone || "—")}`,
-      ];
+      );
       if (payload.clinic_title || payload.clinic_address) {
         lines.push(`📍 ${e([payload.clinic_title, payload.clinic_address].filter(Boolean).join(" · "))}`);
       }

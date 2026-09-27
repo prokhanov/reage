@@ -45,6 +45,10 @@ export function EnergyCart() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
   const [consult, setConsult] = useState(false);
@@ -59,7 +63,9 @@ export function EnergyCart() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
-  const canPay = emailValid && phoneValid && agree && items.length > 0;
+  const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
+  const birthValid = /^\d{4}-\d{2}-\d{2}$/.test(birthDate);
+  const canPay = emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
 
   // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
   useEffect(() => {
@@ -108,6 +114,10 @@ export function EnergyCart() {
           bundles: items.map((item) => item.bundle),
           email: email.trim(),
           phone: phone.trim(),
+          lastName: lastName.trim(),
+          firstName: firstName.trim(),
+          middleName: middleName.trim(),
+          birthDate,
           promoCode: appliedPromo?.code,
           consultation: consult,
           clinic: clinic
@@ -265,9 +275,46 @@ export function EnergyCart() {
                   {checkup.prepNotes?.map((note) => <li key={note}>{note}</li>)}
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  Куда прислать результат — оба поля обязательны
+                  Данные для оформления заявки в лабораторию — все поля обязательны
                 </p>
                 <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <Input
+                      placeholder="фамилия"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && lastName.trim().length <= 1}
+                    />
+                    <Input
+                      placeholder="имя"
+                      autoComplete="given-name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && firstName.trim().length <= 1}
+                    />
+                    <Input
+                      placeholder="отчество"
+                      autoComplete="additional-name"
+                      value={middleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      className="h-12"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="date"
+                      placeholder="дата рождения"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="h-12"
+                      min="1900-01-01"
+                      max={new Date().toISOString().slice(0, 10)}
+                      aria-invalid={touched && !birthValid}
+                    />
+                  </div>
                   <Input
                     type="email"
                     inputMode="email"
@@ -288,7 +335,7 @@ export function EnergyCart() {
                   />
                   {touched && !canPay && (
                     <p className="text-xs text-destructive">
-                      Укажите корректные email и телефон и подтвердите согласие.
+                      Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие.
                     </p>
                   )}
                 </div>
