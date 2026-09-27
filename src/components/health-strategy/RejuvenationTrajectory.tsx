@@ -21,7 +21,33 @@ interface Props {
 const PRIMARY = "hsl(270, 90%, 60%)";
 const ACCENT = "hsl(320, 100%, 60%)";
 
-export function RejuvenationTrajectory({
+type NullableProps = Omit<Props, "chronologicalAge" | "currentBioAge" | "targetBioAge"> & {
+  chronologicalAge: number | null | undefined;
+  currentBioAge: number | null | undefined;
+  targetBioAge: number | null | undefined;
+};
+
+export function RejuvenationTrajectory(props: NullableProps) {
+  const { chronologicalAge, currentBioAge, targetBioAge } = props;
+  const ok = (v: unknown): v is number => typeof v === "number" && isFinite(v);
+  if (!ok(chronologicalAge) || !ok(currentBioAge) || !ok(targetBioAge)) {
+    return (
+      <div className="rounded-xl border border-border p-6 text-sm text-muted-foreground">
+        Недостаточно данных для построения траектории — укажите текущий и целевой биологический возраст.
+      </div>
+    );
+  }
+  return (
+    <RejuvenationTrajectoryInner
+      {...props}
+      chronologicalAge={chronologicalAge}
+      currentBioAge={currentBioAge}
+      targetBioAge={targetBioAge}
+    />
+  );
+}
+
+function RejuvenationTrajectoryInner({
   startDate,
   chronologicalAge,
   currentBioAge,
