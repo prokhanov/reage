@@ -328,30 +328,16 @@ export default function Dashboard() {
         .maybeSingle();
       if (error) throw error;
       if (!snap) {
-        // Стратегия ещё не публиковалась — открываем пустой черновик
-        // на редактирование без генерации через ИИ.
-        // Подставляем текущие значения с дашборда, чтобы форма совпадала с тем, что видно.
-        const latestA = [...(allAnalyses || [])].sort((a: any, b: any) =>
-          new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
-        ).pop() as any;
-        const r1 = (v: any) => (typeof v === "number" && isFinite(v) ? Math.round(v * 10) / 10 : null);
-        setPreviewData({
-          analysis_id: latestA?.id ?? null,
-          current_bio_age: r1(displayBioAge),
-          chronological_age: r1(chronologicalAge),
-          target_bio_age: null,
-          health_index: typeof displayHealthIndex === "number" ? displayHealthIndex : null,
-          rationale: "",
-          system_goals: [],
-          action_map: [],
-          cohort_percentile: null,
-          cohort_label: "",
-          trajectory: null,
-          roadmap: [],
-          key_biomarkers: [],
-          expectations: [],
-          analyses_per_year: null,
+        // Стратегия ещё не публиковалась — собираем её по текущим данным
+        // (как на дашборде) и открываем все разделы на редактирование.
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error: fnErr } = await supabase.functions.invoke("compute-health-strategy", {
+          body: { userId, preview: true },
+          headers: { Authorization: `Bearer ${session?.access_token}` },
         });
+        if (fnErr) throw fnErr;
+        if (data?.error) throw new Error(data.error);
+        setPreviewData(data);
         setPreviewMode("edit");
         setPreviewOpen(true);
         return;
