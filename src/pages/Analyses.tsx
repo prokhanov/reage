@@ -45,6 +45,7 @@ export default function Analyses() {
   const { hasPatientAccess } = usePatientModuleAccess();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
+  const [hideBioMetrics, setHideBioMetrics] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
@@ -71,12 +72,29 @@ export default function Analyses() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
-      const { data, error } = await supabase
-        .from("analyses")
-        .select("id, date, lab_name, health_index, biological_age, status")
-        .eq("user_id", userId);
+      const [analysesResult, profileResult] = await Promise.all([
+        supabase
+          .from("analyses")
+          .select("id, date, lab_name, health_index, biological_age, status")
+          .eq("user_id", userId),
+        supabase
+          .from("profiles")
+          .select("hidden_dashboard_sections")
+          .eq("id", userId)
+          .maybeSingle(),
+      ]);
+
+      const { data, error } = analysesResult;
 
       if (error) throw error;
+
+      if (profileResult.error) {
+        console.warn("Failed to load dashboard visibility:", profileResult.error);
+      } else {
+        setHideBioMetrics(
+          (profileResult.data?.hidden_dashboard_sections || []).includes("bio_age")
+        );
+      }
 
       // Сортируем по дате на клиенте (во избежание ошибок order("date"))
       const sorted = (data || []).sort(
@@ -278,12 +296,12 @@ export default function Analyses() {
                             : <span className="text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="text-center tabular-nums font-medium">
-                          {analysis.health_index !== null
+                          {!hideBioMetrics && analysis.health_index !== null
                             ? analysis.health_index
                             : <span className="font-normal text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="text-center tabular-nums whitespace-nowrap">
-                          {analysis.biological_age !== null
+                          {!hideBioMetrics && analysis.biological_age !== null
                             ? `${Math.round(analysis.biological_age * 10) / 10} лет`
                             : <span className="text-muted-foreground">—</span>}
                         </TableCell>
