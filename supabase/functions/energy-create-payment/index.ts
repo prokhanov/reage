@@ -74,6 +74,10 @@ Deno.serve(async (req) => {
       promoCode,
       clinic,
       consultation,
+      lastName,
+      firstName,
+      middleName,
+      birthDate,
     } = body as {
       bundle?: string;
       bundles?: string[];
@@ -82,6 +86,10 @@ Deno.serve(async (req) => {
       promoCode?: string;
       clinic?: { id?: string; title?: string; address?: string } | null;
       consultation?: boolean;
+      lastName?: string;
+      firstName?: string;
+      middleName?: string;
+      birthDate?: string;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
