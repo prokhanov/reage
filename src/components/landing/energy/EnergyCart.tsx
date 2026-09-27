@@ -141,7 +141,7 @@ export function EnergyCart() {
           lastName: lastName.trim(),
           firstName: firstName.trim(),
           middleName: middleName.trim(),
-          birthDate,
+          birthDate: birthIso,
           promoCode: appliedPromo?.code,
           consultation: consult,
           clinic: clinic
