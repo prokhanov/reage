@@ -366,19 +366,21 @@ export default function Recommendations() {
       
       setRecommendations(transformedData);
       
-      // Группировка по дате анализа (или created_at если анализа нет)
+      // Группировка по анализу (несколько отчётов за одну дату — отдельные),
+      // для записей без анализа — по дате создания.
       const grouped = transformedData.reduce((acc, rec) => {
         const date = rec.analysis_date 
           ? format(new Date(rec.analysis_date), "yyyy-MM-dd")
           : format(new Date(rec.created_at), "yyyy-MM-dd");
-        if (!acc[date]) {
-          acc[date] = [];
+        const key = rec.analysis_id || `date:${date}`;
+        if (!acc[key]) {
+          acc[key] = { date, recs: [] };
         }
-        acc[date].push(rec);
+        acc[key].recs.push(rec);
         return acc;
-      }, {} as Record<string, Recommendation[]>);
+      }, {} as Record<string, { date: string; recs: Recommendation[] }>);
 
-      const reportsList = Object.entries(grouped).map(([date, recs]) => ({
+      const reportsList = Object.values(grouped).map(({ date, recs }) => ({
         date,
         recommendations: recs,
         count: recs.length,
@@ -1026,7 +1028,7 @@ export default function Recommendations() {
                   : "Дата не указана";
                 return (
                   <div
-                    key={report.date}
+                    key={report.analysisId || report.date}
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                     className="rounded-xl border hairline bg-card p-4 cursor-pointer transition-colors hover:bg-foreground/[0.02] active:scale-[0.99]"
                   >
@@ -1104,7 +1106,7 @@ export default function Recommendations() {
               <TableBody>
                 {reports.map((report) => (
                   <TableRow 
-                    key={report.date} 
+                    key={report.analysisId || report.date} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => (report.analysisId ? openReportV2(report, "view") : handleView(report))}
                   >

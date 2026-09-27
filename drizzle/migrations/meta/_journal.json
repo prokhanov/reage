@@ -43,6 +43,13 @@
       "when": 1789660866787,
       "tag": "0005_add_checkup_cbc_bonus_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790506991018,
+      "tag": "0006_allow_whole_body_report_type",
+      "breakpoints": true
     }
   ]
 }
