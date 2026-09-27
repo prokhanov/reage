@@ -330,7 +330,6 @@ export function EnergyCart() {
                   <div>
                     <Input
                       inputMode="numeric"
-                      autoComplete="bday"
                       placeholder="Дата рождения"
                       value={birthDate}
                       onChange={(e) => setBirthDate(formatBirthInput(e.target.value))}
