@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Check, Clock, Gift, Heart, MapPin, Stethoscope, X } from "lucide-react";
+import { Award, Check, Clock, Gift, Heart, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -291,72 +291,116 @@ export function EnergyCart() {
               )}
             </Step>
 
-            <Step n={3} title="Подготовка и результат">
+            <Step n={3} title="Данные для лаборатории">
               <div className="rounded-xl border border-border bg-card p-4">
-                <ul className="list-disc space-y-1.5 pl-5 text-sm text-foreground">
-                  <li>Сдавайте натощак, 8–12 часов без еды</li>
-                  <li>Возьмите паспорт с собой</li>
-                  {checkup.prepNotes?.map((note) => <li key={note}>{note}</li>)}
+                <ul className="space-y-2.5">
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <Clock className="h-4 w-4" aria-hidden />
+                    </span>
+                    <span className="text-sm font-medium text-foreground">Натощак — 8–12 часов без еды</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <IdCard className="h-4 w-4" aria-hidden />
+                    </span>
+                    <span className="text-sm font-medium text-foreground">Возьмите паспорт</span>
+                  </li>
+                  {checkup.prepNotes?.map((note) => (
+                    <li key={note} className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <Check className="h-4 w-4" aria-hidden />
+                      </span>
+                      <span className="text-sm font-medium text-foreground">{note}</span>
+                    </li>
+                  ))}
                 </ul>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Данные для оформления заявки в лабораторию — все поля обязательны
-                </p>
-                <div className="mt-2 space-y-2">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                    <Input
-                      placeholder="фамилия"
-                      autoComplete="family-name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="h-12"
-                      aria-invalid={touched && lastName.trim().length <= 1}
-                    />
-                    <Input
-                      placeholder="имя"
-                      autoComplete="given-name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="h-12"
-                      aria-invalid={touched && firstName.trim().length <= 1}
-                    />
-                    <Input
-                      placeholder="отчество"
-                      autoComplete="additional-name"
-                      value={middleName}
-                      onChange={(e) => setMiddleName(e.target.value)}
-                      className="h-12"
-                    />
+                <div className="mt-4 border-t border-border pt-4">
+                  <div className="text-base font-semibold text-foreground">Данные для лаборатории</div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Как в паспорте — иначе заявку не примут
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Фамилия</span>
+                      <Input
+                        placeholder="Иванова"
+                        autoComplete="family-name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="h-12"
+                        aria-invalid={touched && lastName.trim().length <= 1}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Имя</span>
+                      <Input
+                        placeholder="Анна"
+                        autoComplete="given-name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="h-12"
+                        aria-invalid={touched && firstName.trim().length <= 1}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Отчество</span>
+                      <Input
+                        placeholder="Сергеевна"
+                        autoComplete="additional-name"
+                        value={middleName}
+                        onChange={(e) => setMiddleName(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
                   </div>
-                  <div>
-                    <Input
-                      inputMode="numeric"
-                      placeholder="Дата рождения"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(formatBirthInput(e.target.value))}
-                      className="h-12"
-                      aria-invalid={touched && !birthValid}
-                    />
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Дата рождения</span>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="ДД.ММ.ГГГГ"
+                        value={birthDate}
+                        onChange={(e) => setBirthDate(formatBirthInput(e.target.value))}
+                        className="h-12"
+                        aria-invalid={touched && !birthValid}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Телефон</span>
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        placeholder="+7 900 000-00-00"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="h-12"
+                        aria-invalid={touched && !phoneValid}
+                      />
+                    </label>
                   </div>
-                  <Input
-                    type="email"
-                    inputMode="email"
-                    placeholder="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-12"
-                    aria-invalid={touched && !emailValid}
-                  />
-                  <Input
-                    type="tel"
-                    inputMode="tel"
-                    placeholder="телефон"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-12"
-                    aria-invalid={touched && !phoneValid}
-                  />
+                  <label className="mt-3 block">
+                    <span className="mb-1 block text-sm font-medium text-foreground">
+                      Email — сюда придёт результат
+                    </span>
+                    <Input
+                      type="email"
+                      inputMode="email"
+                      placeholder="anna@mail.ru"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && !emailValid}
+                    />
+                  </label>
+                  <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Данные передаются только в лабораторию
+                  </p>
                   {touched && !canPay && (
-                    <p className="text-xs text-destructive">
+                    <p className="mt-2 text-xs text-destructive">
                       Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие.
                     </p>
                   )}
