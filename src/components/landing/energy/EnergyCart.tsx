@@ -319,9 +319,6 @@ export function EnergyCart() {
                 </ul>
                 <div className="mt-4 border-t border-border pt-4">
                   <div className="text-base font-semibold text-foreground">Данные для лаборатории</div>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    Как в паспорте — иначе заявку не примут
-                  </p>
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Фамилия</span>
