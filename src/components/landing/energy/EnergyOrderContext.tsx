@@ -94,15 +94,21 @@ export function EnergyOrderProvider({
   children: ReactNode;
   checkup?: Checkup;
 }) {
-  const [clinic, setClinic] = useState<LabMapItem | null>(null);
+  const [clinic, setClinicState] = useState<LabMapItem | null>(() => readClinic());
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
   const { priceOf, hasCbcBonus } = useCheckupSettings();
+
+  const setClinic = useCallback((item: LabMapItem | null) => {
+    setClinicState(item);
+    writeClinic(item);
+  }, []);
 
   // Синхронизация между вкладками
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === CART_KEY) setSlugs(readCart());
+      if (e.key === CLINIC_KEY) setClinicState(readClinic());
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
