@@ -57,7 +57,12 @@ export function EnergyPriceCompare() {
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
-  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
+  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0alam);
+  const mobileList = [
+    ...checkup.markers.map((m) => m.title),
+    ...(gift ? ["Общий анализ крови"] : []),
+  ];
+  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
