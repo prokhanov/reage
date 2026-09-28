@@ -19,6 +19,7 @@ export function EnergyPriceCompare() {
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
   const collapseMask = hiddenCount > 0 && !expanded
     ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-2.25rem),transparent)]"
