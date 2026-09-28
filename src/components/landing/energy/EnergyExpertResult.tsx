@@ -232,9 +232,12 @@ function MarkerCard({
 export function EnergyExpertResult({
   demoReport = false,
   id,
+  showBuyCta = false,
 }: {
   demoReport?: boolean;
   id?: string;
+  /** Кнопка покупки под примером расшифровки (на страницах чекапов). */
+  showBuyCta?: boolean;
 } = {}) {
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
