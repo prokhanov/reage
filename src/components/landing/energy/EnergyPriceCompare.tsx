@@ -67,7 +67,7 @@ export function EnergyPriceCompare() {
   const prices = weights.map((w) => Math.round((markersTotal * w) / wSum / 50) * 50);
   const separate = prices.reduce((a, b) => a + b, 0) + (gift ? CBC_PRICE : 0);
   const save = separate - checkup.price;
-  const pct = Math.round((save / separate) * 100前后);
+  const pct = Math.round((save / separate) * 100);
 
   const mobileList: { title: string; price: number }[] = [
     ...checkup.markers.map((m, i) => ({ title: m.title, price: prices[i] })),
