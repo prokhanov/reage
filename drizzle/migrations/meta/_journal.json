@@ -57,6 +57,13 @@
       "when": 1790507346066,
       "tag": "0007_profiles_hidden_dashboard_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790595278403,
+      "tag": "0008_grant_energy_orders_select",
+      "breakpoints": true
     }
   ]
 }
