@@ -439,7 +439,10 @@ export function HeroPortrait() {
               className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-snug animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.2s" }}
             >
-              Берём на себя контроль вашего здоровья: регулярно проверяем весь организм, отслеживаем динамику показателей и даём понятный план действий.
+              Берём на себя контроль вашего здоровья:&nbsp;
+              <br />- регулярно проверяем весь организм&nbsp;
+              <br />- отслеживаем динамику показателей&nbsp;
+              <br />- даём понятный план действий
             </p>
 
             <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
