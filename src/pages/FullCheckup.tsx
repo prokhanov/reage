@@ -55,7 +55,7 @@ function FullCheckupContent() {
         description={checkup.seoDescription}
         canonical={checkup.href}
       />
-      <EnergyHeader cartCount={count} onOpenCart={openCart} logoHref={checkup.href} />
+      <EnergyHeader cartCount={count} onOpenCart={openCart} />
       <main className="pb-20 lg:pb-0">
         <FullCheckupHero checkup={checkup} onAddToCart={handleAddToCart} />
         <EnergyHowItWorks full />
