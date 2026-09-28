@@ -17,6 +17,7 @@ import {
   useEnergyOrder,
 } from "@/components/landing/energy/EnergyOrderContext";
 import { EnergyOtherCheckups } from "@/components/landing/energy/EnergyOtherCheckups";
+import { EnergyPriceCompare } from "@/components/landing/energy/EnergyPriceCompare";
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { getCheckupBySlug, type Checkup } from "@/data/checkups";
@@ -65,6 +66,7 @@ export function CheckupContent() {
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
         <EnergyExpertResult showBuyCta />
+        <EnergyPriceCompare />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />
