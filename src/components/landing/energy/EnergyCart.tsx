@@ -89,7 +89,7 @@ export function EnergyCart() {
   const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
   const birthIso = birthDisplayToIso(birthDate);
   const birthValid = birthIso !== "";
-  const canPay = emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
+  const canPay = !!clinic && emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
 
   // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
   useEffect(() => {
@@ -401,7 +401,9 @@ export function EnergyCart() {
                   </p>
                   {touched && !canPay && (
                     <p className="mt-2 text-xs text-destructive">
-                      Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие.
+                      {!clinic
+                        ? "Выберите клинику для сдачи анализов."
+                        : "Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие."}
                     </p>
                   )}
                 </div>
