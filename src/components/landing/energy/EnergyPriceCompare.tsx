@@ -18,6 +18,11 @@ function hash(s: string) {
 export function EnergyPriceCompare() {
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
+  const collapseMask = hiddenCount > 0 && !expanded
+    ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-2.25rem),transparent)]"
+    : undefined;
 
   // Итог «по отдельности» — так, чтобы выгода была ~72%+
   const target = Math.ceil((checkup.price / 0.27) / 100) * 100;
