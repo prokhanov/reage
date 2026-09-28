@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  ChevronDown,
   Dna,
   Droplet,
   FileText,
@@ -100,7 +101,137 @@ export function EnergyPriceCompare() {
           <p className="mt-2 text-muted-foreground">Чекап «{checkup.name}»</p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-5">
+        {/* ============ Мобильная версия — плитки и карточки ============ */}
+        <div className="mt-8 md:hidden">
+          <div className="rounded-3xl bg-card px-5 py-6">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-display text-2xl leading-tight text-foreground">Сдать по отдельности</h3>
+              <span className="shrink-0 text-xl font-semibold tabular-nums text-foreground">{money(separate)}</span>
+            </div>
+
+            <div className="mt-5 border-t border-border pt-5">
+              <div className="grid grid-cols-4 gap-x-3 gap-y-6">
+                {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => {
+                  const icon = markerIcon(m.title);
+                  return (
+                    <div key={m.title} className="flex flex-col gap-2">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                        {icon.kind === "text" ? (
+                          <span className="text-xs font-semibold text-muted-foreground">{icon.label}</span>
+                        ) : (
+                          <icon.Icon className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </span>
+                      <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">{m.title}</span>
+                    </div>
+                  );
+                })}
+
+                {gift && (
+                  <div className="flex flex-col gap-2">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                      <Droplet className="h-5 w-5 text-muted-foreground" />
+                    </span>
+                    <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">Общий анализ крови</span>
+                  </div>
+                )}
+
+                {hiddenCount > 0 && !expanded && (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    className="flex flex-col gap-2 text-left transition-opacity hover:opacity-70"
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    </span>
+                    <span className="text-[13px] leading-tight text-muted-foreground underline decoration-dashed underline-offset-2">
+                      Ещё {hiddenCount} {pluralMarkers(hiddenCount)}
+                    </span>
+                  </button>
+                )}
+
+                {expanded &&
+                  checkup.markers.slice(VISIBLE_MARKERS).map((m) => {
+                    const icon = markerIcon(m.title);
+                    return (
+                      <div key={m.title} className="flex animate-fade-in flex-col gap-2">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                          {icon.kind === "text" ? (
+                            <span className="text-xs font-semibold text-muted-foreground">{icon.label}</span>
+                          ) : (
+                            <icon.Icon className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </span>
+                        <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">{m.title}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setBreakdownOpen((v) => !v)}
+              className="mt-6 flex w-full items-center justify-between text-[15px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span className="underline decoration-dashed underline-offset-4">
+                {breakdownOpen ? "Свернуть" : "Из чего сумма"}
+              </span>
+              <ChevronDown className={`h-5 w-5 transition-transform ${breakdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {breakdownOpen && (
+              <div className="mt-2 animate-fade-in">
+                {checkup.markers.map((m, i) => (
+                  <div key={m.title} className="flex items-center justify-between gap-3 border-t border-border py-2.5 text-sm">
+                    <span className="text-foreground">{m.title}</span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">{money(prices[i])}</span>
+                  </div>
+                ))}
+                {gift && (
+                  <div className="flex items-center justify-between gap-3 border-t border-border py-2.5 text-sm">
+                    <span className="text-foreground">Общий анализ крови</span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">{money(CBC_PRICE)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-3xl bg-primary/10 px-5 py-6">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-display text-2xl leading-tight text-primary">Пакетом в ReAge</h3>
+              <span className="shrink-0 text-2xl font-semibold tabular-nums text-primary">{money(checkup.price)}</span>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-primary/15">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${Math.round((checkup.price / separate) * 100)}%` }}
+                />
+              </div>
+              <span className="shrink-0 text-sm font-semibold text-primary">−{pct}%</span>
+            </div>
+
+            <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-primary/15 px-5 py-4">
+              <span className="text-[15px] font-medium text-primary">Ваша выгода</span>
+              <span className="text-2xl font-semibold tabular-nums text-primary">{money(save)}</span>
+            </div>
+          </div>
+
+          <Button
+            onClick={addToCart}
+            className="mt-5 h-[64px] w-full rounded-2xl text-lg font-semibold"
+          >
+            <ShoppingCart className="h-5 w-5 shrink-0" aria-hidden />
+            Пройти чекап за {money(checkup.price)}
+            <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
+          </Button>
+        </div>
+
+        {/* ============ Десктоп/планшет — таблица парами ============ */}
+        <div className="mt-8 hidden grid-cols-1 md:grid md:grid-cols-2 md:gap-x-5">
           {/* Шапки */}
           <div className={`${cellL} rounded-t-3xl pb-5 pt-8`}>
             <h3 className="font-display text-[1.75rem] leading-tight text-foreground md:text-3xl">Если сдавать отдельно</h3>
