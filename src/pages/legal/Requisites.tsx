@@ -72,7 +72,7 @@ export default function Requisites() {
                     <span className="text-sm text-muted-foreground font-medium sm:w-56 flex-shrink-0">
                       {item.label}
                     </span>
-                    <span className="text-foreground font-mono-tech text-sm sm:text-base">{item.value}</span>
+                    <span className="text-foreground text-sm sm:text-base">{item.value}</span>
                   </div>
                 ))}
               </div>
