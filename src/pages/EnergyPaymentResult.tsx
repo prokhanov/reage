@@ -109,11 +109,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
   const checkup = checkups[0];
   const checkupPath = checkup ? checkup.href : "/checkup/energy";
   const checkupLabel =
-    checkups.length > 1
-      ? "К страницам чекапов"
-      : checkup
-        ? `На страницу ${checkup.name}`
-        : "На страницу чекапа";
+    checkups.length > 1 ? "К страницам чекапов" : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
@@ -160,7 +156,9 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
             <div className="mx-auto mb-8 max-w-md rounded-xl border border-border bg-card p-4 text-left">
               <div className="text-base font-semibold text-foreground">{order.clinicTitle}</div>
               {order.clinicAddress && (
-                <div className="mt-1 text-sm text-muted-foreground">{order.clinicAddress}</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {order.clinicAddress.charAt(0).toUpperCase() + order.clinicAddress.slice(1)}
+                </div>
               )}
             </div>
           )}
