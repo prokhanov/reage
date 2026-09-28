@@ -114,7 +114,7 @@ export function EnergyPriceCompare() {
           <div className="rounded-3xl bg-card px-5 py-6">
             <div className="flex items-baseline justify-between gap-3">
               <h3 className="font-display text-2xl leading-tight text-foreground">Сдать по отдельности</h3>
-              <span className="shrink-0 text-xl font-semibold tabular-nums text-foreground">{money(separate)}</span>
+              <span className="shrink-0 text-xl font-semibold tabular-nums text-muted-foreground line-through">{money(separate)}</span>
             </div>
 
             <div className="mt-5 border-t border-border pt-3">
