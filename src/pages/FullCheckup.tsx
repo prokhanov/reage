@@ -57,11 +57,11 @@ function FullCheckupContent() {
       />
       <EnergyHeader cartCount={count} onOpenCart={openCart} logoHref={checkup.href} />
       <main className="pb-20 lg:pb-0">
+        <EnergyHowItWorks full />
         <FullCheckupHero checkup={checkup} onAddToCart={handleAddToCart} />
         <FullCheckupIncluded />
         <EnergyWhereToTest />
         <EnergyExpertResult demoReport showBuyCta />
-        <EnergyHowItWorks full />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />
