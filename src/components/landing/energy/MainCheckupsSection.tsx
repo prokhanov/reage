@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, FileText, MapPin, Stethoscope } from "lucide-react";
+import { ArrowRight, Droplet, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
