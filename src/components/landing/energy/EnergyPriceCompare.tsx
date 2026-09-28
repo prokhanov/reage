@@ -1,5 +1,19 @@
 import { useState } from "react";
-import { Check, ChevronDown, Gift, ShoppingCart } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Dna,
+  Droplet,
+  Gift,
+  Info,
+  Pill,
+  Plus,
+  ShoppingCart,
+  Sun,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
@@ -14,15 +28,33 @@ function hash(s: string) {
   return h;
 }
 
+type MarkerIcon = { kind: "icon"; Icon: typeof Droplet } | { kind: "text"; label: string };
+
+function markerIcon(title: string): MarkerIcon {
+  const t = title.toLowerCase();
+  if (/b12/.test(t)) return { kind: "text", label: "B12" };
+  if (/b9|фолат|фолиев/.test(t)) return { kind: "text", label: "B9" };
+  if (/витамин\s*d|25-oh/.test(t)) return { kind: "icon", Icon: Sun };
+  if (/ферритин|железо|трансфер|овсж/.test(t)) return { kind: "icon", Icon: Dna };
+  if (/ттг|тиреоид|щитовид|т3|т4|атпо/.test(t)) return { kind: "icon", Icon: Activity };
+  if (/гормон|тестостерон|кортизол|инсулин|прогестерон|гспг/.test(t)) return { kind: "icon", Icon: Pill };
+  return { kind: "icon", Icon: Droplet };
+}
+
+function pluralMarkers(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "показатель";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "показателя";
+  return "показателей";
+}
+
 export function EnergyPriceCompare() {
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
-  const collapseMask = hiddenCount > 0 && !expanded
-    ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-2.25rem),transparent)]"
-    : undefined;
 
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
@@ -35,8 +67,39 @@ export function EnergyPriceCompare() {
   const save = separate - checkup.price;
   const pct = Math.round((save / separate) * 100);
 
-  const rowL = "flex items-center justify-between gap-4 border-t border-primary-foreground/15 py-3.5 text-base";
-  const rowR = "flex items-center justify-between gap-4 border-t border-border py-3.5 text-base";
+  // Табличная сетка: иконка — название — цена/галочка
+  const rowBase = "grid grid-cols-[2.5rem_1fr_auto] items-center gap-x-4 border-t py-3.5 text-base";
+  const rowL = `${rowBase} border-primary-foreground/15`;
+  const rowR = `${rowBase} border-border`;
+
+  const iconBoxL = "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted";
+  const iconBoxR = "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10";
+
+  const renderIcon = (icon: MarkerIcon, dark: boolean) =>
+    icon.kind === "text" ? (
+      <span className={`text-xs font-semibold ${dark ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+        {icon.label}
+      </span>
+    ) : (
+      <icon.Icon className={`h-5 w-5 ${dark ? "text-primary-foreground/80" : "text-muted-foreground"}`} />
+    );
+
+  const expandRow = (dark: boolean) =>
+    hiddenCount > 0 && !expanded ? (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className={`${dark ? rowL : rowR} w-full text-left transition-opacity hover:opacity-70`}
+      >
+        <span className={dark ? iconBoxR : iconBoxL}>
+          <Plus className={`h-5 w-5 ${dark ? "text-primary-foreground/80" : "text-muted-foreground"}`} />
+        </span>
+        <span className={dark ? "text-primary-foreground/70" : "text-muted-foreground"}>
+          Ещё {hiddenCount} {pluralMarkers(hiddenCount)}
+        </span>
+        <ChevronRight className={`h-4 w-4 ${dark ? "text-primary-foreground/50" : "text-muted-foreground/60"}`} />
+      </button>
+    ) : null;
 
   return (
     <section className="px-4 py-12 md:py-16">
@@ -64,13 +127,13 @@ export function EnergyPriceCompare() {
           {mobileExpanded && (
             <div className="mt-1 animate-fade-in">
               {checkup.markers.map((m, i) => (
-                <div key={m.title} className={rowR}>
+                <div key={m.title} className="flex items-center justify-between gap-4 border-t border-border py-3 text-sm">
                   <span className="text-foreground">{m.title}</span>
                   <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
                 </div>
               ))}
               {gift && (
-                <div className={rowR}>
+                <div className="flex items-center justify-between gap-4 border-t border-border py-3 text-sm">
                   <span className="text-foreground">Общий анализ крови</span>
                   <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
                 </div>
@@ -96,12 +159,14 @@ export function EnergyPriceCompare() {
 
         {/* Десктоп и планшет — две таблицы */}
         <div className="mt-8 hidden gap-4 md:grid md:grid-cols-2">
+          {/* По отдельности */}
           <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
-            <div className="font-display text-3xl text-foreground">По отдельности</div>
-            <div className="mb-4 text-sm text-muted-foreground">в лаборатории</div>
-            <div className={collapseMask}>
+            <div className="font-display text-3xl text-foreground">Если сдавать отдельно</div>
+            <div className="mb-4 mt-1 text-sm text-muted-foreground">в лаборатории и у врача</div>
+            <div>
               {checkup.markers.slice(0, VISIBLE_MARKERS).map((m, i) => (
                 <div key={m.title} className={rowR}>
+                  <span className={iconBoxL}>{renderIcon(markerIcon(m.title), false)}</span>
                   <span className="text-foreground">{m.title}</span>
                   <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
                 </div>
@@ -109,83 +174,100 @@ export function EnergyPriceCompare() {
               {expanded &&
                 checkup.markers.slice(VISIBLE_MARKERS).map((m, i) => (
                   <div key={m.title} className={`${rowR} animate-fade-in`}>
+                    <span className={iconBoxL}>{renderIcon(markerIcon(m.title), false)}</span>
                     <span className="text-foreground">{m.title}</span>
                     <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[VISIBLE_MARKERS + i])}</span>
                   </div>
                 ))}
+              {gift && (
+                <div className={rowR}>
+                  <span className={iconBoxL}>
+                    <Droplet className="h-5 w-5 text-muted-foreground" />
+                  </span>
+                  <span className="text-foreground">Общий анализ крови</span>
+                  <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
+                </div>
+              )}
+              {expandRow(false)}
             </div>
-            {hiddenCount > 0 && !expanded && (
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-border py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Раскрыть ещё {hiddenCount}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            )}
-            {gift && (
-              <div className={rowR}>
-                <span className="text-foreground">Общий анализ крови</span>
-                <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
+            <div className="mt-2 border-t border-border pt-5">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                Итого по отдельности
+                <Info className="h-4 w-4" />
               </div>
-            )}
-            <div className="border-t border-border pt-5">
-              <div className="text-sm text-muted-foreground">Стоимость</div>
-              <div className="text-4xl font-semibold text-muted-foreground line-through md:text-5xl">{money(separate)}</div>
+              <div className="mt-1 text-4xl font-semibold text-muted-foreground line-through md:text-5xl">
+                {money(separate)}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
-            <div className="font-display text-3xl">ReAge</div>
-            <div className="mb-4 text-sm text-primary-foreground/70">одним пакетом</div>
-            <div className={collapseMask}>
+          {/* ReAge */}
+          <div className="flex flex-col rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="font-display text-3xl">ReAge</div>
+                <div className="mt-1 text-sm text-primary-foreground/70">Чекап «{checkup.name}»</div>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-foreground px-3 py-1.5 text-sm font-medium text-primary">
+                <CheckCircle2 className="h-4 w-4" />
+                Всё включено
+              </span>
+            </div>
+            <div className="mt-4 flex-1">
               {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => (
                 <div key={m.title} className={rowL}>
+                  <span className={iconBoxR}>{renderIcon(markerIcon(m.title), true)}</span>
                   <span>{m.title}</span>
-                  <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                  <Check className="h-5 w-5 shrink-0 text-primary-foreground/70" />
                 </div>
               ))}
               {expanded &&
                 checkup.markers.slice(VISIBLE_MARKERS).map((m) => (
                   <div key={m.title} className={`${rowL} animate-fade-in`}>
+                    <span className={iconBoxR}>{renderIcon(markerIcon(m.title), true)}</span>
                     <span>{m.title}</span>
-                    <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                    <Check className="h-5 w-5 shrink-0 text-primary-foreground/70" />
                   </div>
                 ))}
+              {gift && (
+                <div className={rowL}>
+                  <span className={iconBoxR}>
+                    <Droplet className="h-5 w-5 text-primary-foreground/80" />
+                  </span>
+                  <span>Общий анализ крови</span>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-sm">
+                    <Gift className="h-4 w-4" /> в подарок
+                  </span>
+                </div>
+              )}
+              {expandRow(true)}
             </div>
-            {hiddenCount > 0 && !expanded && (
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-primary-foreground/15 py-3 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+            <div className="mt-2 border-t border-primary-foreground/15 pt-5">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <div className="text-sm text-primary-foreground/70">Цена пакета</div>
+                  <div className="mt-1 text-4xl font-semibold md:text-5xl">{money(checkup.price)}</div>
+                </div>
+                <div className="rounded-2xl bg-primary-foreground/10 px-4 py-3">
+                  <div className="text-sm text-primary-foreground/80">Ваша экономия</div>
+                  <div className="mt-0.5 text-xl font-semibold">
+                    {money(save)} · −{pct}%
+                  </div>
+                </div>
+              </div>
+              <Button
+                onClick={addToCart}
+                className="mt-5 h-14 w-full rounded-full bg-primary-foreground text-base font-semibold text-primary hover:bg-primary-foreground/90"
               >
-                Раскрыть ещё {hiddenCount}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            )}
-            {gift && (
-              <div className={rowL}>
-                <span>Общий анализ крови</span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-sm">
-                  <Gift className="h-4 w-4" /> в подарок
-                </span>
-              </div>
-            )}
-            <div className="border-t border-primary-foreground/15 pt-5">
-              <div className="flex items-baseline justify-between gap-4">
-                <div className="text-sm text-primary-foreground/70">Стоимость</div>
-                <div className="text-4xl font-semibold md:text-5xl">{money(checkup.price)}</div>
-              </div>
-              <div className="mt-4 flex items-baseline justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-4 py-3">
-                <span className="text-sm text-primary-foreground/80">Ваша выгода <span className="text-primary-foreground/60">· {pct}%</span></span>
-                <span className="text-2xl font-semibold md:text-3xl">{money(save)}</span>
-              </div>
+                <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
+                Пройти чекап за {money(checkup.price)}
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+              </Button>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-center md:hidden">
           <Button size="lg" onClick={addToCart} className="h-12 w-full text-base sm:w-auto sm:px-8">
             <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
             Купить — {money(checkup.price)}
