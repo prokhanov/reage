@@ -98,7 +98,7 @@ export function EnergyPriceCompare() {
           <p className="mt-2 text-muted-foreground">Чекап «{checkup.name}»</p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-5">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-5">
           {/* Шапки */}
           <div className={`${cellL} rounded-t-3xl pb-5 pt-8`}>
             <h3 className="font-display text-[1.75rem] leading-tight text-foreground md:text-3xl">Если сдавать отдельно</h3>
