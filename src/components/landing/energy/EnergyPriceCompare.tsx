@@ -21,6 +21,7 @@ import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 
 const VISIBLE_MARKERS = 5;
+const MOBILE_VISIBLE = 3;
 
 const CBC_PRICE = 900;
 
