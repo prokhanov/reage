@@ -13,6 +13,7 @@ function resolveCheckup(slug: string | undefined): Checkup | undefined {
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 const CART_KEY = "reage:checkup:cart";
+const CLINIC_KEY = "reage:checkup:clinic";
 
 function readCart(): string[] {
   try {
@@ -36,9 +37,31 @@ function writeCart(slugs: string[]) {
   }
 }
 
+function readClinic(): LabMapItem | null {
+  try {
+    const raw = localStorage.getItem(CLINIC_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.id) return null;
+    return parsed as LabMapItem;
+  } catch {
+    return null;
+  }
+}
+
+function writeClinic(item: LabMapItem | null) {
+  try {
+    if (item) localStorage.setItem(CLINIC_KEY, JSON.stringify(item));
+    else localStorage.removeItem(CLINIC_KEY);
+  } catch {
+    /* noop */
+  }
+}
+
 /** Очистить корзину вне провайдера (например, после успешной оплаты). */
 export function clearCheckupCart() {
   writeCart([]);
+  writeClinic(null);
 }
 
 interface EnergyOrderValue {
@@ -71,15 +94,21 @@ export function EnergyOrderProvider({
   children: ReactNode;
   checkup?: Checkup;
 }) {
-  const [clinic, setClinic] = useState<LabMapItem | null>(null);
+  const [clinic, setClinicState] = useState<LabMapItem | null>(() => readClinic());
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
   const { priceOf, hasCbcBonus } = useCheckupSettings();
+
+  const setClinic = useCallback((item: LabMapItem | null) => {
+    setClinicState(item);
+    writeClinic(item);
+  }, []);
 
   // Синхронизация между вкладками
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === CART_KEY) setSlugs(readCart());
+      if (e.key === CLINIC_KEY) setClinicState(readClinic());
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
