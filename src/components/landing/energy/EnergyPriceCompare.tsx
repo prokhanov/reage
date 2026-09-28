@@ -57,7 +57,7 @@ export function EnergyPriceCompare() {
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
-  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0alam);
+  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
   const mobileList = [
     ...checkup.markers.map((m) => m.title),
     ...(gift ? ["Общий анализ крови"] : []),
