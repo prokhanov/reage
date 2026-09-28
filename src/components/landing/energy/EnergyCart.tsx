@@ -6,10 +6,12 @@ import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
+import { normalizePhone } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 
 import { markersLabel, money } from "@/data/checkups";
@@ -85,7 +87,7 @@ export function EnergyCart() {
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const phoneValid = phone.replace(/\D/g, "").length >= 10;
+  const phoneValid = isPhoneValid(phone);
   const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
   const birthIso = birthDisplayToIso(birthDate);
   const birthValid = birthIso !== "";
@@ -137,7 +139,7 @@ export function EnergyCart() {
           bundle: items[0]?.bundle ?? checkup.bundle,
           bundles: items.map((item) => item.bundle),
           email: email.trim(),
-          phone: phone.trim(),
+          phone: normalizePhone(phone),
           lastName: lastName.trim(),
           firstName: firstName.trim(),
           middleName: middleName.trim(),
@@ -368,14 +370,10 @@ export function EnergyCart() {
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Телефон</span>
-                      <Input
-                        type="tel"
-                        inputMode="tel"
-                        placeholder="+7 900 000-00-00"
-                        autoComplete="tel"
+                      <PhoneInput
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="h-12"
+                        onChange={setPhone}
+                        className="h-12 [&>input]:h-12"
                         aria-invalid={touched && !phoneValid}
                       />
                     </label>
