@@ -46,7 +46,7 @@ export function FullCheckupHero({ checkup, onAddToCart }: Props) {
         <div className="lg:w-[48%] lg:pr-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
             <Droplet className="h-4 w-4 text-primary" aria-hidden />
-            Кровь и моча
+            По анализам крови и мочи
           </span>
 
           <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
