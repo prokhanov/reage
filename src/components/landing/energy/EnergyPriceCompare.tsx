@@ -67,7 +67,15 @@ export function EnergyPriceCompare() {
   const prices = weights.map((w) => Math.round((markersTotal * w) / wSum / 50) * 50);
   const separate = prices.reduce((a, b) => a + b, 0) + (gift ? CBC_PRICE : 0);
   const save = separate - checkup.price;
-  const pct = Math.round((save / separate) * 100);
+  const pct = Math.round((save / separate) * 100前后);
+
+  const mobileList: { title: string; price: number }[] = [
+    ...checkup.markers.map((m, i) => ({ title: m.title, price: prices[i] })),
+    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
+      ? [{ title: "Общий анализ крови", price: CBC_PRICE }]
+      : []),
+  ];
+  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Колонки одной сетки: ячейки идут парами L/R, поэтому строки стоят на одной линии.
   // На мобильных всё складывается: сначала левая карточка (order-1), потом правая (order-2).
