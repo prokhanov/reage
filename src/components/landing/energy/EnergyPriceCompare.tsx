@@ -46,7 +46,61 @@ export function EnergyPriceCompare() {
           <p className="mt-2 text-muted-foreground">Чекап «{checkup.name}»</p>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        {/* Мобильная версия — компактная карточка */}
+        <div className="mt-8 rounded-3xl border border-border bg-card p-6 md:hidden">
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="text-lg font-medium text-foreground">Сдать по отдельности</span>
+            <span className="shrink-0 text-2xl font-semibold text-foreground">{money(separate)}</span>
+          </div>
+          <div className="mt-3 h-2.5 rounded-full bg-muted" />
+
+          <button
+            type="button"
+            onClick={() => setMobileExpanded((v) => !v)}
+            className="mt-4 text-sm text-muted-foreground underline decoration-dashed underline-offset-4 transition-colors hover:text-foreground"
+          >
+            Из чего сумма
+          </button>
+          {mobileExpanded && (
+            <div className="mt-1 animate-fade-in">
+              {checkup.markers.map((m, i) => (
+                <div key={m.title} className={rowR}>
+                  <span className="text-foreground">{m.title}</span>
+                  <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
+                </div>
+              ))}
+              {gift && (
+                <div className={rowR}>
+                  <span className="text-foreground">Общий анализ крови</span>
+                  <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
+                </div>
+              )}
+              <div className={rowR}>
+                <span className="text-muted-foreground">Расшифровка и рекомендации врача</span>
+                <span className="shrink-0 whitespace-nowrap text-muted-foreground">{money(REPORT_PRICE)}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-5 border-t border-border pt-5">
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="text-lg font-medium text-foreground">Пакетом в ReAge</span>
+              <span className="shrink-0 text-2xl font-semibold text-primary">{money(checkup.price)}</span>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-2.5 rounded-full bg-primary" style={{ width: `${Math.max(100 - pct, 40)}%` }} />
+              <span className="shrink-0 text-sm font-medium text-primary">−{pct}%</span>
+            </div>
+            <div className="mt-2 text-sm text-muted-foreground">Плюс расшифровка и рекомендации</div>
+            <div className="mt-5 flex items-baseline justify-between gap-4 rounded-2xl bg-primary/10 px-4 py-4">
+              <span className="font-medium text-foreground">Ваша выгода</span>
+              <span className="shrink-0 text-2xl font-semibold text-primary">{money(save)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Десктоп и планшет — две таблицы */}
+        <div className="mt-8 hidden gap-4 md:grid md:grid-cols-2">
           <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
             <div className="font-display text-3xl text-foreground">По отдельности</div>
             <div className="mb-4 text-sm text-muted-foreground">в лаборатории</div>
