@@ -75,7 +75,7 @@ export function EnergyCart() {
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
   const [consult, setConsult] = useState(false);
-  const [agree, setAgree] = useState(false);
+  const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
@@ -522,8 +522,27 @@ export function EnergyCart() {
                 aria-label="Согласие с офертой"
               />
               <span>
-                Согласен с офертой и обработкой персональных данных. Есть противопоказания, необходима
-                консультация специалиста.
+                Согласен с{" "}
+                <a
+                  href="/legal/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="underline decoration-muted-foreground/50 underline-offset-2 transition-colors hover:text-foreground"
+                >
+                  офертой
+                </a>{" "}
+                и{" "}
+                <a
+                  href="/legal/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="underline decoration-muted-foreground/50 underline-offset-2 transition-colors hover:text-foreground"
+                >
+                  обработкой персональных данных
+                </a>
+                .
               </span>
             </label>
             <Button
