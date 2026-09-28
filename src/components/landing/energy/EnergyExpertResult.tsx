@@ -243,6 +243,8 @@ export function EnergyExpertResult({
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
   const [exampleOpen, setExampleOpen] = useState(false);
+  /** На планшете и телефоне показатели после первого скрыты за кнопкой «Смотреть ещё». */
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
 
   return (
     <section id={id} className="border-b hairline max-lg:overflow-x-clip">
