@@ -47,11 +47,18 @@ export function EnergyStickyCta({
     if (!hideNearId) return;
     const end = document.getElementById(hideNearId);
     if (!end) return;
-    const io = new IntersectionObserver(([entry]) => setNearEnd(entry.isIntersecting), {
-      threshold: 0,
-    });
+    // Прячем, как только верх футера поднялся выше низа экрана (и дальше не показываем)
+    const update = () => setNearEnd(end.getBoundingClientRect().top < window.innerHeight);
+    update();
+    const io = new IntersectionObserver(update, { threshold: [0, 0.01, 1] });
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     io.observe(end);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, [hideNearId]);
 
   const visible = pastHero && !nearEnd;
