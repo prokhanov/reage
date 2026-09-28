@@ -49,12 +49,31 @@ export function EnergyPriceCompare() {
           <div className="rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
             <div className="font-display text-3xl">ReAge</div>
             <div className="mb-4 text-sm text-primary-foreground/70">одним пакетом</div>
-            {checkup.markers.map((m) => (
-              <div key={m.title} className={rowL}>
-                <span>{m.title}</span>
-                <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-              </div>
-            ))}
+            <div className={collapseMask}>
+              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => (
+                <div key={m.title} className={rowL}>
+                  <span>{m.title}</span>
+                  <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                </div>
+              ))}
+              {expanded &&
+                checkup.markers.slice(VISIBLE_MARKERS).map((m) => (
+                  <div key={m.title} className={`${rowL} animate-fade-in`}>
+                    <span>{m.title}</span>
+                    <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                  </div>
+                ))}
+            </div>
+            {hiddenCount > 0 && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-primary-foreground/15 py-3 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+              >
+                Раскрыть ещё {hiddenCount}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
             {gift && (
               <div className={rowL}>
                 <span>Общий анализ крови</span>
