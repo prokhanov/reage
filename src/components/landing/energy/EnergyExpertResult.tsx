@@ -334,6 +334,25 @@ export function EnergyExpertResult({
             ))}
           </div>
 
+          {showBuyCta && (
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              {checkup.cbcBonusEnabled && (
+                <div className="inline-flex min-h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
+                  <Gift className="h-5 w-5" aria-hidden />
+                  + ОАК в подарок
+                </div>
+              )}
+              <Button
+                size="lg"
+                onClick={addToCart}
+                className="h-12 w-full text-base sm:w-auto sm:px-8"
+              >
+                <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
+                Купить — {money(checkup.price)}
+              </Button>
+            </div>
+          )}
+
           {demoReport && (
             <div className="mt-8 space-y-6 sm:space-y-8">
               <section className="space-y-4">
