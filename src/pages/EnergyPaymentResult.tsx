@@ -156,7 +156,9 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
             <div className="mx-auto mb-8 max-w-md rounded-xl border border-border bg-card p-4 text-left">
               <div className="text-base font-semibold text-foreground">{order.clinicTitle}</div>
               {order.clinicAddress && (
-                <div className="mt-1 text-sm text-muted-foreground">{order.clinicAddress}</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {order.clinicAddress.charAt(0).toUpperCase() + order.clinicAddress.slice(1)}
+                </div>
               )}
             </div>
           )}
