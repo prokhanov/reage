@@ -8,6 +8,8 @@ interface Props {
   price?: number;
   cbcBonusEnabled?: boolean;
   id?: string;
+  /** Полный чекап: сдаётся кровь и моча, а не только кровь. */
+  full?: boolean;
 }
 
 const steps = [
@@ -32,7 +34,7 @@ const steps = [
     ),
   },
   {
-    title: "Сдаёте анализы",
+    title: "Сдаёте кровь",
     text: "Приходите в любое удобное отделение LabQuest натощак — процедура займёт 15 минут.",
     accent: "accent" as const,
     visual: (
@@ -97,7 +99,7 @@ const accentClasses: Record<
   },
 };
 
-export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cbcBonusEnabled = false, id }: Props) {
+export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cbcBonusEnabled = false, id, full = false }: Props) {
   return (
     <section id={id} className="overflow-x-hidden border-b hairline scroll-mt-20">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
@@ -108,6 +110,7 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cb
         <div className="mt-6 grid grid-cols-1 gap-4 md:mt-8 md:grid-cols-3 md:gap-5">
           {steps.map((s, i) => {
             const a = accentClasses[s.accent];
+            const title = full && i === 1 ? "Сдаёте кровь и мочу" : s.title;
             return (
               <div
                 key={i}
@@ -121,7 +124,7 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cb
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="font-display text-base font-medium text-foreground md:text-lg">
-                    {s.title}
+                    {title}
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {s.text}
