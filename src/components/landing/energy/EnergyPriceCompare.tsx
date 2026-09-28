@@ -6,12 +6,14 @@ import {
   CheckCircle2,
   Dna,
   Droplet,
+  FileText,
   Gift,
   Info,
   Pill,
   Plus,
   ShoppingCart,
   Sun,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/data/checkups";
@@ -217,6 +219,32 @@ export function EnergyPriceCompare() {
               </div>
             </Fragment>
           )}
+
+          {/* Отчёт — парой */}
+          <Fragment>
+            <div className={`${cellL} ${hideOnMobile}`}>
+              <div className={rowClassL(-1)}>
+                <span className={iconBoxL}>
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                </span>
+                <span className="flex-1 text-[15px] font-semibold leading-snug text-foreground">
+                  Отчёт о вашем организме на понятном языке
+                </span>
+                <X className="h-5 w-5 shrink-0 text-muted-foreground/50" />
+              </div>
+            </div>
+            <div className={cellR}>
+              <div className={rowClassR(-1)}>
+                <span className={iconBoxR}>
+                  <FileText className="h-5 w-5 text-primary-foreground/80" />
+                </span>
+                <span className="flex-1 text-[15px] font-semibold leading-snug">
+                  Отчёт о вашем организме на понятном языке
+                </span>
+                <Check className="h-5 w-5 shrink-0 text-primary-foreground/70" />
+              </div>
+            </div>
+          </Fragment>
 
           {/* Итоги + кнопка */}
           <div className={`${cellL} max-md:mb-5 rounded-b-3xl pb-8 pt-6`}>
