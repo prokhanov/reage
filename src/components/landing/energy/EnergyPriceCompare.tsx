@@ -1,7 +1,10 @@
-import { Check, Gift, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Gift, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
+
+const VISIBLE_MARKERS = 5;
 
 const CBC_PRICE = 900;
 const REPORT_PRICE = 2500;
@@ -15,6 +18,11 @@ function hash(s: string) {
 export function EnergyPriceCompare() {
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
+  const collapseMask = hiddenCount > 0 && !expanded
+    ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-2.25rem),transparent)]"
+    : undefined;
 
   // Итог «по отдельности» — так, чтобы выгода была ~72%+
   const target = Math.ceil((checkup.price / 0.27) / 100) * 100;
@@ -41,12 +49,31 @@ export function EnergyPriceCompare() {
           <div className="rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
             <div className="font-display text-3xl">ReAge</div>
             <div className="mb-4 text-sm text-primary-foreground/70">одним пакетом</div>
-            {checkup.markers.map((m) => (
-              <div key={m.title} className={rowL}>
-                <span>{m.title}</span>
-                <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-              </div>
-            ))}
+            <div className={collapseMask}>
+              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => (
+                <div key={m.title} className={rowL}>
+                  <span>{m.title}</span>
+                  <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                </div>
+              ))}
+              {expanded &&
+                checkup.markers.slice(VISIBLE_MARKERS).map((m) => (
+                  <div key={m.title} className={`${rowL} animate-fade-in`}>
+                    <span>{m.title}</span>
+                    <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                  </div>
+                ))}
+            </div>
+            {hiddenCount > 0 && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-primary-foreground/15 py-3 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+              >
+                Раскрыть ещё {hiddenCount}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
             {gift && (
               <div className={rowL}>
                 <span>Общий анализ крови</span>
@@ -68,12 +95,31 @@ export function EnergyPriceCompare() {
           <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
             <div className="font-display text-3xl text-foreground">По отдельности</div>
             <div className="mb-4 text-sm text-muted-foreground">в лаборатории</div>
-            {checkup.markers.map((m, i) => (
-              <div key={m.title} className={rowR}>
-                <span className="text-foreground">{m.title}</span>
-                <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
-              </div>
-            ))}
+            <div className={collapseMask}>
+              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m, i) => (
+                <div key={m.title} className={rowR}>
+                  <span className="text-foreground">{m.title}</span>
+                  <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
+                </div>
+              ))}
+              {expanded &&
+                checkup.markers.slice(VISIBLE_MARKERS).map((m, i) => (
+                  <div key={m.title} className={`${rowR} animate-fade-in`}>
+                    <span className="text-foreground">{m.title}</span>
+                    <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[VISIBLE_MARKERS + i])}</span>
+                  </div>
+                ))}
+            </div>
+            {hiddenCount > 0 && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-border py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Раскрыть ещё {hiddenCount}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
             {gift && (
               <div className={rowR}>
                 <span className="text-foreground">Общий анализ крови</span>
