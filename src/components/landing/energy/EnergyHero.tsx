@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Gift } from "lucide-react";
+import { ArrowRight, Check, Droplet, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
