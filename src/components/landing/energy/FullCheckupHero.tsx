@@ -1,4 +1,4 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Droplet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { money, type Checkup } from "@/data/checkups";
@@ -44,8 +44,9 @@ export function FullCheckupHero({ checkup, onAddToCart }: Props) {
 
       <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
         <div className="lg:w-[48%] lg:pr-8">
-          <span className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            {checkup.tag}
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
+            <Droplet className="h-4 w-4 text-primary" aria-hidden />
+            Кровь и моча
           </span>
 
           <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
