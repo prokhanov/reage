@@ -1,3 +1,4 @@
+import SiteSettings from "./pages/admin/SiteSettings";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -354,6 +355,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <AdminCheckups />
+                  </SuperAdminRoute>
+                }
+              />
+              <Route
+                path="/admin/site"
+                element={
+                  <SuperAdminRoute>
+                    <SiteSettings />
                   </SuperAdminRoute>
                 }
               />

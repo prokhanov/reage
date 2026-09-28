@@ -1,3 +1,4 @@
+import { Globe } from "lucide-react";
 import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft, ChevronRight, Target, Mail, Send, MapPin, Ticket, ShoppingCart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,7 @@ const adminNavItems: Array<{ to: string; label: string; icon: any; module: Admin
   { to: "/admin/telegram-settings", label: "Telegram", icon: Send, module: "telegram_settings" },
   { to: "/admin/checkups", label: "Чекапы", icon: ShoppingCart, module: "checkups" },
   { to: "/admin/labs", label: "Лаборатории", icon: MapPin, module: "lab_locations" },
+  { to: "/admin/site", label: "Сайт", icon: Globe, module: "site_settings" },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical, module: "data_management" },
 ];
 

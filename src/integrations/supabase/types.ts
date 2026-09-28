@@ -2889,6 +2889,24 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       sms_send_log: {
         Row: {
           body_text: string
@@ -3662,6 +3680,7 @@ export type Database = {
         | "report_visuals"
         | "scale_preview"
         | "checkups"
+        | "site_settings"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       drip_delay_unit: "minutes" | "hours" | "days"
@@ -3834,6 +3853,7 @@ export const Constants = {
         "report_visuals",
         "scale_preview",
         "checkups",
+        "site_settings",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
