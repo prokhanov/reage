@@ -95,12 +95,31 @@ export function EnergyPriceCompare() {
           <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
             <div className="font-display text-3xl text-foreground">По отдельности</div>
             <div className="mb-4 text-sm text-muted-foreground">в лаборатории</div>
-            {checkup.markers.map((m, i) => (
-              <div key={m.title} className={rowR}>
-                <span className="text-foreground">{m.title}</span>
-                <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
-              </div>
-            ))}
+            <div className={collapseMask}>
+              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m, i) => (
+                <div key={m.title} className={rowR}>
+                  <span className="text-foreground">{m.title}</span>
+                  <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[i])}</span>
+                </div>
+              ))}
+              {expanded &&
+                checkup.markers.slice(VISIBLE_MARKERS).map((m, i) => (
+                  <div key={m.title} className={`${rowR} animate-fade-in`}>
+                    <span className="text-foreground">{m.title}</span>
+                    <span className="shrink-0 whitespace-nowrap text-foreground">{money(prices[VISIBLE_MARKERS + i])}</span>
+                  </div>
+                ))}
+            </div>
+            {hiddenCount > 0 && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-border py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Раскрыть ещё {hiddenCount}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
             {gift && (
               <div className={rowR}>
                 <span className="text-foreground">Общий анализ крови</span>
