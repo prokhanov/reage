@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ChevronDown, Loader2, ShoppingCart } from "lucide-react";
+import { useEffect } from "react";
+import { ShoppingCart, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -119,13 +119,9 @@ interface Props {
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
   const { rows, loading } = useReportBiomarkers();
   const report = getCheckupExampleReport(checkup.slug);
-  /** По умолчанию показываем 5 показателей, остальные — по кнопке «Раскрыть». */
-  const [showAllMarkers, setShowAllMarkers] = useState(false);
-  const VISIBLE_MARKERS = 5;
 
   useEffect(() => {
     if (!open) return;
-    setShowAllMarkers(false);
     document.body.classList.add("hide-jivo");
     return () => document.body.classList.remove("hide-jivo");
   }, [open]);
@@ -167,12 +163,11 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
                   </div>
                 )}
                 <div className="mt-3">
-                  {report.markers.slice(0, VISIBLE_MARKERS).map((marker, i) => {
+                  {report.markers.map((marker) => {
                     const db = rows[marker.code];
                     const bio = toReportBiomarker(marker, checkup.slug, db);
                     const status = resolveStatus(bio, patient.gender, patient.age);
-                    const isLastVisible = i === VISIBLE_MARKERS - 1 && !showAllMarkers && report.markers.length > VISIBLE_MARKERS;
-                    const card = (
+                    return (
                       <BiomarkerCard
                         key={marker.code}
                         biomarker={bio}
@@ -181,49 +176,8 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
                         age={patient.age}
                       />
                     );
-                    // На последней видимой карточке — затухание альфы, чтобы было видно, что список продолжается.
-                    return isLastVisible ? (
-                      <div
-                        key={marker.code}
-                        style={{
-                          maskImage: "linear-gradient(to bottom, black 35%, transparent 96%)",
-                          WebkitMaskImage: "linear-gradient(to bottom, black 35%, transparent 96%)",
-                        }}
-                      >
-                        {card}
-                      </div>
-                    ) : (
-                      card
-                    );
                   })}
-                  {showAllMarkers &&
-                    report.markers.slice(VISIBLE_MARKERS).map((marker) => {
-                      const db = rows[marker.code];
-                      const bio = toReportBiomarker(marker, checkup.slug, db);
-                      const status = resolveStatus(bio, patient.gender, patient.age);
-                      return (
-                        <div key={marker.code} className="animate-fade-in">
-                          <BiomarkerCard
-                            biomarker={bio}
-                            commentary={buildCommentary(marker, status, db, bio.unit || "")}
-                            gender={patient.gender}
-                            age={patient.age}
-                          />
-                        </div>
-                      );
-                    })}
                 </div>
-                {!showAllMarkers && report.markers.length > VISIBLE_MARKERS && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="mx-auto mt-4 flex h-11 w-full max-w-xs gap-2 text-base sm:w-auto sm:px-8"
-                    onClick={() => setShowAllMarkers(true)}
-                  >
-                    Раскрыть
-                    <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
-                  </Button>
-                )}
               </section>
 
 
