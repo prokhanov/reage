@@ -16,7 +16,8 @@ export type AdminModule =
   | "lab_locations"
   | "report_visuals"
   | "scale_preview"
-  | "checkups";
+  | "checkups"
+  | "site_settings";
 
 export interface AdminModuleDef {
   value: AdminModule;
@@ -40,6 +41,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { value: "checkups", label: "Чекапы — цены и врач", path: "/admin/checkups" },
   { value: "lab_locations", label: "Лаборатории на карте", path: "/admin/labs" },
   { value: "report_visuals", label: "Визуал отчётов", path: "/admin/report-visuals" },
+  { value: "site_settings", label: "Сайт — дисклеймер", path: "/admin/site" },
   { value: "scale_preview", label: "Превью шкалы", path: "/admin/scale-preview" },
 ];
 
