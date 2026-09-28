@@ -78,6 +78,7 @@ export function CTASection() {
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const disclaimer = useActiveDisclaimer();
 
   const legalLinks = [
     { href: "/legal/requisites", label: "Реквизиты" },
