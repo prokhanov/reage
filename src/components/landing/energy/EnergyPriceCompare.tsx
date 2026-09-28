@@ -165,6 +165,12 @@ export function EnergyPriceCompare() {
               <span className="shrink-0 text-sm font-semibold text-primary">−{pct}%</span>
             </div>
 
+            <div className="mt-4 flex items-center gap-2.5 text-[15px] font-medium text-primary">
+              <FileText className="h-5 w-5 shrink-0" aria-hidden />
+              <span className="flex-1 leading-snug">Отчёт о вашем организме</span>
+              <Check className="h-5 w-5 shrink-0" aria-hidden />
+            </div>
+
             <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-primary/15 px-5 py-4">
               <span className="text-[15px] font-medium text-primary">Ваша выгода</span>
               <span className="text-2xl font-semibold tabular-nums text-primary">{money(save)}</span>
