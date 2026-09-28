@@ -43,8 +43,12 @@ export function EnergyPriceCompare() {
     <section className="px-4 py-12 md:py-16">
       <div className="mx-auto max-w-5xl rounded-3xl bg-muted/60 px-4 py-10 md:px-12">
         <div className="text-center">
-          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Те же анализы — дешевле</h2>
-          <p className="mt-2 text-muted-foreground">Чекап «{checkup.name}»</p>
+          <h2 className="hidden font-display text-[1.9rem] leading-tight text-foreground md:block md:text-4xl">Те же анализы — дешевле</h2>
+          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:hidden">
+            Те же {checkup.markers.length} {checkup.markers.length % 10 === 1 && checkup.markers.length !== 11 ? "анализ" : "анализов"} — дешевле
+          </h2>
+          <p className="mt-2 text-muted-foreground md:hidden">Пакет «{checkup.name}»</p>
+          <p className="mt-2 hidden text-muted-foreground md:block">Чекап «{checkup.name}»</p>
         </div>
 
         {/* Мобильная версия — компактная карточка */}
