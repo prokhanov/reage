@@ -243,6 +243,8 @@ export function EnergyExpertResult({
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
   const [exampleOpen, setExampleOpen] = useState(false);
+  /** На планшете и телефоне показатели после первого скрыты за кнопкой «Смотреть ещё». */
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
 
   return (
     <section id={id} className="border-b hairline max-lg:overflow-x-clip">
@@ -320,7 +322,7 @@ export function EnergyExpertResult({
 
 
           <div className="mt-5 space-y-3">
-            {markers.map((m) => (
+            {markers.slice(0, 1).map((m) => (
               <MarkerCard
                 key={m.code}
                 marker={m}
@@ -332,6 +334,31 @@ export function EnergyExpertResult({
                 }
               />
             ))}
+            <div className={cn("space-y-3", !showAllMarkers && "hidden lg:block")}>
+              {markers.slice(1).map((m) => (
+                <MarkerCard
+                  key={m.code}
+                  marker={m}
+                  defaultOpen
+                  description={
+                    rows[m.code]?.general_description?.trim() ||
+                    rows[m.code]?.description?.trim() ||
+                    m.fallbackDescription
+                  }
+                />
+              ))}
+            </div>
+            {!showAllMarkers && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12 w-full gap-2 text-base lg:hidden"
+                onClick={() => setShowAllMarkers(true)}
+              >
+                Смотреть ещё
+                <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
+              </Button>
+            )}
           </div>
 
           {showBuyCta && (
