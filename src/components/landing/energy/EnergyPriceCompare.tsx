@@ -228,7 +228,7 @@ export function EnergyPriceCompare() {
                   <FileText className="h-5 w-5 text-muted-foreground" />
                 </span>
                 <span className="flex-1 text-[15px] font-semibold leading-snug text-foreground">
-                  Отчёт о вашем организме на понятном языке
+                  Расшифровка
                 </span>
                 <X className="h-5 w-5 shrink-0 text-muted-foreground/50" />
               </div>
@@ -239,7 +239,7 @@ export function EnergyPriceCompare() {
                   <FileText className="h-5 w-5 text-primary-foreground/80" />
                 </span>
                 <span className="flex-1 text-[15px] font-semibold leading-snug">
-                  Отчёт о вашем организме на понятном языке
+                  Отчёт о вашем организме
                 </span>
                 <Check className="h-5 w-5 shrink-0 text-primary-foreground/70" />
               </div>
