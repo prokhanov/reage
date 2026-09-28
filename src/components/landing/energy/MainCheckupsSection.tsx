@@ -149,9 +149,15 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
         >
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
             <div className="flex flex-col">
-              <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
-                {FULL_CHECKUP.tag}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
+                  {FULL_CHECKUP.tag}
+                </span>
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium text-primary-foreground/90">
+                  <Droplet className="h-3 w-3" />
+                  По анализу крови и мочи
+                </span>
+              </div>
               <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-4xl">
                 {FULL_CHECKUP.name}
               </h3>
