@@ -119,9 +119,13 @@ interface Props {
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
   const { rows, loading } = useReportBiomarkers();
   const report = getCheckupExampleReport(checkup.slug);
+  /** По умолчанию показываем 5 показателей, остальные — по кнопке «Раскрыть». */
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
+  const VISIBLE_MARKERS = 5;
 
   useEffect(() => {
     if (!open) return;
+    setShowAllMarkers(false);
     document.body.classList.add("hide-jivo");
     return () => document.body.classList.remove("hide-jivo");
   }, [open]);
