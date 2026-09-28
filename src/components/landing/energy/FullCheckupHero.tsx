@@ -73,7 +73,7 @@ export function FullCheckupHero({ checkup, onAddToCart }: Props) {
             </p>
 
             <div className="flex flex-wrap items-baseline gap-3">
-              <div className="font-mono-tech text-[2rem] leading-none text-foreground sm:text-4xl">
+              <div className="text-[2rem] leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
             </div>

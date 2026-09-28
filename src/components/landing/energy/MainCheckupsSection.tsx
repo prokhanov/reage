@@ -72,7 +72,7 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
         </p>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
-          <div className="whitespace-nowrap font-mono-tech text-[1.5rem] leading-none text-foreground sm:text-[1.75rem]">
+          <div className="whitespace-nowrap text-[1.5rem] leading-none text-foreground sm:text-[1.75rem]">
             {money(priceOf(c.slug, c.price))}
           </div>
           <span className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
@@ -161,7 +161,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
                       aria-hidden
                     />
                     <span>{cat.title}</span>
-                    <span className="ml-auto whitespace-nowrap font-mono-tech text-xs text-primary-foreground/60 sm:text-sm">
+                    <span className="ml-auto whitespace-nowrap text-xs text-primary-foreground/60 sm:text-sm">
                       {cat.markers.length} {markerWord(cat.markers.length)}
                     </span>
                   </li>
@@ -187,7 +187,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
 
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between lg:flex-col lg:items-start">
                 <div>
-                  <div className="whitespace-nowrap font-mono-tech text-[1.75rem] leading-none sm:text-4xl">
+                  <div className="whitespace-nowrap text-[1.75rem] leading-none sm:text-4xl">
                     {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
                   </div>
                   <div className="mt-2 text-sm text-primary-foreground/70">

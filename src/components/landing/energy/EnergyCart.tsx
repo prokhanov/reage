@@ -205,7 +205,7 @@ export function EnergyCart() {
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="font-mono-tech text-base text-foreground">
+                        <span className="text-base text-foreground">
                           {money(item.price)}
                         </span>
                         <button
@@ -230,7 +230,7 @@ export function EnergyCart() {
                           <div className="text-sm text-muted-foreground">В подарок</div>
                         </div>
                       </div>
-                      <div className="shrink-0 text-right font-mono-tech text-base">
+                      <div className="shrink-0 text-right text-base">
                         <span className="mr-2 text-muted-foreground line-through">{money(CBC_BONUS_PRICE)}</span>
                         <span className="text-foreground">0 ₽</span>
                       </div>
@@ -432,7 +432,7 @@ export function EnergyCart() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-base font-semibold text-foreground">Консультация врача</span>
-                    <span className="font-mono-tech shrink-0 text-base text-foreground">
+                    <span className="shrink-0 text-base text-foreground">
                       +{money(CONSULT_PRICE)}
                     </span>
                   </div>
@@ -480,13 +480,13 @@ export function EnergyCart() {
                     className="flex items-center justify-between text-muted-foreground"
                   >
                     <span>{item.name}</span>
-                    <span className="font-mono-tech">{money(item.price)}</span>
+                    <span className="">{money(item.price)}</span>
                   </div>
                 ))}
                 {hasCbcBonus && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Общий анализ крови</span>
-                    <span className="font-mono-tech">
+                    <span className="">
                       <span className="mr-2 line-through">{money(CBC_BONUS_PRICE)}</span>
                       <span className="text-foreground">0 ₽</span>
                     </span>
@@ -495,18 +495,18 @@ export function EnergyCart() {
                 {consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Консультация врача</span>
-                    <span className="font-mono-tech">{money(CONSULT_PRICE)}</span>
+                    <span className="">{money(CONSULT_PRICE)}</span>
                   </div>
                 )}
                 {appliedPromo && (
                   <div className="flex items-center justify-between text-primary">
                     <span>Скидка · {appliedPromo.code}</span>
-                    <span className="font-mono-tech">−{money(discount)}</span>
+                    <span className="">−{money(discount)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between border-t hairline pt-2 text-base font-semibold text-foreground">
                   <span>Итого</span>
-                  <span className="font-mono-tech">{money(total)}</span>
+                  <span className="">{money(total)}</span>
                 </div>
               </div>
             </Step>
