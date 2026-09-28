@@ -57,13 +57,6 @@ export function EnergyPriceCompare() {
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
-  const mobileList: { title: string; price: number }[] = [
-    ...checkup.markers.map((m, i) => ({ title: m.title, price: prices[i] })),
-    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
-      ? [{ title: "Общий анализ крови", price: CBC_PRICE }]
-      : []),
-  ];
-  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
