@@ -19,7 +19,7 @@ const STATUS: Record<string, { label: string; variant: "default" | "secondary" |
   cancelled: { label: "Отменён", variant: "outline" },
 };
 
-const bundleTitle = (slug: string) => CHECKUPS.find((c) => c.slug === slug)?.title ?? slug;
+const bundleTitle = (b: string) => CHECKUPS.find((c) => c.bundle === b || c.slug === b)?.name ?? b;
 
 const fmtDate = (d?: string | null, withTime = true) => {
   if (!d) return "—";
