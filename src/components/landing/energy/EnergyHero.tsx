@@ -48,7 +48,11 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
 
       <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
         <div className="lg:w-[48%] lg:pr-8">
-          <h1 className="font-display text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
+            <Droplet className="h-4 w-4 text-primary" aria-hidden />
+            Только кровь из вены
+          </span>
+          <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
             {checkup.heroTitle}
           </h1>
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
