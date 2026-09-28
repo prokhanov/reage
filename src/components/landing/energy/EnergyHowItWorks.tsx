@@ -124,7 +124,7 @@ export function EnergyHowItWorks({ onAddToCart, price = ENERGY_CHECKUP.price, cb
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="font-display text-base font-medium text-foreground md:text-lg">
-                    {s.title}
+                    {title}
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {s.text}

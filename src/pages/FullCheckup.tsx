@@ -65,6 +65,7 @@ function FullCheckupContent() {
           onAddToCart={handleAddToCart}
           price={checkup.price}
           cbcBonusEnabled={checkup.cbcBonusEnabled}
+          full
         />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
