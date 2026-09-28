@@ -56,15 +56,7 @@ export function EnergyPriceCompare() {
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);
-  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
-  const mobileList = [
-    ...checkup.markers.map((m) => m.title),
-    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
-      ? ["Общий анализ крови"]
-      : []),
-  ];
-  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
@@ -76,6 +68,14 @@ export function EnergyPriceCompare() {
   const separate = prices.reduce((a, b) => a + b, 0) + (gift ? CBC_PRICE : 0);
   const save = separate - checkup.price;
   const pct = Math.round((save / separate) * 100);
+
+  const mobileList: { title: string; price: number }[] = [
+    ...checkup.markers.map((m, i) => ({ title: m.title, price: prices[i] })),
+    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
+      ? [{ title: "Общий анализ крови", price: CBC_PRICE }]
+      : []),
+  ];
+  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Колонки одной сетки: ячейки идут парами L/R, поэтому строки стоят на одной линии.
   // На мобильных всё складывается: сначала левая карточка (order-1), потом правая (order-2).
@@ -94,7 +94,7 @@ export function EnergyPriceCompare() {
       <icon.Icon className={`h-5 w-5 ${dark ? "text-primary-foreground/80" : "text-muted-foreground"}`} />
     );
 
-  const hideOnMobile = !breakdownOpen ? "max-md:hidden" : "";
+  const hideOnMobile = "max-md:hidden";
 
   const rowClassL = (i: number) =>
     `flex min-h-[62px] items-center gap-3.5 py-2 ${i === 0 ? "border-t border-border" : ""}`;
@@ -118,10 +118,11 @@ export function EnergyPriceCompare() {
             </div>
 
             <div className="mt-5 border-t border-border pt-3">
-              {mobileList.slice(0, MOBILE_VISIBLE).map((title) => (
+              {mobileList.slice(0, MOBILE_VISIBLE).map(({ title, price }) => (
                 <div key={title} className="flex items-center gap-2.5 py-2 text-[15px] text-foreground">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
-                  <span className="min-w-0 leading-snug">{title}</span>
+                  <span className="min-w-0 flex-1 leading-snug">{title}</span>
+                  <span className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">{money(price)}</span>
                 </div>
               ))}
 
@@ -129,7 +130,7 @@ export function EnergyPriceCompare() {
                 <button
                   type="button"
                   onClick={() => setExpanded(true)}
-                  className="mt-1 flex items-center gap-1.5 py-2 text-[15px] text-muted-foreground transition-opacity hover:opacity-70"
+                  className="mt-1 flex w-full items-center gap-1.5 py-2 text-[15px] text-muted-foreground transition-opacity hover:opacity-70"
                 >
                   <span className="underline decoration-dashed underline-offset-4">
                     Ещё {mobileHidden} {pluralMarkers(mobileHidden)}
@@ -139,41 +140,14 @@ export function EnergyPriceCompare() {
               )}
 
               {expanded &&
-                mobileList.slice(MOBILE_VISIBLE).map((title) => (
+                mobileList.slice(MOBILE_VISIBLE).map(({ title, price }) => (
                   <div key={title} className="flex animate-fade-in items-center gap-2.5 py-2 text-[15px] text-foreground">
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
-                    <span className="min-w-0 leading-snug">{title}</span>
+                    <span className="min-w-0 flex-1 leading-snug">{title}</span>
+                    <span className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">{money(price)}</span>
                   </div>
                 ))}
             </div>
-
-            <button
-              type="button"
-              onClick={() => setBreakdownOpen((v) => !v)}
-              className="mt-6 flex w-full items-center justify-between text-[15px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <span className="underline decoration-dashed underline-offset-4">
-                {breakdownOpen ? "Свернуть" : "Из чего сумма"}
-              </span>
-              <ChevronDown className={`h-5 w-5 transition-transform ${breakdownOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {breakdownOpen && (
-              <div className="mt-2 animate-fade-in">
-                {checkup.markers.map((m, i) => (
-                  <div key={m.title} className="flex items-center justify-between gap-3 border-t border-border py-2.5 text-sm">
-                    <span className="text-foreground">{m.title}</span>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">{money(prices[i])}</span>
-                  </div>
-                ))}
-                {gift && (
-                  <div className="flex items-center justify-between gap-3 border-t border-border py-2.5 text-sm">
-                    <span className="text-foreground">Общий анализ крови</span>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">{money(CBC_PRICE)}</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="mt-4 rounded-3xl bg-primary/10 px-5 py-6">
@@ -363,13 +337,6 @@ export function EnergyPriceCompare() {
             <div className="mt-1.5 text-4xl font-semibold tabular-nums tracking-tight text-muted-foreground line-through md:text-5xl">
               {money(separate)}
             </div>
-            <button
-              type="button"
-              onClick={() => setBreakdownOpen((v) => !v)}
-              className="mt-3 hidden max-md:inline-block text-sm text-muted-foreground underline decoration-dashed underline-offset-4 transition-colors hover:text-foreground"
-            >
-              {breakdownOpen ? "Свернуть" : "Из чего сумма"}
-            </button>
           </div>
           <div className={`${cellR} rounded-b-3xl pb-8 pt-6`}>
             <div className="flex flex-wrap items-end justify-between gap-4">
