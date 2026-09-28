@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, FileText, MapPin, Stethoscope } from "lucide-react";
+import { ArrowRight, Droplet, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
@@ -24,6 +24,11 @@ function markerWord(n: number) {
 type Tab = "feeling" | "system";
 
 const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
+
+/** Чекапы, сдача которых включает анализ мочи. */
+const URINE_SLUGS = new Set(["kidney"]);
+const bloodBadge = (slug: string) =>
+  URINE_SLUGS.has(slug) ? "По анализу крови и мочи" : "По анализу крови";
 
 type Filter = {
   id: string;
@@ -57,11 +62,17 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
       to={c.href}
       className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
     >
-      <span
-        className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
-      >
-        {c.tag}
-      </span>
+      <div className="relative mb-6 flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+        >
+          {c.tag}
+        </span>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Droplet className="h-3 w-3 text-primary" />
+          {bloodBadge(c.slug)}
+        </span>
+      </div>
 
       <div className="flex grow flex-col">
         <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
@@ -138,9 +149,15 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
         >
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
             <div className="flex flex-col">
-              <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
-                {FULL_CHECKUP.tag}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex w-fit items-center rounded-full bg-primary-foreground/15 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/90">
+                  {FULL_CHECKUP.tag}
+                </span>
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium text-primary-foreground/90">
+                  <Droplet className="h-3 w-3" />
+                  По анализу крови и мочи
+                </span>
+              </div>
               <h3 className="font-display mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-4xl">
                 {FULL_CHECKUP.name}
               </h3>
