@@ -373,8 +373,7 @@ export function EnergyCart() {
                       <PhoneInput
                         value={phone}
                         onChange={setPhone}
-                        className="h-12 [&>input]:h-12"
-                        aria-invalid={touched && !phoneValid}
+                        className="h-12"
                       />
                     </label>
                   </div>
