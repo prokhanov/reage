@@ -436,7 +436,7 @@ export function HeroPortrait() {
               </span>
             </h1>
             <p
-              className="font-display text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem] animate-fade-in text-center lg:text-left"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-snug animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.2s" }}
             >
               Берём на себя контроль вашего здоровья:&nbsp;
