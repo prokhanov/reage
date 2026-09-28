@@ -60,7 +60,9 @@ export function EnergyPriceCompare() {
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
   const mobileList = [
     ...checkup.markers.map((m) => m.title),
-    ...(gift ? ["Общий анализ крови"] : []),
+    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
+      ? ["Общий анализ крови"]
+      : []),
   ];
   const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
