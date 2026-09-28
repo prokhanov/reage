@@ -33,7 +33,8 @@ import {
   TableToolbarActions,
   TableSearch,
 } from "@/components/ui/data-table";
-import { Calendar, Eye, Trash2, CalendarClock, Settings, Plus } from "lucide-react";
+import { Calendar, Eye, Trash2, CalendarClock, Settings, Plus, ClipboardList } from "lucide-react";
+import { CheckupOrdersTab } from "@/components/admin/CheckupOrdersTab";
 import { BookingModeSettings } from "@/components/admin/BookingModeSettings";
 import { CreateBookingDialog } from "@/components/admin/CreateBookingDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -308,6 +309,10 @@ export default function AnalysisBookings() {
             <Calendar className="h-4 w-4 mr-2" />
             Записи пациентов
           </TabsTrigger>
+          <TabsTrigger value="checkups">
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Записи на чекапы
+          </TabsTrigger>
           <TabsTrigger value="slots">
             <CalendarClock className="h-4 w-4 mr-2" />
             Управление слотами
@@ -510,6 +515,10 @@ export default function AnalysisBookings() {
         )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="checkups">
+          <CheckupOrdersTab />
         </TabsContent>
 
         <TabsContent value="slots">
