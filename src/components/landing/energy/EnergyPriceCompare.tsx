@@ -1,7 +1,10 @@
-import { Check, Gift, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Gift, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
+
+const VISIBLE_MARKERS = 5;
 
 const CBC_PRICE = 900;
 const REPORT_PRICE = 2500;
