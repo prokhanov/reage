@@ -1,4 +1,4 @@
-import { Check, Gift, Minus, ShoppingCart } from "lucide-react";
+import { Check, Gift, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
