@@ -94,7 +94,7 @@ export function EnergyPriceCompare() {
       <icon.Icon className={`h-5 w-5 ${dark ? "text-primary-foreground/80" : "text-muted-foreground"}`} />
     );
 
-  const hideOnMobile = !breakdownOpen ? "max-md:hidden" : "";
+  const hideOnMobile = "max-md:hidden";
 
   const rowClassL = (i: number) =>
     `flex min-h-[62px] items-center gap-3.5 py-2 ${i === 0 ? "border-t border-border" : ""}`;
