@@ -47,52 +47,6 @@ export function EnergyPriceCompare() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
-            <div className="font-display text-3xl">ReAge</div>
-            <div className="mb-4 text-sm text-primary-foreground/70">одним пакетом</div>
-            <div className={collapseMask}>
-              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => (
-                <div key={m.title} className={rowL}>
-                  <span>{m.title}</span>
-                  <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-                </div>
-              ))}
-              {expanded &&
-                checkup.markers.slice(VISIBLE_MARKERS).map((m) => (
-                  <div key={m.title} className={`${rowL} animate-fade-in`}>
-                    <span>{m.title}</span>
-                    <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-                  </div>
-                ))}
-            </div>
-            {hiddenCount > 0 && !expanded && (
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-primary-foreground/15 py-3 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
-              >
-                Раскрыть ещё {hiddenCount}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            )}
-            {gift && (
-              <div className={rowL}>
-                <span>Общий анализ крови</span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-sm">
-                  <Gift className="h-4 w-4" /> в подарок
-                </span>
-              </div>
-            )}
-            <div className={rowL}>
-              <span>Расшифровка и рекомендации</span>
-              <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-            </div>
-            <div className="border-t border-primary-foreground/15 pt-5">
-              <div className="text-sm text-primary-foreground/70">Стоимость</div>
-              <div className="text-4xl font-semibold md:text-5xl">{money(checkup.price)}</div>
-            </div>
-          </div>
-
           <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
             <div className="font-display text-3xl text-foreground">По отдельности</div>
             <div className="mb-4 text-sm text-muted-foreground">в лаборатории</div>
@@ -136,11 +90,58 @@ export function EnergyPriceCompare() {
               <div className="text-4xl font-semibold text-muted-foreground line-through md:text-5xl">{money(separate)}</div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4 rounded-3xl bg-secondary px-6 py-5 md:px-8">
-          <span className="text-base text-foreground">Ваша выгода <span className="text-muted-foreground">· {pct}%</span></span>
-          <span className="text-2xl font-semibold text-foreground md:text-3xl">{money(save)}</span>
+          <div className="rounded-3xl bg-primary p-6 text-primary-foreground md:p-8">
+            <div className="font-display text-3xl">ReAge</div>
+            <div className="mb-4 text-sm text-primary-foreground/70">одним пакетом</div>
+            <div className={collapseMask}>
+              {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => (
+                <div key={m.title} className={rowL}>
+                  <span>{m.title}</span>
+                  <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                </div>
+              ))}
+              {expanded &&
+                checkup.markers.slice(VISIBLE_MARKERS).map((m) => (
+                  <div key={m.title} className={`${rowL} animate-fade-in`}>
+                    <span>{m.title}</span>
+                    <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+                  </div>
+                ))}
+            </div>
+            {hiddenCount > 0 && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-primary-foreground/15 py-3 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+              >
+                Раскрыть ещё {hiddenCount}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
+            {gift && (
+              <div className={rowL}>
+                <span>Общий анализ крови</span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-sm">
+                  <Gift className="h-4 w-4" /> в подарок
+                </span>
+              </div>
+            )}
+            <div className={rowL}>
+              <span>Расшифровка и рекомендации</span>
+              <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
+            </div>
+            <div className="border-t border-primary-foreground/15 pt-5">
+              <div className="flex items-baseline justify-between gap-4">
+                <div className="text-sm text-primary-foreground/70">Стоимость</div>
+                <div className="text-4xl font-semibold md:text-5xl">{money(checkup.price)}</div>
+              </div>
+              <div className="mt-4 flex items-baseline justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-4 py-3">
+                <span className="text-sm text-primary-foreground/80">Ваша выгода <span className="text-primary-foreground/60">· {pct}%</span></span>
+                <span className="text-2xl font-semibold md:text-3xl">{money(save)}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-center">
