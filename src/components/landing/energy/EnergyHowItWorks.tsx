@@ -8,6 +8,8 @@ interface Props {
   price?: number;
   cbcBonusEnabled?: boolean;
   id?: string;
+  /** Полный чекап: сдаётся кровь и моча, а не только кровь. */
+  full?: boolean;
 }
 
 const steps = [
@@ -32,7 +34,7 @@ const steps = [
     ),
   },
   {
-    title: "Сдаёте анализы",
+    title: "Сдаёте кровь",
     text: "Приходите в любое удобное отделение LabQuest натощак — процедура займёт 15 минут.",
     accent: "accent" as const,
     visual: (
