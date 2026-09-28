@@ -132,7 +132,7 @@ export function EnergyPriceCompare() {
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
                       <Droplet className="h-5 w-5 text-muted-foreground" />
                     </span>
-                    <span className="text-[13px] leading-tight text-foreground">Общий анализ крови</span>
+                    <span className="min-w-0 pr-1 text-xs leading-tight text-foreground">Общий анализ крови</span>
                   </div>
                 )}
 
@@ -163,7 +163,7 @@ export function EnergyPriceCompare() {
                             <icon.Icon className="h-5 w-5 text-muted-foreground" />
                           )}
                         </span>
-                        <span className="text-[13px] leading-tight text-foreground">{m.title}</span>
+                        <span className="min-w-0 pr-1 text-xs leading-tight text-foreground">{m.title}</span>
                       </div>
                     );
                   })}
