@@ -337,13 +337,6 @@ export function EnergyPriceCompare() {
             <div className="mt-1.5 text-4xl font-semibold tabular-nums tracking-tight text-muted-foreground line-through md:text-5xl">
               {money(separate)}
             </div>
-            <button
-              type="button"
-              onClick={() => setBreakdownOpen((v) => !v)}
-              className="mt-3 hidden max-md:inline-block text-sm text-muted-foreground underline decoration-dashed underline-offset-4 transition-colors hover:text-foreground"
-            >
-              {breakdownOpen ? "Свернуть" : "Из чего сумма"}
-            </button>
           </div>
           <div className={`${cellR} rounded-b-3xl pb-8 pt-6`}>
             <div className="flex flex-wrap items-end justify-between gap-4">
