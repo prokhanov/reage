@@ -7,7 +7,6 @@ import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 const VISIBLE_MARKERS = 5;
 
 const CBC_PRICE = 900;
-const REPORT_PRICE = 2500;
 
 function hash(s: string) {
   let h = 0;
@@ -28,11 +27,11 @@ export function EnergyPriceCompare() {
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
   const target = Math.ceil((checkup.price / div) / 100) * 100;
-  const markersTotal = Math.max(target - REPORT_PRICE - (gift ? CBC_PRICE : 0), checkup.markers.length * 400);
+  const markersTotal = Math.max(target - (gift ? CBC_PRICE : 0), checkup.markers.length * 400);
   const weights = checkup.markers.map((m) => 1 + (hash(m.title) % 5));
   const wSum = weights.reduce((a, b) => a + b, 0);
   const prices = weights.map((w) => Math.round((markersTotal * w) / wSum / 50) * 50);
-  const separate = prices.reduce((a, b) => a + b, 0) + REPORT_PRICE + (gift ? CBC_PRICE : 0);
+  const separate = prices.reduce((a, b) => a + b, 0) + (gift ? CBC_PRICE : 0);
   const save = separate - checkup.price;
   const pct = Math.round((save / separate) * 100);
 
@@ -76,10 +75,6 @@ export function EnergyPriceCompare() {
                   <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
                 </div>
               )}
-              <div className={rowR}>
-                <span className="text-muted-foreground">Расшифровка и рекомендации врача</span>
-                <span className="shrink-0 whitespace-nowrap text-muted-foreground">{money(REPORT_PRICE)}</span>
-              </div>
             </div>
           )}
 
@@ -92,7 +87,6 @@ export function EnergyPriceCompare() {
               <div className="h-2.5 rounded-full bg-primary" style={{ width: `${Math.max(100 - pct, 40)}%` }} />
               <span className="shrink-0 text-sm font-medium text-primary">−{pct}%</span>
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">Плюс расшифровка и рекомендации</div>
             <div className="mt-5 flex items-baseline justify-between gap-4 rounded-2xl bg-primary/10 px-4 py-4">
               <span className="font-medium text-foreground">Ваша выгода</span>
               <span className="shrink-0 text-2xl font-semibold text-primary">{money(save)}</span>
@@ -136,10 +130,6 @@ export function EnergyPriceCompare() {
                 <span className="shrink-0 whitespace-nowrap text-foreground">{money(CBC_PRICE)}</span>
               </div>
             )}
-            <div className={rowR}>
-              <span className="text-muted-foreground">Расшифровка и рекомендации врача</span>
-              <span className="shrink-0 whitespace-nowrap text-muted-foreground">{money(REPORT_PRICE)}</span>
-            </div>
             <div className="border-t border-border pt-5">
               <div className="text-sm text-muted-foreground">Стоимость</div>
               <div className="text-4xl font-semibold text-muted-foreground line-through md:text-5xl">{money(separate)}</div>
@@ -182,10 +172,6 @@ export function EnergyPriceCompare() {
                 </span>
               </div>
             )}
-            <div className={rowL}>
-              <span>Расшифровка и рекомендации</span>
-              <Check className="h-4 w-4 shrink-0 text-primary-foreground/70" />
-            </div>
             <div className="border-t border-primary-foreground/15 pt-5">
               <div className="flex items-baseline justify-between gap-4">
                 <div className="text-sm text-primary-foreground/70">Стоимость</div>
