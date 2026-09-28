@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { ShoppingCart, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, Loader2, ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
