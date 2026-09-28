@@ -13,6 +13,7 @@ function resolveCheckup(slug: string | undefined): Checkup | undefined {
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 const CART_KEY = "reage:checkup:cart";
+const CLINIC_KEY = "reage:checkup:clinic";
 
 function readCart(): string[] {
   try {
@@ -36,9 +37,31 @@ function writeCart(slugs: string[]) {
   }
 }
 
+function readClinic(): LabMapItem | null {
+  try {
+    const raw = localStorage.getItem(CLINIC_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.id) return null;
+    return parsed as LabMapItem;
+  } catch {
+    return null;
+  }
+}
+
+function writeClinic(item: LabMapItem | null) {
+  try {
+    if (item) localStorage.setItem(CLINIC_KEY, JSON.stringify(item));
+    else localStorage.removeItem(CLINIC_KEY);
+  } catch {
+    /* noop */
+  }
+}
+
 /** Очистить корзину вне провайдера (например, после успешной оплаты). */
 export function clearCheckupCart() {
   writeCart([]);
+  writeClinic(null);
 }
 
 interface EnergyOrderValue {
