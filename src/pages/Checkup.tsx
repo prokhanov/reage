@@ -63,12 +63,8 @@ export function CheckupContent() {
         <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} inCart={inCart} />
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
-        <EnergyExpertResult />
-        <EnergyHowItWorks
-          onAddToCart={handleAddToCart}
-          price={checkup.price}
-          cbcBonusEnabled={checkup.cbcBonusEnabled}
-        />
+        <EnergyExpertResult showBuyCta />
+        <EnergyHowItWorks />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />

@@ -60,13 +60,8 @@ function FullCheckupContent() {
         <FullCheckupHero checkup={checkup} onAddToCart={handleAddToCart} />
         <FullCheckupIncluded />
         <EnergyWhereToTest />
-        <EnergyExpertResult demoReport />
-        <EnergyHowItWorks
-          onAddToCart={handleAddToCart}
-          price={checkup.price}
-          cbcBonusEnabled={checkup.cbcBonusEnabled}
-          full
-        />
+        <EnergyExpertResult demoReport showBuyCta />
+        <EnergyHowItWorks full />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
       <div id="energy-page-end" />
