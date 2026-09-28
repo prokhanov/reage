@@ -107,6 +107,9 @@ Deno.serve(async (req) => {
     if (phoneClean.replace(/\D/g, "").length < 10) {
       return json({ error: "Укажите корректный телефон" }, 400);
     }
+    if (!clinic || !(clinic.title ?? "").trim()) {
+      return json({ error: "Выберите клинику для сдачи анализов" }, 400);
+    }
 
     const lastNameClean = (lastName ?? "").trim().slice(0, 100);
     const firstNameClean = (firstName ?? "").trim().slice(0, 100);
