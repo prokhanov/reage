@@ -25,6 +25,11 @@ type Tab = "feeling" | "system";
 
 const POPULAR_SLUGS = ["energy", "vitamins", "thyroid"];
 
+/** Чекапы, сдача которых включает анализ мочи. */
+const URINE_SLUGS = new Set(["kidney"]);
+const bloodBadge = (slug: string) =>
+  URINE_SLUGS.has(slug) ? "По анализу крови и мочи" : "По анализу крови";
+
 type Filter = {
   id: string;
   label: string;
@@ -57,11 +62,17 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
       to={c.href}
       className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg md:p-8"
     >
-      <span
-        className={`relative mb-6 inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
-      >
-        {c.tag}
-      </span>
+      <div className="relative mb-6 flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex w-fit items-center rounded-full border ${a.border} ${a.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text}`}
+        >
+          {c.tag}
+        </span>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Droplet className="h-3 w-3 text-primary" />
+          {bloodBadge(c.slug)}
+        </span>
+      </div>
 
       <div className="flex grow flex-col">
         <h3 className="font-display text-2xl font-semibold leading-tight text-foreground">
