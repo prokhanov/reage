@@ -21,6 +21,7 @@ import { money } from "@/data/checkups";
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 
 const VISIBLE_MARKERS = 5;
+const MOBILE_VISIBLE = 3;
 
 const CBC_PRICE = 900;
 
@@ -57,6 +58,13 @@ export function EnergyPriceCompare() {
   const [expanded, setExpanded] = useState(false);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const hiddenCount = Math.max(checkup.markers.length - VISIBLE_MARKERS, 0);
+  const mobileList = [
+    ...checkup.markers.map((m) => m.title),
+    ...(gift && !checkup.markers.some((m) => /общий анализ крови/i.test(m.title))
+      ? ["Общий анализ крови"]
+      : []),
+  ];
+  const mobileHidden = Math.max(mobileList.length - MOBILE_VISIBLE, 0);
 
   // Итог «по отдельности» — консервативно, выгода 35–45%
   const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
@@ -109,65 +117,34 @@ export function EnergyPriceCompare() {
               <span className="shrink-0 text-xl font-semibold tabular-nums text-foreground">{money(separate)}</span>
             </div>
 
-            <div className="mt-5 border-t border-border pt-5">
-              <div className="grid grid-cols-4 gap-x-3 gap-y-6">
-                {checkup.markers.slice(0, VISIBLE_MARKERS).map((m) => {
-                  const icon = markerIcon(m.title);
-                  return (
-                    <div key={m.title} className="flex flex-col gap-2">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                        {icon.kind === "text" ? (
-                          <span className="text-xs font-semibold text-muted-foreground">{icon.label}</span>
-                        ) : (
-                          <icon.Icon className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </span>
-                      <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">{m.title}</span>
-                    </div>
-                  );
-                })}
+            <div className="mt-5 border-t border-border pt-3">
+              {mobileList.slice(0, MOBILE_VISIBLE).map((title) => (
+                <div key={title} className="flex items-center gap-2.5 py-2 text-[15px] text-foreground">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
+                  <span className="min-w-0 leading-snug">{title}</span>
+                </div>
+              ))}
 
-                {gift && (
-                  <div className="flex flex-col gap-2">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                      <Droplet className="h-5 w-5 text-muted-foreground" />
-                    </span>
-                    <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">Общий анализ крови</span>
+              {!expanded && mobileHidden > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded(true)}
+                  className="mt-1 flex items-center gap-1.5 py-2 text-[15px] text-muted-foreground transition-opacity hover:opacity-70"
+                >
+                  <span className="underline decoration-dashed underline-offset-4">
+                    Ещё {mobileHidden} {pluralMarkers(mobileHidden)}
+                  </span>
+                  <ChevronDown className="h-4 w-4 shrink-0" />
+                </button>
+              )}
+
+              {expanded &&
+                mobileList.slice(MOBILE_VISIBLE).map((title) => (
+                  <div key={title} className="flex animate-fade-in items-center gap-2.5 py-2 text-[15px] text-foreground">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
+                    <span className="min-w-0 leading-snug">{title}</span>
                   </div>
-                )}
-
-                {hiddenCount > 0 && !expanded && (
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(true)}
-                    className="flex flex-col gap-2 text-left transition-opacity hover:opacity-70"
-                  >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                      <Plus className="h-5 w-5 text-muted-foreground" />
-                    </span>
-                    <span className="text-[13px] leading-tight text-muted-foreground underline decoration-dashed underline-offset-2">
-                      Ещё {hiddenCount} {pluralMarkers(hiddenCount)}
-                    </span>
-                  </button>
-                )}
-
-                {expanded &&
-                  checkup.markers.slice(VISIBLE_MARKERS).map((m) => {
-                    const icon = markerIcon(m.title);
-                    return (
-                      <div key={m.title} className="flex animate-fade-in flex-col gap-2">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                          {icon.kind === "text" ? (
-                            <span className="text-xs font-semibold text-muted-foreground">{icon.label}</span>
-                          ) : (
-                            <icon.Icon className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </span>
-                        <span className="min-w-0 pr-1 text-[11px] leading-tight [overflow-wrap:anywhere] text-foreground">{m.title}</span>
-                      </div>
-                    );
-                  })}
-              </div>
+                ))}
             </div>
 
             <button
