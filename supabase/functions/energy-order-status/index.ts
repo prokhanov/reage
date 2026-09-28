@@ -39,10 +39,6 @@ Deno.serve(async (req) => {
     if (error) return json({ error: "Не удалось получить заказ" }, 500);
     if (!data) return json({ error: "Заказ не найден" }, 404);
 
-    // email маскируем — страница возврата открыта по прямой ссылке
-    const email = String(data.email ?? "");
-    const masked = email.replace(/^(.).*(@.*)$/, (_m, a, b) => `${a}***${b}`);
-
     return json({
       status: data.status,
       bundle: data.bundle,
@@ -51,7 +47,7 @@ Deno.serve(async (req) => {
       outSum: Number(data.out_sum),
       clinicTitle: data.clinic_title,
       clinicAddress: data.clinic_address,
-      email: masked,
+      email: String(data.email ?? ""),
     });
   } catch (e) {
     console.error("energy-order-status error", e);

@@ -109,11 +109,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
   const checkup = checkups[0];
   const checkupPath = checkup ? checkup.href : "/checkup/energy";
   const checkupLabel =
-    checkups.length > 1
-      ? "К страницам чекапов"
-      : checkup
-        ? `На страницу ${checkup.name}`
-        : "На страницу чекапа";
+    checkups.length > 1 ? "К страницам чекапов" : "На страницу чекапа";
 
   if (mode === "fail") {
     return (
