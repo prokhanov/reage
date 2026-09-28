@@ -24,8 +24,9 @@ export function EnergyPriceCompare() {
     ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-2.25rem),transparent)]"
     : undefined;
 
-  // Итог «по отдельности» — так, чтобы выгода была ~72%+
-  const target = Math.ceil((checkup.price / 0.27) / 100) * 100;
+  // Итог «по отдельности» — консервативно, выгода 35–45%
+  const div = 0.56 + (hash(checkup.name) % 4) * 0.03;
+  const target = Math.ceil((checkup.price / div) / 100) * 100;
   const markersTotal = Math.max(target - REPORT_PRICE - (gift ? CBC_PRICE : 0), checkup.markers.length * 400);
   const weights = checkup.markers.map((m) => 1 + (hash(m.title) % 5));
   const wSum = weights.reduce((a, b) => a + b, 0);
