@@ -259,15 +259,20 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
 
       const { data: logs } = emails.length
         ? await admin.from('email_send_log')
-            .select('recipient_email, status, created_at, metadata')
+            .select('message_id, recipient_email, status, created_at, metadata')
             .in('recipient_email', emails)
             .order('created_at', { ascending: false })
-            .limit(2000)
+            .limit(4000)
         : { data: [] as any[] }
+      // Final status rows from the queue worker lack series metadata — link by message_id.
+      const seriesMsgIds = new Set<string>()
+      for (const l of (logs ?? []) as any[]) {
+        if ((l.metadata || {}).series_id === series_id && l.message_id) seriesMsgIds.add(l.message_id)
+      }
       const deliveryByUser = new Map<string, { status: string; created_at: string }>()
       for (const l of (logs ?? []) as any[]) {
         const md = l.metadata || {}
-        if (md.series_id !== series_id) continue
+        if (md.series_id !== series_id && !(l.message_id && seriesMsgIds.has(l.message_id))) continue
         const prof = (profiles ?? []).find((p: any) => p.email?.toLowerCase() === l.recipient_email?.toLowerCase())
         if (!prof) continue
         if (!deliveryByUser.has(prof.id)) deliveryByUser.set(prof.id, { status: l.status, created_at: l.created_at })
