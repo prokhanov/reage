@@ -1,4 +1,4 @@
-import { Bell, CreditCard, Send } from "lucide-react";
+import { Bell, Briefcase, Building2, CreditCard, FileText, Send, User } from "lucide-react";
 
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { Button } from "@/components/ui/button";
@@ -225,6 +225,70 @@ export function WhoCanPartner() {
                   Подключиться
                 </a>
               </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const PARTNER_STATUSES = [
+  {
+    icon: User,
+    tile: "bg-muted",
+    title: "Физическое лицо",
+    text: "Без регистрации статуса. Выплата на карту, налоги удерживаем и платим за вас.",
+  },
+  {
+    icon: FileText,
+    tile: "bg-success-soft",
+    title: "Самозанятый",
+    text: "Выплата на карту, чек через «Мой налог». Самый быстрый вариант.",
+  },
+  {
+    icon: Briefcase,
+    tile: "bg-warning/25",
+    title: "ИП",
+    text: "Выплата на расчётный счёт по договору, закрывающие документы каждый месяц.",
+  },
+  {
+    icon: Building2,
+    tile: "bg-destructive/15",
+    title: "Организация",
+    text: "Клиники, студии, фитнес-клубы и школы. Договор с юрлицом, оплата на счёт.",
+  },
+];
+
+/** Подключиться может каждый — любой налоговый статус, отличается только способ выплаты. */
+export function PartnerStatuses() {
+  return (
+    <section className="cv-section bg-muted/40">
+      <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 lg:py-20">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span className="rounded-full bg-success-soft px-4 py-1.5 text-xs font-medium text-foreground">
+              Для любого статуса
+            </span>
+            <h2 className="mt-5 font-display text-4xl font-medium tracking-tight sm:text-5xl">
+              Подключиться может каждый
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Частный специалист, самозанятый, ИП или клиника — условия одинаковые,
+            отличается только способ выплаты.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          {PARTNER_STATUSES.map((item) => (
+            <div key={item.title} className="rounded-2xl bg-card p-6 shadow-sm sm:p-7">
+              <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${item.tile}`}>
+                <item.icon className="h-6 w-6 text-foreground" aria-hidden />
+              </span>
+              <h3 className="mt-5 font-display text-xl font-medium leading-snug sm:text-2xl">
+                {item.title}
+              </h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
             </div>
           ))}
         </div>
