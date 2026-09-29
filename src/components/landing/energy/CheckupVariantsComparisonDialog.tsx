@@ -1,8 +1,10 @@
 import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Check, Minus } from "lucide-react";
 import { money, markersLabel } from "@/data/checkups";
 import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
+import { DIRECTIONS, renderLevel } from "@/components/landing/BiomarkerComparisonDialog";
 
 interface Props {
   open: boolean;
