@@ -3,6 +3,7 @@ import { ArrowRight, Check, Droplet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { markersLabel, money, withMarkersCount, type Checkup } from "@/data/checkups";
 import { CheckupVariantSwitcher } from "@/components/landing/energy/CheckupVariantSwitcher";
+import { YandexSplitBadge, calculateSplitPayment } from "@/components/landing/YandexSplitBadge";
 import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 
 interface Props {
