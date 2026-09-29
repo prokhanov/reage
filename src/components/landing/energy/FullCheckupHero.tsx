@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Droplet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { markersLabel, money, type Checkup } from "@/data/checkups";
+import { markersLabel, money, withMarkersCount, type Checkup } from "@/data/checkups";
 import { CheckupVariantSwitcher } from "@/components/landing/energy/CheckupVariantSwitcher";
 import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 
@@ -62,7 +62,7 @@ export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChang
             </span>
           </h1>
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
-            {checkup.heroSubtitle}
+            {withMarkersCount(checkup.heroSubtitle, count)}
           </p>
 
           {checkup.leadBullets && (
