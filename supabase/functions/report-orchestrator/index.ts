@@ -598,6 +598,25 @@ async function handleTick(supabase: any, body: any) {
       } else {
         stepOk = true;
       }
+    } else if (step.kind === "whole_body") {
+      // Объединение разделов по системам в «Организм в целом» — один AI-вызов.
+      const r = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/synthesize-whole-body`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          apikey: SERVICE_KEY,
+        },
+        body: JSON.stringify({ analysisId: j.analysis_id, mode: j.mode }),
+      }, 145_000);
+      const text = await r.text();
+      let parsed: any = null;
+      try { parsed = JSON.parse(text); } catch { /* ignore */ }
+      if (!r.ok || !parsed?.success) {
+        stepError = `synthesize-whole-body status=${r.status} body=${text.slice(0, 400)}`;
+      } else {
+        stepOk = true;
+      }
     } else if (step.kind === "finalize") {
 
       // Каждая фаза finalize (summary / bioage) делает один тяжёлый AI-вызов
