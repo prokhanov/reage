@@ -9,6 +9,7 @@ import {
   FULL_CHECKUP_MARKERS_COUNT,
 } from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
 import { accentClasses } from "./checkupShapes";
 
@@ -98,10 +99,13 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
 
 export function MainCheckupsSection({ title = "Выберите чекап" }: { title?: string }) {
   const { priceOf, isActive } = useCheckupSettings();
+  const { resolve, groupsOf } = useResolvedCheckups();
+  const fullGroups = groupsOf(FULL_CHECKUP.slug);
+  const fullCount = fullGroups.reduce((n, g) => n + g.markers.length, 0);
   const [tab, setTab] = useState<Tab>("feeling");
   const [active, setActive] = useState<string | null>(null);
 
-  const all = useMemo(() => CHECKUPS.filter((c) => isActive(c.slug)), [isActive]);
+  const all = useMemo(() => CHECKUPS.map(resolve).filter((c) => isActive(c.slug)), [isActive, resolve]);
 
   const currentFilters = tab === "feeling" ? FEELINGS : SYSTEMS;
   const selected = currentFilters.find((f) => f.id === active) ?? null;
@@ -167,7 +171,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
               </p>
 
               <ul className="mt-6 space-y-2.5 sm:mt-8">
-                {FULL_CHECKUP_CATEGORIES.map((cat) => (
+                {fullGroups.map((cat) => (
                   <li
                     key={cat.title}
                     className="flex items-center gap-3 text-sm text-primary-foreground/90 sm:text-[0.95rem]"
@@ -208,7 +212,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
                     {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
                   </div>
                   <div className="mt-2 text-sm text-primary-foreground/70">
-                    {FULL_CHECKUP_MARKERS_COUNT} показателей · 5 систем организма
+                    {fullCount} {markerWord(fullCount)} · систем организма: {fullGroups.length}
                   </div>
                 </div>
                 <span className="inline-flex h-12 shrink-0 items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3 text-sm font-semibold text-primary transition-colors duration-300 group-hover:bg-background group-hover:text-foreground">

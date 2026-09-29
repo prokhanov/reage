@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import NotFound from "@/pages/NotFound";
@@ -21,11 +21,17 @@ import { EnergyPriceCompare } from "@/components/landing/energy/EnergyPriceCompa
 import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { getCheckupBySlug, type Checkup } from "@/data/checkups";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 import { reachGoal } from "@/lib/yandexMetrika";
 
-export function CheckupContent() {
+export function CheckupContent({
+  baseSlug,
+  onVariantChange,
+}: { baseSlug?: string; onVariantChange?: (slug: string) => void } = {}) {
   const { addToCart, inCart, openCart, checkup, count } = useEnergyOrder();
+  const { variantsFor } = useResolvedCheckups();
+  const variants = variantsFor(baseSlug ?? checkup.slug);
   const { setTheme } = useTheme();
 
   // На страницах чекапов по умолчанию используем светлую тему
@@ -61,7 +67,13 @@ export function CheckupContent() {
       />
       <EnergyHeader cartCount={count} onOpenCart={openCart} />
       <main className="pb-20 lg:pb-0">
-        <EnergyHero onAddToCart={handleAddToCart} checkup={checkup} inCart={inCart} />
+        <EnergyHero
+          onAddToCart={handleAddToCart}
+          checkup={checkup}
+          inCart={inCart}
+          variants={variants}
+          onVariantChange={variants.length > 1 ? onVariantChange : undefined}
+        />
         <EnergyHowItWorks />
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
@@ -86,9 +98,12 @@ export function CheckupContent() {
 }
 
 export function CheckupPage({ checkup }: { checkup: Checkup }) {
+  const [variantSlug, setVariantSlug] = useState(checkup.slug);
+  const { bySlug } = useResolvedCheckups();
+  const current = bySlug(variantSlug) ?? checkup;
   return (
-    <EnergyOrderProvider checkup={checkup}>
-      <CheckupContent />
+    <EnergyOrderProvider checkup={current}>
+      <CheckupContent baseSlug={checkup.slug} onVariantChange={setVariantSlug} />
     </EnergyOrderProvider>
   );
 }

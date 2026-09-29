@@ -1,16 +1,26 @@
 import { ArrowRight, Check, Droplet, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { CheckupVariantSwitcher } from "@/components/landing/energy/CheckupVariantSwitcher";
 import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
+import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 
 interface Props {
   onAddToCart: () => void;
   checkup?: Checkup;
   /** Чекап уже добавлен в корзину */
   inCart?: boolean;
+  variants?: ResolvedVariant[];
+  onVariantChange?: (slug: string) => void;
 }
 
-export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = false }: Props) {
+export function EnergyHero({
+  onAddToCart,
+  checkup = ENERGY_CHECKUP,
+  inCart = false,
+  variants = [],
+  onVariantChange,
+}: Props) {
 
 
   const visual = (
@@ -76,9 +86,13 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
             </p>
           )}
 
+          {onVariantChange && (
+            <CheckupVariantSwitcher variants={variants} activeSlug={checkup.slug} onChange={onVariantChange} />
+          )}
+
           <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
             <p className="text-sm text-muted-foreground sm:text-base">
-              {markersLabel(checkup.markers.length + CBC_BONUS_MARKER_COUNT)} · Без записи
+              {markersLabel(checkup.markers.length + (checkup.cbcBonusEnabled ? CBC_BONUS_MARKER_COUNT : 0))} · Без записи
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
