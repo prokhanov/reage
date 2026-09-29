@@ -26,7 +26,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 type StepDef = {
   id: string;          // уникальный идентификатор шага
   label: string;       // человекочитаемое название
-  kind: "category" | "prescriptions" | "finalize";
+  kind: "category" | "prescriptions" | "finalize" | "whole_body";
   payload: Record<string, unknown>;
 };
 
@@ -119,10 +119,16 @@ async function handleStart(supabase: any, body: any) {
   // ложную ошибку, если у самого админа анкета не заполнена.
   const { data: analysisRow } = await supabase
     .from("analyses")
-    .select("user_id")
+    .select("user_id, cover_overrides")
     .eq("id", analysisId)
     .maybeSingle();
   const ownerId = analysisRow?.user_id || userId;
+  // Тип отчёта: явный параметр или сохранённый у анализа (cover_overrides.report_kind).
+  const savedKind = (analysisRow?.cover_overrides as any)?.report_kind;
+  const reportKind: "systems" | "whole_body" =
+    body.reportKind === "whole_body" || body.reportKind === "systems"
+      ? body.reportKind
+      : savedKind === "whole_body" ? "whole_body" : "systems";
   const { data: profile } = await supabase
     .from("profiles")
     .select("medical_anketa_filled")
@@ -230,6 +236,14 @@ async function handleStart(supabase: any, body: any) {
     kind: "finalize",
     payload: { phase: "bioage" },
   });
+  if (reportKind === "whole_body") {
+    steps.push({
+      id: "whole_body",
+      label: "Организм в целом",
+      kind: "whole_body",
+      payload: {},
+    });
+  }
 
   const { data: job, error: insErr } = await supabase
     .from("report_jobs")
@@ -242,7 +256,7 @@ async function handleStart(supabase: any, body: any) {
       steps_total: steps.length,
       steps_done: 0,
       current_step: steps[0].id,
-      metadata: { started_via: "orchestrator" },
+      metadata: { started_via: "orchestrator", report_kind: reportKind },
     })
     .select("*")
     .single();
