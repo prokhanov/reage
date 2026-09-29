@@ -21,7 +21,6 @@ export default function Partners() {
         <StatsStrip />
         <HowItWorks />
         <JoinSection />
-        <div className="h-14 bg-muted/40 lg:h-20" />
         <BonusSection />
         <EarningsSection />
         <FaqSection />
