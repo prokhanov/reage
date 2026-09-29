@@ -5,22 +5,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { markersLabel } from "@/data/checkups";
-import { FULL_CHECKUP_CATEGORIES, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
-import type { TierComposition } from "@/hooks/useFullCheckupTiers";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
-const DOTS = ["bg-success", "bg-warning", "bg-destructive", "bg-info", "bg-primary"];
-
-export function FullCheckupIncluded({ composition }: { composition?: TierComposition | null }) {
-  const categories =
-    composition && composition.count > 0
-      ? composition.groups.map((g, i) => ({
-          title: g.name,
-          dotClass: DOTS[i % DOTS.length],
-          note: "",
-          markers: g.markers,
-        }))
-      : FULL_CHECKUP_CATEGORIES;
-  const total = categories.reduce((s, c) => s + c.markers.length, 0) || FULL_CHECKUP_MARKERS_COUNT;
+export function FullCheckupIncluded({ slug }: { slug: string }) {
+  const { groupsOf } = useResolvedCheckups();
+  const categories = groupsOf(slug);
+  const total = categories.reduce((s, c) => s + c.markers.length, 0);
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">

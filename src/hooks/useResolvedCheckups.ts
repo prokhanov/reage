@@ -2,11 +2,20 @@ import { useCallback } from "react";
 import { FlaskConical } from "lucide-react";
 
 import { CHECKUPS, type Checkup } from "@/data/checkups";
-import { FULL_CHECKUP } from "@/data/fullCheckup";
+import { FULL_CHECKUP, FULL_CHECKUP_CATEGORIES } from "@/data/fullCheckup";
 import { useCheckupSettings, type CheckupVariantRow } from "@/hooks/useCheckupSettings";
 
 /** Базовые описания чекапов из кода (тексты, фото, SEO). Показатели и цены — из админки. */
 export const BASE_CHECKUPS: Checkup[] = [...CHECKUPS, FULL_CHECKUP];
+
+const GROUP_DOTS = ["bg-success", "bg-warning", "bg-destructive", "bg-info", "bg-primary"];
+
+export interface MarkerGroup {
+  title: string;
+  dotClass: string;
+  note: string;
+  markers: string[];
+}
 
 export interface ResolvedVariant {
   variant: CheckupVariantRow;
@@ -75,5 +84,33 @@ export function useResolvedCheckups() {
     [variantBySlug, variantsOf, bySlug],
   );
 
-  return { resolve, bySlug, variantsFor, markersOf };
+  /** Показатели чекапа по системам организма (категориям из «Управления данными»). */
+  const groupsOf = useCallback(
+    (slug: string): MarkerGroup[] => {
+      const rows = markersOf(slug);
+      if (!rows) return slug === FULL_CHECKUP.slug ? FULL_CHECKUP_CATEGORIES : [];
+      const map = new Map<string, { order: number; markers: string[] }>();
+      rows.forEach((r) => {
+        const key = r.category ?? "Другое";
+        const g = map.get(key) ?? { order: r.category_order, markers: [] };
+        g.markers.push(r.title);
+        map.set(key, g);
+      });
+      const known = new Map(FULL_CHECKUP_CATEGORIES.map((c) => [c.title.toLowerCase(), c]));
+      return [...map.entries()]
+        .sort((a, b) => a[1].order - b[1].order)
+        .map(([title, g], i) => {
+          const k = known.get(title.toLowerCase());
+          return {
+            title: k?.title ?? title,
+            dotClass: k?.dotClass ?? GROUP_DOTS[i % GROUP_DOTS.length],
+            note: k?.note ?? "",
+            markers: g.markers,
+          };
+        });
+    },
+    [markersOf],
+  );
+
+  return { resolve, bySlug, variantsFor, markersOf, groupsOf };
 }
