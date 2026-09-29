@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets } from "lucide-react";
+import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets, CalendarCheck, Check } from "lucide-react";
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
