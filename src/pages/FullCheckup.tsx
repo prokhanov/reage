@@ -16,7 +16,7 @@ import { EnergyStickyCta } from "@/components/landing/energy/EnergyStickyCta";
 import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest";
 import { FullCheckupHero } from "@/components/landing/energy/FullCheckupHero";
 import { FullCheckupIncluded } from "@/components/landing/energy/FullCheckupIncluded";
-import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
+import { CheckupVariantsComparisonDialog } from "@/components/landing/energy/CheckupVariantsComparisonDialog";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
@@ -86,7 +86,7 @@ function FullCheckupContent({ onVariantChange }: { onVariantChange: (slug: strin
         name={checkup.name}
       />
       <EnergyCart />
-      <BiomarkerComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} />
+      <CheckupVariantsComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} checkupSlug={checkup.slug} />
     </div>
   );
 }
