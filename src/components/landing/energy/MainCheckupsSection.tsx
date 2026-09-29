@@ -95,9 +95,16 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
 
 export function MainCheckupsSection({ title = "Выберите чекап" }: { title?: string }) {
   const { priceOf, isActive } = useCheckupSettings();
-  const { resolve, groupsOf } = useResolvedCheckups();
+  const { resolve, groupsOf, variantsFor } = useResolvedCheckups();
   const fullGroups = groupsOf(FULL_CHECKUP.slug);
   const fullCount = fullGroups.reduce((n, g) => n + g.markers.length, 0);
+  const fullMinPrice = useMemo(() => {
+    const variants = variantsFor(FULL_CHECKUP.slug);
+    const prices = [FULL_CHECKUP.slug, ...variants.map((v) => v.slug)].map((s) =>
+      priceOf(s, s === FULL_CHECKUP.slug ? FULL_CHECKUP.price : variants.find((v) => v.slug === s)?.price ?? FULL_CHECKUP.price),
+    );
+    return Math.min(...prices);
+  }, [variantsFor, priceOf]);
   const [tab, setTab] = useState<Tab>("feeling");
   const [active, setActive] = useState<string | null>(null);
 
