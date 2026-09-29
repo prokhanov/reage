@@ -371,7 +371,7 @@ export function HeroPortrait() {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-10 sm:px-6 sm:pt-12 lg:pb-24 lg:pt-28">
-        <div className="lg:w-[48%] lg:pr-8">
+        <div className="flex flex-col items-center text-center lg:w-[48%] lg:items-start lg:pr-8 lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
             <CalendarCheck className="h-4 w-4 text-primary" aria-hidden />
             Сервис мониторинга здоровья
@@ -382,16 +382,16 @@ export function HeroPortrait() {
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
             Берём на себя контроль вашего здоровья
           </p>
-          <ul className="mt-4 max-w-md space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg">
+          <ul className="mx-auto mt-4 flex max-w-md flex-col items-center space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg lg:items-stretch">
             {LEAD_BULLETS.map((item) => (
               <li key={item} className="flex items-start gap-2">
                 <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden />
-                <span>{item}</span>
+                <span className="text-left">{item}</span>
               </li>
             ))}
           </ul>
 
-          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
+          <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 lg:items-start">
             <p className="text-sm text-muted-foreground sm:text-base">
               100+ биомаркеров · 5 систем организма · до 4 чекапов в год
             </p>
