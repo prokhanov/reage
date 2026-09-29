@@ -393,7 +393,7 @@ export function HeroPortrait() {
 
           <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 lg:items-start">
             <p className="text-sm text-muted-foreground sm:text-base">
-              100+ биомаркеров · 5 систем организма · до 4 чекапов в год
+              100+ биомаркеров · Биологический возраст · Дашборды и тренды
             </p>
 
             <div className="flex w-full max-w-md flex-col gap-3">
