@@ -1,7 +1,7 @@
 import { PageMeta } from "@/components/PageMeta";
 import { PartnersHeader, PartnersHero, StatsStrip, WhoCanPartner, HowItWorks, PartnerStatuses } from "./partners/PartnersTop";
 import { JoinSection, PartnersFooter } from "./partners/PartnersBottom";
-import { SplitCalculator, BonusSection, ConnectSection, EarningsSection, FaqSection } from "./partners/PartnersPart2";
+import { SplitCalculator, BonusSection, ReferralSection, ConnectSection, EarningsSection, FaqSection } from "./partners/PartnersPart2";
 
 export default function Partners() {
   const scrollToJoin = () => {
@@ -25,6 +25,7 @@ export default function Partners() {
         <JoinSection />
         <SplitCalculator />
         <BonusSection />
+        <ReferralSection />
         <EarningsSection />
         <FaqSection />
         <ConnectSection />
