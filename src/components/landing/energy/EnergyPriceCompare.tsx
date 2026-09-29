@@ -105,7 +105,7 @@ export function EnergyPriceCompare() {
     <section className="px-4 py-12 md:py-16">
       <div className="mx-auto max-w-5xl rounded-3xl bg-muted/60 px-4 py-10 md:px-12">
         <div className="text-center">
-          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Те же анализы — дешевле</h2>
+          <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">Пакетом дешевле</h2>
           <p className="mt-2 text-muted-foreground">Чекап «{checkup.name}»</p>
         </div>
 
@@ -179,11 +179,11 @@ export function EnergyPriceCompare() {
 
           <Button
             onClick={addToCart}
-            className="mt-5 h-[64px] w-full rounded-2xl text-lg font-semibold"
+            className="mt-5 h-[76px] w-full rounded-2xl text-xl font-semibold"
           >
-            <ShoppingCart className="h-5 w-5 shrink-0" aria-hidden />
+            <ShoppingCart className="h-6 w-6 shrink-0" aria-hidden />
             Пройти чекап за {money(checkup.price)}
-            <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
+            <ArrowRight className="h-6 w-6 shrink-0" aria-hidden />
           </Button>
         </div>
 
@@ -361,11 +361,11 @@ export function EnergyPriceCompare() {
             </div>
             <Button
               onClick={addToCart}
-              className="mt-6 h-[72px] w-full rounded-2xl bg-primary-foreground text-lg font-semibold text-primary hover:bg-primary-foreground/90 md:text-xl"
+              className="mt-6 h-[88px] w-full rounded-2xl bg-primary-foreground text-xl font-semibold text-primary hover:bg-primary-foreground/90 md:text-2xl"
             >
-              <ShoppingCart className="h-6 w-6 shrink-0" aria-hidden />
+              <ShoppingCart className="h-7 w-7 shrink-0" aria-hidden />
               Пройти чекап за {money(checkup.price)}
-              <ArrowRight className="h-6 w-6 shrink-0" aria-hidden />
+              <ArrowRight className="h-7 w-7 shrink-0" aria-hidden />
             </Button>
           </div>
         </div>
