@@ -92,6 +92,10 @@ export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChang
               <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
+
+              <div className="mt-1">
+                <YandexSplitBadge amount={calculateSplitPayment(checkup.price)} payments={4} />
+              </div>
             </div>
 
             <div className="mt-1 flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row sm:gap-6">
