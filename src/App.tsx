@@ -39,6 +39,7 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const LifestyleTest = lazy(() => import("./pages/LifestyleTest"));
 const AnalysisPrep = lazy(() => import("./pages/AnalysisPrep"));
+const Partners = lazy(() => import("./pages/Partners"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Business = lazy(() => import("./pages/Business"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -161,6 +162,7 @@ const App = () => (
             <Route path="/prep" element={<AnalysisPrep />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/business" element={<Business />} />
+            <Route path="/partners" element={<Partners />} />
             <Route path="/lifestyle-test" element={<LifestyleTest />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/:step" element={<Register />} />
