@@ -88,7 +88,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
               {checkup.cbcBonusEnabled && (
                 <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm font-medium text-primary sm:text-base">
                   <Gift className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-                  + ОАК в подарок
+                  Общий анализ крови в подарок
                 </div>
               )}
             </div>
