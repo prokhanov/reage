@@ -4,24 +4,39 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { markersLabel } from "@/data/checkups";
 import { FULL_CHECKUP_CATEGORIES, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
+import type { TierComposition } from "@/hooks/useFullCheckupTiers";
 
-export function FullCheckupIncluded() {
+const DOTS = ["bg-success", "bg-warning", "bg-destructive", "bg-info", "bg-primary"];
+
+export function FullCheckupIncluded({ composition }: { composition?: TierComposition | null }) {
+  const categories =
+    composition && composition.count > 0
+      ? composition.groups.map((g, i) => ({
+          title: g.name,
+          dotClass: DOTS[i % DOTS.length],
+          note: "",
+          markers: g.markers,
+        }))
+      : FULL_CHECKUP_CATEGORIES;
+  const total = categories.reduce((s, c) => s + c.markers.length, 0) || FULL_CHECKUP_MARKERS_COUNT;
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
         <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
-          Что входит — {FULL_CHECKUP_MARKERS_COUNT} показателей
+          Что входит — {markersLabel(total)}
         </h2>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card sm:mt-8">
           <Accordion
             type="single"
             collapsible
-            defaultValue={FULL_CHECKUP_CATEGORIES[0].title}
+            key={categories[0]?.title}
+            defaultValue={categories[0]?.title}
             className="w-full"
           >
-            {FULL_CHECKUP_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <AccordionItem
                 key={category.title}
                 value={category.title}
@@ -42,8 +57,8 @@ export function FullCheckupIncluded() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-5 pb-6 sm:px-8">
-                  <p className="text-sm text-muted-foreground sm:text-base">{category.note}</p>
-                  <ul className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                  {category.note && <p className="text-sm text-muted-foreground sm:text-base">{category.note}</p>}
+                  <ul className="mt-2 grid gap-x-8 gap-y-2 sm:grid-cols-2">
                     {category.markers.map((marker) => (
                       <li
                         key={marker}
