@@ -3,6 +3,7 @@ import { ArrowRight, Check, Droplet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { markersLabel, money, withMarkersCount, type Checkup } from "@/data/checkups";
 import { CheckupVariantSwitcher } from "@/components/landing/energy/CheckupVariantSwitcher";
+import { YandexSplitBadge, calculateSplitPayment } from "@/components/landing/YandexSplitBadge";
 import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 
 interface Props {
@@ -87,10 +88,12 @@ export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChang
               {markersLabel(count)} · Без записи
             </p>
 
-            <div className="flex flex-wrap items-baseline gap-3">
+            <div className="flex flex-col items-start gap-2">
               <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
+
+              <YandexSplitBadge amount={calculateSplitPayment(checkup.price)} payments={4} />
             </div>
 
             <div className="mt-1 flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row sm:gap-6">
