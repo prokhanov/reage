@@ -364,13 +364,13 @@ export function HeroPortrait() {
   const visual = <Artboard bp={bp} isDark={isDark} />;
 
   return (
-    <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[680px] xl:min-h-[744px]">
+    <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
       {/* Визуал: на десктопе — справа абсолютом, на мобильном — под кнопкой (в потоке ниже) */}
       <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] items-end justify-center lg:flex">
         {visual}
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-10 sm:px-6 sm:pt-12 lg:pb-24 lg:pt-28">
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-10 lg:pb-20 lg:pt-20">
         <div className="flex flex-col items-center text-center lg:w-[48%] lg:items-start lg:pr-8 lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
             <CalendarCheck className="h-4 w-4 text-primary" aria-hidden />
