@@ -185,6 +185,50 @@ export function StatsStrip() {
   );
 }
 
+const PARTNER_TYPES = [
+  { title: "Терапевты, эндокринологи\nи превентологи" },
+  { title: "Нутрициологи\nи диетологи" },
+  { title: "Тренеры, спортивные врачи\nи спортсмены" },
+  { title: "Велнес-коучи\nи блогеры о здоровье" },
+];
+
+/** Для кого программа — по образцу референса. */
+export function WhoCanPartner() {
+  return (
+    <section className="cv-section bg-muted/40">
+      <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 lg:py-20">
+        <div className="flex flex-col items-center text-center">
+          <span className="rounded-full bg-success-soft px-4 py-1.5 text-xs font-medium text-foreground">
+            Для кого программа
+          </span>
+          <h2 className="mt-5 max-w-xl font-display text-4xl font-medium tracking-tight sm:text-5xl">
+            Кто может стать
+            <br />
+            партнёром ReAge?
+          </h2>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6">
+          {PARTNER_TYPES.map((item) => (
+            <div
+              key={item.title}
+              className="flex flex-col items-center rounded-2xl bg-card px-6 py-8 text-center shadow-sm sm:py-10"
+            >
+              <h3 className="whitespace-pre-line font-display text-xl font-medium leading-snug sm:text-2xl">
+                {item.title}
+              </h3>
+              <Button asChild className="mt-5 h-10 rounded-full px-6 font-semibold">
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  Подключиться
+                </a>
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const STEPS = [
   {
     num: "01",
