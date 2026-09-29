@@ -30,9 +30,33 @@ export const DEFAULT_DOCTOR: CheckupDoctor = {
   consultation_enabled: true,
 };
 
+/** Показатель, привязанный к чекапу в админке. */
+export interface CheckupMarkerRow {
+  id: string;
+  checkup_slug: string;
+  biomarker_id: string | null;
+  title: string;
+  description: string;
+  /** Система организма из «Управления данными» (если маркер привязан). */
+  category: string | null;
+  category_order: number;
+  display_order: number;
+}
+
+/** Вариант чекапа (например, Базовый / Полный / Расширенный). */
+export interface CheckupVariantRow {
+  slug: string;
+  parent_slug: string;
+  label: string;
+  display_order: number;
+  is_popular: boolean;
+}
+
 interface CheckupSettingsData {
   prices: Record<string, CheckupPriceRow>;
   doctor: CheckupDoctor;
+  markers?: Record<string, CheckupMarkerRow[]>;
+  variants?: CheckupVariantRow[];
 }
 
 /**
@@ -77,7 +101,7 @@ async function load(force = false): Promise<CheckupSettingsData> {
   if (inflight && !force) return inflight;
 
   inflight = (async () => {
-    const [pricesRes, doctorRes] = await Promise.all([
+    const [pricesRes, doctorRes, markersRes, variantsRes, catsRes] = await Promise.all([
       supabase.from("checkup_settings").select("slug, price, is_active, cbc_bonus_enabled"),
       supabase
         .from("checkup_doctor_settings")
@@ -85,7 +109,38 @@ async function load(force = false): Promise<CheckupSettingsData> {
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from("checkup_markers")
+        .select("id, checkup_slug, biomarker_id, title, description, display_order, biomarkers(name, category)")
+        .order("display_order"),
+      supabase.from("checkup_variants").select("slug, parent_slug, label, display_order, is_popular").order("display_order"),
+      supabase.from("biomarker_categories").select("name, display_order"),
     ]);
+
+    const catOrder = new Map((catsRes.data ?? []).map((c) => [c.name, c.display_order ?? 999]));
+    const markers: Record<string, CheckupMarkerRow[]> = {};
+    for (const r of (markersRes.data ?? []) as Array<{
+      id: string;
+      checkup_slug: string;
+      biomarker_id: string | null;
+      title: string | null;
+      description: string | null;
+      display_order: number;
+      biomarkers: { name: string; category: string } | null;
+    }>) {
+      const category = r.biomarkers?.category ?? null;
+      (markers[r.checkup_slug] ??= []).push({
+        id: r.id,
+        checkup_slug: r.checkup_slug,
+        biomarker_id: r.biomarker_id,
+        title: r.title || r.biomarkers?.name || "Показатель",
+        description: r.description ?? "",
+        category,
+        category_order: category ? catOrder.get(category) ?? 999 : 999,
+        display_order: r.display_order,
+      });
+    }
+    const variants = (variantsRes.data ?? []) as CheckupVariantRow[];
 
     const prices: Record<string, CheckupPriceRow> = {};
     for (const row of pricesRes.data ?? []) {
@@ -110,7 +165,7 @@ async function load(force = false): Promise<CheckupSettingsData> {
         }
       : DEFAULT_DOCTOR;
 
-    cache = { prices, doctor };
+    cache = { prices, doctor, markers, variants };
     cacheIsStale = false;
     writeStoredSettings(cache);
     listeners.forEach((fn) => fn(cache as CheckupSettingsData));
@@ -166,7 +221,39 @@ export function useCheckupSettings() {
     [data],
   );
 
+  const markersOf = useCallback(
+    (slug: string): CheckupMarkerRow[] | null => {
+      const rows = data.markers?.[slug];
+      return rows && rows.length > 0 ? rows : null;
+    },
+    [data],
+  );
+
+  const variantsOf = useCallback(
+    (parentSlug: string) =>
+      (data.variants ?? [])
+        .filter((v) => v.parent_slug === parentSlug)
+        .sort((a, b) => a.display_order - b.display_order),
+    [data],
+  );
+
+  const variantBySlug = useCallback(
+    (slug: string) => (data.variants ?? []).find((v) => v.slug === slug) ?? null,
+    [data],
+  );
+
   const refresh = useCallback(() => load(true).then(setData), []);
 
-  return { prices: data.prices, doctor: data.doctor, priceOf, isActive, hasCbcBonus, loading, refresh };
+  return {
+    prices: data.prices,
+    doctor: data.doctor,
+    priceOf,
+    isActive,
+    hasCbcBonus,
+    markersOf,
+    variantsOf,
+    variantBySlug,
+    loading,
+    refresh,
+  };
 }
