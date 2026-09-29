@@ -24,7 +24,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                Витамины и минералы
             </h3>
             <div className="shrink-0 text-base font-semibold text-muted-foreground">
-              {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? " + 1 в подарок" : ""}
+              {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? ` + ${markersLabel(CBC_BONUS_MARKER_COUNT)} ОАК в подарок` : ""}
             </div>
           </div>
           <ul className="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2 sm:p-8 sm:gap-y-6 md:gap-x-12 md:gap-y-7">
@@ -60,7 +60,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                     </span>
                   </div>
                   <p className="mt-1 text-sm font-medium leading-relaxed text-foreground/90 sm:text-base">
-                    воспаление и риск анемии — в этом же заборе крови, без доплаты
+                    {markersLabel(CBC_BONUS_MARKER_COUNT)}: воспаление и риск анемии — в этом же заборе крови, без доплаты
                   </p>
                 </div>
               </div>
