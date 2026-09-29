@@ -84,7 +84,7 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
           <div className="py-12 text-center text-muted-foreground">Варианты пока не настроены</div>
         ) : (
           <Tabs defaultValue="overview" className="flex flex-1 flex-col overflow-hidden">
-            <TabsList className="self-start flex-wrap">
+            <TabsList className="self-start flex-wrap border-b-0">
               <TabsTrigger value="overview">Что отслеживаем</TabsTrigger>
               <TabsTrigger value="markers">Показатели</TabsTrigger>
             </TabsList>
