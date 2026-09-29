@@ -65,6 +65,14 @@ const pairedSections = [
     description: 'Промпты для генерации годовой стратегии: roadmap, цели по системам, таймлайн ожиданий',
     systemKey: 'health_strategy_system',
     userKey: 'health_strategy_user'
+  },
+  {
+    id: 'whole_body',
+    name: 'Общий отчёт — организм в целом',
+    icon: Dna as LucideIcon,
+    description: 'Промпты для объединения разделов по системам в один раздел «Организм в целом» (отчёт без разбивки по системам)',
+    systemKey: 'whole_body_system',
+    userKey: 'whole_body_user'
   }
 ];
 
