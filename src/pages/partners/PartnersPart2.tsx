@@ -10,7 +10,111 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { money } from "@/data/checkups";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { COMMISSION_RATE, PAYOUT, TELEGRAM_URL } from "./PartnersTop";
+
+const CALC_PRICE = FULL_CHECKUP.price;
+const TOTAL_SHARE_PCT = Math.round((COMMISSION_RATE + 0.05) * 100); // 25
+const PRESETS = [0, 5, 10, 15];
+
+/** Калькулятор «Сами решаете, как разделить 25%»: ползунок делит общую долю между скидкой клиенту и вознаграждением партнёру. */
+export function SplitCalculator() {
+  const [clientShare, setClientShare] = useState(5);
+  const partnerShare = TOTAL_SHARE_PCT - clientShare;
+  const clientPrice = Math.round(CALC_PRICE * (1 - clientShare / 100));
+  const payout = Math.round(CALC_PRICE * (partnerShare / 100));
+
+  return (
+    <section className="cv-section bg-background">
+      <div className="mx-auto w-full max-w-[72rem] px-4 pb-14 md:px-6 lg:pb-20">
+        <div className="rounded-3xl border hairline bg-card p-6 shadow-md sm:p-10 lg:p-14">
+          <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+            Гибкие условия
+          </span>
+          <div className="mt-5 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+            <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
+              Сами решаете, как разделить {TOTAL_SHARE_PCT}%
+            </h2>
+            <p className="max-w-md self-center text-base leading-relaxed text-muted-foreground lg:justify-self-end">
+              Скидка клиенту и ваше вознаграждение в сумме всегда {TOTAL_SHARE_PCT}%. Двигайте ползунок — больше клиенту или больше вам.
+            </p>
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="text-sm font-semibold text-destructive">Скидка клиенту</p>
+              <p className="mt-1 font-display text-6xl font-medium tracking-tight text-destructive sm:text-7xl">
+                {clientShare}%
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                клиент платит {money(clientPrice)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-semibold text-primary">Ваше вознаграждение</p>
+              <p className="mt-1 font-display text-6xl font-medium tracking-tight text-primary sm:text-7xl">
+                {partnerShare}%
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                вам {money(payout)} с чек-апа
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="flex h-2.5 w-full overflow-hidden rounded-full">
+              <div
+                className="h-full bg-destructive/70 transition-[width] duration-150"
+                style={{ width: `${(clientShare / TOTAL_SHARE_PCT) * 100}%` }}
+              />
+              <div className="h-full flex-1 bg-primary transition-all duration-150" />
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={TOTAL_SHARE_PCT}
+              step={1}
+              value={clientShare}
+              onChange={(e) => setClientShare(Number(e.target.value))}
+              aria-label="Доля скидки клиенту"
+              className="mt-4 w-full accent-[hsl(var(--primary))]"
+            />
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+              <span>0% клиенту · {TOTAL_SHARE_PCT}% вам</span>
+              <span>{TOTAL_SHARE_PCT}% клиенту · 0% вам</span>
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t hairline pt-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Популярное:</span>
+              {PRESETS.map((preset) => {
+                const active = preset === clientShare;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setClientShare(preset)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "border hairline bg-background text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    {preset}% / {TOTAL_SHARE_PCT - preset}%
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Расчёт на полный чек-ап за {money(CALC_PRICE)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 type Bonus = { who: "you" | "client"; title: string; text: string };
 
