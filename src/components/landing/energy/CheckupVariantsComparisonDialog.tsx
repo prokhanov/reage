@@ -31,7 +31,7 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
     () =>
       variants.map((v) => {
         const groups = groupsOf(v.checkup.slug);
-        const names = new Set(groups.flatMap((g) => g.markers.map((m) => m.name)));
+        const names = new Set(groups.flatMap((g) => g.markers));
         const count = groups.reduce((n, g) => n + g.markers.length, 0);
         return { variant: v.variant, checkup: v.checkup, names, count };
       }),
