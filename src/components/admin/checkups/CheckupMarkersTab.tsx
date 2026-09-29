@@ -196,6 +196,32 @@ export function CheckupMarkersTab() {
     await refresh();
   };
 
+  const renameSlug = async (v: VariantRow, raw: string) => {
+    const next = raw.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!next || next === v.slug) return;
+    if (variants.some((x) => x.slug === next) || BASE_CHECKUPS.some((c) => c.slug === next)) {
+      toast({ title: "Такой адрес уже занят", variant: "destructive" });
+      return;
+    }
+    const steps = [
+      supabase.from("checkup_variants").update({ slug: next }).eq("slug", v.slug),
+      supabase.from("checkup_markers").update({ checkup_slug: next }).eq("checkup_slug", v.slug),
+      supabase.from("checkup_settings").update({ slug: next }).eq("slug", v.slug),
+    ];
+    for (const s of steps) {
+      const { error } = await s;
+      if (error) {
+        toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+        return;
+      }
+    }
+    if (slug === v.slug) setSlug(next);
+    toast({ title: "Адрес изменён", description: `/checkup/${next}` });
+    await loadVariants();
+    await refresh();
+  };
+
+
   const removeVariant = async (v: VariantRow) => {
     if (v.slug === v.parent_slug) {
       toast({ title: "Основной чекап удалить нельзя", variant: "destructive" });
@@ -254,6 +280,19 @@ export function CheckupMarkersTab() {
                   className="h-9 w-20"
                   title="Порядок"
                 />
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  /checkup/
+                  {v.slug === v.parent_slug ? (
+                    <span className="font-medium text-foreground" title="Адрес основного чекапа не меняется">{v.slug}</span>
+                  ) : (
+                    <Input
+                      defaultValue={v.slug}
+                      onBlur={(e) => renameSlug(v, e.target.value)}
+                      className="h-9 w-40"
+                      title="Адрес страницы варианта"
+                    />
+                  )}
+                </div>
                 <label className="flex items-center gap-2 text-sm">
                   <Switch checked={v.is_popular} onCheckedChange={(c) => updateVariant(v, { is_popular: c })} />
                   <Star className="h-4 w-4" /> Популярный
