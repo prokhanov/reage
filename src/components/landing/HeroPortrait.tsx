@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets } from "lucide-react";
+import { ArrowRight, ShieldCheck, Activity, FlaskConical, Heart, Droplets, CalendarCheck, Check } from "lucide-react";
 import heroManAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroMan from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { SmartPicture } from "@/components/landing/SmartPicture";
@@ -167,39 +167,6 @@ function CompactBioAgeWidget() {
   );
 }
 
-function StatRow() {
-  const stats = [
-    { icon: Activity, label: "биомаркеров", value: "100+" },
-    { icon: ShieldCheck, label: "систем организма", value: "5" },
-    { icon: FlaskConical, label: "чекапов в год", value: "до 4х" },
-  ];
-  return (
-    <div className="flex justify-between gap-2 sm:gap-6 lg:gap-8 w-full max-w-xl lg:max-w-none">
-      {stats.map((s) => {
-        const Icon = s.icon;
-        return (
-          <div
-            key={s.label}
-            className="flex flex-col items-center lg:items-start gap-1 flex-shrink-0"
-          >
-            <Icon className="w-3 h-3 text-primary shrink-0 lg:hidden mb-0.5" />
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
-                {s.value}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Icon className="w-3 h-3 text-primary shrink-0 hidden lg:block" />
-              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">
-                {s.label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ===================== LAYOUT DATA ===================== */
 
@@ -381,6 +348,12 @@ function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
 
 /* ===================== MAIN ===================== */
 
+const LEAD_BULLETS = [
+  "Регулярно проверяем весь организм",
+  "Отслеживаем динамику показателей",
+  "Даём понятный план действий",
+];
+
 export function HeroPortrait() {
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -388,119 +361,65 @@ export function HeroPortrait() {
 
   const isDark = theme === "dark";
 
-  const glowStyle = {
-    desktop: {
-      background:
-        "radial-gradient(ellipse 95% 85% at 70% 50%, hsl(210 85% 45% / 0.35) 0%, hsl(190 90% 42% / 0.15) 45%, transparent 85%)",
-    },
-    tablet: {
-      background:
-        "radial-gradient(ellipse 110% 95% at 60% 50%, hsl(210 85% 45% / 0.34) 0%, hsl(190 90% 42% / 0.14) 45%, transparent 85%)",
-    },
-    mobile: {
-      background:
-        "radial-gradient(ellipse 140% 100% at 50% 40%, hsl(210 85% 45% / 0.32) 0%, hsl(190 90% 42% / 0.12) 50%, transparent 85%)",
-    },
-  }[bp];
+  const visual = <Artboard bp={bp} isDark={isDark} />;
 
   return (
-    <section className="relative overflow-hidden bg-background min-h-[70vh] lg:min-h-[90vh] flex flex-col">
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
-          style={glowStyle}
-        />
+    <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
+      {/* Визуал: на десктопе — справа абсолютом, на мобильном — под кнопкой (в потоке ниже) */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] items-end justify-center lg:flex">
+        {visual}
       </div>
 
-      {/* плавное затухание hero в фон следующей секции */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 sm:h-48 lg:h-56 z-[5]"
-        style={{
-          background:
-            "linear-gradient(to bottom, transparent 0%, hsl(var(--background) / 0.6) 55%, hsl(var(--background)) 100%)",
-        }}
-      />
+      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:pt-24">
+        <div className="lg:w-[48%] lg:pr-8">
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
+            <CalendarCheck className="h-4 w-4 text-primary" aria-hidden />
+            Чекапы до 4 раз в год
+          </span>
+          <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
+            Ваше здоровье в цифрах, динамике и рекомендациях
+          </h1>
+          <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
+            Берём на себя контроль вашего здоровья
+          </p>
+          <ul className="mt-4 max-w-md space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg">
+            {LEAD_BULLETS.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
 
-
-      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-10 pb-8 md:pt-12 md:pb-8 lg:pt-14 lg:pb-20">
-        <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
-          <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-8 max-w-xl w-full text-center lg:text-left">
-            <h1
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
-              style={{ animationDelay: "0.1s" }}
-            >
-              <span className="text-foreground">Ваше здоровье</span>
-              <br />
-              <span className="text-foreground">
-                в цифрах, динамике и рекомендациях
-              </span>
-            </h1>
-            <p
-              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-snug animate-fade-in text-center lg:text-left"
-              style={{ animationDelay: "0.2s" }}
-            >
-              Берём на себя контроль вашего здоровья:&nbsp;
-              <br />- регулярно проверяем весь организм&nbsp;
-              <br />- отслеживаем динамику показателей&nbsp;
-              <br />- даём понятный план действий
+          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
+            <p className="text-sm text-muted-foreground sm:text-base">
+              100+ биомаркеров · 5 систем организма · до 4 чекапов в год
             </p>
 
-            <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
-            <div
-              className="hidden lg:flex flex-col gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
-            >
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="h-[52px] w-full gap-2 px-7 text-base sm:h-12 sm:w-auto"
+                className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
               >
                 Записаться на бесплатную консультацию
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/register")}
-                className="h-[52px] w-full gap-2 px-7 text-base sm:h-12 sm:w-auto"
+                className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
               >
                 Посмотреть демо-аккаунт
               </Button>
             </div>
           </div>
+        </div>
 
-          <div className="order-2 relative w-full flex justify-center lg:justify-end">
-          <Artboard bp={bp} isDark={isDark} />
-          </div>
-
-          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
-            <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
-            <div
-              className="flex flex-col gap-3 w-full sm:w-auto justify-center animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
-            >
-              <Button
-                size="lg"
-                onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="h-[52px] w-full gap-2 px-7 text-base sm:h-12 sm:w-auto"
-              >
-                Записаться на бесплатную консультацию
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate("/register")}
-                className="h-[52px] w-full gap-2 px-7 text-base sm:h-12 sm:w-auto"
-              >
-                Посмотреть демо-аккаунт
-              </Button>
-            </div>
-          </div>
+        {/* Визуал на мобильном — после CTA */}
+        <div className="relative mt-7 flex justify-center lg:hidden">
+          {visual}
         </div>
       </div>
     </section>
