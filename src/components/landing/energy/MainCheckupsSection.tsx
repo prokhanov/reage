@@ -3,11 +3,7 @@ import { ArrowRight, Droplet, FileText, MapPin, Stethoscope } from "lucide-react
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
-import {
-  FULL_CHECKUP,
-  FULL_CHECKUP_CATEGORIES,
-  FULL_CHECKUP_MARKERS_COUNT,
-} from "@/data/fullCheckup";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
