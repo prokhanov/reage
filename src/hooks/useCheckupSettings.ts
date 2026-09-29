@@ -74,6 +74,8 @@ function readStoredSettings(): CheckupSettingsData | null {
     return {
       prices: parsed.prices as Record<string, CheckupPriceRow>,
       doctor: (parsed.doctor as CheckupDoctor) ?? DEFAULT_DOCTOR,
+      markers: parsed.markers,
+      variants: parsed.variants,
     };
   } catch {
     return null;
