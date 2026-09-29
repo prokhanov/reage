@@ -1,0 +1,157 @@
+// synthesize-whole-body: собирает единый раздел «Организм в целом» из уже
+// сгенерированных разделов по системам, затем удаляет разделы по системам
+// и включает скрытия презентации (без данных пациента и плашек показателей).
+//
+// Вызывается report-orchestrator последним шагом при report_kind = whole_body.
+// Промпты — только из ai_prompt_settings (whole_body_system / whole_body_user).
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const WHOLE_BODY_TYPE = "Организм в целом";
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+  // Только служебный вызов (оркестратор с service role).
+  const auth = req.headers.get("Authorization") ?? "";
+  if (auth !== `Bearer ${SERVICE_KEY}`) return json({ success: false, error: "forbidden" }, 403);
+
+  let body: any = {};
+  try { body = await req.json(); } catch { /* ignore */ }
+  const analysisId = typeof body.analysisId === "string" ? body.analysisId : "";
+  const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  if (!/^[0-9a-f-]{36}$/i.test(analysisId)) return json({ success: false, error: "analysisId required" }, 400);
+  if (!LOVABLE_API_KEY) return json({ success: false, error: "LOVABLE_API_KEY missing" }, 500);
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
+  try {
+    const [{ data: cats }, { data: prompts }, { data: recs }, { data: analysis }] = await Promise.all([
+      supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
+      supabase.from("ai_prompt_settings").select("key, prompt_text").in("key", ["whole_body_system", "whole_body_user"]),
+      supabase.from("recommendations").select("id, type, text, created_at").eq("analysis_id", analysisId),
+      supabase.from("analyses").select("user_id, cover_overrides").eq("id", analysisId).maybeSingle(),
+    ]);
+    if (!analysis) return json({ success: false, error: "analysis not found" }, 404);
+
+    const catOrder = new Map((cats ?? []).map((c: any, i: number) => [c.name, i]));
+    const categoryRecs = (recs ?? [])
+      .filter((r: any) => catOrder.has(r.type) && (r.text ?? "").trim().length > 0)
+      .sort((a: any, b: any) => (catOrder.get(a.type)! - catOrder.get(b.type)!));
+    const existingWhole = (recs ?? []).find((r: any) => r.type === WHOLE_BODY_TYPE);
+
+    if (categoryRecs.length === 0) {
+      // Повторный вызов после успешного шага — уже готово.
+      if (existingWhole) {
+        await applyPresentation(supabase, analysisId, analysis.cover_overrides);
+        return json({ success: true, alreadyDone: true });
+      }
+      return json({ success: false, error: "Нет разделов по системам для объединения" }, 400);
+    }
+
+    const promptMap = new Map((prompts ?? []).map((p: any) => [p.key, p.prompt_text as string]));
+    const systemPrompt = promptMap.get("whole_body_system");
+    const userTemplate = promptMap.get("whole_body_user");
+    if (!systemPrompt || !userTemplate) {
+      return json({ success: false, error: "Не найдены промпты whole_body_system / whole_body_user в настройках ИИ" }, 400);
+    }
+
+    const categoryReports = categoryRecs
+      .map((r: any) => `===== РАЗДЕЛ: ${r.type} =====\n${r.text}`)
+      .join("\n\n");
+    const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
+
+    const model = mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
+    let text = "";
+    let lastErr = "";
+    for (let attempt = 1; attempt <= 2 && !text; attempt++) {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+      if (r.status === 429 || r.status === 402) {
+        return json({ success: false, error: `AI gateway ${r.status}` }, r.status);
+      }
+      if (!r.ok) { lastErr = `AI ${r.status}: ${(await r.text()).slice(0, 300)}`; continue; }
+      const data = await r.json();
+      const out = String(data?.choices?.[0]?.message?.content ?? "")
+        .replace(/^```(?:markdown)?\s*/i, "").replace(/```\s*$/, "").trim();
+      if (out.length < 1500 || !out.includes("<!-- anchor:biomarker")) {
+        lastErr = `Ответ ИИ не прошёл проверку (длина ${out.length})`;
+        continue;
+      }
+      text = out.startsWith(WHOLE_BODY_TYPE) ? out : `${WHOLE_BODY_TYPE}\n\n${out}`;
+    }
+    if (!text) return json({ success: false, error: lastErr || "empty AI response" }, 502);
+
+    // Сначала сохраняем новый раздел, затем удаляем разделы по системам —
+    // при сбое между шагами отчёт не останется пустым.
+    if (existingWhole) {
+      await supabase.from("recommendations").delete().eq("id", existingWhole.id);
+    }
+    const { error: insErr } = await supabase.from("recommendations").insert({
+      analysis_id: analysisId,
+      user_id: analysis.user_id,
+      type: WHOLE_BODY_TYPE,
+      text,
+    });
+    if (insErr) throw insErr;
+
+    const { error: delErr } = await supabase
+      .from("recommendations")
+      .delete()
+      .in("id", categoryRecs.map((r: any) => r.id));
+    if (delErr) throw delErr;
+
+    await applyPresentation(supabase, analysisId, analysis.cover_overrides);
+
+    // Черновик документа собирается заново из свежих разделов.
+    await supabase.from("report_documents").update({ blocks: [], edited_at: null, edited_by: null })
+      .eq("analysis_id", analysisId);
+
+    return json({ success: true, merged: categoryRecs.length, length: text.length });
+  } catch (e: any) {
+    console.error("synthesize-whole-body error:", e);
+    return json({ success: false, error: e?.message ?? String(e) }, 500);
+  }
+});
+
+async function applyPresentation(supabase: any, analysisId: string, current: unknown) {
+  const base = current && typeof current === "object" ? (current as Record<string, any>) : {};
+  const next = {
+    ...base,
+    report_kind: "whole_body",
+    presentation: {
+      hidePatientData: true,
+      hideCoverMeta: true,
+      hideOverviewStats: true,
+      ...(base.presentation ?? {}),
+    },
+  };
+  await supabase.from("analyses").update({ cover_overrides: next }).eq("id", analysisId);
+}
