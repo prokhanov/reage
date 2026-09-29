@@ -39,6 +39,7 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const LifestyleTest = lazy(() => import("./pages/LifestyleTest"));
 const AnalysisPrep = lazy(() => import("./pages/AnalysisPrep"));
+const Partners = lazy(() => import("./pages/Partners"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Business = lazy(() => import("./pages/Business"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
