@@ -1,0 +1,1 @@
+ALTER TABLE public.energy_orders ADD COLUMN IF NOT EXISTS ym_client_id text;

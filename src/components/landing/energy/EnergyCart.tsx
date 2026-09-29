@@ -134,8 +134,10 @@ export function EnergyCart() {
     if (!canPay || paying) return;
     setPaying(true);
     try {
+      const ymClientId = await getYmClientId();
       const { data, error } = await supabase.functions.invoke("energy-create-payment", {
         body: {
+          ymClientId,
           bundle: items[0]?.bundle ?? checkup.bundle,
           bundles: items.map((item) => item.bundle),
           email: email.trim(),

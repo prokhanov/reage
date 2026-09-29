@@ -1283,6 +1283,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string | null
+          ym_client_id: string | null
         }
         Insert: {
           birth_date?: string | null
@@ -1312,6 +1313,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          ym_client_id?: string | null
         }
         Update: {
           birth_date?: string | null
@@ -1341,6 +1343,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          ym_client_id?: string | null
         }
         Relationships: []
       }
