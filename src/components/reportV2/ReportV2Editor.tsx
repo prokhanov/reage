@@ -40,6 +40,7 @@ import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialo
 import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 import { ReportPdfView } from "./ReportPdfView";
+import { ReportCompositionMenu } from "./ReportCompositionMenu";
 import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
