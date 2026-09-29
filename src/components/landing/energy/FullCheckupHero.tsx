@@ -88,7 +88,7 @@ export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChang
               {markersLabel(count)} · Без записи
             </p>
 
-            <div className="flex flex-col items-start gap-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
               <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
