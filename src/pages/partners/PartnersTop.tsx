@@ -100,20 +100,24 @@ export function CommissionCard() {
   );
 }
 
-/** Уведомление о выплате — как в Telegram. */
+/** Уведомление о выплате — как пуш на телефоне. */
 export function PayoutNotification() {
   return (
-    <div className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg sm:p-6">
-      <div className="flex items-start gap-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
-          <Bell className="h-5 w-5" aria-hidden />
+    <div className="rounded-[1.8rem] border hairline bg-card/95 p-4 shadow-2xl backdrop-blur sm:p-5">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.7rem] bg-primary font-display text-lg font-semibold leading-none text-primary-foreground">
+          R
         </span>
-        <div className="min-w-0">
-          <p className="text-2xl font-bold">+{money(PAYOUT)}</p>
-          <p className="mt-1 text-sm text-primary-foreground/80">
-            Ваш пациент сдал анализы. Выплата отправлена на карту.
-          </p>
-        </div>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          ReAge
+        </span>
+        <span className="ml-auto text-xs text-muted-foreground">сейчас</span>
+      </div>
+      <div className="mt-3">
+        <p className="text-2xl font-bold leading-tight">+{money(PAYOUT)}</p>
+        <p className="mt-1 text-sm leading-snug text-muted-foreground">
+          Ваш пациент сдал анализы. Выплата отправлена на карту.
+        </p>
       </div>
     </div>
   );
