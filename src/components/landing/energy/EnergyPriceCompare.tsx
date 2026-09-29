@@ -165,10 +165,12 @@ export function EnergyPriceCompare() {
               <span className="shrink-0 text-sm font-semibold text-primary">−{pct}%</span>
             </div>
 
-            <div className="mt-4 flex items-center gap-2.5 text-[15px] font-medium text-primary">
-              <FileText className="h-5 w-5 shrink-0" aria-hidden />
-              <span className="flex-1 leading-snug">Отчёт о вашем организме</span>
-              <Check className="h-5 w-5 shrink-0" aria-hidden />
+            <div className="mt-4 flex items-start gap-2.5 text-[15px] font-medium text-primary">
+              <FileText className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+              <span className="flex-1 leading-snug">
+                Получаете подробную расшифровку всех показателей, оценку рисков и рекомендации по улучшению
+              </span>
+              <Check className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-primary/15 px-5 py-4">
@@ -315,8 +317,8 @@ export function EnergyPriceCompare() {
                 <span className={iconBoxL}>
                   <FileText className="h-5 w-5 text-muted-foreground" />
                 </span>
-                <span className="flex-1 text-[15px] font-semibold leading-snug text-foreground">
-                  Расшифровка
+                <span className="flex-1 text-[15px] font-medium leading-snug text-foreground">
+                  Получаете только список показателей и референсные пределы, без пояснений
                 </span>
                 <X className="h-5 w-5 shrink-0 text-muted-foreground/50" />
               </div>
@@ -326,8 +328,8 @@ export function EnergyPriceCompare() {
                 <span className={iconBoxR}>
                   <FileText className="h-5 w-5 text-primary-foreground/80" />
                 </span>
-                <span className="flex-1 text-[15px] font-semibold leading-snug">
-                  Отчёт о вашем организме
+                <span className="flex-1 text-[15px] font-medium leading-snug">
+                  Получаете подробную расшифровку всех показателей, оценку рисков и рекомендации по улучшению
                 </span>
                 <Check className="h-5 w-5 shrink-0 text-primary-foreground/70" />
               </div>
