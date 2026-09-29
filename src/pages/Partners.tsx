@@ -1,9 +1,6 @@
-import { useState } from "react";
-
 import { PageMeta } from "@/components/PageMeta";
 import {
   IncomeSection,
-  NAV,
   PartnersHeader,
   PartnersHero,
   StatsStrip,
