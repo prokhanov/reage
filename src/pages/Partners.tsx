@@ -17,12 +17,9 @@ import {
 } from "./partners/PartnersBottom";
 
 export default function Partners() {
-  const [joinSignal, setJoinSignal] = useState(0);
-
   // Кнопка «Подключиться» в шапке ведёт к секции подключения.
   const scrollToJoin = () => {
     document.getElementById("join")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setJoinSignal((n) => n + 1);
   };
 
   return (
@@ -33,19 +30,17 @@ export default function Partners() {
         canonical="/partners"
       />
       <PartnersHeader onJoin={scrollToJoin} />
-      <main key={joinSignal}>
+      <main>
         <PartnersHero onJoin={scrollToJoin} />
         <StatsStrip />
         <HowItWorks />
         <BenefitsSection />
         <IncomeSection />
+        <div id="join" className="scroll-mt-20" />
         <JoinSection />
         <PartnersFaq />
         <FinalCta />
       </main>
-      {/* Якорь для кнопки в шапке. */}
-      <span id="join" className="sr-only" aria-hidden />
-      {NAV.length === 0 ? null : null}
     </div>
   );
 }

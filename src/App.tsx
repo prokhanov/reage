@@ -162,6 +162,7 @@ const App = () => (
             <Route path="/prep" element={<AnalysisPrep />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/business" element={<Business />} />
+            <Route path="/partners" element={<Partners />} />
             <Route path="/lifestyle-test" element={<LifestyleTest />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/:step" element={<Register />} />
