@@ -21,6 +21,7 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
+import { getYmClientId } from "@/lib/yandexMetrika";
 
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 const CBC_BONUS_PRICE = 990;

@@ -5,7 +5,7 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getCheckupBySlug } from "@/data/checkups";
-import { goalPaid, goalPaymentFailed } from "@/lib/checkupGoals";
+import { goalPaymentFailed } from "@/lib/checkupGoals";
 import { clearCheckupCart } from "@/components/landing/energy/EnergyOrderContext";
 
 /** Старые адреса чекапов, которые ещё могут лежать в оплаченных заказах. */
@@ -65,7 +65,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
         setOrder(info);
         if (info.status === "paid") {
           setState("paid");
-          goalPaid(invId, info.bundle, info.bundles);
+          // Цель «оплачено» отправляет сервер (офлайн-конверсия из уведомления Робокассы).
           clearCheckupCart();
           return;
         }
