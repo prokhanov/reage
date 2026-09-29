@@ -1,16 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
-import { CHECKUPS, ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
-import { FULL_CHECKUP_TIERS } from "@/data/fullCheckup";
-
-/** Каталог + полный чекап: он живёт на отдельной странице, но попадает в ту же корзину. */
-const ALL_CHECKUPS: Checkup[] = [...CHECKUPS, ...FULL_CHECKUP_TIERS.map((t) => t.checkup)];
-
-function resolveCheckup(slug: string | undefined): Checkup | undefined {
-  return ALL_CHECKUPS.find((c) => c.slug === slug);
-}
-import { useCheckupSettings } from "@/hooks/useCheckupSettings";
+import { ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
 const CART_KEY = "reage:checkup:cart";
 const CLINIC_KEY = "reage:checkup:clinic";
@@ -22,8 +14,7 @@ function readCart(): string[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .filter((s): s is string => typeof s === "string")
-      .filter((s) => ALL_CHECKUPS.some((c) => c.slug === s));
+      .filter((s): s is string => typeof s === "string");
   } catch {
     return [];
   }
@@ -97,7 +88,7 @@ export function EnergyOrderProvider({
   const [clinic, setClinicState] = useState<LabMapItem | null>(() => readClinic());
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
-  const { priceOf, hasCbcBonus } = useCheckupSettings();
+  const { resolve, bySlug } = useResolvedCheckups();
 
   const setClinic = useCallback((item: LabMapItem | null) => {
     setClinicState(item);
@@ -130,26 +121,11 @@ export function EnergyOrderProvider({
   const clearCart = useCallback(() => update([]), [update]);
 
   // Цены берём из настроек в админке, остальные данные — из каталога.
-  const pageCheckup = useMemo<Checkup>(
-    () => ({
-      ...checkup,
-      price: priceOf(checkup.slug, checkup.price),
-      cbcBonusEnabled: hasCbcBonus(checkup.slug),
-    }),
-    [checkup, priceOf, hasCbcBonus],
-  );
+  const pageCheckup = useMemo<Checkup>(() => resolve(checkup), [checkup, resolve]);
 
   const items = useMemo(
-    () =>
-      slugs
-        .map((s) => resolveCheckup(s))
-        .filter((c): c is Checkup => Boolean(c))
-        .map((c) => ({
-          ...c,
-          price: priceOf(c.slug, c.price),
-          cbcBonusEnabled: hasCbcBonus(c.slug),
-        })),
-    [slugs, priceOf, hasCbcBonus],
+    () => slugs.map((s) => bySlug(s)).filter((c): c is Checkup => Boolean(c)),
+    [slugs, bySlug],
   );
 
   const value = useMemo<EnergyOrderValue>(
