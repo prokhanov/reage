@@ -162,9 +162,9 @@ export function PartnersHero({ onJoin }: { onJoin: () => void }) {
 }
 
 const STATS = [
-  { value: String(FULL_CHECKUP_MARKERS_COUNT), label: "маркеров в полном чекапе" },
+  { value: "115+", label: "маркеров в полном чекапе" },
   { value: "50 стр.", label: "персональный отчёт с разбором" },
-  { value: `${COMMISSION_RATE * 100}%`, label: "вам с каждого чекапа" },
+  { value: "25%", label: "суммарная выплата" },
   { value: "24 часа", label: "до выплаты на карту" },
 ];
 
