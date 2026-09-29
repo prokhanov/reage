@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Droplet, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
+import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
 
 interface Props {
   onAddToCart: () => void;
@@ -78,7 +78,7 @@ export function EnergyHero({ onAddToCart, checkup = ENERGY_CHECKUP, inCart = fal
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8">
             <p className="text-sm text-muted-foreground sm:text-base">
-              12 показателей · Без записи
+              {markersLabel(checkup.markers.length + CBC_BONUS_MARKER_COUNT)} · Без записи
             </p>
 
             <div className="flex flex-wrap items-center gap-3">

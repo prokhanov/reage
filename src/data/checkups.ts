@@ -518,6 +518,9 @@ export function getCheckupBySlug(slug: string | undefined): Checkup | undefined 
 
 export const money = (value: number) => `${value.toLocaleString("ru-RU")} ₽`;
 
+/** Сколько показателей входит в подарочный ОАК (ОАК + СОЭ). */
+export const CBC_BONUS_MARKER_COUNT = 5;
+
 /** Русское склонение: 1 показатель / 2 показателя / 5 показателей. */
 export function markersLabel(count: number): string {
   const mod10 = count % 10;
