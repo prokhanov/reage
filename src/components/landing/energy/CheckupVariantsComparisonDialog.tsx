@@ -42,11 +42,11 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
     const seen = new Map<string, string[]>();
     for (const col of columns) {
       for (const g of groupsOf(col.checkup.slug)) {
-        const arr = seen.get(g.name) ?? [];
+        const arr = seen.get(g.title) ?? [];
         for (const m of g.markers) {
-          if (!arr.includes(m.name)) arr.push(m.name);
+          if (!arr.includes(m)) arr.push(m);
         }
-        seen.set(g.name, arr);
+        seen.set(g.title, arr);
       }
     }
     return Array.from(seen.entries()).map(([name, markers]) => ({ name, markers }));
