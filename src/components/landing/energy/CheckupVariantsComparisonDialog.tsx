@@ -67,7 +67,69 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
         {columns.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">Варианты пока не настроены</div>
         ) : (
-          <div className="-mx-6 mt-2 flex-1 overflow-auto px-6">
+          <Tabs defaultValue="overview" className="flex flex-1 flex-col overflow-hidden">
+            <TabsList className="self-start flex-wrap">
+              <TabsTrigger value="overview">Что отслеживаем</TabsTrigger>
+              <TabsTrigger value="markers">Показатели</TabsTrigger>
+            </TabsList>
+
+            {/* ===== Tab 1: Что отслеживаем ===== */}
+            <TabsContent value="overview" className="-mx-6 mt-4 flex-1 overflow-auto px-6">
+              <p className="sticky top-0 z-10 mb-3 bg-background py-2 text-xs text-muted-foreground">
+                Шкала: <span className="font-semibold text-primary">●</span> базово ·{" "}
+                <span className="font-semibold text-primary">●●</span> хорошо ·{" "}
+                <span className="font-semibold text-primary">●●●</span> максимально · — не входит
+              </p>
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0 z-10 bg-background">
+                  <tr className="border-b border-border">
+                    <th className="min-w-[180px] px-2 py-3 text-left text-sm font-semibold text-foreground">
+                      Направление
+                    </th>
+                    {columns.map((c) => (
+                      <th
+                        key={c.checkup.slug}
+                        className={`min-w-[110px] px-2 py-3 text-center align-top ${
+                          c.checkup.slug === popularSlug ? "bg-primary/5" : ""
+                        }`}
+                      >
+                        <div className="text-base font-bold text-primary">{c.variant.label}</div>
+                        <div className="mt-1 text-sm font-bold text-foreground">{money(c.checkup.price)}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {DIRECTIONS.map((d) => (
+                    <tr
+                      key={d.title}
+                      className="border-b border-border/50 align-top transition-colors hover:bg-muted/30"
+                    >
+                      <td className="px-2 py-2.5 text-sm text-foreground">
+                        <div className="font-medium">{d.title}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{d.hint}</div>
+                      </td>
+                      {columns.map((c, idx) => {
+                        const slug = idx === 0 ? "basic" : idx === 1 ? "plus" : "expert";
+                        return (
+                          <td
+                            key={c.checkup.slug}
+                            className={`px-2 py-2.5 text-center ${
+                              c.checkup.slug === popularSlug ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            {renderLevel(d.levels[slug])}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TabsContent>
+
+            {/* ===== Tab 2: Показатели ===== */}
+            <TabsContent value="markers" className="-mx-6 mt-2 flex-1 overflow-auto px-6">
             <table className="w-full border-collapse">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="border-b border-border">
