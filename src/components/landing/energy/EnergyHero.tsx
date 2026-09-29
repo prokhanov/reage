@@ -96,7 +96,7 @@ export function EnergyHero({
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="text-[2rem] leading-none text-foreground sm:text-4xl">
+              <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
                 {money(checkup.price)}
               </div>
               {checkup.cbcBonusEnabled && (

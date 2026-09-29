@@ -129,7 +129,7 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                       <div className="mt-4 flex items-center justify-between gap-4">
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
-                          <span className="font-display text-2xl font-semibold text-foreground">
+                          <span className="text-2xl font-bold text-foreground">
                             {money(priceOf(c.slug, c.price))}
                           </span>
                         </div>

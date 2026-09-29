@@ -56,7 +56,7 @@ function CheckupRow({ checkup, price }: { checkup: Checkup; price: number }) {
       </div>
 
       <div className="flex shrink-0 items-center justify-between gap-4 md:w-[190px] md:flex-col md:items-end">
-        <div className="text-2xl leading-none text-foreground">{money(price)}</div>
+        <div className="text-2xl font-bold leading-none text-foreground">{money(price)}</div>
         <Button asChild size="lg" className="h-11 px-7">
           <Link to={checkup.href}>Заказать</Link>
         </Button>
@@ -221,7 +221,7 @@ function CheckupCatalogContent() {
                   </div>
 
                   <div className="flex shrink-0 items-center justify-between gap-4 md:w-[190px] md:flex-col md:items-end">
-                    <div className="text-2xl leading-none">{money(fullPrice)}</div>
+                    <div className="text-2xl font-bold leading-none">{money(fullPrice)}</div>
                     <Button
                       asChild
                       size="lg"
