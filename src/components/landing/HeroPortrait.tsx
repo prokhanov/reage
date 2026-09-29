@@ -396,11 +396,11 @@ export function HeroPortrait() {
               100+ биомаркеров · 5 систем организма · до 4 чекапов в год
             </p>
 
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex w-full max-w-md flex-col gap-3">
               <Button
                 size="lg"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-                className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
+                className="h-[52px] w-full gap-2 text-base sm:h-12"
               >
                 Записаться на бесплатную консультацию
                 <ArrowRight className="h-4 w-4" aria-hidden />
@@ -409,7 +409,7 @@ export function HeroPortrait() {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/register")}
-                className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
+                className="h-[52px] w-full gap-2 text-base sm:h-12"
               >
                 Посмотреть демо-аккаунт
               </Button>
