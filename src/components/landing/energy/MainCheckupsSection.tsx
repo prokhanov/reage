@@ -96,7 +96,13 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
 export function MainCheckupsSection({ title = "Выберите чекап" }: { title?: string }) {
   const { priceOf, isActive } = useCheckupSettings();
   const { resolve, groupsOf, variantsFor } = useResolvedCheckups();
-  const fullGroups = groupsOf(FULL_CHECKUP.slug);
+  // В карточке на главной показываем состав максимального варианта (самый дорогой)
+  const maxVariant = useMemo(() => {
+    const variants = variantsFor(FULL_CHECKUP.slug);
+    if (!variants.length) return null;
+    return variants.reduce((max, v) => (v.checkup.price > max.checkup.price ? v : max));
+  }, [variantsFor]);
+  const fullGroups = groupsOf(maxVariant ? maxVariant.checkup.slug : FULL_CHECKUP.slug);
   const fullCount = fullGroups.reduce((n, g) => n + g.markers.length, 0);
   const fullMinPrice = useMemo(() => {
     const variants = variantsFor(FULL_CHECKUP.slug);
