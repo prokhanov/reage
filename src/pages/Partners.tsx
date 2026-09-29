@@ -22,6 +22,7 @@ export default function Partners() {
         <WhoCanPartner />
         <HowItWorks />
         <JoinSection />
+        <SplitCalculator />
         <BonusSection />
         <EarningsSection />
         <FaqSection />
