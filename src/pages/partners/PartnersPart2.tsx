@@ -62,13 +62,6 @@ export function SplitCalculator() {
           </div>
 
           <div className="mt-8">
-            <div className="flex h-2.5 w-full overflow-hidden rounded-full">
-              <div
-                className="h-full bg-destructive/70 transition-[width] duration-150"
-                style={{ width: `${(clientShare / TOTAL_SHARE_PCT) * 100}%` }}
-              />
-              <div className="h-full flex-1 bg-primary transition-all duration-150" />
-            </div>
             <input
               type="range"
               min={0}
@@ -77,11 +70,14 @@ export function SplitCalculator() {
               value={clientShare}
               onChange={(e) => setClientShare(Number(e.target.value))}
               aria-label="Доля скидки клиенту"
-              className="mt-4 w-full accent-[hsl(var(--primary))]"
+              className="split-range w-full"
+              style={{
+                background: `linear-gradient(to right, hsl(var(--destructive)) 0%, hsl(var(--destructive)) ${(clientShare / TOTAL_SHARE_PCT) * 100}%, hsl(var(--primary)) ${(clientShare / TOTAL_SHARE_PCT) * 100}%, hsl(var(--primary)) 100%)`,
+              }}
             />
             <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-              <span>0% клиенту · {TOTAL_SHARE_PCT}% вам</span>
-              <span>{TOTAL_SHARE_PCT}% клиенту · 0% вам</span>
+              <span>0%</span>
+              <span>{TOTAL_SHARE_PCT}%</span>
             </div>
           </div>
 
