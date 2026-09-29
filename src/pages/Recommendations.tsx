@@ -1038,6 +1038,9 @@ export default function Recommendations() {
                         <Badge variant={report.documentStatus === "published" ? "default" : "secondary"}>
                           {report.documentStatus === "published" ? "Опубликован" : "Не опубликован"}
                         </Badge>
+                        {report.recommendations?.some((r: any) => r.type === "Организм в целом") && (
+                          <Badge variant="outline">Организм в целом</Badge>
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">
@@ -1118,6 +1121,9 @@ export default function Recommendations() {
                         <Badge variant={report.documentStatus === "published" ? "default" : "secondary"}>
                           {report.documentStatus === "published" ? "Опубликован" : "Не опубликован"}
                         </Badge>
+                        {report.recommendations?.some((r: any) => r.type === "Организм в целом") && (
+                          <Badge variant="outline">Организм в целом</Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

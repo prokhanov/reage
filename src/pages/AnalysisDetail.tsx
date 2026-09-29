@@ -134,6 +134,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         prescriptions: "Подбор назначений и нутрицевтиков...",
         "finalize:summary": "Формирование общего резюме...",
         "finalize:bioage": "Расчёт биологического возраста...",
+      "whole_body": "Объединение в раздел «Организм в целом»...",
       };
 
       let prevStep = job.current_step ?? "";
@@ -444,8 +445,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       setAnalyzing(false);
     }
   };
+  const currentReportKind: "systems" | "whole_body" =
+    (analysis as any)?.cover_overrides?.report_kind === "whole_body" ? "whole_body" : "systems";
 
-  const handleAnalyze = async (mode: "standard" | "deep" = "standard") => {
+
+  const handleAnalyze = async (
+    mode: "standard" | "deep" = "standard",
+    reportKind: "systems" | "whole_body" = currentReportKind,
+  ) => {
     if (values.length === 0) {
       toast({
         title: "Недостаточно данных",
@@ -544,7 +551,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
 
     try {
-      const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode });
+      const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode, reportKind });
       const error = null;
 
       // 1) Сетевая/транспортная ошибка от supabase-js
@@ -773,6 +780,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   })}
                 </h1>
                 {analysis && <AnalysisStatusBadge status={analysis.status} />}
+                {currentReportKind === "whole_body" && (
+                  <Badge variant="secondary">Организм в целом</Badge>
+                )}
               </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
                 Сдано маркеров: {values.length}
@@ -837,6 +847,28 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Усиленная модель + расширенное «обдумывание». Выше точность и связность, требует больше времени и вычислительных кредитов.
+                      </p>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Тип отчёта</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("standard", "systems")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="font-medium">
+                        Пересобрать по системам{currentReportKind === "systems" ? " · текущий" : ""}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Отдельный раздел для каждой системы организма.</p>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("standard", "whole_body")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="font-medium">
+                        Пересобрать как общий отчёт{currentReportKind === "whole_body" ? " · текущий" : ""}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Один раздел «Организм в целом», без данных пациента и плашек с показателями.
                       </p>
                     </DropdownMenuItem>
                   </DropdownMenuContent>

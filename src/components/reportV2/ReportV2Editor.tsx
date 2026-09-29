@@ -40,6 +40,7 @@ import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialo
 import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { ReportSectionNav, type ReportNavSection } from "./ReportSectionNav";
 import { ReportPdfView } from "./ReportPdfView";
+import { ReportCompositionMenu } from "./ReportCompositionMenu";
 import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
@@ -1263,11 +1264,14 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
         {({ mode: shellMode }) => (
           <>
             {!hideToolbar && toolbarWrap(
-              <ReportEditorToolbar
+              <div className="flex items-center gap-2">
+                <ReportCompositionMenu />
+                <ReportEditorToolbar
                 report={report}
                 onReportUpdate={handleReportUpdate}
                 persist
-              />,
+              />
+              </div>,
             )}
             {withNav(
               <EditablePreview
@@ -1383,6 +1387,12 @@ function EditablePreview({
   height?: string | number;
 }) {
   const ctx = useReportEditor();
+  // Скрытия состава отчёта применяются в предпросмотре сразу, до сохранения.
+  const effectiveReport = useMemo<LabReport>(() => {
+    const presentation = ctx?.coverOverrides?.presentation;
+    if (!ctx || presentation === report.coverOverrides?.presentation) return report;
+    return { ...report, coverOverrides: { ...(report.coverOverrides ?? {}), presentation } };
+  }, [ctx, report]);
   // ВАЖНО: во время набора мы НЕ обновляем React-состояние drafts,
   // иначе Paged.js перезапускает полную пагинацию на каждый keystroke
   // (курсор прыгает, ощутимые лаги). Правки уже видны в DOM
@@ -1390,7 +1400,7 @@ function EditablePreview({
   // «Сохранить» через window.__reportLabCollectDrafts().
   return (
     <PagedReportPreview
-      report={report}
+      report={effectiveReport}
       layout="flow"
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}

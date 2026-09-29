@@ -53,9 +53,11 @@ export async function isAnalysisReportComplete(
 
     const hasPatientData = recommendationTypes.has("Данные пациента");
     const hasSummary = recommendationTypes.has("Общее резюме");
+    // Общий отчёт «Организм в целом» заменяет разделы по системам одним разделом.
     const hasAllCategories =
-      expectedCategories.size > 0 &&
-      [...expectedCategories].every((category) => recommendationTypes.has(category));
+      recommendationTypes.has("Организм в целом") ||
+      (expectedCategories.size > 0 &&
+        [...expectedCategories].every((category) => recommendationTypes.has(category)));
 
     // «Назначения» могут отсутствовать, если ИИ не нашёл lifestyle/follow-up действий.
     // Финальный признак — health_index. biological_age опционален: finalize-analysis
