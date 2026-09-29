@@ -116,6 +116,24 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                   </tr>
                 </thead>
                 <tbody>
+                  {(["Кому подойдёт", "Что покрывает"] as const).map((label, rowIdx) => (
+                    <tr key={label} className="border-b border-border/50 bg-muted/20 align-top">
+                      <td className="px-2 py-2.5 text-sm font-semibold text-foreground">{label}</td>
+                      {columns.map((c, idx) => {
+                        const slug = idx === 0 ? "basic" : idx === 1 ? "plus" : "expert";
+                        return (
+                          <td
+                            key={c.checkup.slug}
+                            className={`px-2 py-2.5 text-center text-sm text-foreground ${
+                              c.checkup.slug === popularSlug ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            {rowIdx === 0 ? VARIANTS_AUDIENCE[slug].who : VARIANTS_AUDIENCE[slug].gain}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                   {DIRECTIONS.map((d) => (
                     <tr
                       key={d.title}
