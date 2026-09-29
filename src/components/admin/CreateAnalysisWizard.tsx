@@ -37,6 +37,7 @@ interface WizardData {
   step3: {
     generateReport: boolean;
     mode: "standard" | "deep";
+    reportKind?: "systems" | "whole_body";
   };
 }
 
@@ -253,7 +254,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
       }, 2500);
 
       try {
-        const data = await invokeAnalyzeBiomarkers({ analysisId, mode: wizardData.step3.mode });
+        const data = await invokeAnalyzeBiomarkers({ analysisId, mode: wizardData.step3.mode, reportKind: wizardData.step3.reportKind });
         const error = null;
 
         if (error) {
