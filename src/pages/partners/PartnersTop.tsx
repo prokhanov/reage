@@ -1,4 +1,4 @@
-import { CreditCard, Send } from "lucide-react";
+import { Bell, CreditCard, Send } from "lucide-react";
 
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { Button } from "@/components/ui/button";
@@ -103,19 +103,13 @@ export function CommissionCard() {
 /** Уведомление о выплате — как пуш на телефоне. */
 export function PayoutNotification() {
   return (
-    <div className="rounded-[1.8rem] border hairline bg-card/95 p-4 shadow-2xl backdrop-blur sm:p-5">
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.7rem] bg-primary font-display text-lg font-semibold leading-none text-primary-foreground">
-          R
-        </span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          ReAge
-        </span>
-        <span className="ml-auto text-xs text-muted-foreground">сейчас</span>
-      </div>
-      <div className="mt-3">
-        <p className="text-2xl font-bold leading-tight">+{money(PAYOUT)}</p>
-        <p className="mt-1 text-sm leading-snug text-muted-foreground">
+    <div className="flex w-fit max-w-full items-start gap-3 rounded-2xl bg-foreground p-3.5 pr-5 text-background shadow-xl sm:p-4 sm:pr-6">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success text-success-foreground sm:h-10 sm:w-10">
+        <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <p className="text-base font-bold leading-tight sm:text-lg">+{money(PAYOUT)}</p>
+        <p className="mt-0.5 text-sm leading-snug text-background/70">
           Ваш пациент сдал анализы. Выплата отправлена на карту.
         </p>
       </div>
