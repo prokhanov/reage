@@ -366,7 +366,7 @@ export function EnergyExpertResult({
               {checkup.cbcBonusEnabled && (
                 <div className="inline-flex min-h-12 items-center gap-2 rounded-full bg-muted px-5 text-base font-medium text-primary">
                   <Gift className="h-5 w-5" aria-hidden />
-                  + ОАК в подарок
+                  Общий анализ крови в подарок
                 </div>
               )}
               <Button
