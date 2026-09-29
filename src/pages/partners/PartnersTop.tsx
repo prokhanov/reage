@@ -107,8 +107,14 @@ export function PayoutNotification() {
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success text-success-foreground sm:h-10 sm:w-10">
         <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5" aria-hidden />
       </span>
-      <div className="min-w-0">
-        <p className="text-base font-bold leading-tight sm:text-lg">+{money(PAYOUT)}</p>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-background/70">
+            ReAge
+          </p>
+          <p className="text-xs text-background/50">сейчас</p>
+        </div>
+        <p className="mt-1 text-base font-bold leading-tight sm:text-lg">+{money(PAYOUT)}</p>
         <p className="mt-0.5 text-sm leading-snug text-background/70">
           Ваш пациент сдал анализы. Выплата отправлена на карту.
         </p>
