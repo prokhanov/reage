@@ -407,6 +407,30 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
       }
       let rows = Array.from(latestByMsg.values())
 
+      // Queue worker logs final status (sent/failed/dlq) under the short label
+      // (e.g. "welcome"), not "drip:*". Pull those rows by message_id and apply
+      // the latest status so sent emails don't stay "pending".
+      const msgIds = rows.map((r) => r.message_id).filter(Boolean) as string[]
+      const finalByMsg = new Map<string, any>()
+      for (let i = 0; i < msgIds.length; i += 200) {
+        const chunk = msgIds.slice(i, i + 200)
+        const { data: extra } = await admin.from('email_send_log')
+          .select('message_id, status, error_message, created_at')
+          .in('message_id', chunk)
+          .not('template_name', 'like', 'drip%')
+          .order('created_at', { ascending: false })
+        for (const e of (extra ?? []) as any[]) {
+          if (!finalByMsg.has(e.message_id)) finalByMsg.set(e.message_id, e)
+        }
+      }
+      rows = rows.map((r) => {
+        const f = r.message_id ? finalByMsg.get(r.message_id) : null
+        if (f && new Date(f.created_at) >= new Date(r.created_at)) {
+          return { ...r, status: f.status, error_message: f.error_message ?? r.error_message }
+        }
+        return r
+      })
+
       if (seriesFilter) {
         rows = rows.filter((l) => {
           const md = l.metadata || {}
