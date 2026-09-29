@@ -6,7 +6,7 @@ import { CHECKUPS, money } from "@/data/checkups";
 import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
 
 export const TELEGRAM_URL = "https://t.me/reage_life";
-export const COMMISSION_RATE = 0.2;
+export const COMMISSION_RATE = 0.15;
 export const CLIENT_DISCOUNT_RATE = 0.05;
 
 const PRICE = FULL_CHECKUP.price;
@@ -168,7 +168,7 @@ export function PartnersHero({ onJoin }: { onJoin: () => void }) {
 const STATS = [
   { value: "115+", label: "маркеров в полном чекапе" },
   { value: "50 стр.", label: "персональный отчёт с разбором" },
-  { value: "25%", label: "суммарная выплата" },
+  { value: "20%", label: "суммарная выплата" },
   { value: "24 часа", label: "до выплаты на карту" },
 ];
 
@@ -315,7 +315,7 @@ const STEPS = [
   },
   {
     num: "04",
-    title: "Вам 20%",
+    title: "Вам 15%",
     text: `Комиссия приходит на карту в течение 24 часов после сдачи анализов. Например, ${money(
       PAYOUT,
     )} за полный чекап.`,
@@ -410,7 +410,7 @@ export function IncomeSection() {
                 <tr className="border-b hairline text-sm text-muted-foreground">
                   <th className="px-5 py-4 font-medium sm:px-6">Чекап</th>
                   <th className="px-5 py-4 text-right font-medium sm:px-6">Цена</th>
-                  <th className="px-5 py-4 text-right font-medium sm:px-6">Вам 20%</th>
+                  <th className="px-5 py-4 text-right font-medium sm:px-6">Вам 15%</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/70">

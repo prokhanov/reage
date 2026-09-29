@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/accordion";
 import { money } from "@/data/checkups";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
-import { COMMISSION_RATE, PAYOUT, TELEGRAM_URL } from "./PartnersTop";
+import { CLIENT_DISCOUNT_RATE, COMMISSION_RATE, PAYOUT, TELEGRAM_URL } from "./PartnersTop";
 
 const CALC_PRICE = FULL_CHECKUP.price;
-const TOTAL_SHARE_PCT = Math.round((COMMISSION_RATE + 0.05) * 100); // 25
+const TOTAL_SHARE_PCT = Math.round((COMMISSION_RATE + CLIENT_DISCOUNT_RATE) * 100); // 20
 const PRESETS = [0, 5, 10, 15];
 
-/** Калькулятор «Сами решаете, как разделить 25%»: ползунок делит общую долю между скидкой клиенту и вознаграждением партнёру. */
+/** Калькулятор «Сами решаете, как разделить 20%»: ползунок делит общую долю между скидкой клиенту и вознаграждением партнёру. */
 export function SplitCalculator() {
   const [clientShare, setClientShare] = useState(5);
   const partnerShare = TOTAL_SHARE_PCT - clientShare;
