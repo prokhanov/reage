@@ -21,6 +21,7 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
+import { getYmClientId } from "@/lib/yandexMetrika";
 
 const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 const CBC_BONUS_PRICE = 990;
@@ -134,8 +135,10 @@ export function EnergyCart() {
     if (!canPay || paying) return;
     setPaying(true);
     try {
+      const ymClientId = await getYmClientId();
       const { data, error } = await supabase.functions.invoke("energy-create-payment", {
         body: {
+          ymClientId,
           bundle: items[0]?.bundle ?? checkup.bundle,
           bundles: items.map((item) => item.bundle),
           email: email.trim(),

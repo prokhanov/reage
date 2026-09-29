@@ -1,5 +1,26 @@
 export const YM_COUNTER_ID = 109706546;
 
+/** ClientID посетителя Метрики (для офлайн-конверсий). null, если недоступен за timeoutMs. */
+export function getYmClientId(timeoutMs = 700): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || typeof window.ym !== "function") return resolve(null);
+    let done = false;
+    const finish = (v: string | null) => {
+      if (done) return;
+      done = true;
+      resolve(v);
+    };
+    setTimeout(() => finish(null), timeoutMs);
+    try {
+      (window.ym as (...a: unknown[]) => void)(YM_COUNTER_ID, "getClientID", (id: unknown) =>
+        finish(id ? String(id) : null),
+      );
+    } catch {
+      finish(null);
+    }
+  });
+}
+
 export function reachGoal(goal: string, params?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   const ym = window.ym;

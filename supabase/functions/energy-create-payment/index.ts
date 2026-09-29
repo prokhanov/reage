@@ -78,7 +78,9 @@ Deno.serve(async (req) => {
       firstName,
       middleName,
       birthDate,
+      ymClientId,
     } = body as {
+      ymClientId?: string | null;
       bundle?: string;
       bundles?: string[];
       email?: string;
@@ -231,6 +233,7 @@ Deno.serve(async (req) => {
         promo_code: code || null,
         status: "pending",
         is_test: isTest,
+        ym_client_id: typeof ymClientId === "string" && /^\d{1,32}$/.test(ymClientId) ? ymClientId : null,
       })
       .select("inv_id")
       .single();

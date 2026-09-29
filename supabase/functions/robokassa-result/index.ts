@@ -64,6 +64,37 @@ async function notifyTelegramCheckupPaid(
   }
 }
 
+const YM_COUNTER_ID = 109706546;
+
+// Офлайн-конверсия в Метрику: оплату фиксируем на сервере, даже если человек не вернулся на сайт.
+async function sendMetrikaOfflineConversion(
+  admin: any,
+  logBase: Record<string, unknown>,
+  o: { clientId: string | null; bundles: string[]; amount: number; isTest: boolean },
+) {
+  const log = (error: string) =>
+    admin.from("payment_callback_log").insert({ ...logBase, signature_valid: true, error }).then(() => {}, () => {});
+  try {
+    const token = Deno.env.get("YANDEX_METRIKA_OAUTH_TOKEN");
+    if (!token) return await log("metrika: YANDEX_METRIKA_OAUTH_TOKEN not configured");
+    if (!o.clientId) return await log("metrika: no ym_client_id in order");
+    const ts = Math.floor(Date.now() / 1000);
+    const targets = [...new Set(o.bundles.map((b) => `${String(b).replace(/-/g, "_")}_paid`)), "checkup_paid"];
+    const rows = targets.map((t, i) => `${o.clientId},${t},${ts},${i === targets.length - 1 ? o.amount : 0},RUB`);
+    const csv = ["ClientId,Target,DateTime,Price,Currency", ...rows].join("\n");
+    const form = new FormData();
+    form.append("file", new Blob([csv], { type: "text/csv" }), "conversions.csv");
+    const res = await fetch(
+      `https://api-metrika.yandex.net/management/v1/counter/${YM_COUNTER_ID}/offline_conversions/upload?client_id_type=CLIENT_ID&comment=robokassa`,
+      { method: "POST", headers: { Authorization: `OAuth ${token}` }, body: form },
+    );
+    const text = (await res.text()).slice(0, 300);
+    await log(res.ok ? `metrika: sent ${targets.join(",")}` : `metrika: upload failed [${res.status}] ${text}`);
+  } catch (e) {
+    await log(`metrika: error ${(e as Error).message}`);
+  }
+}
+
 function textPlain(body: string, status = 200): Response {
   return new Response(body, {
     status,
@@ -144,7 +175,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id",
       )
       .eq("inv_id", invId)
       .maybeSingle();
@@ -237,6 +268,12 @@ Deno.serve(async (req) => {
         amount: ePaid,
         is_test: eIsTest,
         paid_at: new Date().toISOString(),
+      });
+      await sendMetrikaOfflineConversion(admin, logBase, {
+        clientId: (energyOrder as any).ym_client_id ?? null,
+        bundles: ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter(Boolean),
+        amount: ePaid,
+        isTest: eIsTest,
       });
       return textPlain(`OK${invId}`);
     }
