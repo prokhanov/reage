@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, clinic_title, clinic_address, promo_code, original_amount, discount_amount",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id",
       )
       .eq("inv_id", invId)
       .maybeSingle();
