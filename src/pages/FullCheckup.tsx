@@ -92,9 +92,10 @@ function FullCheckupContent({ onVariantChange }: { onVariantChange: (slug: strin
 }
 
 export default function FullCheckup() {
-  const [variantSlug, setVariantSlug] = useState(FULL_CHECKUP.slug);
-  const { bySlug } = useResolvedCheckups();
-  const current = bySlug(variantSlug) ?? FULL_CHECKUP;
+  const { bySlug, variantsFor } = useResolvedCheckups();
+  const variants = variantsFor(FULL_CHECKUP.slug);
+  const [variantSlug, setVariantSlug] = useState<string | null>(null);
+  const current = bySlug(variantSlug ?? variants[0]?.variant.slug ?? FULL_CHECKUP.slug) ?? FULL_CHECKUP;
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (document.documentElement) document.documentElement.scrollTop = 0;
