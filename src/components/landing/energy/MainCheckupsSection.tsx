@@ -212,7 +212,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between lg:flex-col lg:items-start">
                 <div>
                   <div className="whitespace-nowrap text-[1.75rem] leading-none sm:text-4xl">
-                    {money(priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price))}
+                    от {money(fullMinPrice)}
                   </div>
                   <div className="mt-2 text-sm text-primary-foreground/70">
                     {fullCount} {markerWord(fullCount)} · систем организма: {fullGroups.length}
