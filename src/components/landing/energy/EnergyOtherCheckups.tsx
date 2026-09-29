@@ -160,8 +160,8 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
                           {c.name}
                         </h3>
-                        <p className="mt-2 line-clamp-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
-                          {c.cardText}
+                        <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
+                          {c.slug === FULL_CHECKUP.slug ? fullCardText : c.cardText}
                         </p>
                       </div>
 
@@ -169,7 +169,9 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="text-2xl font-bold text-foreground">
-                            {money(priceOf(c.slug, c.price))}
+                            {c.slug === FULL_CHECKUP.slug
+                              ? `от ${money(fullMinPrice)}`
+                              : money(priceOf(c.slug, c.price))}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
