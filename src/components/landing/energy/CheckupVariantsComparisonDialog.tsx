@@ -187,7 +187,8 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                 ))}
               </tbody>
             </table>
-          </div>
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>
