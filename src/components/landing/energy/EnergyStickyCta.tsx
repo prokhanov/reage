@@ -78,7 +78,7 @@ export function EnergyStickyCta({
               {inCart ? `${name} в корзине` : `В корзине: ${cartCount}`}
             </div>
           )}
-          <div className="text-lg text-foreground">{money(price)}</div>
+          <div className="text-lg font-bold text-foreground">{money(price)}</div>
         </div>
         <Button
           size="lg"
