@@ -382,7 +382,7 @@ export function HeroPortrait() {
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
             Берём на себя контроль вашего здоровья
           </p>
-          <ul className="mx-auto mt-4 flex max-w-md flex-col items-center space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg lg:items-stretch">
+          <ul className="mx-auto mt-4 flex max-w-md flex-col items-center space-y-2 text-base text-muted-foreground sm:mt-5 sm:text-lg lg:mx-0 lg:max-w-none lg:items-stretch">
             {LEAD_BULLETS.map((item) => (
               <li key={item} className="flex items-start gap-2">
                 <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden />
