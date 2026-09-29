@@ -45,21 +45,21 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
             ))}
           </ul>
           {checkup.cbcBonusEnabled && (
-            <div className="mx-5 border-t border-dashed border-border px-0 py-5 sm:mx-8 sm:py-6">
-              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning sm:h-11 sm:w-11">
-                  <Gift className="h-5 w-5" aria-hidden />
+            <div className="mx-5 mb-5 sm:mx-8 sm:mb-8">
+              <div className="flex min-w-0 items-center gap-3 rounded-xl border border-warning/30 bg-warning-soft p-4 sm:gap-4 sm:p-5">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning text-warning-foreground sm:h-12 sm:w-12">
+                  <Gift className="h-6 w-6" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display text-base text-foreground sm:text-lg md:text-xl">
+                    <h3 className="font-display text-lg text-foreground sm:text-xl md:text-2xl">
                       Общий анализ крови
                     </h3>
-                    <span className="rounded-full bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+                    <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold uppercase tracking-wide text-warning-foreground sm:text-sm">
                       в подарок
                     </span>
                   </div>
-                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  <p className="mt-1 text-sm font-medium leading-relaxed text-foreground/90 sm:text-base">
                     воспаление и риск анемии — в этом же заборе крови, без доплаты
                   </p>
                 </div>
