@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Gift, Save, Stethoscope, Tag } from "lucide-react";
+import { Gift, ListChecks, Save, Stethoscope, Tag } from "lucide-react";
+import { CheckupMarkersTab } from "@/components/admin/checkups/CheckupMarkersTab";
 
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
@@ -50,10 +51,11 @@ export default function AdminCheckups() {
   const [rows, setRows] = useState<PriceRow[]>([]);
   const [doctor, setDoctor] = useState<DoctorRow | null>(null);
   const [credentialsText, setCredentialsText] = useState("");
+  const [variantNames, setVariantNames] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
-    const [pricesRes, doctorRes] = await Promise.all([
+    const [pricesRes, doctorRes, variantsRes] = await Promise.all([
       supabase.from("checkup_settings").select("slug, price, is_active, cbc_bonus_enabled"),
       supabase
         .from("checkup_doctor_settings")
@@ -61,11 +63,21 @@ export default function AdminCheckups() {
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase.from("checkup_variants").select("slug, parent_slug, label").order("display_order"),
     ]);
+
+    // Варианты чекапов, созданные в админке, тоже получают свою цену
+    const extra = (variantsRes.data ?? [])
+      .filter((v) => !ADMIN_CHECKUPS.some((c) => c.slug === v.slug))
+      .map((v) => {
+        const parent = ADMIN_CHECKUPS.find((c) => c.slug === v.parent_slug);
+        return { slug: v.slug, name: `${parent?.name ?? v.parent_slug} · ${v.label}`, price: parent?.price ?? 0 };
+      });
+    setVariantNames(Object.fromEntries(extra.map((e) => [e.slug, e.name])));
 
     const saved = new Map((pricesRes.data ?? []).map((r) => [r.slug, r]));
     setRows(
-      ADMIN_CHECKUPS.map((c) => ({
+      [...ADMIN_CHECKUPS, ...extra].map((c) => ({
         slug: c.slug,
         price: saved.get(c.slug)?.price ?? c.price,
         is_active: saved.get(c.slug)?.is_active ?? true,
@@ -146,6 +158,9 @@ export default function AdminCheckups() {
           <TabsTrigger value="prices" className="gap-2">
             <Tag className="h-4 w-4" /> Цены
           </TabsTrigger>
+          <TabsTrigger value="markers" className="gap-2">
+            <ListChecks className="h-4 w-4" /> Показатели и варианты
+          </TabsTrigger>
           <TabsTrigger value="doctor" className="gap-2">
             <Stethoscope className="h-4 w-4" /> Врач и консультация
           </TabsTrigger>
@@ -169,7 +184,7 @@ export default function AdminCheckups() {
                   return (
                     <TableRow key={row.slug}>
                       <TableCell className="whitespace-nowrap font-medium">
-                        {checkup?.name ?? row.slug}
+                        {checkup?.name ?? variantNames[row.slug] ?? row.slug}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         /checkup/{row.slug}
@@ -226,6 +241,10 @@ export default function AdminCheckups() {
             {savingPrices ? <ButtonSpinner /> : <Save className="h-4 w-4" />}
             Сохранить цены
           </Button>
+        </TabsContent>
+
+        <TabsContent value="markers" className="mt-4">
+          <CheckupMarkersTab />
         </TabsContent>
 
         <TabsContent value="doctor" className="mt-4 space-y-4">

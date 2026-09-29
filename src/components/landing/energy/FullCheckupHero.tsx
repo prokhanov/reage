@@ -1,41 +1,20 @@
 import { ArrowRight, Check, Droplet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { markersLabel, money, type Checkup } from "@/data/checkups";
-import { FULL_CHECKUP_MARKERS_COUNT, FULL_CHECKUP_TIERS, type FullTierId } from "@/data/fullCheckup";
-import type { TierComposition } from "@/hooks/useFullCheckupTiers";
-import { cn } from "@/lib/utils";
+import { markersLabel, money, withMarkersCount, type Checkup } from "@/data/checkups";
+import { CheckupVariantSwitcher } from "@/components/landing/energy/CheckupVariantSwitcher";
+import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 
 interface Props {
   checkup: Checkup;
   onAddToCart: () => void;
-  tierId: FullTierId;
-  onTierChange: (id: FullTierId) => void;
-  /** Цены вариантов (с учётом настроек в админке). */
-  tierPrices: Record<FullTierId, number>;
-  compositions: TierComposition[] | null;
+  variants: ResolvedVariant[];
+  onVariantChange: (slug: string) => void;
   onOpenCompare: () => void;
 }
 
-export function FullCheckupHero({
-  checkup,
-  onAddToCart,
-  tierId,
-  onTierChange,
-  tierPrices,
-  compositions,
-  onOpenCompare,
-}: Props) {
-  const tierIdx = FULL_CHECKUP_TIERS.findIndex((t) => t.id === tierId);
-  const countOf = (i: number) =>
-    compositions?.[FULL_CHECKUP_TIERS[i].planIndex]?.count ??
-    (FULL_CHECKUP_TIERS[i].id === "full" ? FULL_CHECKUP_MARKERS_COUNT : 0);
-  const count = countOf(tierIdx);
-  const prevCount = tierIdx > 0 ? countOf(tierIdx - 1) : 0;
-  const addNote =
-    tierIdx === 0
-      ? `Ключевые показатели по всем системам организма — ${markersLabel(count)}`
-      : `+ ${markersLabel(Math.max(count - prevCount, 0))} к ${tierIdx === 1 ? "Базовому" : "Полному"} — полная картина по ${markersLabel(count)}`;
+export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChange, onOpenCompare }: Props) {
+  const count = checkup.markers.length;
 
   const visual = (
     <>
@@ -83,7 +62,7 @@ export function FullCheckupHero({
             </span>
           </h1>
           <p className="font-display mt-2 text-balance text-xl leading-snug text-muted-foreground sm:text-2xl xl:text-[1.75rem]">
-            {checkup.heroSubtitle}
+            {withMarkersCount(checkup.heroSubtitle, count)}
           </p>
 
           {checkup.leadBullets && (
@@ -97,51 +76,11 @@ export function FullCheckupHero({
             </ul>
           )}
 
-          <div className="mt-7 max-w-[520px]">
-            <p className="mb-2.5 text-[13px] uppercase tracking-[0.05em] text-muted-foreground">
-              Вариант чекапа
-            </p>
-            <div
-              role="radiogroup"
-              aria-label="Вариант чекапа"
-              className="grid grid-cols-3 gap-1 rounded-2xl bg-muted p-1"
-            >
-              {FULL_CHECKUP_TIERS.map((t) => {
-                const active = t.id === tierId;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => onTierChange(t.id)}
-                    className={cn(
-                      "relative flex min-h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl border-[1.5px] px-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-16",
-                      active
-                        ? "border-primary bg-card shadow-sm"
-                        : "border-transparent hover:bg-card/50",
-                    )}
-                  >
-                    {t.popular && (
-                      <span
-                        className={cn(
-                          "absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium",
-                          active ? "bg-primary text-primary-foreground" : "bg-border text-foreground",
-                        )}
-                      >
-                        Популярный
-                      </span>
-                    )}
-                    <span className={cn("text-sm text-foreground sm:font-display sm:text-[17px]", active && "font-medium")}>
-                      {t.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground sm:text-[13px]">{money(tierPrices[t.id])}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-sm leading-snug text-foreground/80">{addNote}</p>
-          </div>
+          <CheckupVariantSwitcher
+            variants={variants}
+            activeSlug={checkup.slug}
+            onChange={onVariantChange}
+          />
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:mt-7">
             <p className="text-sm text-muted-foreground sm:text-base">
@@ -164,13 +103,13 @@ export function FullCheckupHero({
                 Купить
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Button>
-              <button
+              {variants.length > 1 && <button
                 type="button"
                 onClick={onOpenCompare}
                 className="text-sm text-foreground underline underline-offset-4 hover:text-primary sm:text-base"
               >
                 Что входит в каждый вариант
-              </button>
+              </button>}
             </div>
           </div>
         </div>

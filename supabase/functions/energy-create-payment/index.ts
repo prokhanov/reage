@@ -31,8 +31,6 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
   "male-hormones": { title: "ReAge Мужские гормоны — чекап", price: 4490 },
   hair: { title: "ReAge Волосы — чекап при выпадении волос", price: 5990 },
   full: { title: "Полный чекап ReAge — 83 показателя", price: 23990 },
-  "full-basic": { title: "Полный чекап ReAge — Базовый", price: 14990 },
-  "full-extended": { title: "Полный чекап ReAge — Расширенный", price: 34990 },
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
@@ -97,7 +95,26 @@ Deno.serve(async (req) => {
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
     const bundleList = Array.isArray(bundles) && bundles.length > 0 ? bundles : [bundle];
     const uniqueBundles = [...new Set(bundleList.map((b) => String(b)))];
-    const products = uniqueBundles.map((b) => BUNDLES[b]);
+    // Варианты чекапов (например, «Полный · Расширенный») создаются в админке —
+    // название собираем из родительского чекапа и подписи варианта.
+    const unknown = uniqueBundles.filter((b) => !BUNDLES[b]);
+    const variantProducts: Record<string, { title: string; price: number }> = {};
+    if (unknown.length > 0) {
+      const adminEarly = createClient(supabaseUrl, serviceKey);
+      const { data: vrows } = await adminEarly
+        .from("checkup_variants")
+        .select("slug, parent_slug, label")
+        .in("slug", unknown);
+      for (const v of vrows ?? []) {
+        const parent = BUNDLES[v.parent_slug as string];
+        if (!parent) continue;
+        variantProducts[v.slug as string] = {
+          title: `${parent.title.split(" — ")[0]} — ${v.label}`,
+          price: parent.price,
+        };
+      }
+    }
+    const products = uniqueBundles.map((b) => BUNDLES[b] ?? variantProducts[b]);
     if (products.some((p) => !p)) return json({ error: "Неизвестный набор анализов" }, 400);
     const items = (products as { title: string; price: number }[]).map((p) => ({ ...p }));
 

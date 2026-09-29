@@ -14,8 +14,9 @@ import { accentClasses } from "@/components/landing/energy/checkupShapes";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { Button } from "@/components/ui/button";
 import { CHECKUPS, money, type Checkup } from "@/data/checkups";
-import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
 type Sort = "asc" | "desc";
 
@@ -68,6 +69,8 @@ function CheckupCatalogContent() {
   const { count, openCart } = useEnergyOrder();
   const { setTheme } = useTheme();
   const { priceOf, isActive } = useCheckupSettings();
+  const { resolve } = useResolvedCheckups();
+  const fullCount = resolve(FULL_CHECKUP).markers.length;
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("asc");
 
@@ -79,7 +82,7 @@ function CheckupCatalogContent() {
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = CHECKUPS.filter((c) => isActive(c.slug)).filter((c) => {
+    const list = CHECKUPS.map(resolve).filter((c) => isActive(c.slug)).filter((c) => {
       if (!q) return true;
       const haystack = [
         c.name,
@@ -98,7 +101,7 @@ function CheckupCatalogContent() {
         ? priceOf(a.slug, a.price) - priceOf(b.slug, b.price)
         : priceOf(b.slug, b.price) - priceOf(a.slug, a.price)
     );
-  }, [query, sort, isActive, priceOf]);
+  }, [query, sort, isActive, priceOf, resolve]);
 
   const fullMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -203,7 +206,7 @@ function CheckupCatalogContent() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium text-primary-foreground/90">
-                        {FULL_CHECKUP_MARKERS_COUNT} {plural(FULL_CHECKUP_MARKERS_COUNT)}
+                        {fullCount} {plural(fullCount)}
                       </span>
                       <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium text-primary-foreground/90">
                         Консультация врача

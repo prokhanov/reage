@@ -17,26 +17,14 @@ import { EnergyWhereToTest } from "@/components/landing/energy/EnergyWhereToTest
 import { FullCheckupHero } from "@/components/landing/energy/FullCheckupHero";
 import { FullCheckupIncluded } from "@/components/landing/energy/FullCheckupIncluded";
 import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
-import { FULL_CHECKUP_TIERS, type FullTierId } from "@/data/fullCheckup";
-import { useCheckupSettings } from "@/hooks/useCheckupSettings";
-import { useFullCheckupTiers } from "@/hooks/useFullCheckupTiers";
+import { FULL_CHECKUP } from "@/data/fullCheckup";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 import { reachGoal } from "@/lib/yandexMetrika";
 
-function FullCheckupContent({
-  tierId,
-  onTierChange,
-}: {
-  tierId: FullTierId;
-  onTierChange: (id: FullTierId) => void;
-}) {
+function FullCheckupContent({ onVariantChange }: { onVariantChange: (slug: string) => void }) {
   const [compareOpen, setCompareOpen] = useState(false);
-  const compositions = useFullCheckupTiers();
-  const { priceOf } = useCheckupSettings();
-  const tier = FULL_CHECKUP_TIERS.find((t) => t.id === tierId)!;
-  const tierPrices = Object.fromEntries(
-    FULL_CHECKUP_TIERS.map((t) => [t.id, priceOf(t.checkup.slug, t.checkup.price)]),
-  ) as Record<FullTierId, number>;
+  const { variantsFor } = useResolvedCheckups();
   const { addToCart, inCart, openCart, checkup, count } = useEnergyOrder();
   const { setTheme } = useTheme();
 
@@ -76,14 +64,12 @@ function FullCheckupContent({
         <FullCheckupHero
           checkup={checkup}
           onAddToCart={handleAddToCart}
-          tierId={tierId}
-          onTierChange={onTierChange}
-          tierPrices={tierPrices}
-          compositions={compositions}
+          variants={variantsFor(FULL_CHECKUP.slug)}
+          onVariantChange={onVariantChange}
           onOpenCompare={() => setCompareOpen(true)}
         />
         <EnergyHowItWorks full />
-        <FullCheckupIncluded composition={compositions?.[tier.planIndex]} />
+        <FullCheckupIncluded slug={checkup.slug} />
         <EnergyWhereToTest />
         <EnergyExpertResult demoReport showBuyCta />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
@@ -106,16 +92,17 @@ function FullCheckupContent({
 }
 
 export default function FullCheckup() {
-  const [tierId, setTierId] = useState<FullTierId>("full");
-  const tier = FULL_CHECKUP_TIERS.find((t) => t.id === tierId)!;
+  const [variantSlug, setVariantSlug] = useState(FULL_CHECKUP.slug);
+  const { bySlug } = useResolvedCheckups();
+  const current = bySlug(variantSlug) ?? FULL_CHECKUP;
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (document.documentElement) document.documentElement.scrollTop = 0;
   }, []);
 
   return (
-    <EnergyOrderProvider checkup={tier.checkup}>
-      <FullCheckupContent tierId={tierId} onTierChange={setTierId} />
+    <EnergyOrderProvider checkup={current}>
+      <FullCheckupContent onVariantChange={setVariantSlug} />
     </EnergyOrderProvider>
   );
 }

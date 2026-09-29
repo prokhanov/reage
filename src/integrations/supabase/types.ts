@@ -599,6 +599,44 @@ export type Database = {
         }
         Relationships: []
       }
+      checkup_markers: {
+        Row: {
+          biomarker_id: string | null
+          checkup_slug: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          title: string | null
+        }
+        Insert: {
+          biomarker_id?: string | null
+          checkup_slug: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          biomarker_id?: string | null
+          checkup_slug?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkup_markers_biomarker_id_fkey"
+            columns: ["biomarker_id"]
+            isOneToOne: false
+            referencedRelation: "biomarkers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkup_prices: {
         Row: {
           price: number
@@ -644,6 +682,33 @@ export type Database = {
           price?: number
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      checkup_variants: {
+        Row: {
+          created_at: string
+          display_order: number
+          is_popular: boolean
+          label: string
+          parent_slug: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          is_popular?: boolean
+          label: string
+          parent_slug: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          is_popular?: boolean
+          label?: string
+          parent_slug?: string
+          slug?: string
         }
         Relationships: []
       }
