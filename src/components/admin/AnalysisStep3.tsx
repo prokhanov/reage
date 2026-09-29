@@ -2,7 +2,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Info, Sparkles, Brain } from "lucide-react";
+import { Info, Sparkles, Brain, LayoutGrid, CircleDot } from "lucide-react";
+import type { ReportKind } from "@/lib/reportLab/types";
 
 export type ReportMode = "standard" | "deep";
 
@@ -10,12 +11,19 @@ interface AnalysisStep3Props {
   data: {
     generateReport: boolean;
     mode?: ReportMode;
+    reportKind?: ReportKind;
   };
-  onChange: (data: { generateReport: boolean; mode: ReportMode }) => void;
+  onChange: (data: { generateReport: boolean; mode: ReportMode; reportKind: ReportKind }) => void;
 }
+
+const optionClass =
+  "flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-accent/50 transition-colors data-[state=checked]:border-primary";
 
 export function AnalysisStep3({ data, onChange }: AnalysisStep3Props) {
   const mode: ReportMode = data.mode ?? "standard";
+  const reportKind: ReportKind = data.reportKind ?? "systems";
+  const emit = (patch: Partial<{ generateReport: boolean; mode: ReportMode; reportKind: ReportKind }>) =>
+    onChange({ generateReport: data.generateReport, mode, reportKind, ...patch });
 
   return (
     <div className="space-y-6 py-4">
@@ -23,14 +31,9 @@ export function AnalysisStep3({ data, onChange }: AnalysisStep3Props) {
         <Checkbox
           id="generateReport"
           checked={data.generateReport}
-          onCheckedChange={(checked) =>
-            onChange({ generateReport: !!checked, mode })
-          }
+          onCheckedChange={(checked) => emit({ generateReport: !!checked })}
         />
-        <Label
-          htmlFor="generateReport"
-          className="text-base font-medium cursor-pointer"
-        >
+        <Label htmlFor="generateReport" className="text-base font-medium cursor-pointer">
           Сгенерировать персональный отчет
         </Label>
       </div>
@@ -38,19 +41,48 @@ export function AnalysisStep3({ data, onChange }: AnalysisStep3Props) {
       {data.generateReport && (
         <>
           <div className="space-y-3">
+            <Label className="text-sm font-medium">Тип отчёта</Label>
+            <RadioGroup
+              value={reportKind}
+              onValueChange={(value) => emit({ reportKind: value as ReportKind })}
+              className="gap-3"
+            >
+              <label htmlFor="kind-systems" className={optionClass} data-state={reportKind === "systems" ? "checked" : "unchecked"}>
+                <RadioGroupItem value="systems" id="kind-systems" className="mt-1" />
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4 text-primary" />
+                    <span className="font-medium">По системам организма</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Стандартный отчёт: отдельный раздел для каждой системы.
+                  </p>
+                </div>
+              </label>
+              <label htmlFor="kind-whole" className={optionClass} data-state={reportKind === "whole_body" ? "checked" : "unchecked"}>
+                <RadioGroupItem value="whole_body" id="kind-whole" className="mt-1" />
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CircleDot className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Организм в целом</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Один общий раздел без разбивки по системам: сильные стороны и зоны внимания.
+                    Без страницы данных пациента и плашек с показателями.
+                  </p>
+                </div>
+              </label>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-3">
             <Label className="text-sm font-medium">Глубина анализа</Label>
             <RadioGroup
               value={mode}
-              onValueChange={(value) =>
-                onChange({ generateReport: data.generateReport, mode: value as ReportMode })
-              }
+              onValueChange={(value) => emit({ mode: value as ReportMode })}
               className="gap-3"
             >
-              <label
-                htmlFor="mode-standard"
-                className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-accent/50 transition-colors data-[state=checked]:border-primary"
-                data-state={mode === "standard" ? "checked" : "unchecked"}
-              >
+              <label htmlFor="mode-standard" className={optionClass} data-state={mode === "standard" ? "checked" : "unchecked"}>
                 <RadioGroupItem value="standard" id="mode-standard" className="mt-1" />
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
@@ -64,11 +96,7 @@ export function AnalysisStep3({ data, onChange }: AnalysisStep3Props) {
                 </div>
               </label>
 
-              <label
-                htmlFor="mode-deep"
-                className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-accent/50 transition-colors data-[state=checked]:border-primary"
-                data-state={mode === "deep" ? "checked" : "unchecked"}
-              >
+              <label htmlFor="mode-deep" className={optionClass} data-state={mode === "deep" ? "checked" : "unchecked"}>
                 <RadioGroupItem value="deep" id="mode-deep" className="mt-1" />
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">

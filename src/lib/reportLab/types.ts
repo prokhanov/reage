@@ -72,8 +72,13 @@ export interface ReportRecommendationRow {
   created_at: string;
 }
 
+/** Тип отчёта: по системам (стандарт) или единый «Организм в целом». */
+export type ReportKind = "systems" | "whole_body";
+
 /** Persisted per-analysis правки обложки V2. NULL/отсутствие = дефолтный шаблон. */
 export interface CoverOverrides {
+  /** Тип отчёта. Отсутствие = "systems". */
+  report_kind?: ReportKind;
   /** Точечные настройки состава конкретного отчёта. */
   presentation?: {
     hidePatientData?: boolean;

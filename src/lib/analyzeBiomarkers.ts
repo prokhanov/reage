@@ -6,29 +6,39 @@ import { resetReportDocument } from "@/lib/reportLab/documentStore";
 type AnalyzeBiomarkersPayload = {
   analysisId: string;
   mode: "standard" | "deep";
+  /** Тип отчёта. Если задан — сохраняется у анализа (cover_overrides.report_kind). */
+  reportKind?: "systems" | "whole_body";
 };
 
 /**
- * Запуск генерации отчёта.
- *
- * Всегда идёт через report-orchestrator (job в таблице report_jobs)
- * с поллингом до завершения. Это:
- *  - обходит 400-сек лимит edge runtime, выполняя каждый шаг
- *    (категория / назначения / финализация) отдельным HTTP-вызовом;
- *  - гарантирует, что отчёт всегда содержит все секции (5 категорий +
- *    «Данные пациента» + «Назначения» + «Общее резюме»). Прямой вызов
- *    analyze-biomarkers удалял старые рекомендации и не успевал
- *    восстановить Summary/Назначения за один edge-invoke.
- *
- * `mode` (`standard`/`deep`) передаётся в orchestrator и далее в
- * analyze-biomarkers/finalize-analysis.
+ * Запуск генерации отчёта через report-orchestrator (job в report_jobs)
+ * с поллингом до завершения. `mode` и `reportKind` передаются в orchestrator.
  */
 export async function invokeAnalyzeBiomarkers(payload: AnalyzeBiomarkersPayload) {
-  // Полная перегенерация = чистый лист: сохранённый документ отчёта
-  // (черновик с правками врача и опубликованный снимок) стирается,
-  // чтобы редактор собрал отчёт заново из свежих данных ИИ.
+  // Полная перегенерация = чистый лист.
   await resetReportDocument(payload.analysisId);
+  if (payload.reportKind) await saveReportKind(payload.analysisId, payload.reportKind);
   return await runOrchestratedPipeline(payload);
+}
+
+/**
+ * Сохраняет тип отчёта у анализа. При переходе на «по системам» снимаем
+ * автоматические скрытия общего отчёта; при переходе на общий — они
+ * выставятся на сервере после объединения разделов.
+ */
+async function saveReportKind(analysisId: string, kind: "systems" | "whole_body") {
+  const { data } = await supabase
+    .from("analyses")
+    .select("cover_overrides")
+    .eq("id", analysisId)
+    .maybeSingle();
+  const base = (data?.cover_overrides && typeof data.cover_overrides === "object"
+    ? data.cover_overrides
+    : {}) as Record<string, unknown>;
+  const prevKind = base.report_kind === "whole_body" ? "whole_body" : "systems";
+  const next: Record<string, unknown> = { ...base, report_kind: kind };
+  if (prevKind !== kind) delete next.presentation;
+  await supabase.from("analyses").update({ cover_overrides: next as never }).eq("id", analysisId);
 }
 
 
@@ -61,6 +71,7 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
           analysisId: payload.analysisId,
           userId,
           mode: payload.mode,
+          ...(payload.reportKind ? { reportKind: payload.reportKind } : {}),
         }),
       });
       const startText = await startResp.text();
