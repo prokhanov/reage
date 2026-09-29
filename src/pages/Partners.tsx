@@ -1,20 +1,9 @@
 import { PageMeta } from "@/components/PageMeta";
-import {
-  IncomeSection,
-  PartnersHeader,
-  PartnersHero,
-  StatsStrip,
-  HowItWorks,
-} from "./partners/PartnersTop";
-import {
-  BenefitsSection,
-  FinalCta,
-  JoinSection,
-  PartnersFaq,
-} from "./partners/PartnersBottom";
+import { PartnersHeader, PartnersHero, StatsStrip, HowItWorks } from "./partners/PartnersTop";
+import { JoinSection, PartnersFooter } from "./partners/PartnersBottom";
+import { BonusSection, ConnectSection, EarningsSection, FaqSection } from "./partners/PartnersPart2";
 
 export default function Partners() {
-  // Кнопка «Подключиться» в шапке ведёт к секции подключения.
   const scrollToJoin = () => {
     document.getElementById("join")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -31,13 +20,14 @@ export default function Partners() {
         <PartnersHero onJoin={scrollToJoin} />
         <StatsStrip />
         <HowItWorks />
-        <BenefitsSection />
-        <IncomeSection />
-        <div id="join" className="scroll-mt-20" />
         <JoinSection />
-        <PartnersFaq />
-        <FinalCta />
+        <div className="h-14 bg-muted/40 lg:h-20" />
+        <BonusSection />
+        <EarningsSection />
+        <FaqSection />
+        <ConnectSection />
       </main>
+      <PartnersFooter />
     </div>
   );
 }
