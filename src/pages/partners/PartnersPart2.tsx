@@ -158,6 +158,73 @@ export function BonusSection() {
   );
 }
 
+/** Блок «Партнёр приводит партнёра»: 5% пожизненно с оборота клиентов приглашённого коллеги. */
+export function ReferralSection() {
+  const PEER_RATE = 5;
+  const MONTHLY_CHECKUPS = 10;
+  const turnover = CALC_PRICE * MONTHLY_CHECKUPS;
+  const monthlyPayout = Math.round(turnover * (PEER_RATE / 100));
+
+  return (
+    <section className="cv-section bg-muted/40">
+      <div className="mx-auto w-full max-w-[72rem] px-4 pb-14 md:px-6 lg:pb-20">
+        <div className="grid gap-10 rounded-3xl bg-primary p-7 text-primary-foreground sm:p-12 lg:grid-cols-2 lg:gap-14">
+          <div className="flex flex-col items-start">
+            <span className="inline-block rounded-full bg-primary-foreground/15 px-4 py-1.5 text-sm font-medium">
+              Партнёр приводит партнёра
+            </span>
+            <h2 className="mt-6 font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl">
+              Приведите коллегу — получайте {PEER_RATE}% пожизненно
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-primary-foreground/80">
+              {PEER_RATE}% от оборота всех клиентов приглашённого партнёра, без ограничения по сроку. Его вознаграждение при этом не уменьшается.
+            </p>
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-primary-foreground px-7 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
+            >
+              Получить ссылку для коллег
+            </a>
+          </div>
+
+          <div className="flex flex-col gap-3 lg:justify-center">
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-6 py-5">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-primary-foreground/70">Вы</p>
+                <p className="mt-1 font-semibold">Делитесь партнёрской ссылкой</p>
+              </div>
+              <p className="shrink-0 text-sm text-primary-foreground/80">1 клик</p>
+            </div>
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-6 py-5">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-primary-foreground/70">Коллега</p>
+                <p className="mt-1 font-semibold">Подключается и приводит клиентов</p>
+              </div>
+              <p className="shrink-0 text-sm text-primary-foreground/80">{MONTHLY_CHECKUPS} чек-апов в месяц</p>
+            </div>
+            <div className="rounded-2xl bg-card px-6 py-6 text-foreground shadow-md">
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <p className="text-muted-foreground">
+                  Оборот коллеги: {MONTHLY_CHECKUPS} × {money(CALC_PRICE)}
+                </p>
+                <p className="shrink-0 font-semibold">{money(turnover)}</p>
+              </div>
+              <div className="mt-4 flex items-end justify-between gap-4 border-t hairline pt-4">
+                <p className="text-sm font-semibold">Вам {PEER_RATE}% каждый месяц</p>
+                <p className="font-display text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
+                  {money(monthlyPayout)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function EarningsSection() {
   const tiers = [5, 10, 20];
   return (
