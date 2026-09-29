@@ -2,10 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
 import { CHECKUPS, ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
-import { FULL_CHECKUP } from "@/data/fullCheckup";
+import { FULL_CHECKUP_TIERS } from "@/data/fullCheckup";
 
 /** Каталог + полный чекап: он живёт на отдельной странице, но попадает в ту же корзину. */
-const ALL_CHECKUPS: Checkup[] = [...CHECKUPS, FULL_CHECKUP];
+const ALL_CHECKUPS: Checkup[] = [...CHECKUPS, ...FULL_CHECKUP_TIERS.map((t) => t.checkup)];
 
 function resolveCheckup(slug: string | undefined): Checkup | undefined {
   return ALL_CHECKUPS.find((c) => c.slug === slug);

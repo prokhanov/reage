@@ -177,3 +177,32 @@ export const FULL_CHECKUP: Checkup = {
     })),
   ),
 };
+
+/** Варианты полного чекапа = три тарифа годового мониторинга (по порядку планов). */
+export type FullTierId = "basic" | "full" | "extended";
+
+export interface FullCheckupTier {
+  id: FullTierId;
+  label: string;
+  /** Индекс тарифа в списке планов (по display_order). */
+  planIndex: number;
+  checkup: Checkup;
+  popular?: boolean;
+}
+
+// TODO: цены «Базового» и «Расширенного» — временные, заменить на реальные.
+export const FULL_CHECKUP_TIERS: FullCheckupTier[] = [
+  {
+    id: "basic",
+    label: "Базовый",
+    planIndex: 0,
+    checkup: { ...FULL_CHECKUP, slug: "full-basic", bundle: "full-basic", name: "Полный чекап · Базовый", price: 14990 },
+  },
+  { id: "full", label: "Полный", planIndex: 1, popular: true, checkup: FULL_CHECKUP },
+  {
+    id: "extended",
+    label: "Расширенный",
+    planIndex: 2,
+    checkup: { ...FULL_CHECKUP, slug: "full-extended", bundle: "full-extended", name: "Полный чекап · Расширенный", price: 34990 },
+  },
+];
