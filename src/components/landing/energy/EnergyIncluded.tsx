@@ -1,7 +1,7 @@
 import { Gift } from "lucide-react";
 
 import type { Checkup } from "@/data/checkups";
-import { ENERGY_CHECKUP } from "@/data/checkups";
+import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel } from "@/data/checkups";
 
 interface Props {
   checkup?: Checkup;

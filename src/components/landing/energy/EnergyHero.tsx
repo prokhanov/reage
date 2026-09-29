@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Droplet, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
+import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel, money, type Checkup } from "@/data/checkups";
 
 interface Props {
   onAddToCart: () => void;
