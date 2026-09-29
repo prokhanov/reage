@@ -1,4 +1,4 @@
-import { Bell, CreditCard, Send } from "lucide-react";
+import { Bell, Briefcase, Building2, CreditCard, FileText, Send, User } from "lucide-react";
 
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { Button } from "@/components/ui/button";
