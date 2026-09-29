@@ -71,6 +71,13 @@
       "when": 1790609126259,
       "tag": "0009_site_settings_disclaimer",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790686373640,
+      "tag": "0010_checkup_markers_and_variants",
+      "breakpoints": true
     }
   ]
 }
