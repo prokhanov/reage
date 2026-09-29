@@ -96,11 +96,16 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                 <span className="font-semibold text-primary">●●</span> хорошо ·{" "}
                 <span className="font-semibold text-primary">●●●</span> максимально · — не входит
               </p>
-              <table className="w-full border-collapse">
+
+              {/* Таблица 1: кому подойдёт / что покрывает */}
+              <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Кому подойдёт
+              </h3>
+              <table className="mb-8 w-full border-collapse">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border">
                     <th className="min-w-[180px] px-2 py-3 text-left text-sm font-semibold text-foreground">
-                      Направление
+                      &nbsp;
                     </th>
                     {columns.map((c) => (
                       <th
@@ -134,6 +139,33 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                       })}
                     </tr>
                   ))}
+                </tbody>
+              </table>
+
+              {/* Таблица 2: глубина по направлениям */}
+              <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Глубина по направлениям
+              </h3>
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0 z-10 bg-background">
+                  <tr className="border-b border-border">
+                    <th className="min-w-[180px] px-2 py-3 text-left text-sm font-semibold text-foreground">
+                      Направление
+                    </th>
+                    {columns.map((c) => (
+                      <th
+                        key={c.checkup.slug}
+                        className={`min-w-[110px] px-2 py-3 text-center align-top ${
+                          c.checkup.slug === popularSlug ? "bg-primary/5" : ""
+                        }`}
+                      >
+                        <div className="text-base font-bold text-primary">{c.variant.label}</div>
+                        <div className="mt-1 text-sm font-bold text-foreground">{money(c.checkup.price)}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
                   {DIRECTIONS.map((d) => (
                     <tr
                       key={d.title}
