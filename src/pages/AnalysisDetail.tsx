@@ -444,8 +444,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       setAnalyzing(false);
     }
   };
+  const currentReportKind: "systems" | "whole_body" =
+    (analysis as any)?.cover_overrides?.report_kind === "whole_body" ? "whole_body" : "systems";
 
-  const handleAnalyze = async (mode: "standard" | "deep" = "standard") => {
+
+  const handleAnalyze = async (
+    mode: "standard" | "deep" = "standard",
+    reportKind: "systems" | "whole_body" = currentReportKind,
+  ) => {
     if (values.length === 0) {
       toast({
         title: "Недостаточно данных",
@@ -544,7 +550,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
 
     try {
-      const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode });
+      const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode, reportKind });
       const error = null;
 
       // 1) Сетевая/транспортная ошибка от supabase-js
@@ -773,6 +779,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   })}
                 </h1>
                 {analysis && <AnalysisStatusBadge status={analysis.status} />}
+                {currentReportKind === "whole_body" && (
+                  <Badge variant="secondary">Организм в целом</Badge>
+                )}
               </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
                 Сдано маркеров: {values.length}
