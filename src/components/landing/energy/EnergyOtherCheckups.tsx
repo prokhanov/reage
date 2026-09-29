@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { CHECKUPS, money } from "@/data/checkups";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
+import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
 import { accentClasses, checkupShape } from "./checkupShapes";
+
+function markerWord(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "показатель";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "показателя";
+  return "показателей";
+}
 
 interface Props {
   /** Текущий чекап скрывается из карусели. */
@@ -19,9 +28,39 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
   const [canNext, setCanNext] = useState(true);
 
   const { priceOf, isActive } = useCheckupSettings();
+  const { variantsFor, groupsOf } = useResolvedCheckups();
+
   const items = [FULL_CHECKUP, ...CHECKUPS].filter(
     (c) => c.slug !== currentSlug && isActive(c.slug),
   );
+
+  // Полный чекап: цена «от» — минимальная среди вариантов, состав — максимального.
+  const fullVariants = useMemo(() => variantsFor(FULL_CHECKUP.slug), [variantsFor]);
+  const fullMaxVariant = useMemo(
+    () =>
+      fullVariants.length
+        ? fullVariants.reduce((max, v) => (v.checkup.price > max.checkup.price ? v : max))
+        : null,
+    [fullVariants],
+  );
+  const fullGroups = useMemo(
+    () => groupsOf(fullMaxVariant ? fullMaxVariant.checkup.slug : FULL_CHECKUP.slug),
+    [fullMaxVariant, groupsOf],
+  );
+  const fullMaxCount = useMemo(
+    () => fullGroups.reduce((n, g) => n + g.markers.length, 0),
+    [fullGroups],
+  );
+  const fullMinPrice = useMemo(() => {
+    const prices = fullVariants.length
+      ? fullVariants.map((v) => v.checkup.price)
+      : [priceOf(FULL_CHECKUP.slug, FULL_CHECKUP.price)];
+    return Math.min(...prices);
+  }, [fullVariants, priceOf]);
+
+  const fullCardText = `${fullMaxCount} ${markerWord(fullMaxCount)} по ${
+    fullGroups.length === 5 ? "пяти" : fullGroups.length
+  } системам организма, отчёт и консультация врача`;
 
   const update = useCallback(() => {
     const el = trackRef.current;
@@ -121,8 +160,8 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
                           {c.name}
                         </h3>
-                        <p className="mt-2 line-clamp-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
-                          {c.cardText}
+                        <p className="mt-2 max-w-[28ch] text-base leading-relaxed text-muted-foreground">
+                          {c.slug === FULL_CHECKUP.slug ? fullCardText : c.cardText}
                         </p>
                       </div>
 
@@ -130,7 +169,9 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                         <div>
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="text-2xl font-bold text-foreground">
-                            {money(priceOf(c.slug, c.price))}
+                            {c.slug === FULL_CHECKUP.slug
+                              ? `от ${money(fullMinPrice)}`
+                              : money(priceOf(c.slug, c.price))}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
