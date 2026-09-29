@@ -134,6 +134,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         prescriptions: "Подбор назначений и нутрицевтиков...",
         "finalize:summary": "Формирование общего резюме...",
         "finalize:bioage": "Расчёт биологического возраста...",
+      "whole_body": "Объединение в раздел «Организм в целом»...",
       };
 
       let prevStep = job.current_step ?? "";
@@ -846,6 +847,28 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Усиленная модель + расширенное «обдумывание». Выше точность и связность, требует больше времени и вычислительных кредитов.
+                      </p>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Тип отчёта</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("standard", "systems")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="font-medium">
+                        Пересобрать по системам{currentReportKind === "systems" ? " · текущий" : ""}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Отдельный раздел для каждой системы организма.</p>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("standard", "whole_body")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="font-medium">
+                        Пересобрать как общий отчёт{currentReportKind === "whole_body" ? " · текущий" : ""}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Один раздел «Организм в целом», без данных пациента и плашек с показателями.
                       </p>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
