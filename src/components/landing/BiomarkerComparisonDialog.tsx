@@ -41,13 +41,13 @@ function getPlanSlug(displayName: string): PlanSlug {
 // Шкала: ● базово · ●● хорошо · ●●● максимально · — нет
 type Level = 0 | 1 | 2 | 3;
 
-interface Direction {
+export interface Direction {
   title: string;
   hint: string;
   levels: Record<PlanSlug, Level>;
 }
 
-const DIRECTIONS: Direction[] = [
+export const DIRECTIONS: Direction[] = [
   { title: "Биологический возраст и темп старения", hint: "насколько организм моложе или старше паспортного, в какую сторону движется", levels: { basic: 1, plus: 2, expert: 3 } },
   { title: "Сердце и сосуды на годы вперёд", hint: "риск инфаркта, инсульта, атеросклероза задолго до симптомов", levels: { basic: 1, plus: 3, expert: 3 } },
   { title: "Тромбы и скрытые повреждения миокарда", hint: "ранние сигналы тромбозов и микроповреждений сердца", levels: { basic: 1, plus: 2, expert: 3 } },
@@ -65,7 +65,7 @@ const DIRECTIONS: Direction[] = [
   { title: "Почки и водно-солевой баланс", hint: "фильтрация, давление, отёки", levels: { basic: 1, plus: 2, expert: 2 } },
 ];
 
-function renderLevel(level: Level) {
+export function renderLevel(level: Level) {
   if (level === 0) {
     return <Minus className="h-4 w-4 text-muted-foreground/50 mx-auto" />;
   }
