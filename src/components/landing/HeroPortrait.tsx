@@ -374,7 +374,7 @@ export function HeroPortrait() {
         <div className="lg:w-[48%] lg:pr-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground">
             <CalendarCheck className="h-4 w-4 text-primary" aria-hidden />
-            Чекапы до 4 раз в год
+            Сервис мониторинга здоровья
           </span>
           <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
             Ваше здоровье в цифрах, динамике и рекомендациях
