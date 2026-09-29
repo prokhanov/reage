@@ -136,7 +136,7 @@ export function BonusSection() {
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 lg:py-20">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
-            Не только {COMMISSION_RATE * 100}%
+            Преимущества программы
           </h2>
           <p className="max-w-xs text-sm text-muted-foreground">
             Всё, что делает рекомендацию лёгкой для вас и выгодной для клиента.
