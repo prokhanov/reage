@@ -84,6 +84,36 @@ function validateBiomarkerStructure(
   return null;
 }
 
+// Приводит блок «Что это значит для вас» к эталону обычного отчёта:
+// только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
+// «Это может проявляться:» перед пунктами и фиксированная финальная строка.
+const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Назначения».";
+export function normalizeMeaningBlocks(text: string): string {
+  return text.replace(
+    /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
+    (_m, open, body: string, close) => {
+      const idx = body.search(/^\s*Что это значит для вас:?\s*$/im);
+      if (idx < 0) return open + body + close;
+      const head = body.slice(0, idx).replace(/\s+$/, "");
+      const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
+      const isDeviation = /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(valueLine);
+      if (!isDeviation) return `${open}${head}\n${close}`;
+      const rawLines = body.slice(idx).split("\n").map((l) => l.trim());
+      const lines = rawLines.slice(rawLines.findIndex((l) => /^Что это значит для вас/i.test(l)) + 1);
+      const bulletIdx = lines.map((l, i) => (/^[•\-]/.test(l) ? i : -1)).filter((i) => i >= 0);
+      if (bulletIdx.length === 0) return open + body + close;
+      const first = bulletIdx[0], last = bulletIdx[bulletIdx.length - 1];
+      let intro = lines.slice(0, first).filter(Boolean).join(" ");
+      if (!/Это может проявляться:\s*$/.test(intro)) {
+        intro = (intro ? intro.replace(/\s*Это может проявляться\.?\s*$/, "") + " " : "") + "Это может проявляться:";
+      }
+      const bullets = lines.slice(first, last + 1).filter(Boolean)
+        .map((l) => "• " + l.replace(/^[•\-]\s*/, ""));
+      return `${open}${head}\n\nЧто это значит для вас:\n\n${intro}\n${bullets.join("\n")}\n${FINAL_LINE}\n${close}`;
+    },
+  );
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -175,11 +205,12 @@ serve(async (req) => {
       }
       if (!r.ok) { lastErr = `AI ${r.status}: ${(await r.text()).slice(0, 300)}`; continue; }
       const data = await r.json();
-      const out = String(data?.choices?.[0]?.message?.content ?? "")
+      let out = String(data?.choices?.[0]?.message?.content ?? "")
         .replace(/^```(?:markdown)?\s*/i, "").replace(/```\s*$/, "")
         // Отступы табом/4 пробелами превращают абзац в блок кода (моноширинный, без переноса)
         .replace(/^[\t ]+(?=\S)/gm, "")
         .trim();
+      out = normalizeMeaningBlocks(out);
       const structureError = validateBiomarkerStructure(out, expectedCodes, deviationCodes);
       if (out.length < 1500 || expectedCodes.length === 0 || structureError) {
         lastErr = `Ответ ИИ не прошёл проверку: ${structureError || `длина ${out.length}, биомаркеров ${expectedCodes.length}`}`;
