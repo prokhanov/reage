@@ -30,7 +30,7 @@ const BENEFITS = [
   {
     icon: UserRound,
     title: "Личный кабинет партнёра",
-    text: "Заявки, оплаты и выплаты видны в Telegram-боте в реальном времени.",
+    text: "Клиенты, оплаты и выплаты видны в личном кабинете в реальном времени.",
   },
   {
     icon: CalendarClock,
@@ -50,7 +50,7 @@ const BENEFITS = [
   {
     icon: HeartPulse,
     title: "Без бумажного договора",
-    text: "Подключение через Telegram, реквизиты — прямо в боте до первой выплаты.",
+    text: "Подключение по заявке, реквизиты — до первой выплаты.",
   },
 ];
 
@@ -102,20 +102,20 @@ export function JoinSection() {
         <div className="grid items-center gap-10 rounded-3xl border hairline bg-card p-7 shadow-md sm:p-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
           <div>
             <span className="rounded-full bg-success-soft px-4 py-1.5 text-xs font-medium text-foreground">
-              Подключение в один клик
+              Подключение по заявке
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl">
-              Нажали кнопку — уже партнёр
+              Заявка — и вы партнёр
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Вход через Telegram, без анкет и ожидания одобрения. Реквизиты для выплат можно
+              Заполните короткую анкету — мы свяжемся с вами и откроем кабинет. Реквизиты для выплат можно
               добавить позже — до первой выплаты.
             </p>
             <ul className="mt-6 space-y-2.5">
               {[
                 "Без звонков и встреч",
                 "Без бумажного договора",
-                "Код и ссылка — сразу после входа",
+                "Код и ссылка — сразу после подключения",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
@@ -124,9 +124,8 @@ export function JoinSection() {
               ))}
             </ul>
             <Button asChild className="mt-8 h-12 rounded-full px-7 text-base font-semibold">
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
-                <Send className="mr-2 h-4 w-4" aria-hidden />
-                Войти через Telegram
+              <a href={TELEGRAM_URL}>
+                Оставить заявку
               </a>
             </Button>
           </div>
@@ -134,24 +133,21 @@ export function JoinSection() {
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border hairline bg-background p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Шаг 1 · Войдите
+                Шаг 1 · Оставьте заявку
               </p>
               <a
                 href={TELEGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-info text-base font-semibold text-info-foreground transition-opacity hover:opacity-90"
               >
-                <Send className="mr-2 h-4 w-4" aria-hidden />
-                Войти через Telegram
+                Оставить заявку
               </a>
               <p className="mt-3 text-center text-sm text-muted-foreground">
-                или по номеру телефона — в боте
+                ФИО, контакты и пару слов о себе
               </p>
             </div>
             <div className="rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
-                Сразу после входа
+                После подключения
               </p>
               <div className="mt-4 flex items-center gap-5">
                 <PseudoQr />
@@ -174,11 +170,11 @@ export function JoinSection() {
 const FAQ_ITEMS = [
   {
     q: "Как и когда выплачивается комиссия?",
-    a: `Комиссия ${COMMISSION_RATE * 100}% от стоимости чекапа приходит на вашу карту в течение 24 часов после того, как клиент сдал анализы. Реквизиты добавляются один раз в Telegram-боте.`,
+    a: `Комиссия ${COMMISSION_RATE * 100}% от стоимости чекапа приходит на вашу карту в течение 24 часов после того, как клиент сдал анализы. Реквизиты добавляются один раз в личном кабинете.`,
   },
   {
     q: "Нужно ли заключать договор?",
-    a: "Нет. Подключение происходит через Telegram в один клик, договор не требуется. Все условия видны в боте до первого клиента.",
+    a: "Нет. Подключение по короткой заявке, договор не требуется. Все условия видны в кабинете до первого клиента.",
   },
   {
     q: "Как клиент получает скидку?",
@@ -230,7 +226,7 @@ export function FinalCta() {
             Подключитесь — первый клиент может прийти уже завтра
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-lg text-primary-foreground/85">
-            Вход через Telegram за одну минуту. Код, ссылка и QR — сразу после входа.
+            Оставьте заявку за одну минуту — код, ссылка и QR появятся сразу после подключения.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
@@ -238,9 +234,8 @@ export function FinalCta() {
               variant="secondary"
               className="h-12 rounded-full px-7 text-base font-semibold"
             >
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
-                <Send className="mr-2 h-4 w-4" aria-hidden />
-                Подключиться за 1 минуту
+              <a href={TELEGRAM_URL}>
+                Стать партнёром
               </a>
             </Button>
             <Button

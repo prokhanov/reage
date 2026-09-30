@@ -208,7 +208,7 @@ export function buildMessage(
     case "feedback_received": {
       return (
         prefix +
-        "✉️ <b>Новое сообщение с сайта</b>\n" +
+        (payload.title === "🤝 <b>Заявка на партнёрство</b>" ? payload.title : "✉️ <b>Новое сообщение с сайта</b>") + "\n" +
         `👤 ${e(payload.name || "—")}\n` +
         `📧 ${e(payload.email || "—")}\n` +
         `📱 ${e(payload.phone || "—")}` +

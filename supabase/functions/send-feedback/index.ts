@@ -7,14 +7,14 @@ const FEEDBACK_SCHEMA = z.object({
   email: z.string().trim().email('Укажите корректный email').max(255, 'Email слишком длинный').toLowerCase(),
   phone: z.string().trim().max(32, 'Телефон слишком длинный').optional().or(z.literal('')),
   message: z.string().trim().min(1, 'Введите сообщение').max(2000, 'Сообщение слишком длинное'),
-  type: z.enum(['feedback', 'example_report', 'consultation']).optional().default('feedback'),
+  type: z.enum(['feedback', 'example_report', 'consultation', 'partner_application']).optional().default('feedback'),
   utm: z.record(z.string().max(500).nullable()).optional(),
 })
 
 async function sendTelegramFeedbackNotification(
   supabase: ReturnType<typeof createClient>,
   supabaseUrl: string,
-  payload: { name: string; email: string; phone?: string; message: string; utm?: Record<string, string | null> | null },
+  payload: { title?: string; name: string; email: string; phone?: string; message: string; utm?: Record<string, string | null> | null },
 ): Promise<boolean> {
   try {
     const { data: settings, error: settingsError } = await supabase
@@ -121,6 +121,7 @@ Deno.serve(async (req) => {
     const idempotencyKey = `feedback-${email}-${Date.now().toString(36)}`
 
     const telegramPromise = sendTelegramFeedbackNotification(supabase, supabaseUrl, {
+      title: type === 'partner_application' ? '🤝 <b>Заявка на партнёрство</b>' : undefined,
       name,
       email,
       phone,
