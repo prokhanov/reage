@@ -87,15 +87,28 @@ function extractDeviationCodes(text: string): string[] {
 
 function validateBiomarkerStructure(
   text: string,
-  expectedCodes: string[],
+  expectedGroups: string[][],
   deviationCodes: string[],
 ): string | null {
   const blocks = [...text.matchAll(
     /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anchor:biomarker_end\s*-->/gi,
   )];
-  const foundCodes = new Set(blocks.map((match) => match[1]?.trim().toLowerCase()));
-  const missingCodes = expectedCodes.filter((code) => !foundCodes.has(code.toLowerCase()));
-  if (missingCodes.length > 0) return `пропущены биомаркеры: ${missingCodes.join(", ")}`;
+  const foundCodes = new Set(
+    [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
+      .map((match) => match[1]?.trim().toLowerCase())
+      .filter((c) => c && c !== "end"),
+  );
+  const missingGroups = expectedGroups.filter((group) => !group.some((code) => foundCodes.has(code.toLowerCase())));
+  if (missingGroups.length > 0) {
+    return `пропущены биомаркеры: ${missingGroups.map((g) => g.join(" / ")).join(", ")}`;
+  }
+
+  const deviationSet = new Set(deviationCodes.map((c) => c.toLowerCase()));
+  const isDeviation = (code: string) => {
+    const lower = code.toLowerCase();
+    const group = expectedGroups.find((g) => g.some((c) => c.toLowerCase() === lower)) ?? [code];
+    return group.some((c) => deviationSet.has(c.toLowerCase()));
+  };
 
   for (const block of blocks) {
     const code = block[1]?.trim() || "?";
@@ -105,12 +118,10 @@ function validateBiomarkerStructure(
     if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
       return `${code}: нет строки «Ваш показатель…»`;
     }
-    if (
-      deviationCodes.some((expected) => expected.toLowerCase() === code.toLowerCase()) &&
-      !/Что это значит для вас/i.test(content)
-    ) {
+    if (isDeviation(code) && !/Что это значит для вас/i.test(content)) {
       return `${code}: при отклонении нет блока «Что это значит для вас»`;
     }
+
   }
 
   return null;
