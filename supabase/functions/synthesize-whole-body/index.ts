@@ -16,18 +16,50 @@ const corsHeaders = {
 
 const WHOLE_BODY_TYPE = "Организм в целом";
 
-function extractBiomarkerCodes(text: string): string[] {
-  const anchored = [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
-    .map((match) => match[1]?.trim())
-    .filter((code): code is string => Boolean(code));
-  if (anchored.length > 0) return anchored;
+// Группы кодов одного биомаркера. Анкор-ремонт иногда ставит две метки подряд
+// (например «D_25_OH» и «25-OH D») — это алиасы одного показателя, ИИ достаточно
+// вывести любую из них.
+function extractBiomarkerGroups(text: string): string[][] {
+  const anchors = [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)];
+  if (anchors.length > 0) {
+    const groups: string[][] = [];
+    let prevEnd = -1;
+    for (const m of anchors) {
+      const code = m[1]?.trim();
+      if (!code) continue;
+      const start = m.index ?? 0;
+      const between = prevEnd >= 0 ? text.slice(prevEnd, start) : "x";
+      if (groups.length > 0 && between.trim() === "") groups[groups.length - 1].push(code);
+      else groups.push([code]);
+      prevEnd = start + m[0].length;
+    }
+    return groups;
+  }
 
   // Старые целостные разделы могли потерять якорные комментарии, но сохранили
   // заголовки «Название (CODE)». Это позволяет безопасно пересобрать их.
   return [...text.matchAll(/^.{2,160}\s\(([A-Za-zА-Яа-я0-9][A-Za-zА-Яа-я0-9_.%/+\- ]{0,30})\)\s*$/gm)]
     .map((match) => match[1]?.trim())
-    .filter((code): code is string => Boolean(code));
+    .filter((code): code is string => Boolean(code))
+    .map((code) => [code]);
 }
+
+function extractBiomarkerCodes(text: string): string[] {
+  return extractBiomarkerGroups(text).flat();
+}
+
+function dedupeGroups(groups: string[][]): string[][] {
+  const seen = new Set<string>();
+  const out: string[][] = [];
+  for (const g of groups) {
+    const key = g.map((c) => c.toLowerCase()).sort().join("|");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(g);
+  }
+  return out;
+}
+
 
 function extractDeviationCodes(text: string): string[] {
   const chunks: Array<{ code: string; content: string }> = [];
