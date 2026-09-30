@@ -176,7 +176,10 @@ serve(async (req) => {
       if (!r.ok) { lastErr = `AI ${r.status}: ${(await r.text()).slice(0, 300)}`; continue; }
       const data = await r.json();
       const out = String(data?.choices?.[0]?.message?.content ?? "")
-        .replace(/^```(?:markdown)?\s*/i, "").replace(/```\s*$/, "").trim();
+        .replace(/^```(?:markdown)?\s*/i, "").replace(/```\s*$/, "")
+        // Отступы табом/4 пробелами превращают абзац в блок кода (моноширинный, без переноса)
+        .replace(/^[\t ]+(?=\S)/gm, "")
+        .trim();
       const structureError = validateBiomarkerStructure(out, expectedCodes, deviationCodes);
       if (out.length < 1500 || expectedCodes.length === 0 || structureError) {
         lastErr = `Ответ ИИ не прошёл проверку: ${structureError || `длина ${out.length}, биомаркеров ${expectedCodes.length}`}`;
