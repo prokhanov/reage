@@ -17,14 +17,14 @@ const button = { backgroundColor: '#1f4d3f', borderRadius: '10px', color: '#ffff
 
 const SupportReplyEmail = ({ name, message, messages }: Props) => {
   const list = messages?.length ? messages : [message || '—']
-  return ( => (
+  return (
   <Html lang="ru" dir="ltr">
     <Head />
     <Preview>Ответ поддержки ReAge на ваш вопрос</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={heading}>{name ? `${name}, ответ на ваш вопрос` : 'Ответ на ваш вопрос'}</Heading>
-        <Text style={text}>{list.length > 1 ? 'Мы ответили вам в чате:' : 'Мы ответили вам в чате:'}</Text>
+        <Text style={text}>Мы ответили вам в чате:</Text>
         {list.map((m, i) => <Text key={i} style={box}>{m}</Text>)}
         <Section>
           <Button style={button} href="https://reage.life/">Продолжить переписку</Button>
