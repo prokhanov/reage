@@ -26,6 +26,7 @@ export default function AdminPartners() {
   const [bindContact, setBindContact] = useState("");
   const [bindPartner, setBindPartner] = useState("");
   const [monthOffset, setMonthOffset] = useState(-1);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const period = monthStart(monthOffset);
   const periodEnd = monthStart(monthOffset + 1);
 
