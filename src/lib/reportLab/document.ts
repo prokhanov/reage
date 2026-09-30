@@ -181,11 +181,12 @@ export function applyDraftsToDoc(
       const draft = drafts[`${prefix}body`];
       if (draft === undefined) return entry;
       const next = sanitizeReportHtml(draft);
-      if (next === (entry.bodyHtml || "")) return entry;
+      const bodyWasMarkdownOnly = !entry.bodyHtml && !!entry.body?.trim();
+      if (next === (entry.bodyHtml || "") && !(bodyWasMarkdownOnly && !next)) return entry;
       changed = true;
       // Ручная правка «побеждает» структурный снапшот content_json,
       // иначе часть блоков при рендере снова берётся из старого JSON.
-      return { ...entry, bodyHtml: next, contentJson: null };
+      return next ? { ...entry, bodyHtml: next, contentJson: null } : { ...entry, bodyHtml: "", body: "", contentJson: null };
     }
 
     // section
@@ -210,10 +211,14 @@ export function applyDraftsToDoc(
         const draft = drafts[key];
         if (draft !== undefined) {
           const html = sanitizeReportHtml(draft);
-          if (html !== (block.html || "")) {
+          // Блок без сохранённой разметки (только markdown ИИ): полное стирание
+          // даёт пустую строку, и сравнение с "" ошибочно считало это «без изменений».
+          const hasVisibleText = html.replace(/<[^>]*>|&nbsp;|\s/g, "") !== "";
+          const wasMarkdownOnly = !block.html && !!block.markdown?.trim();
+          if (html !== (block.html || "") || (wasMarkdownOnly && !hasVisibleText)) {
             sectionChanged = true;
             // Пустой prose-блок = пользователь стёр текст → блок исчезает.
-            if (html) nextBlocks.push({ ...block, html });
+            if (hasVisibleText) nextBlocks.push({ ...block, html });
             continue;
           }
         }
@@ -228,9 +233,10 @@ export function applyDraftsToDoc(
       const draft = drafts[key];
       if (draft !== undefined) {
         const html = sanitizeReportHtml(draft);
-        if (html !== (block.commentaryHtml || "")) {
+        const bioWasMarkdownOnly = !block.commentaryHtml && !!block.commentary?.trim();
+        if (html !== (block.commentaryHtml || "") || (bioWasMarkdownOnly && !html)) {
           sectionChanged = true;
-          nextBlocks.push({ ...block, commentaryHtml: html });
+          nextBlocks.push(html ? { ...block, commentaryHtml: html } : { ...block, commentaryHtml: "", commentary: "" });
           continue;
         }
       }
