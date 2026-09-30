@@ -745,11 +745,8 @@ All colors MUST be HSL.
   }
 }
 
-/* Кнопка Telegram в лаунчере чата поддержки — фирменный цвет мессенджера */
-.support-telegram-btn {
+/* Круглая иконка Telegram в лаунчере чата поддержки — фирменный цвет мессенджера */
+.support-telegram-circle {
   background: linear-gradient(180deg, #2aabee 0%, #229ed9 100%);
   color: #ffffff;
-}
-.support-telegram-btn:hover {
-  background: linear-gradient(180deg, #41b9f2 0%, #28a8e4 100%);
 }
