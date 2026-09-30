@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 type Msg = { id: string; direction: "visitor" | "operator" | "system"; text: string; created_at: string; read_by_visitor: boolean };
 const TOKEN_KEY = "reage:support-token";
 const TELEGRAM_URL = "https://t.me/reage_life";
-const timeFormatter = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" });
 const urlPattern = /(https?:\/\/[^\s]+)/g;
 
 function getToken() {
@@ -150,27 +149,23 @@ export function SupportChatWidget() {
       {!chatOpen && (
         <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
           {launcherOpen && (
-            <div className="support-chat-menu absolute bottom-[calc(100%+0.75rem)] right-0 w-[min(19rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-lg border border-border bg-card p-2 shadow-xl">
-              <p className="px-2 pb-2 pt-1 text-xs font-medium text-muted-foreground">Как вам удобнее?</p>
-              <Button asChild variant="ghost" className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left">
+            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 flex w-[min(17rem,calc(100vw-2rem))] origin-bottom-right animate-enter flex-col items-end gap-2">
+              <div className="mb-1 max-w-[17rem] rounded-2xl rounded-br-sm border border-border/70 bg-card/95 px-4 py-3 text-sm font-medium leading-relaxed text-foreground shadow-lg backdrop-blur-md">
+                Здравствуйте! Выберите удобный способ связи.
+              </div>
+              <Button asChild className="!h-12 w-[15rem] justify-between rounded-xl bg-info px-3 text-info-foreground shadow-lg hover:bg-info/90">
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-info text-info-foreground">
+                  <span className="font-semibold">Telegram</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-foreground/15">
                     <Send className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-foreground">Telegram</span>
-                    <span className="block text-xs font-normal text-muted-foreground">Перейти в чат ReAge</span>
                   </span>
                 </a>
               </Button>
-              <Button variant="ghost" className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left" onClick={openChat}>
-                <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Button className="!h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg" onClick={openChat}>
+                <span className="font-semibold">Чат на сайте</span>
+                <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary-foreground/15">
                   <MessageCircle className="h-5 w-5" />
-                  {unread > 0 && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" />}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold text-foreground">Чат на сайте</span>
-                  <span className="block text-xs font-normal text-muted-foreground">Написать службе поддержки</span>
+                  {unread > 0 && <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary" />}
                 </span>
               </Button>
             </div>
@@ -181,10 +176,10 @@ export function SupportChatWidget() {
             onClick={() => setLauncherOpen((value) => !value)}
             aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
             aria-expanded={launcherOpen}
-            className="support-chat-fab h-16 w-16 rounded-full transition-transform duration-200 hover:scale-105"
+            className="support-chat-fab !h-16 !w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
           >
             <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
-              {launcherOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
+              {launcherOpen ? <X /> : <MessageCircle />}
             </span>
             {unread > 0 && (
               <span aria-label={`Новых сообщений: ${unread}`} aria-live="polite" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold leading-none text-destructive-foreground ring-2 ring-background">
@@ -221,11 +216,8 @@ export function SupportChatWidget() {
               <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
             ) : (
               <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
                   <MessageText text={m.text} />
-                  <time dateTime={m.created_at} className={cn("mt-1 block text-right text-[10px] opacity-65", m.direction === "visitor" ? "text-primary-foreground" : "text-muted-foreground")}>
-                    {timeFormatter.format(new Date(m.created_at))}
-                  </time>
                 </div>
               </div>
             ))}
