@@ -64,7 +64,7 @@ export function CheckupVariantSwitcher({ variants, activeSlug, onChange }: Props
               >
                 {variant.label}
               </span>
-              <span className="text-xs text-muted-foreground sm:text-[13px]">{money(checkup.price)}</span>
+              <span className="text-xs text-muted-foreground sm:text-[13px]">{money(pp(checkup.price))}</span>
             </button>
           );
         })}

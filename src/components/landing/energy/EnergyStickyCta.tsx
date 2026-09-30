@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export function EnergyStickyCta({
               {inCart ? `${name} в корзине` : `В корзине: ${cartCount}`}
             </div>
           )}
-          <div className="text-lg font-bold text-foreground">{money(price)}</div>
+          <div className="text-lg font-bold text-foreground"><PartnerPrice price={price} /></div>
         </div>
         <Button
           size="lg"
@@ -86,7 +87,7 @@ export function EnergyStickyCta({
           className="ml-auto h-12 flex-1 text-base"
           tabIndex={visible ? 0 : -1}
         >
-          Купить — {money(price)}
+          Купить — {money(pp(price))}
         </Button>
       </div>
     </div>

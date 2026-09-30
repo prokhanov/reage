@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { ArrowRight, Check, Droplet, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,7 @@ export function EnergyHero({
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
-                {money(checkup.price)}
+                <PartnerPrice price={checkup.price} />
               </div>
               {checkup.cbcBonusEnabled && (
                 <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm font-medium text-primary sm:text-base">

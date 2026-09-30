@@ -375,7 +375,7 @@ export function EnergyExpertResult({
                 className="h-12 w-full text-base sm:w-auto sm:px-8"
               >
                 <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
-                Купить — {money(checkup.price)}
+                Купить — {money(pp(checkup.price))}
               </Button>
             </div>
           )}

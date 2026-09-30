@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { Fragment, useState } from "react";
 import {
   Activity,
@@ -153,7 +154,7 @@ export function EnergyPriceCompare() {
           <div className="mt-4 rounded-3xl bg-primary/10 px-5 py-6">
             <div className="flex items-baseline justify-between gap-3">
               <h3 className="font-display text-2xl leading-tight text-primary">Пакетом в ReAge</h3>
-              <span className="shrink-0 text-2xl font-semibold tabular-nums text-primary">{money(checkup.price)}</span>
+              <span className="shrink-0 text-2xl font-semibold tabular-nums text-primary"><PartnerPrice price={checkup.price} /></span>
             </div>
             <div className="mt-4 flex items-center gap-3">
               <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-primary/15">
@@ -184,7 +185,7 @@ export function EnergyPriceCompare() {
             className="mt-5 h-[76px] w-full rounded-2xl text-xl font-semibold"
           >
             <ShoppingCart className="h-6 w-6 shrink-0" aria-hidden />
-            Пройти чекап за {money(checkup.price)}
+            Пройти чекап за {money(pp(checkup.price))}
             <ArrowRight className="h-6 w-6 shrink-0" aria-hidden />
           </Button>
         </div>
@@ -351,7 +352,7 @@ export function EnergyPriceCompare() {
               <div>
                 <div className="text-[15px] text-primary-foreground/70">Цена пакета</div>
                 <div className="mt-1.5 text-4xl font-semibold tabular-nums tracking-tight md:text-5xl">
-                  {money(checkup.price)}
+                  <PartnerPrice price={checkup.price} />
                 </div>
               </div>
               <div className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-4 py-3">
@@ -366,7 +367,7 @@ export function EnergyPriceCompare() {
               className="mt-6 h-[88px] w-full rounded-2xl bg-primary-foreground text-xl font-semibold text-primary hover:bg-primary-foreground/90 md:text-2xl"
             >
               <ShoppingCart className="h-7 w-7 shrink-0" aria-hidden />
-              Пройти чекап за {money(checkup.price)}
+              Пройти чекап за {money(pp(checkup.price))}
               <ArrowRight className="h-7 w-7 shrink-0" aria-hidden />
             </Button>
           </div>

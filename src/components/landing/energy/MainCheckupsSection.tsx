@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { useState, useMemo } from "react";
 import { ArrowRight, Droplet, FileText, MapPin, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -81,7 +82,7 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
           <div className="whitespace-nowrap text-[1.5rem] font-bold leading-none text-foreground sm:text-[1.75rem]">
-            {money(priceOf(c.slug, c.price))}
+            <PartnerPrice price={priceOf(c.slug, c.price)} />
           </div>
           <span className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
             Подробнее
@@ -218,7 +219,7 @@ export function MainCheckupsSection({ title = "Выберите чекап" }: {
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between lg:flex-col lg:items-start">
                 <div>
                   <div className="whitespace-nowrap text-[1.75rem] font-bold leading-none sm:text-4xl">
-                    от {money(fullMinPrice)}
+                    <PartnerPrice price={fullMinPrice} prefix="от " />
                   </div>
                   <div className="mt-2 text-sm text-primary-foreground/70">
                     {fullCount} {markerWord(fullCount)} · систем организма: {fullGroups.length}

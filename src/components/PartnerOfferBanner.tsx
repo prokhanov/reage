@@ -9,6 +9,7 @@ export function PartnerOfferBanner() {
   const { data: offer } = usePartnerOffer();
   if (!offer || !offer.discount_pct) return null;
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+  if (!(pathname === "/" || pathname === "/checkup" || pathname.startsWith("/checkup/"))) return null;
   return (
     <div className="w-full bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground">
       Скидка {offer.discount_pct}%{offer.name ? ` от ${offer.name}` : ""}
