@@ -84,6 +84,7 @@ export function EnergyCart() {
     hideConsultation: boolean;
   } | null>(null);
   const [consult, setConsult] = useState(false);
+  const [partnerHidesConsult, setPartnerHidesConsult] = useState(false);
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
