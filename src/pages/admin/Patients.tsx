@@ -155,6 +155,15 @@ export default function Patients() {
         return acc;
       }, {});
 
+      // Пользователи, которые сами являются партнёрами
+      const { data: partners } = await supabase
+        .from("partners")
+        .select("user_id, display_name");
+      const selfPartnerById = (partners || []).reduce((acc: any, p: any) => {
+        acc[p.user_id] = { id: p.user_id, name: p.display_name || "Партнёр" };
+        return acc;
+      }, {});
+
       const normalizePhone = (p?: string | null) => (p || "").replace(/\D/g, "");
       const partnerByUser: Record<string, { id: string; name: string }> = {};
       for (const profile of profiles || []) {
@@ -258,6 +267,7 @@ export default function Patients() {
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
             bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
             partner: partnerByUser[profile.id] || null,
+            selfPartner: selfPartnerById[profile.id] || null,
 
 
             role: primaryRole,
