@@ -116,7 +116,7 @@ type Bonus = { who: "you" | "client"; title: string; text: string };
 
 const BONUSES: Bonus[] = [
   { who: "you", title: "Бесплатный чекап после первого клиента", text: "Пройдите сами и рекомендуйте то, что видели на своём отчёте." },
-  { who: "you", title: "Выплата за 24 часа", text: "Не раз в месяц, а на следующий день. Уведомление в Telegram-боте." },
+  { who: "you", title: "Выплата за 24 часа", text: "Не раз в месяц, а на следующий день. Уведомление в личном кабинете." },
   { who: "you", title: "Клиент ваш навсегда", text: "Повторные чекапы клиента и его семьи засчитываются вам." },
   { who: "you", title: "5% с оборота коллег", text: "Пригласите коллегу-специалиста и получайте 5% с его клиентов бессрочно." },
   { who: "you", title: "Контент-пак каждый месяц", text: "Готовые посты, сторис и рилсы с вашим кодом. Уже промаркированы." },
@@ -181,8 +181,6 @@ export function ReferralSection() {
             </p>
             <a
               href={TELEGRAM_URL}
-
-              rel="noopener noreferrer"
               className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-primary-foreground px-7 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
             >
               Получить ссылку для коллег
@@ -264,7 +262,7 @@ export function EarningsSection() {
 }
 
 const FAQ = [
-  { q: "Как подключиться?", a: "Нажмите «Подключиться» и войдите через Telegram. Промокод, ссылка и QR появятся сразу, без анкет и звонков." },
+  { q: "Как подключиться?", a: "Нажмите «Подключиться» и заполните короткую анкету. Мы свяжемся с вами, промокод, ссылка и QR появятся в кабинете." },
   { q: "Как я получаю выплаты?", a: "На карту в течение 24 часов после сдачи анализов клиентом. Нужен статус самозанятого или ИП." },
   { q: "Увижу ли я результаты клиента?", a: "Да, если клиент даст согласие при оформлении. Вы получите копию заключения ReAge." },
   { q: "Кто может стать партнёром?", a: "Нутрициологи, терапевты, частнопрактикующие врачи, тренеры и другие специалисты, работающие с клиентами." },
@@ -291,52 +289,25 @@ export function FaqSection() {
 }
 
 export function ConnectSection() {
-  const [phone, setPhone] = useState("");
   return (
     <section id="join" className="cv-section scroll-mt-20 bg-muted/40">
       <div className="mx-auto w-full max-w-[72rem] px-4 pb-16 md:px-6">
         <div className="grid items-center gap-8 rounded-3xl bg-card p-7 shadow-sm sm:p-12 lg:grid-cols-2 lg:gap-14">
           <div>
             <h2 className="font-display text-3xl font-medium tracking-tight sm:text-5xl">
-              Подключитесь в один клик
+              Станьте партнёром
             </h2>
             <p className="mt-4 text-sm text-muted-foreground">
-              Промокод, ссылка, QR и кабинет партнёра — сразу после входа.
+              Оставьте заявку — мы свяжемся с вами и откроем кабинет с промокодом, ссылкой и QR.
             </p>
           </div>
           <div>
             <a
               href={TELEGRAM_URL}
-
-              rel="noopener noreferrer"
               className="flex h-12 w-full items-center justify-center rounded-full bg-info text-sm font-semibold text-info-foreground transition-opacity hover:opacity-90"
             >
-              <Send className="mr-2 h-4 w-4" aria-hidden />
-              Войти через Telegram
+              Оставить заявку
             </a>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              или
-              <span className="h-px flex-1 bg-border" />
-            </div>
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                window.open(TELEGRAM_URL, "_blank", "noopener,noreferrer");
-              }}
-            >
-              <Input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+7 900 000-00-00"
-                className="h-11 rounded-full"
-              />
-              <Button type="submit" className="h-11 shrink-0 rounded-full px-5 font-semibold">
-                Получить код
-              </Button>
-            </form>
           </div>
         </div>
       </div>

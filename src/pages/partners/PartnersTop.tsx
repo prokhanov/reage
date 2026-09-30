@@ -142,8 +142,7 @@ export function PartnersHero({ onJoin }: { onJoin: () => void }) {
           <div className="mt-8 flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row">
             <Button asChild className="h-12 rounded-full px-7 text-base font-semibold">
               <a href={TELEGRAM_URL}>
-                <Send className="mr-2 h-4 w-4" aria-hidden />
-                Подключиться за 1 минуту
+                Стать партнёром
               </a>
             </Button>
             <Button
@@ -301,7 +300,7 @@ const STEPS = [
   {
     num: "01",
     title: "Подключаетесь",
-    text: "Один клик через Telegram. Ваш код, ссылка и QR появляются сразу — без анкет и ожидания одобрения.",
+    text: "Оставляете короткую заявку. Мы связываемся с вами и открываем кабинет с кодом, ссылкой и QR.",
   },
   {
     num: "02",
@@ -360,8 +359,7 @@ export function HowItWorks() {
         <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
           <Button asChild className="h-12 rounded-full px-7 text-base font-semibold">
             <a href={TELEGRAM_URL}>
-              <Send className="mr-2 h-4 w-4" aria-hidden />
-              Подключиться в Telegram
+              Оставить заявку
             </a>
           </Button>
           <Button asChild variant="ghost" className="h-12 rounded-full px-5 text-base font-medium">
