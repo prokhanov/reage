@@ -46,6 +46,7 @@ import {
   TableToolbarActions,
 } from "@/components/ui/data-table";
 import { RoleBadge } from "@/components/admin/RoleBadge";
+import { Link } from "react-router-dom";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -568,6 +569,18 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {patient.partner ? (
+                              <Link
+                                to={`/admin/partners/${patient.partner.id}`}
+                                className="text-sm text-primary hover:underline whitespace-nowrap"
+                              >
+                                {patient.partner.name}
+                              </Link>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.bookingLocationType ? (
@@ -609,7 +622,7 @@ export default function Patients() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableEmpty colSpan={10}>Пациенты не найдены</TableEmpty>
+                      <TableEmpty colSpan={11}>Пациенты не найдены</TableEmpty>
                     )}
                   </TableBody>
                 </Table>
