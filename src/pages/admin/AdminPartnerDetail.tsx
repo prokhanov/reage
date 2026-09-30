@@ -56,6 +56,7 @@ export default function AdminPartnerDetail() {
   const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [refReset, setRefReset] = useState(false);
+  const [refTick, setRefTick] = useState(0);
   const [discount, setDiscount] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -276,7 +277,7 @@ export default function AdminPartnerDetail() {
   const pa = data.partner;
   const disc = discount ?? pa.discount_pct;
   const oldCodes = data.codes.filter((c: any) => !c.is_current);
-  const browserCode = getRefCode();
+  const browserCode = useMemo(() => { void refTick; return getRefCode(); }, [refTick]);
   const others = data.allPartners.filter((id: string) => id !== partnerId);
 
   return (
