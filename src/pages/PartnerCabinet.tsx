@@ -20,7 +20,7 @@ const EXAMPLE_PRICE = FULL_CHECKUP.price;
 
 export default function PartnerCabinet() {
   const qc = useQueryClient();
-  const readOnly = !!useContext(ViewAsPatientContext).viewAsUserId;
+  const viewAsUserId = useContext(ViewAsPatientContext).viewAsUserId;
   const { data: me, isLoading } = usePartnerMe();
   const { data: orders = [] } = usePartnerOrders(!!me);
   const [code, setCode] = useState("");
@@ -50,7 +50,7 @@ export default function PartnerCabinet() {
 
   const saveCode = async () => {
     setSavingCode(true);
-    const { data, error } = await supabase.rpc("partner_set_code" as any, { p_code: code });
+    const { data, error } = await supabase.rpc("partner_set_code" as any, { p_code: code, ...(viewAsUserId ? { p_user_id: viewAsUserId } : {}) });
     setSavingCode(false);
     const r = data as any;
     if (error || !r?.success) return notify.error("Не удалось сохранить", r?.error ?? error?.message);
@@ -63,6 +63,7 @@ export default function PartnerCabinet() {
     const { data, error } = await supabase.rpc("partner_update_settings" as any, {
       p_discount_pct: nextDiscount,
       p_hide_consultation: nextHide,
+      ...(viewAsUserId ? { p_user_id: viewAsUserId } : {}),
     });
     setSavingSettings(false);
     const r = data as any;
@@ -97,8 +98,8 @@ export default function PartnerCabinet() {
         <CardHeader><CardTitle>Промокод и ссылка</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" disabled={readOnly} />
-            <Button onClick={saveCode} disabled={readOnly || savingCode || !code.trim() || code === me.code} className="h-11 shrink-0">
+<Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" />
+            <Button onClick={saveCode} disabled={savingCode || !code.trim() || code === me.code} className="h-11 shrink-0">
               {savingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
             </Button>
           </div>
@@ -123,13 +124,13 @@ export default function PartnerCabinet() {
             <span className="text-muted-foreground">Скидка клиенту: <b className="text-foreground">{discount}%</b></span>
             <span className="text-muted-foreground">Вам: <b className="text-foreground">{20 - discount}%</b></span>
           </div>
-          <Slider min={0} max={20} step={1} value={[discount]} onValueChange={([v]) => setDiscount(v)} onValueCommit={([v]) => saveSettings(v, hideConsult)} disabled={readOnly || savingSettings} />
+          <Slider min={0} max={20} step={1} value={[discount]} onValueChange={([v]) => setDiscount(v)} onValueCommit={([v]) => saveSettings(v, hideConsult)} disabled={savingSettings} />
           <p className="text-sm text-muted-foreground">
             При чекапе за {money(EXAMPLE_PRICE)} клиент платит {money(clientPays)}, вы получаете {money(youGet)}.
           </p>
           <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
             <Label htmlFor="hide-consult" className="text-sm text-foreground">Не предлагать консультацию врача моим клиентам</Label>
-            <Switch id="hide-consult" checked={hideConsult} onCheckedChange={(v) => { setHideConsult(v); saveSettings(discount, v); }} disabled={readOnly || savingSettings} />
+            <Switch id="hide-consult" checked={hideConsult} onCheckedChange={(v) => { setHideConsult(v); saveSettings(discount, v); }} disabled={savingSettings} />
           </div>
         </CardContent>
       </Card>
