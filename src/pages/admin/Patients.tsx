@@ -608,16 +608,25 @@ export default function Patients() {
                             {patient.analysisCount}
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            {patient.partner ? (
-                              <Link
-                                to={`/admin/partners/${patient.partner.id}`}
-                                className="text-sm text-primary hover:underline whitespace-nowrap"
-                              >
-                                {patient.partner.name}
-                              </Link>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                              {patient.selfPartner ? (
+                                <Link to={`/admin/partners/${patient.selfPartner.id}`}>
+                                  <Badge variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 cursor-pointer">
+                                    Партнёр
+                                  </Badge>
+                                </Link>
+                              ) : null}
+                              {patient.partner ? (
+                                <Link
+                                  to={`/admin/partners/${patient.partner.id}`}
+                                  className="text-sm text-primary hover:underline"
+                                >
+                                  {patient.partner.name}
+                                </Link>
+                              ) : !patient.selfPartner ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
                             <RowActions label={`Действия: ${patient.name || patient.email}`}>
