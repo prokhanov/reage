@@ -12,7 +12,7 @@ export function PartnerOfferBanner() {
   if (!(pathname === "/" || pathname === "/checkup" || pathname.startsWith("/checkup/"))) return null;
   return (
     <div className="w-full bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground">
-      Скидка {offer.discount_pct}%{offer.name ? ` от ${offer.name}` : ""}
+      Для вас действует скидка {offer.discount_pct}% на все услуги
     </div>
   );
 }
