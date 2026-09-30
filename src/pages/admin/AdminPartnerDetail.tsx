@@ -263,6 +263,7 @@ export default function AdminPartnerDetail() {
     clearRefCode();
     qc.invalidateQueries({ queryKey: ["partner-offer"] });
     setRefReset(true);
+    setRefTick((t) => t + 1);
     setTimeout(() => setRefReset(false), 2000);
   };
 
