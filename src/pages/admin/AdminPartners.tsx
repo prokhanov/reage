@@ -11,13 +11,8 @@ import { notify } from "@/lib/toast";
 
 const db = supabase as any;
 const money = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;
-
-function monthStart(offset = 0) {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth() + offset, 1);
-}
-const isoDate = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 
 export default function AdminPartners() {
   const qc = useQueryClient();
@@ -25,10 +20,7 @@ export default function AdminPartners() {
   const [adding, setAdding] = useState(false);
   const [bindContact, setBindContact] = useState("");
   const [bindPartner, setBindPartner] = useState("");
-  const [monthOffset, setMonthOffset] = useState(-1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const period = monthStart(monthOffset);
-  const periodEnd = monthStart(monthOffset + 1);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-partners"],
@@ -38,7 +30,7 @@ export default function AdminPartners() {
         db.from("partner_codes").select("code, partner_id, is_current"),
         db.from("energy_orders").select("partner_id, partner_commission, paid_at").eq("status", "paid").not("partner_id", "is", null),
         db.from("payment_orders").select("partner_id, partner_commission, paid_at").eq("status", "paid").not("partner_id", "is", null),
-        db.from("partner_payouts").select("*"),
+        db.from("partner_payouts").select("*").order("created_at", { ascending: false }),
         db.from("partner_clients").select("partner_id, kind"),
       ]);
       const ids = (partners ?? []).map((x: any) => x.user_id);
@@ -53,20 +45,31 @@ export default function AdminPartners() {
     if (!data) return [];
     return data.partners.map((pa: any) => {
       const prof = data.profiles.find((x: any) => x.id === pa.user_id);
-      const inPeriod = data.orders.filter((o: any) => o.partner_id === pa.user_id && new Date(o.paid_at) >= period && new Date(o.paid_at) < periodEnd);
-      const accrued = inPeriod.reduce((s: number, o: any) => s + Number(o.partner_commission ?? 0), 0);
-      const payout = data.payouts.find((x: any) => x.partner_id === pa.user_id && x.period === isoDate(period));
+      const orders = data.orders.filter((o: any) => o.partner_id === pa.user_id);
+      const accrued = orders.reduce((s: number, o: any) => s + Number(o.partner_commission ?? 0), 0);
+      const paid = data.payouts
+        .filter((x: any) => x.partner_id === pa.user_id)
+        .reduce((s: number, x: any) => s + Number(x.amount ?? 0), 0);
       return {
         ...pa,
         prof,
         code: data.codes.find((c: any) => c.partner_id === pa.user_id && c.is_current)?.code,
         clients: data.clients.filter((c: any) => c.partner_id === pa.user_id && c.kind !== "user").length,
         accrued,
-        ordersCount: inPeriod.length,
-        payout,
+        paid,
+        balance: Math.max(0, accrued - paid),
+        ordersCount: orders.length,
       };
     });
-  }, [data, period, periodEnd]);
+  }, [data]);
+
+  const payoutsList = useMemo(() => {
+    if (!data) return [];
+    return data.payouts.map((x: any) => ({
+      ...x,
+      prof: data.profiles.find((p: any) => p.id === x.partner_id),
+    }));
+  }, [data]);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin-partners"] });
 
@@ -95,39 +98,15 @@ export default function AdminPartners() {
   };
 
   const markPaid = async (row: any) => {
+    const period = new Date();
+    const periodIso = `${period.getFullYear()}-${String(period.getMonth() + 1).padStart(2, "0")}-01`;
     const { error } = await db.from("partner_payouts").insert({
-      partner_id: row.user_id, period: isoDate(period), amount: row.accrued,
+      partner_id: row.user_id, period: periodIso, amount: row.balance,
     });
     if (error) return notify.error("Ошибка", error.message);
-    notify.success("Отмечено как выплачено");
+    notify.success("Отмечено как выплачено", money(row.balance));
     refresh();
   };
-
-  const rebind = async () => {
-    const raw = bindContact.trim().toLowerCase();
-    if (!raw || !bindPartner) return;
-    const isEmail = raw.includes("@");
-    let value = raw;
-    if (!isEmail) {
-      const d = raw.replace(/\D/g, "");
-      value = d.length === 10 ? `7${d}` : d.length === 11 ? `7${d.slice(1)}` : d;
-    }
-    const kind = isEmail ? "email" : "phone";
-    await db.from("partner_clients").delete().eq("kind", kind).eq("value", value);
-    const { error } = await db.from("partner_clients").insert({ partner_id: bindPartner, kind, value });
-    if (error) return notify.error("Ошибка", error.message);
-    // Аккаунт с этим контактом тоже переносим.
-    const { data: prof } = await db.from("profiles").select("id").eq(isEmail ? "email" : "phone", isEmail ? value : value).maybeSingle();
-    if (prof?.id) {
-      await db.from("partner_clients").delete().eq("kind", "user").eq("value", prof.id);
-      await db.from("partner_clients").insert({ partner_id: bindPartner, kind: "user", value: prof.id });
-    }
-    setBindContact("");
-    notify.success("Клиент перезакреплён");
-    refresh();
-  };
-
-  const monthLabel = period.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
 
   const copyLink = async (r: any) => {
     if (!r.code) return;
@@ -136,7 +115,7 @@ export default function AdminPartners() {
       await navigator.clipboard.writeText(link);
       setCopiedId(r.user_id);
       setTimeout(() => setCopiedId((id) => (id === r.user_id ? null : id)), 2000);
-} catch {
+    } catch {
       notify.error("Не удалось скопировать", link);
     }
   };
@@ -156,29 +135,25 @@ export default function AdminPartners() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle>Начисления за {monthLabel}</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setMonthOffset((m) => m - 1)}>←</Button>
-            <Button variant="outline" size="sm" onClick={() => setMonthOffset((m) => Math.min(0, m + 1))} disabled={monthOffset >= 0}>→</Button>
-          </div>
-        </CardHeader>
+        <CardHeader><CardTitle>Партнёры и начисления</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">Партнёров пока нет.</p>
           ) : (
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   <th className="py-3 pr-4">Партнёр</th>
                   <th className="py-3 pr-4">Ссылка</th>
                   <th className="py-3 pr-4">Скидка</th>
-                  <th className="py-3 pr-4">Клиенты</th>
-                  <th className="py-3 pr-4">Заказы</th>
+                  <th className="py-3 pr-4 text-center">Клиенты</th>
+                  <th className="py-3 pr-4 text-center">Заказы</th>
                   <th className="py-3 pr-4 text-right">Начислено</th>
-                  <th className="py-3 pr-4">Выплата</th>
+                  <th className="py-3 pr-4 text-right">Выплачено</th>
+                  <th className="py-3 pr-4 text-right">К выплате</th>
+                  <th className="py-3 pr-4"></th>
                   <th className="py-3">Активен</th>
                 </tr>
               </thead>
@@ -189,21 +164,21 @@ export default function AdminPartners() {
                   return (
                     <tr key={r.user_id} className="border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40">
                       <td className="py-3 pr-4">
-                        <div className="font-medium text-foreground">{name}</div>
+                        <div className="whitespace-nowrap font-medium text-foreground">{name}</div>
                         <div className="mt-0.5 text-xs text-muted-foreground">
                           {[r.prof?.email, r.prof?.phone].filter(Boolean).join(" · ") || "—"}
                         </div>
                       </td>
                       <td className="py-3 pr-4">
                         {r.code ? (
-                          <div className="flex items-center gap-1.5">
-                            <code className="rounded-md border border-border bg-muted/60 px-2 py-1 font-mono text-xs font-medium text-foreground">
+                          <div className="flex items-center gap-1">
+                            <code className="whitespace-nowrap rounded-md border border-border bg-muted/60 px-2 py-1 font-mono text-xs font-medium text-foreground">
                               /r/{r.code}
                             </code>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7"
+                              className="h-7 w-7 shrink-0"
                               title={`Скопировать ссылку: ${link}`}
                               onClick={() => copyLink(r)}
                             >
@@ -216,7 +191,7 @@ export default function AdminPartners() {
                               target="_blank"
                               rel="noreferrer"
                               title="Открыть ссылку"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
                             </a>
@@ -228,22 +203,18 @@ export default function AdminPartners() {
                       <td className="py-3 pr-4">
                         <Badge variant={r.discount_pct > 0 ? "default" : "secondary"}>{r.discount_pct}%</Badge>
                         {r.hide_consultation && (
-                          <div className="mt-1 text-xs text-muted-foreground">без консультации</div>
+                          <div className="mt-1 whitespace-nowrap text-xs text-muted-foreground">без консультации</div>
                         )}
                       </td>
-                      <td className="py-3 pr-4 tabular-nums text-foreground">{r.clients}</td>
-                      <td className="py-3 pr-4 tabular-nums text-foreground">{r.ordersCount}</td>
-                      <td className="py-3 pr-4 text-right font-semibold tabular-nums text-foreground">{money(r.accrued)}</td>
+                      <td className="py-3 pr-4 text-center tabular-nums text-foreground">{r.clients}</td>
+                      <td className="py-3 pr-4 text-center tabular-nums text-foreground">{r.ordersCount}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-foreground">{money(r.accrued)}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">{money(r.paid)}</td>
+                      <td className="py-3 pr-4 text-right font-semibold tabular-nums text-foreground">{money(r.balance)}</td>
                       <td className="py-3 pr-4">
-                        {r.payout ? (
-                          <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
-                            выплачено {money(Number(r.payout.amount))}
-                          </span>
-                        ) : (
-                          <Button size="sm" variant="secondary" disabled={r.accrued <= 0} onClick={() => markPaid(r)}>
-                            Выплачено
-                          </Button>
-                        )}
+                        <Button size="sm" variant="secondary" className="whitespace-nowrap" disabled={r.balance <= 0} onClick={() => markPaid(r)}>
+                          Выплачено
+                        </Button>
                       </td>
                       <td className="py-3"><Switch checked={r.is_active} onCheckedChange={(v) => toggle(r.user_id, v)} /></td>
                     </tr>
@@ -251,6 +222,32 @@ export default function AdminPartners() {
                 })}
               </tbody>
             </table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Выплаты</CardTitle></CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : payoutsList.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Выплат пока не было.</p>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {payoutsList.map((x: any) => {
+                const name = [x.prof?.last_name, x.prof?.first_name].filter(Boolean).join(" ") || x.prof?.email || "—";
+                return (
+                  <div key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div>
+                      <div className="font-medium text-foreground">{name}</div>
+                      <div className="text-xs text-muted-foreground">{fmtDate(x.created_at)}</div>
+                    </div>
+                    <div className="font-semibold tabular-nums text-foreground">{money(Number(x.amount))}</div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -272,4 +269,28 @@ export default function AdminPartners() {
       </Card>
     </div>
   );
+
+  async function rebind() {
+    const raw = bindContact.trim().toLowerCase();
+    if (!raw || !bindPartner) return;
+    const isEmail = raw.includes("@");
+    let value = raw;
+    if (!isEmail) {
+      const d = raw.replace(/\D/g, "");
+      value = d.length === 10 ? `7${d}` : d.length === 11 ? `7${d.slice(1)}` : d;
+    }
+    const kind = isEmail ? "email" : "phone";
+    await db.from("partner_clients").delete().eq("kind", kind).eq("value", value);
+    const { error } = await db.from("partner_clients").insert({ partner_id: bindPartner, kind, value });
+    if (error) return notify.error("Ошибка", error.message);
+    // Аккаунт с этим контактом тоже переносим.
+    const { data: prof } = await db.from("profiles").select("id").eq(isEmail ? "email" : "phone", value).maybeSingle();
+    if (prof?.id) {
+      await db.from("partner_clients").delete().eq("kind", "user").eq("value", prof.id);
+      await db.from("partner_clients").insert({ partner_id: bindPartner, kind: "user", value: prof.id });
+    }
+    setBindContact("");
+    notify.success("Клиент перезакреплён");
+    refresh();
+  }
 }
