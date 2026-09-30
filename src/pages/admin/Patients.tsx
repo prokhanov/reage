@@ -155,6 +155,15 @@ export default function Patients() {
         return acc;
       }, {});
 
+      // Пользователи, которые сами являются партнёрами
+      const { data: partners } = await supabase
+        .from("partners")
+        .select("user_id, display_name");
+      const selfPartnerById = (partners || []).reduce((acc: any, p: any) => {
+        acc[p.user_id] = { id: p.user_id, name: p.display_name || "Партнёр" };
+        return acc;
+      }, {});
+
       const normalizePhone = (p?: string | null) => (p || "").replace(/\D/g, "");
       const partnerByUser: Record<string, { id: string; name: string }> = {};
       for (const profile of profiles || []) {
@@ -258,6 +267,7 @@ export default function Patients() {
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
             bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
             partner: partnerByUser[profile.id] || null,
+            selfPartner: selfPartnerById[profile.id] || null,
 
 
             role: primaryRole,
@@ -598,16 +608,25 @@ export default function Patients() {
                             {patient.analysisCount}
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            {patient.partner ? (
-                              <Link
-                                to={`/admin/partners/${patient.partner.id}`}
-                                className="text-sm text-primary hover:underline whitespace-nowrap"
-                              >
-                                {patient.partner.name}
-                              </Link>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                              {patient.selfPartner ? (
+                                <Link to={`/admin/partners/${patient.selfPartner.id}`}>
+                                  <Badge variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 cursor-pointer">
+                                    Партнёр
+                                  </Badge>
+                                </Link>
+                              ) : null}
+                              {patient.partner ? (
+                                <Link
+                                  to={`/admin/partners/${patient.partner.id}`}
+                                  className="text-sm text-primary hover:underline"
+                                >
+                                  {patient.partner.name}
+                                </Link>
+                              ) : !patient.selfPartner ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
                             <RowActions label={`Действия: ${patient.name || patient.email}`}>
