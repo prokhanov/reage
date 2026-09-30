@@ -756,3 +756,8 @@ All colors MUST be HSL.
   background: linear-gradient(180deg, #2aabee 0%, #229ed9 100%);
   color: #ffffff;
 }
+
+.support-max-circle {
+  background: linear-gradient(180deg, #8b7cf8 0%, #6c5ce7 100%);
+  color: #ffffff;
+}
