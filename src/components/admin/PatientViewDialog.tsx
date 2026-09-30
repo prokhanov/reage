@@ -20,6 +20,7 @@ import Prescriptions from "@/pages/Prescriptions";
 
 import MyState from "@/pages/MyState";
 import Subscription from "@/pages/Subscription";
+import PartnerCabinet from "@/pages/PartnerCabinet";
 import HealthAssistant from "@/pages/HealthAssistant";
 import HealthStrategy from "@/pages/HealthStrategy";
 function SimulatedContent() {
@@ -49,6 +50,8 @@ function SimulatedContent() {
       return <MyState />;
     case "/subscription":
       return <Subscription />;
+    case "/partner":
+      return <PartnerCabinet />;
     case "/health-assistant":
       return <HealthAssistant />;
     case "/health-strategy":

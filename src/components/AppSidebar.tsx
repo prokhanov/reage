@@ -403,6 +403,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             )}
 
+            {viewAsUserId && isPartner && (
+              <button
+                onClick={() => { setSimPath("/partner"); closeSidebarOnMobile(); }}
+                className={navItemClass(simPath === "/partner", isOpen)}
+                title={!isOpen ? "Партнёрам" : undefined}
+              >
+                <Briefcase className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Партнёрам</span>}
+              </button>
+            )}
             {!viewAsUserId && isPartner && (
               <NavLink
                 to="/partner"
