@@ -597,6 +597,18 @@ export default function Patients() {
                           <TableCell className="text-center">
                             {patient.analysisCount}
                           </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {patient.partner ? (
+                              <Link
+                                to={`/admin/partners/${patient.partner.id}`}
+                                className="text-sm text-primary hover:underline whitespace-nowrap"
+                              >
+                                {patient.partner.name}
+                              </Link>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
                             <RowActions label={`Действия: ${patient.name || patient.email}`}>
                               <RowActionItem icon={Eye} onSelect={() => setSelectedPatientForInfo(patient.id)}>
