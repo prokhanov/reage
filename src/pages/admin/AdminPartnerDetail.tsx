@@ -313,6 +313,17 @@ export default function AdminPartnerDetail() {
             {oldCodes.length > 0 && (
               <p className="text-xs text-muted-foreground">Старые коды (продолжают работать): {oldCodes.map((c: any) => c.code).join(", ")}</p>
             )}
+            <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+              <p className="text-xs text-muted-foreground">
+                Этот браузер: {browserCode ? <>запомнен код <code className="font-mono text-foreground">{browserCode}</code></> : "привязки нет"}
+              </p>
+              {browserCode && (
+                <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={resetRef} title="Удаляет запомненный код партнёра из этого браузера">
+                  {refReset ? <Check className="h-3.5 w-3.5 text-success" /> : <Eraser className="h-3.5 w-3.5" />}
+                  Сбросить привязку в этом браузере
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card>
