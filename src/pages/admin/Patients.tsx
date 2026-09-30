@@ -446,10 +446,10 @@ export default function Patients() {
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
-                      <TableHead>Партнёр</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
+                      <TableHead>Партнёр</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
