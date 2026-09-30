@@ -16,6 +16,74 @@ const corsHeaders = {
 
 const WHOLE_BODY_TYPE = "Организм в целом";
 
+function extractBiomarkerCodes(text: string): string[] {
+  const anchored = [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
+    .map((match) => match[1]?.trim())
+    .filter((code): code is string => Boolean(code));
+  if (anchored.length > 0) return anchored;
+
+  // Старые целостные разделы могли потерять якорные комментарии, но сохранили
+  // заголовки «Название (CODE)». Это позволяет безопасно пересобрать их.
+  return [...text.matchAll(/^.{2,160}\s\(([A-Za-zА-Яа-я0-9][A-Za-zА-Яа-я0-9_.%/+\- ]{0,30})\)\s*$/gm)]
+    .map((match) => match[1]?.trim())
+    .filter((code): code is string => Boolean(code));
+}
+
+function extractDeviationCodes(text: string): string[] {
+  const chunks: Array<{ code: string; content: string }> = [];
+  const anchored = [...text.matchAll(
+    /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anchor:biomarker_end\s*-->/gi,
+  )];
+  if (anchored.length > 0) {
+    for (const match of anchored) chunks.push({ code: match[1]?.trim() || "", content: match[2] || "" });
+  } else {
+    const headings = [...text.matchAll(/^.{2,160}\s\(([A-Za-zА-Яа-я0-9][A-Za-zА-Яа-я0-9_.%/+\- ]{0,30})\)\s*$/gm)];
+    for (let index = 0; index < headings.length; index++) {
+      const start = headings[index].index ?? 0;
+      const end = headings[index + 1]?.index ?? text.length;
+      chunks.push({ code: headings[index][1]?.trim() || "", content: text.slice(start, end) });
+    }
+  }
+  return chunks
+    .filter(({ content }) => {
+      const valueLine = content.split("\n").find((line) => /^\s*Ваш/i.test(line)) || "";
+      return /находится\s+(?:ниже|выше)|находится\s+в\s+критическ|отклонен|отклонён/i.test(valueLine);
+    })
+    .map(({ code }) => code)
+    .filter(Boolean);
+}
+
+function validateBiomarkerStructure(
+  text: string,
+  expectedCodes: string[],
+  deviationCodes: string[],
+): string | null {
+  const blocks = [...text.matchAll(
+    /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anchor:biomarker_end\s*-->/gi,
+  )];
+  const foundCodes = new Set(blocks.map((match) => match[1]?.trim().toLowerCase()));
+  const missingCodes = expectedCodes.filter((code) => !foundCodes.has(code.toLowerCase()));
+  if (missingCodes.length > 0) return `пропущены биомаркеры: ${missingCodes.join(", ")}`;
+
+  for (const block of blocks) {
+    const code = block[1]?.trim() || "?";
+    const content = block[2] || "";
+    const paragraphs = content.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+    if (paragraphs.length < 3) return `${code}: нет полного описания и персонального разбора`;
+    if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
+      return `${code}: нет строки «Ваш показатель…»`;
+    }
+    if (
+      deviationCodes.some((expected) => expected.toLowerCase() === code.toLowerCase()) &&
+      !/Что это значит для вас/i.test(content)
+    ) {
+      return `${code}: при отклонении нет блока «Что это значит для вас»`;
+    }
+  }
+
+  return null;
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -30,9 +98,9 @@ serve(async (req) => {
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-  // Только служебный вызов (оркестратор с service role).
+  // Служебный вызов оркестратора или прямой запуск сотрудником из админки.
   const auth = req.headers.get("Authorization") ?? "";
-  if (auth !== `Bearer ${SERVICE_KEY}`) return json({ success: false, error: "forbidden" }, 403);
+  const callerToken = auth.replace(/^Bearer\s+/i, "");
 
   let body: any = {};
   try { body = await req.json(); } catch { /* ignore */ }
@@ -44,6 +112,14 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   try {
+    if (callerToken !== SERVICE_KEY) {
+      const { data: { user } } = await supabase.auth.getUser(callerToken);
+      if (!user) return json({ success: false, error: "unauthorized" }, 401);
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id)
+        .in("role", ["admin", "superadmin", "doctor"]);
+      if (!roles?.length) return json({ success: false, error: "forbidden" }, 403);
+    }
+
     const [{ data: cats }, { data: prompts }, { data: recs }, { data: analysis }] = await Promise.all([
       supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
       supabase.from("ai_prompt_settings").select("key, prompt_text").in("key", ["whole_body_system", "whole_body_user"]),
@@ -58,12 +134,7 @@ serve(async (req) => {
       .sort((a: any, b: any) => (catOrder.get(a.type)! - catOrder.get(b.type)!));
     const existingWhole = (recs ?? []).find((r: any) => r.type === WHOLE_BODY_TYPE);
 
-    if (categoryRecs.length === 0) {
-      // Повторный вызов после успешного шага — уже готово.
-      if (existingWhole) {
-        await applyPresentation(supabase, analysisId, analysis.cover_overrides);
-        return json({ success: true, alreadyDone: true });
-      }
+    if (categoryRecs.length === 0 && !existingWhole) {
       return json({ success: false, error: "Нет разделов по системам для объединения" }, 400);
     }
 
@@ -74,9 +145,14 @@ serve(async (req) => {
       return json({ success: false, error: "Не найдены промпты whole_body_system / whole_body_user в настройках ИИ" }, 400);
     }
 
-    const categoryReports = categoryRecs
+    // При повторной сборке исходником служит уже созданный целостный раздел:
+    // медицинские выводы и значения сохраняются, меняется только структура.
+    const sourceRecs = categoryRecs.length > 0 ? categoryRecs : [existingWhole];
+    const categoryReports = sourceRecs
       .map((r: any) => `===== РАЗДЕЛ: ${r.type} =====\n${r.text}`)
       .join("\n\n");
+    const expectedCodes = [...new Set(extractBiomarkerCodes(categoryReports))];
+    const deviationCodes = [...new Set(extractDeviationCodes(categoryReports))];
     const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
 
     const model = mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
@@ -101,8 +177,9 @@ serve(async (req) => {
       const data = await r.json();
       const out = String(data?.choices?.[0]?.message?.content ?? "")
         .replace(/^```(?:markdown)?\s*/i, "").replace(/```\s*$/, "").trim();
-      if (out.length < 1500 || !out.includes("<!-- anchor:biomarker")) {
-        lastErr = `Ответ ИИ не прошёл проверку (длина ${out.length})`;
+      const structureError = validateBiomarkerStructure(out, expectedCodes, deviationCodes);
+      if (out.length < 1500 || expectedCodes.length === 0 || structureError) {
+        lastErr = `Ответ ИИ не прошёл проверку: ${structureError || `длина ${out.length}, биомаркеров ${expectedCodes.length}`}`;
         continue;
       }
       text = out.startsWith(WHOLE_BODY_TYPE) ? out : `${WHOLE_BODY_TYPE}\n\n${out}`;
@@ -111,22 +188,29 @@ serve(async (req) => {
 
     // Сначала сохраняем новый раздел, затем удаляем разделы по системам —
     // при сбое между шагами отчёт не останется пустым.
-    if (existingWhole) {
+    if (existingWhole && categoryRecs.length > 0) {
       await supabase.from("recommendations").delete().eq("id", existingWhole.id);
     }
-    const { error: insErr } = await supabase.from("recommendations").insert({
-      analysis_id: analysisId,
-      user_id: analysis.user_id,
-      type: WHOLE_BODY_TYPE,
-      text,
-    });
-    if (insErr) throw insErr;
+    if (existingWhole && categoryRecs.length === 0) {
+      const { error: updateErr } = await supabase.from("recommendations").update({ text }).eq("id", existingWhole.id);
+      if (updateErr) throw updateErr;
+    } else {
+      const { error: insErr } = await supabase.from("recommendations").insert({
+        analysis_id: analysisId,
+        user_id: analysis.user_id,
+        type: WHOLE_BODY_TYPE,
+        text,
+      });
+      if (insErr) throw insErr;
+    }
 
-    const { error: delErr } = await supabase
-      .from("recommendations")
-      .delete()
-      .in("id", categoryRecs.map((r: any) => r.id));
-    if (delErr) throw delErr;
+    if (categoryRecs.length > 0) {
+      const { error: delErr } = await supabase
+        .from("recommendations")
+        .delete()
+        .in("id", categoryRecs.map((r: any) => r.id));
+      if (delErr) throw delErr;
+    }
 
     await applyPresentation(supabase, analysisId, analysis.cover_overrides);
 
