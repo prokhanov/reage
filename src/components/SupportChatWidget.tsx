@@ -255,7 +255,7 @@ export function SupportChatWidget() {
         <section role="dialog" aria-modal="true" aria-label="Чат поддержки ReAge" className="support-chat-panel fixed inset-0 z-50 flex flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(560px,calc(100dvh-2.5rem))] sm:w-[380px] sm:rounded-lg sm:border sm:border-border sm:shadow-2xl">
           <header className="flex items-start justify-between border-b border-border bg-card px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:rounded-t-lg">
             <div>
-              <h2 className="font-heading text-lg text-foreground">Вопрос в ReAge</h2>
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">Вопрос в ReAge</h2>
               <p className="text-xs text-muted-foreground">Ответим здесь, а если вы уйдёте — на почту</p>
             </div>
             <Button variant="ghost" size="icon" onClick={closeChat} aria-label="Закрыть чат" className="h-9 w-9">
@@ -300,7 +300,7 @@ export function SupportChatWidget() {
             })}
             {showForm && (
               <div className="space-y-2 rounded-lg border border-border bg-card p-3">
-                <div className="font-heading text-base text-foreground">Представьтесь</div>
+                <div className="text-base font-semibold text-foreground">Представьтесь</div>
                 <input aria-label="Имя" autoComplete="name" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Имя" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 <input aria-label="Почта" autoComplete="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Почта" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input aria-label="Телефон" autoComplete="tel" inputMode="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Телефон" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
