@@ -276,7 +276,16 @@ export function SupportChatWidget() {
             </Button>
           </header>
 
-          <div ref={listRef} aria-live="polite" aria-busy={!loaded} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+          <div
+            ref={listRef}
+            aria-live="polite"
+            aria-busy={!loaded}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+            }}
+            className="flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-3"
+          >
             {!loaded && (
               <div className="flex h-full items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
