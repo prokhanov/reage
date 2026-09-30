@@ -7,6 +7,10 @@ type Msg = { id: string; direction: "visitor" | "operator" | "system"; text: str
 const TOKEN_KEY = "reage:support-token";
 
 function getToken() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("newchat") === "1") localStorage.removeItem(TOKEN_KEY);
+  } catch { /* ignore */ }
   let t = localStorage.getItem(TOKEN_KEY);
   if (!t) { t = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().slice(0, 8); localStorage.setItem(TOKEN_KEY, t); }
   return t;
