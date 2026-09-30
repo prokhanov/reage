@@ -97,7 +97,7 @@ export default function PartnerCabinet() {
         <CardHeader><CardTitle>Промокод и ссылка</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" />
+            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" disabled={readOnly} />
             <Button onClick={saveCode} disabled={readOnly || savingCode || !code.trim() || code === me.code} className="h-11 shrink-0">
               {savingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
             </Button>
