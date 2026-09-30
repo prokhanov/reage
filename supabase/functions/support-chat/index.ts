@@ -110,6 +110,26 @@ Deno.serve(async (req) => {
       }).select().single();
       if (error) throw error;
       conv = created;
+    } else if (userId && !conv.user_id) {
+      // Guest chat, now logged in — attach to account on the fly
+      const { data: prof } = await db.from("profiles").select("first_name,last_name,email,phone").eq("id", userId).maybeSingle();
+      const pname = prof ? [prof.first_name, prof.last_name].filter(Boolean).join(" ") || null : null;
+      const patch = {
+        user_id: userId,
+        name: conv.name || pname,
+        email: conv.email || prof?.email || null,
+        phone: conv.phone || prof?.phone || null,
+      };
+      await db.from("support_conversations").update(patch).eq("id", conv.id);
+      Object.assign(conv, patch);
+      if (conv.tg_topic_id) {
+        await tg(s.support_bot_token, "sendMessage", {
+          chat_id: chatId, message_thread_id: conv.tg_topic_id, parse_mode: "HTML",
+          text: `🔐 <b>Посетитель вошёл в аккаунт</b>\n👤 id ${esc(userId)}\n` +
+            (pname ? `Имя: ${esc(pname)}\n` : "") + `📧 ${esc(prof?.email || "—")}` +
+            (prof?.phone ? `\n📱 ${esc(prof.phone)}` : ""),
+        });
+      }
     }
 
     const ensureTopic = async () => {
