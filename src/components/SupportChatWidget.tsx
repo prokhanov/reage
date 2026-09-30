@@ -192,14 +192,14 @@ export function SupportChatWidget() {
               <button
                 type="button"
                 onClick={openChat}
-                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
               >
                 <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
                   <MessageCircle className="h-5 w-5" />
                   {unread > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground ring-2 ring-card">{unreadLabel}</span>}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
                   <span className="block text-sm leading-snug text-muted-foreground">Без Telegram, ответ здесь и на почту</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
@@ -207,13 +207,13 @@ export function SupportChatWidget() {
               <a
                 href="tel:+79959984638"
                 onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-sm">
                   <Phone className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Позвонить</span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">Позвонить</span>
                   <span className="block text-sm leading-snug text-muted-foreground">+7 (995) 998-46-38</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
