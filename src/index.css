@@ -735,3 +735,12 @@ All colors MUST be HSL.
 .support-chat-fab {
   animation: support-fab-pulse 2.5s ease-out infinite;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .support-chat-fab,
+  .support-chat-menu,
+  .support-chat-panel {
+    animation: none !important;
+    transition: none !important;
+  }
+}

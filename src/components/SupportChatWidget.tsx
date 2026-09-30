@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Loader2, MessageCircle, RotateCcw, Send, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Msg = { id: string; direction: "visitor" | "operator" | "system"; text: string; created_at: string; read_by_visitor: boolean };
 const TOKEN_KEY = "reage:support-token";
+const TELEGRAM_URL = "https://t.me/reage_life";
+const timeFormatter = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" });
+const urlPattern = /(https?:\/\/[^\s]+)/g;
 
 function getToken() {
   try {
@@ -20,15 +24,29 @@ async function call(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("support-chat", { body });
   if (error) {
     let msg = "Сообщение не отправилось. Проверьте соединение и повторите";
-    try { const j = await (error as any).context?.json?.(); if (j?.error) msg = j.error; } catch { /* ignore */ }
+    try { const j = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); if (j?.error) msg = j.error; } catch { /* ignore */ }
     throw new Error(msg);
   }
   return data;
 }
 
+function MessageText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(urlPattern).map((part, index) => part.startsWith("http://") || part.startsWith("https://") ? (
+        <a key={`${part}-${index}`} href={part} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:no-underline">
+          {part}
+        </a>
+      ) : <Fragment key={`${part}-${index}`}>{part}</Fragment>)}
+    </>
+  );
+}
+
 export function SupportChatWidget() {
-  const [open, setOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [hasContact, setHasContact] = useState(true);
   const [text, setText] = useState("");
   const [err, setErr] = useState("");
@@ -37,28 +55,72 @@ export function SupportChatWidget() {
   const [formErr, setFormErr] = useState("");
   const token = useRef(getToken());
   const listRef = useRef<HTMLDivElement>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  const launcherRef = useRef<HTMLDivElement>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const openRef = useRef(chatOpen);
+  openRef.current = chatOpen;
 
   const refresh = useCallback(async () => {
     try {
       const d = await call({ action: "history", token: token.current, markRead: openRef.current });
       setMsgs(d.messages || []);
       setHasContact(!!d.hasContact);
-    } catch { /* silent */ }
+    } catch { /* keep the last successfully loaded history */ }
+    finally { setLoaded(true); }
   }, []);
 
   useEffect(() => {
     refresh();
-    const id = setInterval(() => { if (!document.hidden) refresh(); }, open ? 4000 : 15000);
-    return () => clearInterval(id);
-  }, [open, refresh]);
+    const id = setInterval(() => { if (!document.hidden) refresh(); }, chatOpen ? 4000 : 15000);
+    const onVisibility = () => { if (!document.hidden) refresh(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [chatOpen, refresh]);
 
-  useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight }); }, [msgs, open, hasContact]);
+  useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight }); }, [msgs, chatOpen, hasContact]);
+
+  useEffect(() => {
+    if (chatOpen) {
+      const id = window.setTimeout(() => textRef.current?.focus(), 150);
+      return () => window.clearTimeout(id);
+    }
+  }, [chatOpen]);
+
+  useEffect(() => {
+    if (!launcherOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!launcherRef.current?.contains(event.target as Node)) setLauncherOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setLauncherOpen(false); fabRef.current?.focus(); }
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [launcherOpen]);
 
   const unread = msgs.filter((m) => m.direction === "operator" && !m.read_by_visitor).length;
+  const unreadLabel = unread > 99 ? "99+" : String(unread);
   const hasVisitorMsg = msgs.some((m) => m.direction === "visitor");
   const showForm = hasVisitorMsg && !hasContact;
+
+  const openChat = () => {
+    setLauncherOpen(false);
+    setChatOpen(true);
+    refresh();
+  };
+
+  const closeChat = () => {
+    setChatOpen(false);
+    window.setTimeout(() => fabRef.current?.focus(), 0);
+  };
 
   const send = async () => {
     const t = text.trim();
@@ -68,8 +130,8 @@ export function SupportChatWidget() {
       await call({ action: "send", token: token.current, text: t, page: window.location.href });
       setText("");
       await refresh();
-    } catch (e: any) { setErr(e.message); }
-    setSending(false);
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Сообщение не отправилось"); }
+    finally { setSending(false); }
   };
 
   const submitContact = async () => {
@@ -80,84 +142,129 @@ export function SupportChatWidget() {
     try {
       await call({ action: "contact", token: token.current, name: form.name.trim(), email: form.email.trim(), phone });
       await refresh();
-    } catch (e: any) { setFormErr(e.message); }
+    } catch (e: unknown) { setFormErr(e instanceof Error ? e.message : "Не удалось сохранить контакты"); }
   };
 
   return (
     <>
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Открыть чат поддержки"
-          className="support-chat-fab animate-fade-in fixed bottom-5 right-5 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 hover:scale-110"
-        >
-          <MessageCircle className="h-8 w-8" />
-          {unread > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
-              {unread}
-            </span>
-          )}
-        </button>
-      )}
-      {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[560px] sm:w-[380px] sm:rounded-2xl sm:border sm:border-border sm:shadow-2xl">
-          <div className="flex items-start justify-between border-b border-border bg-card px-4 py-3 sm:rounded-t-2xl">
-            <div>
-              <div className="font-heading text-lg text-foreground">Вопрос в Reage</div>
-              <div className="text-xs text-muted-foreground">Ответим здесь и продублируем на почту</div>
+      {!chatOpen && (
+        <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
+          {launcherOpen && (
+            <div className="support-chat-menu absolute bottom-[calc(100%+0.75rem)] right-0 w-[min(19rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-lg border border-border bg-card p-2 shadow-xl">
+              <p className="px-2 pb-2 pt-1 text-xs font-medium text-muted-foreground">Как вам удобнее?</p>
+              <Button asChild variant="ghost" className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left">
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-info text-info-foreground">
+                    <Send className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-foreground">Telegram</span>
+                    <span className="block text-xs font-normal text-muted-foreground">Перейти в чат ReAge</span>
+                  </span>
+                </a>
+              </Button>
+              <Button variant="ghost" className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left" onClick={openChat}>
+                <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <MessageCircle className="h-5 w-5" />
+                  {unread > 0 && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-foreground">Чат на сайте</span>
+                  <span className="block text-xs font-normal text-muted-foreground">Написать службе поддержки</span>
+                </span>
+              </Button>
             </div>
-            <button onClick={() => setOpen(false)} aria-label="Закрыть чат" className="rounded-md p-1 text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+          )}
+          <Button
+            ref={fabRef}
+            size="icon"
+            onClick={() => setLauncherOpen((value) => !value)}
+            aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
+            aria-expanded={launcherOpen}
+            className="support-chat-fab h-16 w-16 rounded-full transition-transform duration-200 hover:scale-105"
+          >
+            <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
+              {launcherOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
+            </span>
+            {unread > 0 && (
+              <span aria-label={`Новых сообщений: ${unread}`} aria-live="polite" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold leading-none text-destructive-foreground ring-2 ring-background">
+                {unreadLabel}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
 
-          <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {msgs.length === 0 && (
+      {chatOpen && (
+        <section role="dialog" aria-modal="true" aria-label="Чат поддержки ReAge" className="support-chat-panel fixed inset-0 z-50 flex flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(560px,calc(100dvh-2.5rem))] sm:w-[380px] sm:rounded-lg sm:border sm:border-border sm:shadow-2xl">
+          <header className="flex items-start justify-between border-b border-border bg-card px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:rounded-t-lg">
+            <div>
+              <h2 className="font-heading text-lg text-foreground">Вопрос в ReAge</h2>
+              <p className="text-xs text-muted-foreground">Ответим здесь, а если вы уйдёте — на почту</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={closeChat} aria-label="Закрыть чат" className="h-9 w-9">
+              <X className="h-5 w-5" />
+            </Button>
+          </header>
+
+          <div ref={listRef} aria-live="polite" aria-busy={!loaded} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+            {!loaded && (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+                <span className="sr-only">Загружаем переписку</span>
+              </div>
+            )}
+            {loaded && msgs.length === 0 && (
               <p className="mt-10 px-6 text-center text-sm text-muted-foreground">Напишите вопрос про анализы, отчёт или подписку</p>
             )}
-            {msgs.map((m) =>
-              m.direction === "system" ? (
-                <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
-              ) : (
-                <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                  <div
-                    className={cn(
-                      "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm",
-                      m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground",
-                    )}
-                  >
-                    {m.text}
-                  </div>
+            {msgs.map((m) => m.direction === "system" ? (
+              <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
+            ) : (
+              <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
+                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                  <MessageText text={m.text} />
+                  <time dateTime={m.created_at} className={cn("mt-1 block text-right text-[10px] opacity-65", m.direction === "visitor" ? "text-primary-foreground" : "text-muted-foreground")}>
+                    {timeFormatter.format(new Date(m.created_at))}
+                  </time>
                 </div>
-              ),
-            )}
+              </div>
+            ))}
             {showForm && (
-              <div className="space-y-2 rounded-2xl border border-border bg-card p-3">
+              <div className="space-y-2 rounded-lg border border-border bg-card p-3">
                 <div className="font-heading text-base text-foreground">Представьтесь</div>
-                <input className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Имя" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                <input className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Почта" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                <input className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Телефон" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                {formErr && <p className="text-xs text-destructive">{formErr}</p>}
-                <button onClick={submitContact} className="w-full rounded-lg bg-primary py-2 text-sm font-medium text-primary-foreground">Отправить</button>
+                <input aria-label="Имя" autoComplete="name" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Имя" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <input aria-label="Почта" autoComplete="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Почта" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <input aria-label="Телефон" autoComplete="tel" inputMode="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Телефон" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                {formErr && <p role="alert" className="text-xs text-destructive">{formErr}</p>}
+                <Button onClick={submitContact} className="w-full">Отправить</Button>
               </div>
             )}
           </div>
 
-          {err && <p className="px-4 pb-1 text-xs text-destructive">{err}</p>}
-          <div className="flex items-end gap-2 border-t border-border bg-card p-3 sm:rounded-b-2xl">
+          {err && (
+            <div role="alert" className="flex items-center justify-between gap-2 px-4 pb-1 text-xs text-destructive">
+              <span>{err}</span>
+              <Button variant="ghost" size="sm" onClick={send} className="h-7 shrink-0 gap-1 text-destructive">
+                <RotateCcw className="h-3.5 w-3.5" /> Повторить
+              </Button>
+            </div>
+          )}
+          <div className="flex items-end gap-2 border-t border-border bg-card px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:rounded-b-lg">
             <textarea
+              ref={textRef}
+              aria-label="Ваш вопрос"
               rows={1}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => { setText(e.target.value); if (err) setErr(""); }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder="Ваш вопрос…"
               className="max-h-32 min-h-[40px] flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm"
             />
-            <button onClick={send} disabled={sending || !text.trim()} aria-label="Отправить" className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50">
-              <Send className="h-4 w-4" />
-            </button>
+            <Button onClick={send} disabled={sending || !text.trim()} size="icon" aria-label={sending ? "Отправляем сообщение" : "Отправить сообщение"} className="h-10 w-10">
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
           </div>
-        </div>
+        </section>
       )}
     </>
   );
