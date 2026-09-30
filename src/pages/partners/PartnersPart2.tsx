@@ -302,7 +302,7 @@ export function ConnectSection() {
           <div>
             <a
               href={TELEGRAM_URL}
-              className="flex h-12 w-full items-center justify-center rounded-full bg-info text-sm font-semibold text-info-foreground transition-opacity hover:opacity-90"
+              className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
               Оставить заявку
             </a>

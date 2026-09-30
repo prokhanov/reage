@@ -137,7 +137,7 @@ export function JoinSection() {
               </p>
               <a
                 href={TELEGRAM_URL}
-                className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-info text-base font-semibold text-info-foreground transition-opacity hover:opacity-90"
+                className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
                 Оставить заявку
               </a>
