@@ -236,7 +236,7 @@ export function SupportChatWidget() {
               onClick={() => setLauncherOpen((value) => !value)}
               aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
               aria-expanded={launcherOpen}
-              className="support-chat-fab !h-16 !w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
+              className="support-chat-fab !h-[4.5rem] !w-[4.5rem] rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-9 [&_svg]:w-9"
             >
               <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
                 {launcherOpen ? <X /> : <MessageCircle />}
