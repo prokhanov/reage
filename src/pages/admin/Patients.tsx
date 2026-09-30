@@ -256,6 +256,8 @@ export default function Patients() {
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
             bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
+            partner: partnerByUser[profile.id] || null,
+
 
             role: primaryRole,
             allRoles: userRoleData.allRoles,
@@ -443,6 +445,7 @@ export default function Patients() {
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
+                      <TableHead>Партнёр</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
