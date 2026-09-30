@@ -178,7 +178,7 @@ export function SupportChatWidget() {
               <Button asChild className="support-telegram-btn !h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg">
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
                   <span className="font-semibold">Telegram</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-foreground/15">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
                     <Send className="h-5 w-5" />
                   </span>
                 </a>
