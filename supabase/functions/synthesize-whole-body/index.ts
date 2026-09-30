@@ -98,7 +98,8 @@ export function normalizeMeaningBlocks(text: string): string {
       const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
       const isDeviation = /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(valueLine);
       if (!isDeviation) return `${open}${head}\n${close}`;
-      const lines = body.slice(idx).split("\n").slice(1).map((l) => l.trim());
+      const rawLines = body.slice(idx).split("\n").map((l) => l.trim());
+      const lines = rawLines.slice(rawLines.findIndex((l) => /^Что это значит для вас/i.test(l)) + 1);
       const bulletIdx = lines.map((l, i) => (/^[•\-]/.test(l) ? i : -1)).filter((i) => i >= 0);
       if (bulletIdx.length === 0) return open + body + close;
       const first = bulletIdx[0], last = bulletIdx[bulletIdx.length - 1];
