@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
   const db = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: s } = await db.from("telegram_notification_settings")
     .select("support_bot_token, support_chat_id, support_webhook_secret").eq("singleton", true).maybeSingle();
-  if (!s?.bot_token || req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== s.support_webhook_secret) {
+  if (!s?.support_bot_token || req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== s.support_webhook_secret) {
     return new Response("Unauthorized", { status: 401 });
   }
 
