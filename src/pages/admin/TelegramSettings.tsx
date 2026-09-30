@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Send, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Copy } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+import { SupportChatSettingsCard } from "@/components/admin/SupportChatSettingsCard";
 
 type EventDef = { key: string; label: string; description: string };
 
@@ -225,6 +226,7 @@ export default function TelegramSettings() {
         actions={statusBadge}
       />
 
+      <SupportChatSettingsCard />
 
       {/* Block 1: Connection */}
       <Card>

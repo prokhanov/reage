@@ -15,9 +15,11 @@ export function JivoVisibility() {
   useEffect(() => {
     const isLanding = pathname === "/";
     const role = roleData?.userRole;
+    // На /partners вместо Jivo работает собственный чат поддержки через Telegram.
     const shouldHide =
-      !isLanding &&
-      (role === "Суперадмин" || role === "Администратор" || role === "Врач");
+      pathname === "/partners" ||
+      (!isLanding &&
+        (role === "Суперадмин" || role === "Администратор" || role === "Врач"));
 
     let styleEl = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
 
