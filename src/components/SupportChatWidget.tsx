@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, MessageCircle, RotateCcw, Send, X } from "lucide-react";
+import { ChevronRight, Loader2, MessageCircle, RotateCcw, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
