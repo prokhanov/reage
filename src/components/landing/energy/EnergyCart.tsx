@@ -151,9 +151,15 @@ export function EnergyCart() {
       partner: r.partner === true,
       hideConsultation: r.hide_consultation === true,
     };
-    setAppliedPromo(next.value > 0 || next.partner ? next : null);
-    if (next.partner) setPromo(next.code);
     if (next.hideConsultation) setConsult(false);
+    // Партнёр со скидкой 0% клиенту не виден: ни кода в поле, ни сообщений.
+    if (next.value <= 0) {
+      setAppliedPromo(null);
+      if (!opts.silent) notify.error("Промокод не найден", "Проверьте написание кода.");
+      return;
+    }
+    setAppliedPromo(next);
+    if (next.partner) setPromo(next.code);
     if (!opts.silent) {
       notify.success("Промокод применён", next.type === "fixed" ? `Скидка ${money(next.value)}` : `Скидка ${next.value}%`);
     }
@@ -161,11 +167,10 @@ export function EnergyCart() {
 
   const applyPromo = () => checkPromo(promo.trim().toUpperCase());
 
-  // Код из партнёрской ссылки подставляется сам; телефон/email могут указать на закреплённого партнёра.
+  // Код из партнёрской ссылки проверяется тихо и вписывается в поле только при скидке > 0.
   useEffect(() => {
     if (!cartOpen) return;
     const ref = getRefCode();
-    if (ref && !promo) setPromo(ref);
     checkPromo(promo.trim().toUpperCase() || ref || "", { silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartOpen, phoneValid, emailValid]);
