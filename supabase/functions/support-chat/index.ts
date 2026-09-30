@@ -58,8 +58,12 @@ Deno.serve(async (req) => {
       const { data: roles } = await db.from("user_roles").select("role").eq("user_id", userId);
       if (!(roles ?? []).some((r) => r.role === "superadmin")) return json({ error: "forbidden" }, 403);
       if (body.action === "admin_save") {
-        await db.from("telegram_notification_settings").update({ support_chat_id: body.chat_id || null, ...(typeof body.bot_token === "string" && body.bot_token.trim() ? { support_bot_token: body.bot_token.trim() } : {}) }).eq("singleton", true);
-        return json({ ok: true });
+        const patch: Record<string, unknown> = { support_chat_id: body.chat_id || null };
+        if (body.bot_token) patch.support_bot_token = body.bot_token;
+        const { data: upd, error: updErr } = await db.from("telegram_notification_settings").update(patch).eq("singleton", true).select("support_bot_token");
+        if (updErr) return json({ error: updErr.message }, 500);
+        if (!upd?.length) return json({ error: "Строка настроек не найдена" }, 500);
+        return json({ ok: true, has_token: !!upd[0].support_bot_token });
       }
       if (body.action === "admin_webhook") {
         if (!s.support_bot_token) return json({ error: "Сначала сохраните токен бота поддержки" }, 400);
@@ -71,7 +75,7 @@ Deno.serve(async (req) => {
         return json({ ok: r.ok, error: r.ok ? undefined : r.data?.description });
       }
       const info = s.support_bot_token ? await tg(s.support_bot_token, "getWebhookInfo", {}) : null;
-      return json({ has_token: !!s.support_bot_token, chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
+      return json({ bot_token: s.support_bot_token ?? "", has_token: !!s.support_bot_token, chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
     }
 
     // ---------- visitor ----------
