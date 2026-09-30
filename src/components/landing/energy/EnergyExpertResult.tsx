@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { useState } from "react";
 import { Award, ChevronDown, Clock, FileText, Gift, Heart, MessageCircle, ShoppingCart, Stethoscope, Wallet } from "lucide-react";
 

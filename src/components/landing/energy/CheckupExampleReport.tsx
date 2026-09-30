@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { useEffect } from "react";
 import { ShoppingCart, Loader2 } from "lucide-react";
 

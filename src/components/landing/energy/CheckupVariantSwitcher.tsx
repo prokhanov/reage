@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { markersLabel, money } from "@/data/checkups";
 import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 import { cn } from "@/lib/utils";
