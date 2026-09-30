@@ -124,7 +124,7 @@ export function JoinSection() {
               ))}
             </ul>
             <Button asChild className="mt-8 h-12 rounded-full px-7 text-base font-semibold">
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+              <a href={TELEGRAM_URL}>
                 <Send className="mr-2 h-4 w-4" aria-hidden />
                 Войти через Telegram
               </a>
@@ -138,7 +138,7 @@ export function JoinSection() {
               </p>
               <a
                 href={TELEGRAM_URL}
-                target="_blank"
+
                 rel="noopener noreferrer"
                 className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-info text-base font-semibold text-info-foreground transition-opacity hover:opacity-90"
               >
@@ -238,7 +238,7 @@ export function FinalCta() {
               variant="secondary"
               className="h-12 rounded-full px-7 text-base font-semibold"
             >
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+              <a href={TELEGRAM_URL}>
                 <Send className="mr-2 h-4 w-4" aria-hidden />
                 Подключиться за 1 минуту
               </a>

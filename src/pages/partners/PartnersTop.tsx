@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CHECKUPS, money } from "@/data/checkups";
 import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
 
-export const TELEGRAM_URL = "https://t.me/reage_life";
+export { APPLY_HREF as TELEGRAM_URL } from "./PartnerApplyDialog";
 export const COMMISSION_RATE = 0.15;
 export const CLIENT_DISCOUNT_RATE = 0.05;
 
@@ -141,7 +141,7 @@ export function PartnersHero({ onJoin }: { onJoin: () => void }) {
           </p>
           <div className="mt-8 flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row">
             <Button asChild className="h-12 rounded-full px-7 text-base font-semibold">
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+              <a href={TELEGRAM_URL}>
                 <Send className="mr-2 h-4 w-4" aria-hidden />
                 Подключиться за 1 минуту
               </a>
@@ -221,7 +221,7 @@ export function WhoCanPartner() {
                 {item.title}
               </h3>
               <Button asChild className="mt-5 h-10 rounded-full px-6 font-semibold">
-                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+                <a href={TELEGRAM_URL}>
                   Подключиться
                 </a>
               </Button>
@@ -359,7 +359,7 @@ export function HowItWorks() {
         </div>
         <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
           <Button asChild className="h-12 rounded-full px-7 text-base font-semibold">
-            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+            <a href={TELEGRAM_URL}>
               <Send className="mr-2 h-4 w-4" aria-hidden />
               Подключиться в Telegram
             </a>

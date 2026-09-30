@@ -181,7 +181,7 @@ export function ReferralSection() {
             </p>
             <a
               href={TELEGRAM_URL}
-              target="_blank"
+
               rel="noopener noreferrer"
               className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-primary-foreground px-7 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
             >
@@ -307,7 +307,7 @@ export function ConnectSection() {
           <div>
             <a
               href={TELEGRAM_URL}
-              target="_blank"
+
               rel="noopener noreferrer"
               className="flex h-12 w-full items-center justify-center rounded-full bg-info text-sm font-semibold text-info-foreground transition-opacity hover:opacity-90"
             >
