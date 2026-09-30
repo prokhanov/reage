@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Check, Copy, ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Check, Copy, Eraser, ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
+import { clearRefCode, getRefCode } from "@/lib/partnerRef";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,18 @@ export default function AdminPartners() {
   const [bindPartner, setBindPartner] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
+  const [refReset, setRefReset] = useState(false);
+  const [refTick, setRefTick] = useState(0);
+
+  const browserCode = useMemo(() => { void refTick; return getRefCode(); }, [refTick]);
+
+  const resetRef = () => {
+    clearRefCode();
+    qc.invalidateQueries({ queryKey: ["partner-offer"] });
+    setRefReset(true);
+    setRefTick((t) => t + 1);
+    setTimeout(() => setRefReset(false), 2000);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-partners"],
@@ -145,7 +158,20 @@ export default function AdminPartners() {
 
   return (
     <div className="space-y-6 p-4 md:p-8">
-      <h1 className="font-display text-3xl text-foreground">Партнёры</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl text-foreground">Партнёры</h1>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-muted-foreground">
+            Этот браузер: {browserCode ? <>запомнен код <code className="font-mono text-foreground">{browserCode}</code></> : "привязки нет"}
+          </p>
+          {browserCode && (
+            <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={resetRef} title="Удаляет запомненный код партнёра из этого браузера">
+              {refReset ? <Check className="h-3.5 w-3.5 text-success" /> : <Eraser className="h-3.5 w-3.5" />}
+              Сбросить привязку в этом браузере
+            </Button>
+          )}
+        </div>
+      </div>
 
       <Card>
         <CardHeader><CardTitle>Сделать пользователя партнёром</CardTitle></CardHeader>
