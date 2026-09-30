@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { CHECKUPS, money } from "@/data/checkups";
 import { FULL_CHECKUP, FULL_CHECKUP_MARKERS_COUNT } from "@/data/fullCheckup";
 
-export { APPLY_HREF as TELEGRAM_URL } from "./PartnerApplyDialog";
+import { APPLY_HREF } from "./PartnerApplyDialog";
+export const TELEGRAM_URL = APPLY_HREF;
 export const COMMISSION_RATE = 0.15;
 export const CLIENT_DISCOUNT_RATE = 0.05;
 
