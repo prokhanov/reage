@@ -224,6 +224,7 @@ serve(async (req) => {
     const categoryReports = sourceRecs
       .map((r: any) => `===== РАЗДЕЛ: ${r.type} =====\n${r.text}`)
       .join("\n\n");
+    const expectedGroups = dedupeGroups(extractBiomarkerGroups(categoryReports));
     const expectedCodes = [...new Set(extractBiomarkerCodes(categoryReports))];
     const deviationCodes = [...new Set(extractDeviationCodes(categoryReports))];
     const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
@@ -254,7 +255,7 @@ serve(async (req) => {
         .replace(/^[\t ]+(?=\S)/gm, "")
         .trim();
       out = normalizeMeaningBlocks(out);
-      const structureError = validateBiomarkerStructure(out, expectedCodes, deviationCodes);
+      const structureError = validateBiomarkerStructure(out, expectedGroups, deviationCodes);
       if (out.length < 1500 || expectedCodes.length === 0 || structureError) {
         lastErr = `Ответ ИИ не прошёл проверку: ${structureError || `длина ${out.length}, биомаркеров ${expectedCodes.length}`}`;
         continue;
