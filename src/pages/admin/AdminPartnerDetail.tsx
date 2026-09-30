@@ -276,6 +276,7 @@ export default function AdminPartnerDetail() {
   const pa = data.partner;
   const disc = discount ?? pa.discount_pct;
   const oldCodes = data.codes.filter((c: any) => !c.is_current);
+  const browserCode = getRefCode();
   const others = data.allPartners.filter((id: string) => id !== partnerId);
 
   return (
