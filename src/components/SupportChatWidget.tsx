@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { ChevronRight, Loader2, MessageCircle, RotateCcw, Send, X } from "lucide-react";
+import { ChevronRight, Loader2, MessageCircle, Phone, RotateCcw, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -204,6 +204,20 @@ export function SupportChatWidget() {
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
               </button>
+              <a
+                href="tel:+79959984638"
+                onClick={() => setLauncherOpen(false)}
+                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-sm">
+                  <Phone className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Позвонить</span>
+                  <span className="block text-sm leading-snug text-muted-foreground">+7 (995) 998-46-38</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              </a>
             </div>
           )}
           <div className="flex items-center gap-3">
