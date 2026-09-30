@@ -95,7 +95,7 @@ export function EnergyCart() {
     : appliedPromo.type === "fixed"
       ? Math.min(appliedPromo.value, itemsSum)
       : Math.round((itemsSum * appliedPromo.value) / 100);
-  const consultHidden = appliedPromo?.hideConsultation === true;
+  const consultHidden = appliedPromo?.hideConsultation === true || partnerHidesConsult;
   const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
@@ -139,6 +139,7 @@ export function EnergyCart() {
     });
     const r = data as any;
     if (!r?.success) {
+      setPartnerHidesConsult(false);
       if (!opts.silent) {
         setAppliedPromo(null);
         notify.error(r?.error ?? "Промокод не найден", "Проверьте написание кода.");
@@ -153,6 +154,8 @@ export function EnergyCart() {
       hideConsultation: r.hide_consultation === true,
     };
     if (next.hideConsultation) setConsult(false);
+    // «Без консультации» действует независимо от размера скидки.
+    setPartnerHidesConsult(next.partner && next.hideConsultation);
     // Партнёр со скидкой 0% клиенту не виден: ни кода в поле, ни сообщений.
     if (next.value <= 0) {
       setAppliedPromo(null);
