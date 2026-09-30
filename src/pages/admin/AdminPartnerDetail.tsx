@@ -55,6 +55,7 @@ export default function AdminPartnerDetail() {
   const [payNote, setPayNote] = useState("");
   const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [refReset, setRefReset] = useState(false);
   const [discount, setDiscount] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
