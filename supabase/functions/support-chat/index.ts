@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
         return json({ ok: r.ok, error: r.ok ? undefined : r.data?.description });
       }
       const info = s.support_bot_token ? await tg(s.support_bot_token, "getWebhookInfo", {}) : null;
-      return json({ bot_token: s.support_bot_token ?? "", bot_name: info ? undefined : undefined, has_token: !!s.support_bot_token, chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
+      return json({ bot_token: s.support_bot_token ?? "", has_token: !!s.support_bot_token, chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
     }
 
     // ---------- visitor ----------
