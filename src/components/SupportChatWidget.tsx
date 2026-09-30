@@ -234,15 +234,31 @@ export function SupportChatWidget() {
             {loaded && msgs.length === 0 && (
               <p className="mt-10 px-6 text-center text-sm text-muted-foreground">Напишите вопрос про анализы, отчёт или подписку</p>
             )}
-            {msgs.map((m) => m.direction === "system" ? (
-              <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
-            ) : (
-              <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
-                  <MessageText text={m.text} />
-                </div>
-              </div>
-            ))}
+            {msgs.map((m, i) => {
+              const mDate = new Date(m.created_at);
+              const showDay = i === 0 || dayKey(new Date(msgs[i - 1].created_at)) !== dayKey(mDate);
+              return (
+                <Fragment key={m.id}>
+                  {showDay && (
+                    <div className="flex justify-center py-1">
+                      <span className="rounded-full bg-muted-foreground/10 px-3 py-1 text-[11px] font-medium text-muted-foreground">{dayLabel(mDate)}</span>
+                    </div>
+                  )}
+                  {m.direction === "system" ? (
+                    <p className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
+                  ) : (
+                    <div className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
+                      <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                        <MessageText text={m.text} />
+                        <div className={cn("mt-0.5 text-right text-[10px] leading-none", m.direction === "visitor" ? "text-primary-foreground/60" : "text-muted-foreground/70")}>
+                          {timeLabel(m.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
             {showForm && (
               <div className="space-y-2 rounded-lg border border-border bg-card p-3">
                 <div className="font-heading text-base text-foreground">Представьтесь</div>
