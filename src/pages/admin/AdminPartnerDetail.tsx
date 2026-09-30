@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Copy, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ export default function AdminPartnerDetail() {
   const [to, setTo] = useState("");
   const [payAmount, setPayAmount] = useState("");
   const [payNote, setPayNote] = useState("");
+  const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [discount, setDiscount] = useState<number | null>(null);
 
@@ -209,6 +210,27 @@ export default function AdminPartnerDetail() {
     if (error) return notify.error("Ошибка", error.message);
     notify.success("Выплата записана", money(amount));
     setPayAmount(""); setPayNote("");
+    refresh();
+  };
+
+  const savePayout = async () => {
+    if (!editPayout) return;
+    const amount = Number(editPayout.amount);
+    if (!(amount > 0)) return notify.error("Укажите сумму");
+    const { error } = await db.from("partner_payouts").update({
+      amount, note: editPayout.note.trim() || null,
+    }).eq("id", editPayout.id);
+    if (error) return notify.error("Ошибка", error.message);
+    notify.success("Выплата обновлена", money(amount));
+    setEditPayout(null);
+    refresh();
+  };
+
+  const deletePayout = async (p: any) => {
+    if (!confirm(`Удалить запись о выплате ${money(Number(p.amount))}?`)) return;
+    const { error } = await db.from("partner_payouts").delete().eq("id", p.id);
+    if (error) return notify.error("Ошибка", error.message);
+    notify.success("Выплата удалена");
     refresh();
   };
 
