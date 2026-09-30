@@ -23,7 +23,7 @@ const Body = z.discriminatedUnion("action", [
     phone: z.string().trim().max(32).optional(),
   }),
   z.object({ action: z.literal("admin_status") }),
-  z.object({ action: z.literal("admin_save"), chat_id: z.string().trim().max(40) }),
+  z.object({ action: z.literal("admin_save"), chat_id: z.string().trim().max(40), bot_token: z.string().trim().max(100).optional() }),
   z.object({ action: z.literal("admin_webhook") }),
 ]);
 
