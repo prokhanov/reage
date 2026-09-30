@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
   // Сначала находим заказ — он несёт is_test/admin_test, по нему выбираем пароль
   const { data: order, error: orderErr } = await admin
     .from("payment_orders")
-    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test, admin_test, promo_code_id, original_amount, discount_amount")
+    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test, admin_test, promo_code_id, original_amount, discount_amount, partner_id")
     .eq("inv_id", invId)
     .maybeSingle();
 
@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id, user_id, partner_id",
       )
       .eq("inv_id", invId)
       .maybeSingle();
@@ -248,6 +248,21 @@ Deno.serve(async (req) => {
       });
 
       if (eUpdErr) return textPlain("db error", 500);
+
+      // Закрепляем клиента за партнёром / учитываем использование обычного промокода
+      try {
+        const eo = energyOrder as any;
+        if (eo.partner_id) {
+          await admin.rpc("partner_bind", {
+            p_partner: eo.partner_id, p_user_id: eo.user_id ?? null, p_phone: eo.phone ?? null, p_email: eo.email ?? null,
+          });
+        } else if (eo.promo_code) {
+          const { data: pc } = await admin.from("promo_codes").select("id, used_count").ilike("code", eo.promo_code).maybeSingle();
+          if (pc) await admin.from("promo_codes").update({ used_count: (pc.used_count ?? 0) + 1 }).eq("id", pc.id);
+        }
+      } catch (bindErr) {
+        console.error("partner bind / promo count failed", bindErr);
+      }
 
       await notifyTelegramCheckupPaid(admin, supabaseUrl, {
         inv_id: invId,
@@ -360,6 +375,17 @@ Deno.serve(async (req) => {
       error: `order update failed: ${orderUpdErr.message}`,
     });
     return textPlain("db error", 500);
+  }
+
+  if ((order as any).partner_id && !isAdminTest) {
+    try {
+      const { data: prof } = await admin.from("profiles").select("phone, email").eq("id", order.user_id).maybeSingle();
+      await admin.rpc("partner_bind", {
+        p_partner: (order as any).partner_id, p_user_id: order.user_id, p_phone: prof?.phone ?? null, p_email: prof?.email ?? null,
+      });
+    } catch (bindErr) {
+      console.error("partner bind failed", bindErr);
+    }
   }
 
   // Админский тест: подписку не создаём, активные не трогаем

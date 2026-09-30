@@ -140,7 +140,19 @@ Deno.serve(async (req) => {
     let finalAmount = amount;
     let discountAmount = 0;
     let promoCodeId: string | null = null;
-    if (promoCode && promoCode.trim()) {
+    // Партнёр клиента (закрепление или код) имеет приоритет; промокоды не складываются.
+    const { data: profileRow } = await admin.from("profiles").select("phone").eq("id", userId).maybeSingle();
+    const { data: partnerRes } = await admin.rpc("resolve_partner", {
+      p_user_id: userId, p_phone: profileRow?.phone ?? null, p_email: userEmail || null,
+      p_code: promoCode?.trim() || null,
+    });
+    const partner = partnerRes as { partner_id: string; discount_pct: number } | null;
+    let partnerCommission: number | null = null;
+    if (partner) {
+      discountAmount = Math.round((amount * partner.discount_pct) / 100 * 100) / 100;
+      finalAmount = amount - discountAmount;
+      partnerCommission = Math.round((amount * (20 - partner.discount_pct)) / 100 * 100) / 100;
+    } else if (promoCode && promoCode.trim()) {
       const { data: promoRes, error: promoErr } = await userClient.rpc("apply_promo_code", {
         p_code: promoCode.trim(),
         p_plan_id: planId,
@@ -178,6 +190,9 @@ Deno.serve(async (req) => {
         original_amount: amount,
         discount_amount: discountAmount,
         promo_code_id: promoCodeId,
+        partner_id: partner?.partner_id ?? null,
+        partner_discount_pct: partner ? partner.discount_pct : null,
+        partner_commission: partnerCommission,
         status: "pending",
         is_test: isTest,
         admin_test: adminTest,
