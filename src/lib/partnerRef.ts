@@ -8,7 +8,7 @@ export type PartnerOffer = {
   source: "bound" | "code";
   discount_pct: number;
   hide_consultation: boolean;
-  name: string;
+  name: string | null;
   code: string | null;
 };
 
