@@ -114,19 +114,16 @@ export function JoinSection() {
           </div>
 
           <div className="rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
-                После подключения
-              </p>
-              <div className="mt-4">
-                  <p className="text-sm text-primary-foreground/80">Ваш промокод</p>
-                  <p className="text-2xl font-bold">IVANOVA</p>
-                  <p className="mt-2 truncate text-sm text-primary-foreground/80">
-                    reage.life/ivanova
-                  </p>
-                </div>
-              </div>
-            </div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
+              После подключения
+            </p>
+            <p className="mt-4 text-sm text-primary-foreground/80">Ваш промокод</p>
+            <p className="text-2xl font-bold">IVANOVA</p>
+            <p className="mt-2 truncate text-sm text-primary-foreground/80">
+              reage.life/ivanova
+            </p>
           </div>
+        </div>
         </div>
       </div>
     </section>
