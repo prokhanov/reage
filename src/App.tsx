@@ -18,7 +18,7 @@ import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { YandexMetrika } from "@/components/YandexMetrika";
-import { JivoVisibility } from "./components/JivoVisibility";
+import { SupportChatWidget } from "./components/SupportChatWidget";
 import { PartnerOfferBanner } from "@/components/PartnerOfferBanner";
 
 // Statically imported — landing critical path
@@ -133,7 +133,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
-          <JivoVisibility />
+          <SupportChatWidget />
           <RegisterGuardProvider>
           <Suspense fallback={<RouteFallback />}>
           <PartnerOfferBanner />

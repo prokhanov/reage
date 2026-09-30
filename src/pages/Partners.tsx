@@ -1,6 +1,5 @@
 import { PageMeta } from "@/components/PageMeta";
 import { PartnerApplyDialog } from "./partners/PartnerApplyDialog";
-import { SupportChatWidget } from "@/components/SupportChatWidget";
 import { PartnersHeader, PartnersHero, StatsStrip, WhoCanPartner, HowItWorks, PartnerStatuses } from "./partners/PartnersTop";
 import { JoinSection, PartnersFooter } from "./partners/PartnersBottom";
 import { SplitCalculator, BonusSection, ConnectSection, EarningsSection, FaqSection } from "./partners/PartnersPart2";
@@ -33,7 +32,6 @@ export default function Partners() {
       </main>
       <PartnersFooter />
       <PartnerApplyDialog />
-      <SupportChatWidget />
     </div>
   );
 }

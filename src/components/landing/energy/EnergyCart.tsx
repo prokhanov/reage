@@ -108,24 +108,6 @@ export function EnergyCart() {
   const birthValid = birthIso !== "";
   const canPay = !!clinic && emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
 
-  // Виджет Jivo рендерится с очень большим z-index и перекрывает корзину — прячем его, пока панель открыта.
-  useEffect(() => {
-    const id = "energy-cart-hide-jivo";
-    let el = document.getElementById(id) as HTMLStyleElement | null;
-    if (cartOpen || pickerOpen) {
-      if (!el) {
-        el = document.createElement("style");
-        el.id = id;
-        document.head.appendChild(el);
-      }
-      el.textContent = `jdiv, jdiv iframe, #jvlabelWrap { display: none !important; visibility: hidden !important; }`;
-    } else if (el) {
-      el.remove();
-    }
-    return () => {
-      document.getElementById(id)?.remove();
-    };
-  }, [cartOpen, pickerOpen]);
 
   const hours = useMemo(
     () => (clinic ? normalizeHours(clinic.hours ?? []).slice(0, 2).join(" · ") : ""),

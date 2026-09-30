@@ -48,12 +48,6 @@ export default function HealthAssistant() {
   }, [isLoading, initialLoading, currentConversationId]);
 
 
-  // Hide Jivo widget while user is in our own AI chat (overlaps Send button).
-  useEffect(() => {
-    document.body.classList.add("hide-jivo");
-    return () => document.body.classList.remove("hide-jivo");
-  }, []);
-
   // Load user ID
   useEffect(() => {
     getUserId().then((id) => {

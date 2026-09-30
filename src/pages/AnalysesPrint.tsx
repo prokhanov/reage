@@ -256,12 +256,6 @@ export default function AnalysesPrint() {
   );
   const patientGender = profile?.gender || null;
 
-  // Скрываем Jivo-виджет на странице печати
-  useEffect(() => {
-    document.body.classList.add("hide-jivo");
-    return () => document.body.classList.remove("hide-jivo");
-  }, []);
-
   // Авто-печать после загрузки
   useEffect(() => {
     if (!loading && !error && auto && analyses.length > 0) {
