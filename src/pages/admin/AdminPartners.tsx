@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
+import { Check, Copy, ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default function AdminPartners() {
   const [bindContact, setBindContact] = useState("");
   const [bindPartner, setBindPartner] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-partners"],
@@ -106,6 +107,27 @@ export default function AdminPartners() {
     });
     if (error) return notify.error("Ошибка", error.message);
     notify.success("Отмечено как выплачено", money(row.balance));
+    refresh();
+  };
+
+  const savePayout = async () => {
+    if (!editPayout) return;
+    const amount = Number(editPayout.amount);
+    if (!(amount > 0)) return notify.error("Укажите сумму");
+    const { error } = await db.from("partner_payouts").update({
+      amount, note: editPayout.note.trim() || null,
+    }).eq("id", editPayout.id);
+    if (error) return notify.error("Ошибка", error.message);
+    notify.success("Выплата обновлена", money(amount));
+    setEditPayout(null);
+    refresh();
+  };
+
+  const deletePayout = async (x: any) => {
+    if (!confirm(`Удалить запись о выплате ${money(Number(x.amount))}?`)) return;
+    const { error } = await db.from("partner_payouts").delete().eq("id", x.id);
+    if (error) return notify.error("Ошибка", error.message);
+    notify.success("Выплата удалена");
     refresh();
   };
 
@@ -238,13 +260,37 @@ export default function AdminPartners() {
             <div className="divide-y divide-border/60">
               {payoutsList.map((x: any) => {
                 const name = [x.prof?.last_name, x.prof?.first_name].filter(Boolean).join(" ") || x.prof?.email || "—";
+                const editing = editPayout?.id === x.id;
                 return (
-                  <div key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                    <div>
-                      <div className="font-medium text-foreground">{name}</div>
-                      <div className="text-xs text-muted-foreground">{fmtDate(x.created_at)}</div>
-                    </div>
-                    <div className="font-semibold tabular-nums text-foreground">{money(Number(x.amount))}</div>
+                  <div key={x.id} className="py-3">
+                    {editing ? (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Input type="number" min={0} value={editPayout.amount}
+                          onChange={(e) => setEditPayout({ ...editPayout, amount: e.target.value })} className="sm:w-40" />
+                        <Input placeholder="Комментарий" value={editPayout.note}
+                          onChange={(e) => setEditPayout({ ...editPayout, note: e.target.value })} />
+                        <Button size="sm" onClick={savePayout} className="shrink-0">Сохранить</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditPayout(null)} className="shrink-0">Отмена</Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <div className="font-medium text-foreground">{name}</div>
+                          <div className="text-xs text-muted-foreground">{fmtDate(x.created_at)}{x.note ? ` · ${x.note}` : ""}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold tabular-nums text-foreground">{money(Number(x.amount))}</div>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Изменить"
+                            onClick={() => setEditPayout({ id: x.id, amount: String(Number(x.amount)), note: x.note ?? "" })}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Удалить"
+                            onClick={() => deletePayout(x)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
