@@ -52,18 +52,7 @@ Deno.serve(async (req) => {
       chat_id: m.chat.id, message_id: m.message_id, reaction: [{ type: "emoji", emoji: "👍" }],
     });
 
-    if (conv.email) {
-      const { error: mailErr } = await db.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "support-reply",
-          recipientEmail: conv.email,
-          idempotencyKey: `support-reply-${inserted.id}`,
-          templateData: { name: conv.name, message: text },
-        },
-      });
-      if (mailErr) console.error("support reply email failed", mailErr);
-      else await db.from("support_messages").update({ emailed: true }).eq("id", inserted.id);
-    }
+    // Email is sent later by support-email-digest, only if the reply stays unread (batched).
     return new Response("ok");
   } catch (e) {
     console.error("support-telegram-webhook error", e);
