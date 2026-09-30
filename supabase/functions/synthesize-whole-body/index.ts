@@ -84,6 +84,35 @@ function validateBiomarkerStructure(
   return null;
 }
 
+// Приводит блок «Что это значит для вас» к эталону обычного отчёта:
+// только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
+// «Это может проявляться:» перед пунктами и фиксированная финальная строка.
+const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Назначения».";
+export function normalizeMeaningBlocks(text: string): string {
+  return text.replace(
+    /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
+    (_m, open, body: string, close) => {
+      const idx = body.search(/^\s*Что это значит для вас:?\s*$/im);
+      if (idx < 0) return open + body + close;
+      const head = body.slice(0, idx).replace(/\s+$/, "");
+      const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
+      const isDeviation = /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(valueLine);
+      if (!isDeviation) return `${open}${head}\n${close}`;
+      const lines = body.slice(idx).split("\n").slice(1).map((l) => l.trim());
+      const bulletIdx = lines.map((l, i) => (/^[•\-]/.test(l) ? i : -1)).filter((i) => i >= 0);
+      if (bulletIdx.length === 0) return open + body + close;
+      const first = bulletIdx[0], last = bulletIdx[bulletIdx.length - 1];
+      let intro = lines.slice(0, first).filter(Boolean).join(" ");
+      if (!/Это может проявляться:\s*$/.test(intro)) {
+        intro = (intro ? intro.replace(/\s*Это может проявляться\.?\s*$/, "") + " " : "") + "Это может проявляться:";
+      }
+      const bullets = lines.slice(first, last + 1).filter(Boolean)
+        .map((l) => "• " + l.replace(/^[•\-]\s*/, ""));
+      return `${open}${head}\n\nЧто это значит для вас:\n\n${intro}\n${bullets.join("\n")}\n${FINAL_LINE}\n${close}`;
+    },
+  );
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
