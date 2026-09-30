@@ -285,7 +285,6 @@ export default function AdminPartnerDetail() {
         <div className="flex items-center gap-3">
           <Badge variant={pa.is_active ? "default" : "secondary"}>{pa.is_active ? "Активен" : "Отключён"}</Badge>
           <Switch checked={pa.is_active} onCheckedChange={(v) => update({ is_active: v })} />
-          <Button asChild variant="outline" size="sm"><Link to={`/admin/patients/${partnerId}`}>Карточка пользователя</Link></Button>
         </div>
       </div>
 
