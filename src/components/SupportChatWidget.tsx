@@ -206,23 +206,34 @@ export function SupportChatWidget() {
               </button>
             </div>
           )}
-          <Button
-            ref={fabRef}
-            size="icon"
-            onClick={() => setLauncherOpen((value) => !value)}
-            aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
-            aria-expanded={launcherOpen}
-            className="support-chat-fab !h-16 !w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
-          >
-            <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
-              {launcherOpen ? <X /> : <MessageCircle />}
-            </span>
-            {unread > 0 && (
-              <span aria-label={`Новых сообщений: ${unread}`} aria-live="polite" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold leading-none text-destructive-foreground ring-2 ring-background">
-                {unreadLabel}
-              </span>
+          <div className="flex items-center gap-3">
+            {!launcherOpen && (
+              <button
+                type="button"
+                onClick={() => setLauncherOpen(true)}
+                className="support-chat-label animate-in fade-in slide-in-from-right-2 rounded-full border border-border/70 bg-card/95 px-4 py-2.5 text-sm font-medium text-foreground shadow-lg backdrop-blur-md transition-colors duration-300 hover:bg-accent"
+              >
+                Задать вопрос
+              </button>
             )}
-          </Button>
+            <Button
+              ref={fabRef}
+              size="icon"
+              onClick={() => setLauncherOpen((value) => !value)}
+              aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
+              aria-expanded={launcherOpen}
+              className="support-chat-fab !h-16 !w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
+            >
+              <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
+                {launcherOpen ? <X /> : <MessageCircle />}
+              </span>
+              {unread > 0 && (
+                <span aria-label={`Новых сообщений: ${unread}`} aria-live="polite" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold leading-none text-destructive-foreground ring-2 ring-background">
+                  {unreadLabel}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
