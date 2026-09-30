@@ -45,7 +45,10 @@ function extractDeviationCodes(text: string): string[] {
     }
   }
   return chunks
-    .filter(({ content }) => /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён|недостаточн|дефицит/i.test(content))
+    .filter(({ content }) => {
+      const valueLine = content.split("\n").find((line) => /^\s*Ваш/i.test(line)) || "";
+      return /находится\s+(?:ниже|выше)|находится\s+в\s+критическ|отклонен|отклонён/i.test(valueLine);
+    })
     .map(({ code }) => code)
     .filter(Boolean);
 }
@@ -67,7 +70,7 @@ function validateBiomarkerStructure(
     const content = block[2] || "";
     const paragraphs = content.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
     if (paragraphs.length < 3) return `${code}: нет полного описания и персонального разбора`;
-    if (!/Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
+    if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
       return `${code}: нет строки «Ваш показатель…»`;
     }
     if (
