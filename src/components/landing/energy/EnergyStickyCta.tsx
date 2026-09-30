@@ -30,6 +30,7 @@ export function EnergyStickyCta({
   price = ENERGY_CHECKUP.price,
   name = ENERGY_CHECKUP.name,
 }: Props) {
+  const pp = usePartnerPrice();
   const [pastHero, setPastHero] = useState(false);
   const [nearEnd, setNearEnd] = useState(false);
 

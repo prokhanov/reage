@@ -10,6 +10,7 @@ interface Props {
 
 /** Переключатель вариантов одного чекапа (создаются в админке «Чекапы → Варианты»). */
 export function CheckupVariantSwitcher({ variants, activeSlug, onChange }: Props) {
+  const pp = usePartnerPrice();
   if (variants.length < 2) return null;
   const idx = Math.max(
     variants.findIndex((v) => v.variant.slug === activeSlug),

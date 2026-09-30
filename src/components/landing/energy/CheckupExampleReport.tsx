@@ -117,6 +117,7 @@ interface Props {
  * карточки показателей (те же, что в больших отчётах) → рекомендации.
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
+  const pp = usePartnerPrice();
   const { rows, loading } = useReportBiomarkers();
   const report = getCheckupExampleReport(checkup.slug);
 

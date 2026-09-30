@@ -54,6 +54,7 @@ function pluralMarkers(n: number) {
 }
 
 export function EnergyPriceCompare() {
+  const pp = usePartnerPrice();
   const { checkup, addToCart } = useEnergyOrder();
   const gift = !!checkup.cbcBonusEnabled;
   const [expanded, setExpanded] = useState(false);

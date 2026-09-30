@@ -239,6 +239,7 @@ export function EnergyExpertResult({
   /** Кнопка покупки под примером расшифровки (на страницах чекапов). */
   showBuyCta?: boolean;
 } = {}) {
+  const pp = usePartnerPrice();
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
