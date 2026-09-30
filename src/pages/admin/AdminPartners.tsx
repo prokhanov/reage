@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/toast";
 
 const db = supabase as any;
@@ -25,6 +26,7 @@ export default function AdminPartners() {
   const [bindContact, setBindContact] = useState("");
   const [bindPartner, setBindPartner] = useState("");
   const [monthOffset, setMonthOffset] = useState(-1);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const period = monthStart(monthOffset);
   const periodEnd = monthStart(monthOffset + 1);
 
@@ -127,6 +129,18 @@ export default function AdminPartners() {
 
   const monthLabel = period.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
 
+  const copyLink = async (r: any) => {
+    if (!r.code) return;
+    const link = `https://reage.life/r/${r.code}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(r.user_id);
+      setTimeout(() => setCopiedId((id) => (id === r.user_id ? null : id)), 2000);
+} catch {
+      notify.error("Не удалось скопировать", link);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-8">
       <h1 className="font-display text-3xl text-foreground">Партнёры</h1>
@@ -155,32 +169,86 @@ export default function AdminPartners() {
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">Партнёров пока нет.</p>
           ) : (
-            <table className="w-full min-w-[760px] text-sm">
-              <thead className="text-left text-muted-foreground">
-                <tr><th className="py-2">Партнёр</th><th>Код</th><th>Скидка</th><th>Клиенты</th><th>Заказы</th><th className="text-right">Начислено</th><th>Выплата</th><th>Активен</th></tr>
+            <table className="w-full min-w-[860px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="py-3 pr-4">Партнёр</th>
+                  <th className="py-3 pr-4">Ссылка</th>
+                  <th className="py-3 pr-4">Скидка</th>
+                  <th className="py-3 pr-4">Клиенты</th>
+                  <th className="py-3 pr-4">Заказы</th>
+                  <th className="py-3 pr-4 text-right">Начислено</th>
+                  <th className="py-3 pr-4">Выплата</th>
+                  <th className="py-3">Активен</th>
+                </tr>
               </thead>
               <tbody>
-                {rows.map((r: any) => (
-                  <tr key={r.user_id} className="border-t border-border">
-                    <td className="py-2">
-                      <div className="text-foreground">{[r.prof?.last_name, r.prof?.first_name].filter(Boolean).join(" ") || "—"}</div>
-                      <div className="text-xs text-muted-foreground">{r.prof?.email} {r.prof?.phone}</div>
-                    </td>
-                    <td>{r.code ?? "—"}</td>
-                    <td>{r.discount_pct}%{r.hide_consultation ? " · без консультации" : ""}</td>
-                    <td>{r.clients}</td>
-                    <td>{r.ordersCount}</td>
-                    <td className="text-right font-medium">{money(r.accrued)}</td>
-                    <td>
-                      {r.payout ? (
-                        <span className="text-xs text-muted-foreground">Выплачено {money(Number(r.payout.amount))}</span>
-                      ) : (
-                        <Button size="sm" variant="secondary" disabled={r.accrued <= 0} onClick={() => markPaid(r)}>Выплачено</Button>
-                      )}
-                    </td>
-                    <td><Switch checked={r.is_active} onCheckedChange={(v) => toggle(r.user_id, v)} /></td>
-                  </tr>
-                ))}
+                {rows.map((r: any) => {
+                  const name = [r.prof?.last_name, r.prof?.first_name].filter(Boolean).join(" ") || "—";
+                  const link = r.code ? `https://reage.life/r/${r.code}` : "";
+                  return (
+                    <tr key={r.user_id} className="border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40">
+                      <td className="py-3 pr-4">
+                        <div className="font-medium text-foreground">{name}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {[r.prof?.email, r.prof?.phone].filter(Boolean).join(" · ") || "—"}
+                        </div>
+                      </td>
+                      <td className="py-3 pr-4">
+                        {r.code ? (
+                          <div className="flex items-center gap-1.5">
+                            <code className="rounded-md border border-border bg-muted/60 px-2 py-1 font-mono text-xs font-medium text-foreground">
+                              /r/{r.code}
+                            </code>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              title={`Скопировать ссылку: ${link}`}
+                              onClick={() => copyLink(r)}
+                            >
+                              {copiedId === r.user_id
+                                ? <Check className="h-3.5 w-3.5 text-success" />
+                                : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                            </Button>
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Открыть ссылку"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <Badge variant={r.discount_pct > 0 ? "default" : "secondary"}>{r.discount_pct}%</Badge>
+                        {r.hide_consultation && (
+                          <div className="mt-1 text-xs text-muted-foreground">без консультации</div>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 tabular-nums text-foreground">{r.clients}</td>
+                      <td className="py-3 pr-4 tabular-nums text-foreground">{r.ordersCount}</td>
+                      <td className="py-3 pr-4 text-right font-semibold tabular-nums text-foreground">{money(r.accrued)}</td>
+                      <td className="py-3 pr-4">
+                        {r.payout ? (
+                          <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                            выплачено {money(Number(r.payout.amount))}
+                          </span>
+                        ) : (
+                          <Button size="sm" variant="secondary" disabled={r.accrued <= 0} onClick={() => markPaid(r)}>
+                            Выплачено
+                          </Button>
+                        )}
+                      </td>
+                      <td className="py-3"><Switch checked={r.is_active} onCheckedChange={(v) => toggle(r.user_id, v)} /></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

@@ -3864,9 +3864,16 @@ export type Database = {
         Returns: Json
       }
       partner_public_name: { Args: { p_partner: string }; Returns: string }
-      partner_set_code: { Args: { p_code: string }; Returns: Json }
+      partner_set_code: {
+        Args: { p_code: string; p_user_id?: string }
+        Returns: Json
+      }
       partner_update_settings: {
-        Args: { p_discount_pct: number; p_hide_consultation: boolean }
+        Args: {
+          p_discount_pct: number
+          p_hide_consultation: boolean
+          p_user_id?: string
+        }
         Returns: Json
       }
       partner_view_uid: { Args: { p_user_id: string }; Returns: string }
