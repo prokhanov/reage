@@ -102,7 +102,20 @@ export function SupportChatWidget() {
     };
   }, [chatOpen, refresh]);
 
-  useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight }); }, [msgs, chatOpen, hasContact]);
+  // Автопрокрутка вниз только если посетитель уже у низа списка (не дёргаем, когда он читает историю)
+  const stickToBottom = useRef(true);
+  useEffect(() => {
+    const el = listRef.current;
+    if (el && stickToBottom.current) el.scrollTo({ top: el.scrollHeight });
+  }, [msgs, chatOpen, hasContact]);
+
+  // Блокируем прокрутку страницы под открытым чатом (важно на телефоне)
+  useEffect(() => {
+    if (!chatOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [chatOpen]);
 
   useEffect(() => {
     if (chatOpen) {
@@ -252,7 +265,7 @@ export function SupportChatWidget() {
       )}
 
       {chatOpen && (
-        <section role="dialog" aria-modal="true" aria-label="Чат поддержки ReAge" className="support-chat-panel fixed inset-0 z-50 flex flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(560px,calc(100dvh-2.5rem))] sm:w-[380px] sm:rounded-lg sm:border sm:border-border sm:shadow-2xl">
+        <section role="dialog" aria-modal="true" aria-label="Чат поддержки ReAge" className="support-chat-panel fixed inset-x-0 bottom-0 top-0 z-50 flex h-[100dvh] flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(560px,calc(100dvh-2.5rem))] sm:w-[380px] sm:rounded-lg sm:border sm:border-border sm:shadow-2xl">
           <header className="flex items-start justify-between border-b border-border bg-card px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:rounded-t-lg">
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-foreground">Вопрос в ReAge</h2>
