@@ -181,7 +181,8 @@ export function applyDraftsToDoc(
       const draft = drafts[`${prefix}body`];
       if (draft === undefined) return entry;
       const next = sanitizeReportHtml(draft);
-      if (next === (entry.bodyHtml || "")) return entry;
+      const bodyWasMarkdownOnly = !entry.bodyHtml && !!entry.body?.trim();
+      if (next === (entry.bodyHtml || "") && !(bodyWasMarkdownOnly && !next)) return entry;
       changed = true;
       // Ручная правка «побеждает» структурный снапшот content_json,
       // иначе часть блоков при рендере снова берётся из старого JSON.
@@ -232,7 +233,8 @@ export function applyDraftsToDoc(
       const draft = drafts[key];
       if (draft !== undefined) {
         const html = sanitizeReportHtml(draft);
-        if (html !== (block.commentaryHtml || "")) {
+        const bioWasMarkdownOnly = !block.commentaryHtml && !!block.commentary?.trim();
+        if (html !== (block.commentaryHtml || "") || (bioWasMarkdownOnly && !html)) {
           sectionChanged = true;
           nextBlocks.push({ ...block, commentaryHtml: html });
           continue;
