@@ -210,10 +210,14 @@ export function applyDraftsToDoc(
         const draft = drafts[key];
         if (draft !== undefined) {
           const html = sanitizeReportHtml(draft);
-          if (html !== (block.html || "")) {
+          // Блок без сохранённой разметки (только markdown ИИ): полное стирание
+          // даёт пустую строку, и сравнение с "" ошибочно считало это «без изменений».
+          const hasVisibleText = html.replace(/<[^>]*>|&nbsp;|\s/g, "") !== "";
+          const wasMarkdownOnly = !block.html && !!block.markdown?.trim();
+          if (html !== (block.html || "") || (wasMarkdownOnly && !hasVisibleText)) {
             sectionChanged = true;
             // Пустой prose-блок = пользователь стёр текст → блок исчезает.
-            if (html) nextBlocks.push({ ...block, html });
+            if (hasVisibleText) nextBlocks.push({ ...block, html });
             continue;
           }
         }
