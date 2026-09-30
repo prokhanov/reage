@@ -135,7 +135,7 @@ export default function AdminPartners() {
       await navigator.clipboard.writeText(link);
       setCopiedId(r.user_id);
       setTimeout(() => setCopiedId((id) => (id === r.user_id ? null : id)), 2000);
-où   } catch {
+} catch {
       notify.error("Не удалось скопировать", link);
     }
   };
