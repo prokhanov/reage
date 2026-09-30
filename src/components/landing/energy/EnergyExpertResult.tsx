@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { useState } from "react";
 import { Award, ChevronDown, Clock, FileText, Gift, Heart, MessageCircle, ShoppingCart, Stethoscope, Wallet } from "lucide-react";
 
@@ -239,6 +240,7 @@ export function EnergyExpertResult({
   /** Кнопка покупки под примером расшифровки (на страницах чекапов). */
   showBuyCta?: boolean;
 } = {}) {
+  const pp = usePartnerPrice();
   const { checkup, addToCart } = useEnergyOrder();
   const { rows } = useReportBiomarkers();
   const { doctor } = useCheckupSettings();
@@ -375,7 +377,7 @@ export function EnergyExpertResult({
                 className="h-12 w-full text-base sm:w-auto sm:px-8"
               >
                 <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
-                Купить — {money(checkup.price)}
+                Купить — {money(pp(checkup.price))}
               </Button>
             </div>
           )}

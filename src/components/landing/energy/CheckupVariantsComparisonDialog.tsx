@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -115,7 +116,7 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                         }`}
                       >
                         <div className="text-base font-bold text-primary">{c.variant.label}</div>
-                        <div className="mt-1 text-sm font-bold text-foreground">{money(c.checkup.price)}</div>
+                        <div className="mt-1 text-sm font-bold text-foreground"><PartnerPrice price={c.checkup.price} /></div>
                       </th>
                     ))}
                   </tr>
@@ -160,7 +161,7 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                         }`}
                       >
                         <div className="text-base font-bold text-primary">{c.variant.label}</div>
-                        <div className="mt-1 text-sm font-bold text-foreground">{money(c.checkup.price)}</div>
+                        <div className="mt-1 text-sm font-bold text-foreground"><PartnerPrice price={c.checkup.price} /></div>
                       </th>
                     ))}
                   </tr>
@@ -215,7 +216,7 @@ export function CheckupVariantsComparisonDialog({ open, onOpenChange, checkupSlu
                           Популярный
                         </div>
                       )}
-                      <div className="mt-1 text-sm font-bold text-foreground">{money(c.checkup.price)}</div>
+                      <div className="mt-1 text-sm font-bold text-foreground"><PartnerPrice price={c.checkup.price} /></div>
                       <div className="mt-0.5 text-xs font-normal text-muted-foreground">
                         {markersLabel(c.count)}
                       </div>

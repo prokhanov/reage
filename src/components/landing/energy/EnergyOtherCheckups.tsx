@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -170,8 +171,8 @@ export function EnergyOtherCheckups({ currentSlug }: Props) {
                           <span className="label-mono mb-1 block">Стоимость</span>
                           <span className="text-2xl font-bold text-foreground">
                             {c.slug === FULL_CHECKUP.slug
-                              ? `от ${money(fullMinPrice)}`
-                              : money(priceOf(c.slug, c.price))}
+                              ? <PartnerPrice price={fullMinPrice} prefix="от " />
+                              : <PartnerPrice price={priceOf(c.slug, c.price)} />}
                           </span>
                         </div>
                         <span className="inline-flex h-12 items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">

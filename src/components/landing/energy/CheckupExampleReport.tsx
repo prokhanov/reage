@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { useEffect } from "react";
 import { ShoppingCart, Loader2 } from "lucide-react";
 
@@ -117,6 +118,7 @@ interface Props {
  * карточки показателей (те же, что в больших отчётах) → рекомендации.
  */
 export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart }: Props) {
+  const pp = usePartnerPrice();
   const { rows, loading } = useReportBiomarkers();
   const report = getCheckupExampleReport(checkup.slug);
 
@@ -213,7 +215,7 @@ export function CheckupExampleReport({ checkup, open, onOpenChange, onAddToCart 
             }}
           >
             <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
-            Купить — {money(checkup.price)}
+            Купить — {money(pp(checkup.price))}
           </Button>
         </div>
       </DialogContent>

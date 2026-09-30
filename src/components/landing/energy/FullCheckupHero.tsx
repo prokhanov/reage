@@ -1,3 +1,4 @@
+import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { ArrowRight, Check, Droplet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,7 @@ export function FullCheckupHero({ checkup, onAddToCart, variants, onVariantChang
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
               <div className="text-[2rem] font-bold leading-none text-foreground sm:text-4xl">
-                {money(checkup.price)}
+                <PartnerPrice price={checkup.price} />
               </div>
 
               <YandexSplitBadge amount={calculateSplitPayment(checkup.price)} payments={4} />

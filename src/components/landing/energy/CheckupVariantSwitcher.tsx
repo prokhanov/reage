@@ -1,3 +1,4 @@
+import { usePartnerPrice } from "@/components/PartnerPrice";
 import { markersLabel, money } from "@/data/checkups";
 import type { ResolvedVariant } from "@/hooks/useResolvedCheckups";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,7 @@ interface Props {
 
 /** Переключатель вариантов одного чекапа (создаются в админке «Чекапы → Варианты»). */
 export function CheckupVariantSwitcher({ variants, activeSlug, onChange }: Props) {
+  const pp = usePartnerPrice();
   if (variants.length < 2) return null;
   const idx = Math.max(
     variants.findIndex((v) => v.variant.slug === activeSlug),
@@ -64,7 +66,7 @@ export function CheckupVariantSwitcher({ variants, activeSlug, onChange }: Props
               >
                 {variant.label}
               </span>
-              <span className="text-xs text-muted-foreground sm:text-[13px]">{money(checkup.price)}</span>
+              <span className="text-xs text-muted-foreground sm:text-[13px]">{money(pp(checkup.price))}</span>
             </button>
           );
         })}
