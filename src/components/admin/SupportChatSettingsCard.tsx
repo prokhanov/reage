@@ -11,10 +11,12 @@ export function SupportChatSettingsCard() {
   const [webhook, setWebhook] = useState("");
   const [lastError, setLastError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [token, setToken] = useState("");
+  const [hasToken, setHasToken] = useState(false);
 
   const load = async () => {
     const { data } = await supabase.functions.invoke("support-chat", { body: { action: "admin_status" } });
-    if (data) { setChatId(data.chat_id || ""); setWebhook(data.webhook_url || ""); setLastError(data.last_error || ""); }
+    if (data) { setHasToken(!!data.has_token); setChatId(data.chat_id || ""); setWebhook(data.webhook_url || ""); setLastError(data.last_error || ""); }
   };
   useEffect(() => { load(); }, []);
 
@@ -39,10 +41,15 @@ export function SupportChatSettingsCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
+          <Label>Токен бота поддержки (отдельный бот, не бот уведомлений)</Label>
+          <Input type="password" value={token} onChange={(e) => setToken(e.target.value)}
+            placeholder={hasToken ? "Сохранён — введите новый, чтобы заменить" : "123456:ABC…"} className="max-w-md" />
+        </div>
+        <div className="space-y-2">
           <Label>id группы поддержки</Label>
           <div className="flex flex-wrap gap-2">
             <Input value={chatId} onChange={(e) => setChatId(e.target.value)} placeholder="-100…" className="max-w-xs" />
-            <Button disabled={busy} onClick={() => run({ action: "admin_save", chat_id: chatId }, "Сохранено")}>Сохранить</Button>
+            <Button disabled={busy} onClick={async () => { await run({ action: "admin_save", chat_id: chatId, bot_token: token }, "Сохранено"); setToken(""); }}>Сохранить</Button>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">

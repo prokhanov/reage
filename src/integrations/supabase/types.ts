@@ -3664,6 +3664,7 @@ export type Database = {
           low_balance_template: string
           low_balance_threshold: number
           singleton: boolean
+          support_bot_token: string | null
           support_chat_id: string | null
           support_webhook_secret: string
           updated_at: string
@@ -3682,6 +3683,7 @@ export type Database = {
           low_balance_template?: string
           low_balance_threshold?: number
           singleton?: boolean
+          support_bot_token?: string | null
           support_chat_id?: string | null
           support_webhook_secret?: string
           updated_at?: string
@@ -3700,6 +3702,7 @@ export type Database = {
           low_balance_template?: string
           low_balance_threshold?: number
           singleton?: boolean
+          support_bot_token?: string | null
           support_chat_id?: string | null
           support_webhook_secret?: string
           updated_at?: string

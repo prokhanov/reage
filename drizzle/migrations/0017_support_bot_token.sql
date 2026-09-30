@@ -1,0 +1,1 @@
+ALTER TABLE public.telegram_notification_settings ADD COLUMN IF NOT EXISTS support_bot_token text;
