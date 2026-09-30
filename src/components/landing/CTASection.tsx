@@ -150,14 +150,14 @@ export function Footer() {
 
         {/* Nav */}
         <div className="border-t border-border/40 py-6 flex flex-wrap gap-x-8 gap-y-3">
-          <a href="/partners" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-            Стать партнёром
-          </a>
           <a href="/faq" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Вопросы и ответы
           </a>
           <a href="/prep" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Подготовка к анализам
+          </a>
+          <a href="/partners" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+            Стать партнёром
           </a>
         </div>
 
