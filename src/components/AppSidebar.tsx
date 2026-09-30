@@ -72,6 +72,7 @@ const NAV_ICON = "h-[18px] w-[18px] shrink-0";
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { toast } = useToast();
+  const { data: isPartner } = useIsPartner();
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
