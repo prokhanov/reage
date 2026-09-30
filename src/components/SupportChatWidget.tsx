@@ -213,7 +213,7 @@ export function SupportChatWidget() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
-                  <span className="block text-sm leading-snug text-muted-foreground">Без Telegram, ответ здесь и на почту</span>
+                  <span className="block text-sm leading-snug text-muted-foreground">Ответим прямо здесь и продублируем на почту</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
               </button>
