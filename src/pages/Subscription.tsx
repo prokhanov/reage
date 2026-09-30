@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
+import { getRefCode, usePartnerOffer } from "@/lib/partnerRef";
 import { useQuery } from "@tanstack/react-query";
 import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -17,6 +18,21 @@ export default function Subscription() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  // Скидка партнёра (закрепление или ссылка) показывается сразу и заменяет промокод.
+  const { data: partnerOffer } = usePartnerOffer();
+  useEffect(() => {
+    if (!partnerOffer?.discount_pct || !partnerOffer.code) return;
+    setAppliedPromo((cur) => cur ?? {
+      code: partnerOffer.code as string,
+      promo_code_id: "partner",
+      discount_type: "percent",
+      discount_value: partnerOffer.discount_pct,
+      discount_amount: 0,
+      final_amount: 0,
+      original_amount: 0,
+      applies_to: "all_plans",
+    });
+  }, [partnerOffer]);
   const { toast } = useToast();
   const { data: plans, isLoading } = useSubscriptionPlans();
   const { data: isTestMode } = usePaymentGatewayTestMode();
@@ -91,7 +107,7 @@ export default function Subscription() {
       }
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId, promoCode: currentPromo?.code },
+        body: { planId, pricingId, promoCode: currentPromo?.code || getRefCode() || undefined },
       });
 
       // Сообщение об ошибке (например, невалидный промокод) приходит в data.error
