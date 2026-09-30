@@ -17,7 +17,14 @@ const corsHeaders = {
 const WHOLE_BODY_TYPE = "Организм в целом";
 
 function extractBiomarkerCodes(text: string): string[] {
-  return [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
+  const anchored = [...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
+    .map((match) => match[1]?.trim())
+    .filter((code): code is string => Boolean(code));
+  if (anchored.length > 0) return anchored;
+
+  // Старые целостные разделы могли потерять якорные комментарии, но сохранили
+  // заголовки «Название (CODE)». Это позволяет безопасно пересобрать их.
+  return [...text.matchAll(/^.{2,160}\s\(([A-Za-zА-Яа-я0-9][A-Za-zА-Яа-я0-9_.%/+\- ]{0,30})\)\s*$/gm)]
     .map((match) => match[1]?.trim())
     .filter((code): code is string => Boolean(code));
 }
