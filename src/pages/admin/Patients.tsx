@@ -569,18 +569,6 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            {patient.partner ? (
-                              <Link
-                                to={`/admin/partners/${patient.partner.id}`}
-                                className="text-sm text-primary hover:underline whitespace-nowrap"
-                              >
-                                {patient.partner.name}
-                              </Link>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.bookingLocationType ? (
