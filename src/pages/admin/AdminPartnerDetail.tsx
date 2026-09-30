@@ -267,6 +267,8 @@ export default function AdminPartnerDetail() {
     setTimeout(() => setRefReset(false), 2000);
   };
 
+  const browserCode = useMemo(() => { void refTick; return getRefCode(); }, [refTick]);
+
   if (isLoading) return <div className="p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!data?.partner) return (
     <div className="space-y-4 p-8">
@@ -278,7 +280,6 @@ export default function AdminPartnerDetail() {
   const pa = data.partner;
   const disc = discount ?? pa.discount_pct;
   const oldCodes = data.codes.filter((c: any) => !c.is_current);
-  const browserCode = useMemo(() => { void refTick; return getRefCode(); }, [refTick]);
   const others = data.allPartners.filter((id: string) => id !== partnerId);
 
   return (
