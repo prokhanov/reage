@@ -89,11 +89,11 @@ export function SupportChatWidget() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Открыть чат поддержки"
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105"
+          className="support-chat-fab animate-fade-in fixed bottom-5 right-5 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 hover:scale-110"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-8 w-8" />
           {unread > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-semibold text-destructive-foreground">
+            <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
               {unread}
             </span>
           )}
