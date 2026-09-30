@@ -171,25 +171,39 @@ export function SupportChatWidget() {
       {!chatOpen && (
         <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
           {launcherOpen && (
-            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 flex w-[min(17rem,calc(100vw-2rem))] origin-bottom-right animate-enter flex-col items-end gap-2">
-              <div className="mb-1 max-w-[17rem] rounded-2xl rounded-br-sm border border-border/70 bg-card/95 px-4 py-3 text-sm font-medium leading-relaxed text-foreground shadow-lg backdrop-blur-md">
-                Здравствуйте! Выберите удобный способ связи.
-              </div>
-              <Button asChild className="support-telegram-btn !h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg">
-                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
-                  <span className="font-semibold">Telegram</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                    <Send className="h-5 w-5" />
-                  </span>
-                </a>
-              </Button>
-              <Button className="!h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg" onClick={openChat}>
-                <span className="font-semibold">Чат на сайте</span>
-                <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary-foreground/15">
-                  <MessageCircle className="h-5 w-5" />
-                  {unread > 0 && <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary" />}
+            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 w-[min(19rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-2xl border border-border/70 bg-card/95 p-4 shadow-xl backdrop-blur-md">
+              <p className="mb-2 text-base font-medium text-foreground">Где удобнее написать?</p>
+              <a
+                href={TELEGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setLauncherOpen(false)}
+                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+              >
+                <span className="support-telegram-circle flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm">
+                  <Send className="h-5 w-5" />
                 </span>
-              </Button>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Написать в Telegram</span>
+                  <span className="block text-sm leading-snug text-muted-foreground">Ответим в мессенджере</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              </a>
+              <button
+                type="button"
+                onClick={openChat}
+                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+              >
+                <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                  <MessageCircle className="h-5 w-5" />
+                  {unread > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground ring-2 ring-card">{unreadLabel}</span>}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
+                  <span className="block text-sm leading-snug text-muted-foreground">Без Telegram, ответ здесь и на почту</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              </button>
             </div>
           )}
           <Button
