@@ -276,6 +276,11 @@ export function SupportChatWidget() {
             {msgs.map((m, i) => {
               const mDate = new Date(m.created_at);
               const showDay = i === 0 || dayKey(new Date(msgs[i - 1].created_at)) !== dayKey(mDate);
+              const isVisitor = m.direction === "visitor";
+              const prev = msgs[i - 1];
+              const next = msgs[i + 1];
+              const isGroupStart = showDay || !prev || prev.direction !== m.direction;
+              const isGroupEnd = !next || next.direction !== m.direction || dayKey(new Date(next.created_at)) !== dayKey(mDate);
               return (
                 <Fragment key={m.id}>
                   {showDay && (
@@ -286,12 +291,19 @@ export function SupportChatWidget() {
                   {m.direction === "system" ? (
                     <p className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
                   ) : (
-                    <div className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                      <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
-                        <MessageText text={m.text} />
-                        <div className={cn("mt-0.5 text-right text-[10px] leading-none", m.direction === "visitor" ? "text-primary-foreground/60" : "text-muted-foreground/70")}>
-                          {timeLabel(m.created_at)}
+                    <div className={cn("flex", isVisitor ? "justify-end" : "justify-start")}>
+                      <div className="max-w-[82%]">
+                        {m.direction === "operator" && isGroupStart && (
+                          <div className="mb-1 px-1 text-xs font-medium text-muted-foreground">Поддержка Reage</div>
+                        )}
+                        <div className={cn("whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", isVisitor ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                          <MessageText text={m.text} />
                         </div>
+                        {isGroupEnd && (
+                          <div className={cn("mt-1 px-1 text-[11px] leading-none text-muted-foreground/70", isVisitor ? "text-right" : "text-left")}>
+                            {timeLabel(m.created_at)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
