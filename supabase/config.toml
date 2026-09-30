@@ -51,3 +51,7 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = false
   [functions.submit-lifestyle-quiz]
     verify_jwt = false
+  [functions.support-chat]
+    verify_jwt = false
+  [functions.support-telegram-webhook]
+    verify_jwt = false

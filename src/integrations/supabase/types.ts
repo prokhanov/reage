@@ -3432,6 +3432,89 @@ export type Database = {
           },
         ]
       }
+      support_conversations: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          last_seen_at: string
+          name: string | null
+          page: string | null
+          phone: string | null
+          tg_topic_id: number | null
+          updated_at: string
+          user_id: string | null
+          visitor_token: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_seen_at?: string
+          name?: string | null
+          page?: string | null
+          phone?: string | null
+          tg_topic_id?: number | null
+          updated_at?: string
+          user_id?: string | null
+          visitor_token: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_seen_at?: string
+          name?: string | null
+          page?: string | null
+          phone?: string | null
+          tg_topic_id?: number | null
+          updated_at?: string
+          user_id?: string | null
+          visitor_token?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          direction: string
+          emailed: boolean
+          id: string
+          read_by_visitor: boolean
+          text: string
+          tg_message_id: number | null
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          direction: string
+          emailed?: boolean
+          id?: string
+          read_by_visitor?: boolean
+          text: string
+          tg_message_id?: number | null
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          emailed?: boolean
+          id?: string
+          read_by_visitor?: boolean
+          text?: string
+          tg_message_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -3581,6 +3664,8 @@ export type Database = {
           low_balance_template: string
           low_balance_threshold: number
           singleton: boolean
+          support_chat_id: string | null
+          support_webhook_secret: string
           updated_at: string
           updated_by: string | null
         }
@@ -3597,6 +3682,8 @@ export type Database = {
           low_balance_template?: string
           low_balance_threshold?: number
           singleton?: boolean
+          support_chat_id?: string | null
+          support_webhook_secret?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -3613,6 +3700,8 @@ export type Database = {
           low_balance_template?: string
           low_balance_threshold?: number
           singleton?: boolean
+          support_chat_id?: string | null
+          support_webhook_secret?: string
           updated_at?: string
           updated_by?: string | null
         }
