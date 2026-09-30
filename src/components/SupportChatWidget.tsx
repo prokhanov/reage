@@ -29,6 +29,28 @@ async function call(body: Record<string, unknown>) {
   return data;
 }
 
+const MONTHS_GEN = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+function dayKey(d: Date) {
+  return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate();
+}
+
+function dayLabel(d: Date) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const that = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((today - that) / 86400000);
+  if (diffDays === 0) return "Сегодня";
+  if (diffDays === 1) return "Вчера";
+  const base = `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+  return d.getFullYear() === now.getFullYear() ? base : `${base} ${d.getFullYear()}`;
+}
+
+function timeLabel(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function MessageText({ text }: { text: string }) {
   return (
     <>
@@ -153,10 +175,10 @@ export function SupportChatWidget() {
               <div className="mb-1 max-w-[17rem] rounded-2xl rounded-br-sm border border-border/70 bg-card/95 px-4 py-3 text-sm font-medium leading-relaxed text-foreground shadow-lg backdrop-blur-md">
                 Здравствуйте! Выберите удобный способ связи.
               </div>
-              <Button asChild className="!h-12 w-[15rem] justify-between rounded-xl bg-info px-3 text-info-foreground shadow-lg hover:bg-info/90">
+              <Button asChild className="support-telegram-btn !h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg">
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
                   <span className="font-semibold">Telegram</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-foreground/15">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
                     <Send className="h-5 w-5" />
                   </span>
                 </a>
@@ -212,15 +234,31 @@ export function SupportChatWidget() {
             {loaded && msgs.length === 0 && (
               <p className="mt-10 px-6 text-center text-sm text-muted-foreground">Напишите вопрос про анализы, отчёт или подписку</p>
             )}
-            {msgs.map((m) => m.direction === "system" ? (
-              <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
-            ) : (
-              <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
-                  <MessageText text={m.text} />
-                </div>
-              </div>
-            ))}
+            {msgs.map((m, i) => {
+              const mDate = new Date(m.created_at);
+              const showDay = i === 0 || dayKey(new Date(msgs[i - 1].created_at)) !== dayKey(mDate);
+              return (
+                <Fragment key={m.id}>
+                  {showDay && (
+                    <div className="flex justify-center py-1">
+                      <span className="rounded-full bg-muted-foreground/10 px-3 py-1 text-[11px] font-medium text-muted-foreground">{dayLabel(mDate)}</span>
+                    </div>
+                  )}
+                  {m.direction === "system" ? (
+                    <p className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
+                  ) : (
+                    <div className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
+                      <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                        <MessageText text={m.text} />
+                        <div className={cn("mt-0.5 text-right text-[10px] leading-none", m.direction === "visitor" ? "text-primary-foreground/60" : "text-muted-foreground/70")}>
+                          {timeLabel(m.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
             {showForm && (
               <div className="space-y-2 rounded-lg border border-border bg-card p-3">
                 <div className="font-heading text-base text-foreground">Представьтесь</div>
