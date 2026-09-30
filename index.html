@@ -458,24 +458,6 @@
 
 
 
-    <!-- Jivo (deferred to idle to keep landing fast) -->
-    <script type="text/javascript">
-      (function () {
-        function loadJivo() {
-          var s = document.createElement('script');
-          s.src = '//code.jivo.ru/widget/U83zBCpUF9';
-          s.async = true;
-          var f = document.getElementsByTagName('script')[0];
-          f.parentNode.insertBefore(s, f);
-        }
-        function onIdle() {
-          if ('requestIdleCallback' in window) window.requestIdleCallback(loadJivo, { timeout: 4000 });
-          else setTimeout(loadJivo, 2000);
-        }
-        if (document.readyState === 'complete') onIdle();
-        else window.addEventListener('load', onIdle, { once: true });
-      })();
-    </script>
   </head>
 
   <body>
