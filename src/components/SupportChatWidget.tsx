@@ -202,6 +202,22 @@ export function SupportChatWidget() {
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
               </a>
+              <a
+                href="https://max.ru"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setLauncherOpen(false)}
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
+              >
+                <span className="support-max-circle flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm">
+                  <span className="text-lg font-black leading-none">M</span>
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-semibold leading-snug text-foreground">Написать в MAX</span>
+                  <span className="block text-sm leading-snug text-muted-foreground">+7 (996) 789-74-04</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              </a>
               <button
                 type="button"
                 onClick={openChat}
