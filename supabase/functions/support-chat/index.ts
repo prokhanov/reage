@@ -58,20 +58,20 @@ Deno.serve(async (req) => {
       const { data: roles } = await db.from("user_roles").select("role").eq("user_id", userId);
       if (!(roles ?? []).some((r) => r.role === "superadmin")) return json({ error: "forbidden" }, 403);
       if (body.action === "admin_save") {
-        await db.from("telegram_notification_settings").update({ support_chat_id: body.chat_id || null }).eq("singleton", true);
+        await db.from("telegram_notification_settings").update({ support_chat_id: body.chat_id || null, ...(typeof body.bot_token === "string" && body.bot_token.trim() ? { support_bot_token: body.bot_token.trim() } : {}) }).eq("singleton", true);
         return json({ ok: true });
       }
       if (body.action === "admin_webhook") {
-        if (!s.bot_token) return json({ error: "Сначала укажите токен бота" }, 400);
-        const r = await tg(s.bot_token, "setWebhook", {
+        if (!s.support_bot_token) return json({ error: "Сначала сохраните токен бота поддержки" }, 400);
+        const r = await tg(s.support_bot_token, "setWebhook", {
           url: `${SUPABASE_URL}/functions/v1/support-telegram-webhook`,
           secret_token: s.support_webhook_secret,
           allowed_updates: ["message"],
         });
         return json({ ok: r.ok, error: r.ok ? undefined : r.data?.description });
       }
-      const info = s.bot_token ? await tg(s.bot_token, "getWebhookInfo", {}) : null;
-      return json({ chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
+      const info = s.support_bot_token ? await tg(s.support_bot_token, "getWebhookInfo", {}) : null;
+      return json({ has_token: !!s.support_bot_token, chat_id: s.support_chat_id ?? "", webhook_url: info?.data?.result?.url ?? "", last_error: info?.data?.result?.last_error_message ?? "" });
     }
 
     // ---------- visitor ----------
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       return json({ messages: msgs ?? [], hasContact: !!(conv.email || conv.user_id) });
     }
 
-    if (!s.bot_token || !s.support_chat_id) return json({ error: "Чат временно недоступен" }, 503);
+    if (!s.support_bot_token || !s.support_chat_id) return json({ error: "Чат временно недоступен" }, 503);
     const chatId = s.support_chat_id;
 
     if (!conv) {
@@ -111,12 +111,12 @@ Deno.serve(async (req) => {
     const ensureTopic = async () => {
       if (conv.tg_topic_id) return conv.tg_topic_id as number;
       const title = (conv.name || conv.email || `Гость ${conv.id.slice(0, 4)}`).slice(0, 120);
-      const r = await tg(s.bot_token, "createForumTopic", { chat_id: chatId, name: title });
+      const r = await tg(s.support_bot_token, "createForumTopic", { chat_id: chatId, name: title });
       if (!r.ok) throw new Error("topic: " + (r.data?.description ?? "failed"));
       const topicId = r.data.result.message_thread_id as number;
       await db.from("support_conversations").update({ tg_topic_id: topicId }).eq("id", conv.id);
       conv.tg_topic_id = topicId;
-      await tg(s.bot_token, "sendMessage", {
+      await tg(s.support_bot_token, "sendMessage", {
         chat_id: chatId, message_thread_id: topicId, parse_mode: "HTML",
         text: `🆕 <b>Новый посетитель</b>\n👤 ${conv.user_id ? `id ${esc(conv.user_id)}` : "гость"}\n` +
           (conv.name ? `Имя: ${esc(conv.name)}\n` : "") +
@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
       if ((count ?? 0) >= 8) return json({ error: "Подождите минуту" }, 429);
 
       const topicId = await ensureTopic();
-      const r = await tg(s.bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
+      const r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
       if (!r.ok) return json({ error: "Сообщение не отправилось. Проверьте соединение и повторите" }, 502);
       await db.from("support_messages").insert({ conversation_id: conv.id, direction: "visitor", text: body.text, tg_message_id: r.data.result.message_id, read_by_visitor: true });
       await db.from("support_conversations").update({ last_seen_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", conv.id);
@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
     await db.from("support_conversations").update({ name: body.name, email: body.email.toLowerCase(), phone: body.phone || null }).eq("id", conv.id);
     Object.assign(conv, { name: body.name, email: body.email.toLowerCase(), phone: body.phone || null });
     const topicId = await ensureTopic();
-    await tg(s.bot_token, "editForumTopic", { chat_id: chatId, message_thread_id: topicId, name: body.name.slice(0, 120) });
-    await tg(s.bot_token, "sendMessage", {
+    await tg(s.support_bot_token, "editForumTopic", { chat_id: chatId, message_thread_id: topicId, name: body.name.slice(0, 120) });
+    await tg(s.support_bot_token, "sendMessage", {
       chat_id: chatId, message_thread_id: topicId, parse_mode: "HTML",
       text: `📇 <b>Контакты</b>\n👤 ${esc(body.name)}\n📧 ${esc(body.email)}\n📱 ${esc(body.phone || "—")}`,
     });

@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
   const db = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: s } = await db.from("telegram_notification_settings")
-    .select("bot_token, support_chat_id, support_webhook_secret").eq("singleton", true).maybeSingle();
+    .select("support_bot_token, support_chat_id, support_webhook_secret").eq("singleton", true).maybeSingle();
   if (!s?.bot_token || req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== s.support_webhook_secret) {
     return new Response("Unauthorized", { status: 401 });
   }
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const chatId = String(m.chat.id);
 
     if (/^\/id(@\w+)?$/.test(text)) {
-      await tg(s.bot_token, "sendMessage", {
+      await tg(s.support_bot_token, "sendMessage", {
         chat_id: m.chat.id, message_thread_id: m.message_thread_id, reply_to_message_id: m.message_id,
         text: `id этой группы: ${chatId}`,
       });
@@ -41,14 +41,14 @@ Deno.serve(async (req) => {
     }).select("id").single();
 
     if (error) {
-      await tg(s.bot_token, "sendMessage", {
+      await tg(s.support_bot_token, "sendMessage", {
         chat_id: m.chat.id, message_thread_id: m.message_thread_id, reply_to_message_id: m.message_id,
         text: "⚠️ Ответ не доставлен посетителю — попробуйте ещё раз.",
       });
       return new Response("ok");
     }
 
-    await tg(s.bot_token, "setMessageReaction", {
+    await tg(s.support_bot_token, "setMessageReaction", {
       chat_id: m.chat.id, message_id: m.message_id, reaction: [{ type: "emoji", emoji: "👍" }],
     });
 
