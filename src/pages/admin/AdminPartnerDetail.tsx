@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Copy, ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Eraser, Loader2, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { clearRefCode, getRefCode } from "@/lib/partnerRef";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,8 @@ export default function AdminPartnerDetail() {
   const [payNote, setPayNote] = useState("");
   const [editPayout, setEditPayout] = useState<{ id: string; amount: string; note: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [refReset, setRefReset] = useState(false);
+  const [refTick, setRefTick] = useState(0);
   const [discount, setDiscount] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -256,6 +259,14 @@ export default function AdminPartnerDetail() {
     catch { notify.error("Не удалось скопировать", link); }
   };
 
+  const resetRef = () => {
+    clearRefCode();
+    qc.invalidateQueries({ queryKey: ["partner-offer"] });
+    setRefReset(true);
+    setRefTick((t) => t + 1);
+    setTimeout(() => setRefReset(false), 2000);
+  };
+
   if (isLoading) return <div className="p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!data?.partner) return (
     <div className="space-y-4 p-8">
@@ -267,6 +278,7 @@ export default function AdminPartnerDetail() {
   const pa = data.partner;
   const disc = discount ?? pa.discount_pct;
   const oldCodes = data.codes.filter((c: any) => !c.is_current);
+  const browserCode = useMemo(() => { void refTick; return getRefCode(); }, [refTick]);
   const others = data.allPartners.filter((id: string) => id !== partnerId);
 
   return (
@@ -304,6 +316,17 @@ export default function AdminPartnerDetail() {
             {oldCodes.length > 0 && (
               <p className="text-xs text-muted-foreground">Старые коды (продолжают работать): {oldCodes.map((c: any) => c.code).join(", ")}</p>
             )}
+            <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+              <p className="text-xs text-muted-foreground">
+                Этот браузер: {browserCode ? <>запомнен код <code className="font-mono text-foreground">{browserCode}</code></> : "привязки нет"}
+              </p>
+              {browserCode && (
+                <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={resetRef} title="Удаляет запомненный код партнёра из этого браузера">
+                  {refReset ? <Check className="h-3.5 w-3.5 text-success" /> : <Eraser className="h-3.5 w-3.5" />}
+                  Сбросить привязку в этом браузере
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card>
