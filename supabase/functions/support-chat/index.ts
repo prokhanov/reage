@@ -123,6 +123,10 @@ Deno.serve(async (req) => {
       await db.from("support_conversations").update(patch).eq("id", conv.id);
       Object.assign(conv, patch);
       if (conv.tg_topic_id) {
+        const title = (pname || prof?.email || conv.name || conv.email || "").slice(0, 120);
+        if (title) {
+          await tg(s.support_bot_token, "editForumTopic", { chat_id: chatId, message_thread_id: conv.tg_topic_id, name: title });
+        }
         await tg(s.support_bot_token, "sendMessage", {
           chat_id: chatId, message_thread_id: conv.tg_topic_id, parse_mode: "HTML",
           text: `🔐 <b>Посетитель вошёл в аккаунт</b>\n👤 id ${esc(userId)}\n` +
