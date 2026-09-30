@@ -153,7 +153,7 @@ export function SupportChatWidget() {
               <div className="mb-1 max-w-[17rem] rounded-2xl rounded-br-sm border border-border/70 bg-card/95 px-4 py-3 text-sm font-medium leading-relaxed text-foreground shadow-lg backdrop-blur-md">
                 Здравствуйте! Выберите удобный способ связи.
               </div>
-              <Button asChild className="h-12 w-[15rem] justify-between rounded-xl bg-info px-3 text-info-foreground shadow-lg hover:bg-info/90">
+              <Button asChild className="!h-12 w-[15rem] justify-between rounded-xl bg-info px-3 text-info-foreground shadow-lg hover:bg-info/90">
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
                   <span className="font-semibold">Telegram</span>
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-foreground/15">
@@ -161,7 +161,7 @@ export function SupportChatWidget() {
                   </span>
                 </a>
               </Button>
-              <Button className="h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg" onClick={openChat}>
+              <Button className="!h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg" onClick={openChat}>
                 <span className="font-semibold">Чат на сайте</span>
                 <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary-foreground/15">
                   <MessageCircle className="h-5 w-5" />
@@ -176,7 +176,7 @@ export function SupportChatWidget() {
             onClick={() => setLauncherOpen((value) => !value)}
             aria-label={launcherOpen ? "Закрыть способы связи" : "Открыть способы связи"}
             aria-expanded={launcherOpen}
-            className="support-chat-fab h-16 w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
+            className="support-chat-fab !h-16 !w-16 rounded-full shadow-xl transition-transform duration-200 hover:scale-105 [&_svg]:h-8 [&_svg]:w-8"
           >
             <span className={cn("transition-transform duration-200", launcherOpen && "rotate-90")}>
               {launcherOpen ? <X /> : <MessageCircle />}
@@ -216,7 +216,7 @@ export function SupportChatWidget() {
               <p key={m.id} className="px-4 py-1 text-center text-xs text-muted-foreground">{m.text}</p>
             ) : (
               <div key={m.id} className={cn("flex", m.direction === "visitor" ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
+                <div className={cn("max-w-[82%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed", m.direction === "visitor" ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border border-border bg-card text-foreground")}>
                   <MessageText text={m.text} />
                 </div>
               </div>
