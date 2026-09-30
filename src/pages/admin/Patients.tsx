@@ -46,6 +46,7 @@ import {
   TableToolbarActions,
 } from "@/components/ui/data-table";
 import { RoleBadge } from "@/components/admin/RoleBadge";
+import { Link } from "react-router-dom";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -140,6 +141,38 @@ export default function Patients() {
         return acc;
       }, {});
 
+      // Партнёрские привязки: к кому закреплён клиент (по аккаунту, телефону или email)
+      const { data: partnerClients } = await supabase
+        .from("partner_clients")
+        .select("partner_id, kind, value");
+
+      const partnerIds = [...new Set((partnerClients || []).map((c: any) => c.partner_id))];
+      const { data: partnerProfiles } = partnerIds.length
+        ? await supabase.from("profiles").select("id, name").in("id", partnerIds)
+        : { data: [] as any[] };
+      const partnerNameById = (partnerProfiles || []).reduce((acc: any, p: any) => {
+        acc[p.id] = p.name || "Партнёр";
+        return acc;
+      }, {});
+
+      const normalizePhone = (p?: string | null) => (p || "").replace(/\D/g, "");
+      const partnerByUser: Record<string, { id: string; name: string }> = {};
+      for (const profile of profiles || []) {
+        const phone = normalizePhone(profile.phone);
+        const email = (profile.email || "").toLowerCase();
+        const match = (partnerClients || []).find((c: any) =>
+          (c.kind === "account" && c.value === profile.id) ||
+          (c.kind === "phone" && phone && normalizePhone(c.value) === phone) ||
+          (c.kind === "email" && email && c.value.toLowerCase() === email)
+        );
+        if (match) {
+          partnerByUser[profile.id] = {
+            id: match.partner_id,
+            name: partnerNameById[match.partner_id] || "Партнёр",
+          };
+        }
+      }
+
       // Get analysis count for each user
       const profilesWithStats = await Promise.all(
         (profiles || []).map(async (profile) => {
@@ -224,6 +257,8 @@ export default function Patients() {
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
             bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
+            partner: partnerByUser[profile.id] || null,
+
 
             role: primaryRole,
             allRoles: userRoleData.allRoles,
@@ -411,6 +446,7 @@ export default function Patients() {
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
+                      <TableHead>Партнёр</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
@@ -533,6 +569,18 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {patient.partner ? (
+                              <Link
+                                to={`/admin/partners/${patient.partner.id}`}
+                                className="text-sm text-primary hover:underline whitespace-nowrap"
+                              >
+                                {patient.partner.name}
+                              </Link>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.bookingLocationType ? (
@@ -574,7 +622,7 @@ export default function Patients() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableEmpty colSpan={10}>Пациенты не найдены</TableEmpty>
+                      <TableEmpty colSpan={11}>Пациенты не найдены</TableEmpty>
                     )}
                   </TableBody>
                 </Table>
