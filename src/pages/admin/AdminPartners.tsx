@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -164,7 +165,7 @@ export default function AdminPartners() {
                   return (
                     <tr key={r.user_id} className="border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40">
                       <td className="py-3 pr-4">
-                        <div className="whitespace-nowrap font-medium text-foreground">{name}</div>
+                        <Link to={`/admin/partners/${r.user_id}`} className="whitespace-nowrap font-medium text-foreground underline-offset-4 hover:text-primary hover:underline">{name}</Link>
                         <div className="mt-0.5 text-xs text-muted-foreground">
                           {[r.prof?.email, r.prof?.phone].filter(Boolean).join(" · ") || "—"}
                         </div>

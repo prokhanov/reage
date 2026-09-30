@@ -44,6 +44,7 @@ const Partners = lazy(() => import("./pages/Partners"));
 const RefRedirect = lazy(() => import("./pages/RefRedirect"));
 const PartnerCabinet = lazy(() => import("./pages/PartnerCabinet"));
 const AdminPartners = lazy(() => import("./pages/admin/AdminPartners"));
+const AdminPartnerDetail = lazy(() => import("./pages/admin/AdminPartnerDetail"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Business = lazy(() => import("./pages/Business"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -214,6 +215,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/partner" element={<PartnerCabinet />} />
               <Route path="/admin/partners" element={<SuperAdminRoute><AdminPartners /></SuperAdminRoute>} />
+              <Route path="/admin/partners/:partnerId" element={<SuperAdminRoute><AdminPartnerDetail /></SuperAdminRoute>} />
               <Route path="/analyses" element={<PatientRoute><Analyses /></PatientRoute>} />
               <Route path="/analyses/:id" element={<PatientRoute><AnalysisDetail /></PatientRoute>} />
               <Route path="/biomarkers" element={<Navigate to="/dashboard" replace />} />
