@@ -203,7 +203,7 @@ export function SupportChatWidget() {
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
               </a>
               <a
-                href="https://max.ru"
+                href="https://max.ru/u/f9LHodD0cOKTTycJgx2GSK9k_P7Z6wyFZKum4VrFWKHt9gwYy3V0jjv5iAg"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setLauncherOpen(false)}
