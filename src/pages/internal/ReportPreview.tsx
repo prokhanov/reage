@@ -50,7 +50,6 @@ export default function ReportPreview() {
     const prevScheme = html.style.colorScheme;
     html.classList.remove("dark");
     html.classList.add("light");
-    body.classList.add("hide-jivo");
     html.style.background = "#ffffff";
     html.style.colorScheme = "light";
     body.style.background = "#ffffff";
@@ -59,7 +58,6 @@ export default function ReportPreview() {
       html.style.background = prevHtmlBg;
       html.style.colorScheme = prevScheme;
       body.style.background = prevBodyBg;
-      body.classList.remove("hide-jivo");
     };
   }, []);
 
