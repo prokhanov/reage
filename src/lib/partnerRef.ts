@@ -37,6 +37,16 @@ export function setRefCode(code: string) {
   }
 }
 
+/** Удаляет партнёрский код из этого браузера (только локально, закрепление в базе не трогает). */
+export function clearRefCode() {
+  try {
+    localStorage.removeItem(KEY);
+    window.dispatchEvent(new Event("reage:ref-changed"));
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function fetchPartnerOffer(code: string | null): Promise<PartnerOffer | null> {
   const { data, error } = await supabase.rpc("partner_offer" as any, { p_code: code });
   if (error || !data) return null;
