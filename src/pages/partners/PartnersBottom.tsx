@@ -124,7 +124,6 @@ export function JoinSection() {
             </p>
           </div>
         </div>
-        </div>
       </div>
     </section>
   );
