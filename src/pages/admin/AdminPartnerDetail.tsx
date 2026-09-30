@@ -459,13 +459,37 @@ export default function AdminPartnerDetail() {
               <div className="divide-y divide-border/60">
                 {data.payouts.map((p: any) => {
                   const by = prof(p.paid_by);
+                  const editing = editPayout?.id === p.id;
                   return (
-                    <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                      <div>
-                        <div className="text-foreground">{fmtDate(p.paid_at)}{p.note && <span className="text-muted-foreground"> · {p.note}</span>}</div>
-                        {by && <div className="text-xs text-muted-foreground">отметил {fio(by) || by.email}</div>}
-                      </div>
-                      <div className="font-semibold tabular-nums text-foreground">{money(Number(p.amount))}</div>
+                    <div key={p.id} className="py-3">
+                      {editing ? (
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <Input type="number" min={0} value={editPayout.amount}
+                            onChange={(e) => setEditPayout({ ...editPayout, amount: e.target.value })} className="sm:w-56" />
+                          <Input placeholder="Комментарий" value={editPayout.note}
+                            onChange={(e) => setEditPayout({ ...editPayout, note: e.target.value })} />
+                          <Button size="sm" onClick={savePayout} className="shrink-0">Сохранить</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditPayout(null)} className="shrink-0">Отмена</Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <div className="text-foreground">{fmtDate(p.paid_at)}{p.note && <span className="text-muted-foreground"> · {p.note}</span>}</div>
+                            {by && <div className="text-xs text-muted-foreground">отметил {fio(by) || by.email}</div>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-semibold tabular-nums text-foreground">{money(Number(p.amount))}</div>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Изменить"
+                              onClick={() => setEditPayout({ id: p.id, amount: String(Number(p.amount)), note: p.note ?? "" })}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Удалить"
+                              onClick={() => deletePayout(p)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
