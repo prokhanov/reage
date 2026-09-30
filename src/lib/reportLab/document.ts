@@ -186,7 +186,7 @@ export function applyDraftsToDoc(
       changed = true;
       // Ручная правка «побеждает» структурный снапшот content_json,
       // иначе часть блоков при рендере снова берётся из старого JSON.
-      return { ...entry, bodyHtml: next, contentJson: null };
+      return next ? { ...entry, bodyHtml: next, contentJson: null } : { ...entry, bodyHtml: "", body: "", contentJson: null };
     }
 
     // section
@@ -236,7 +236,7 @@ export function applyDraftsToDoc(
         const bioWasMarkdownOnly = !block.commentaryHtml && !!block.commentary?.trim();
         if (html !== (block.commentaryHtml || "") || (bioWasMarkdownOnly && !html)) {
           sectionChanged = true;
-          nextBlocks.push({ ...block, commentaryHtml: html });
+          nextBlocks.push(html ? { ...block, commentaryHtml: html } : { ...block, commentaryHtml: "", commentary: "" });
           continue;
         }
       }
