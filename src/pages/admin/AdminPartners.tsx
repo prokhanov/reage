@@ -128,6 +128,18 @@ export default function AdminPartners() {
 
   const monthLabel = period.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
 
+  const copyLink = async (r: any) => {
+    if (!r.code) return;
+    const link = `https://reage.life/r/${r.code}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(r.user_id);
+      setTimeout(() => setCopiedId((id) => (id === r.user_id ? null : id)), 2000);
+où   } catch {
+      notify.error("Не удалось скопировать", link);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-8">
       <h1 className="font-display text-3xl text-foreground">Партнёры</h1>
