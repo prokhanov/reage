@@ -719,3 +719,19 @@ All colors MUST be HSL.
 .split-range:focus-visible::-webkit-slider-thumb {
   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.3);
 }
+
+/* Support chat floating button — soft pulsing halo */
+@keyframes support-fab-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.45), 0 10px 25px -8px hsl(var(--primary) / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 16px hsl(var(--primary) / 0), 0 10px 25px -8px hsl(var(--primary) / 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0), 0 10px 25px -8px hsl(var(--primary) / 0.5);
+  }
+}
+.support-chat-fab {
+  animation: support-fab-pulse 2.5s ease-out infinite;
+}
