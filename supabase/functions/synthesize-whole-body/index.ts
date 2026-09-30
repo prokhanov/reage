@@ -130,7 +130,7 @@ function validateBiomarkerStructure(
 // Приводит блок «Что это значит для вас» к эталону обычного отчёта:
 // только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
 // «Это может проявляться:» перед пунктами и фиксированная финальная строка.
-const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Назначения».";
+const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Рекомендации».";
 export function normalizeMeaningBlocks(text: string): string {
   return text.replace(
     /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
