@@ -77,23 +77,6 @@ export function BenefitsSection() {
   );
 }
 
-/** Декоративный псевдо-QR — визуальный якорь для промокода. */
-function PseudoQr() {
-  const cells = Array.from({ length: 36 }, (_, i) => (i * 7 + (i % 5) * 3) % 4 < 2);
-  return (
-    <div
-      aria-hidden
-      className="grid grid-cols-6 gap-1 rounded-xl bg-white p-3 shadow-sm"
-    >
-      {cells.map((filled, i) => (
-        <span
-          key={i}
-          className={`h-3 w-3 rounded-[3px] ${filled ? "bg-primary" : "bg-border/40"}`}
-        />
-      ))}
-    </div>
-  );
-}
 
 export function JoinSection() {
   return (
@@ -130,36 +113,15 @@ export function JoinSection() {
             </Button>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border hairline bg-background p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Шаг 1 · Оставьте заявку
-              </p>
-              <a
-                href={TELEGRAM_URL}
-                className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Оставить заявку
-              </a>
-              <p className="mt-3 text-center text-sm text-muted-foreground">
-                ФИО, контакты и пару слов о себе
-              </p>
-            </div>
-            <div className="rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
-                После подключения
-              </p>
-              <div className="mt-4 flex items-center gap-5">
-                <PseudoQr />
-                <div className="min-w-0">
-                  <p className="text-sm text-primary-foreground/80">Ваш промокод</p>
-                  <p className="text-2xl font-bold">IVANOVA</p>
-                  <p className="mt-2 truncate text-sm text-primary-foreground/80">
-                    reage.life/ivanova
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
+              После подключения
+            </p>
+            <p className="mt-4 text-sm text-primary-foreground/80">Ваш промокод</p>
+            <p className="text-2xl font-bold">IVANOVA</p>
+            <p className="mt-2 truncate text-sm text-primary-foreground/80">
+              reage.life/ivanova
+            </p>
           </div>
         </div>
       </div>
@@ -226,7 +188,6 @@ export function FinalCta() {
             Подключитесь — первый клиент может прийти уже завтра
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-lg text-primary-foreground/85">
-            Оставьте заявку за одну минуту — код, ссылка и QR появятся сразу после подключения.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
