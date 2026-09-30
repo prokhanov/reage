@@ -171,20 +171,20 @@ export function SupportChatWidget() {
       {!chatOpen && (
         <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
           {launcherOpen && (
-            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 w-[min(19rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-2xl border border-border/70 bg-card/95 p-4 shadow-xl backdrop-blur-md">
-              <p className="mb-2 text-base font-medium text-foreground">Где удобнее написать?</p>
+            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 w-[min(23rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-2xl border border-border/70 bg-card p-5 shadow-xl">
+              <p className="mb-3 text-lg font-semibold tracking-tight text-foreground">Где удобнее написать?</p>
               <a
                 href={TELEGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
               >
                 <span className="support-telegram-circle flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm">
                   <Send className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Написать в Telegram</span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">Написать в Telegram</span>
                   <span className="block text-sm leading-snug text-muted-foreground">Ответим в мессенджере</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
@@ -192,14 +192,14 @@ export function SupportChatWidget() {
               <button
                 type="button"
                 onClick={openChat}
-                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
               >
                 <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
                   <MessageCircle className="h-5 w-5" />
                   {unread > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground ring-2 ring-card">{unreadLabel}</span>}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
                   <span className="block text-sm leading-snug text-muted-foreground">Без Telegram, ответ здесь и на почту</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
@@ -207,13 +207,13 @@ export function SupportChatWidget() {
               <a
                 href="tel:+79959984638"
                 onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-3 rounded-xl py-2.5 pr-1 text-left transition-colors hover:bg-accent/60"
+                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-sm">
                   <Phone className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-semibold leading-snug text-foreground">Позвонить</span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">Позвонить</span>
                   <span className="block text-sm leading-snug text-muted-foreground">+7 (995) 998-46-38</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
@@ -255,7 +255,7 @@ export function SupportChatWidget() {
         <section role="dialog" aria-modal="true" aria-label="Чат поддержки ReAge" className="support-chat-panel fixed inset-0 z-50 flex flex-col bg-muted sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(560px,calc(100dvh-2.5rem))] sm:w-[380px] sm:rounded-lg sm:border sm:border-border sm:shadow-2xl">
           <header className="flex items-start justify-between border-b border-border bg-card px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:rounded-t-lg">
             <div>
-              <h2 className="font-heading text-lg text-foreground">Вопрос в ReAge</h2>
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">Вопрос в ReAge</h2>
               <p className="text-xs text-muted-foreground">Ответим здесь, а если вы уйдёте — на почту</p>
             </div>
             <Button variant="ghost" size="icon" onClick={closeChat} aria-label="Закрыть чат" className="h-9 w-9">
@@ -300,7 +300,7 @@ export function SupportChatWidget() {
             })}
             {showForm && (
               <div className="space-y-2 rounded-lg border border-border bg-card p-3">
-                <div className="font-heading text-base text-foreground">Представьтесь</div>
+                <div className="text-base font-semibold text-foreground">Представьтесь</div>
                 <input aria-label="Имя" autoComplete="name" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Имя" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 <input aria-label="Почта" autoComplete="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Почта" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input aria-label="Телефон" autoComplete="tel" inputMode="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Телефон" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
