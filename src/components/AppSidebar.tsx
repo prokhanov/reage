@@ -187,7 +187,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           !isOpen && "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-y-auto">
           {/* Logo with collapse button */}
           <div
             className={cn(
@@ -291,7 +291,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           )}
 
           {/* Navigation */}
-          <nav className={cn("flex-1 overflow-y-auto flex flex-col gap-1 py-4", isOpen ? "px-3" : "px-2")}>
+          <nav className={cn("flex-1 min-h-0 overflow-y-auto flex flex-col gap-1 py-4", isOpen ? "px-3" : "px-2")}>
             {isLoadingRoles ? (
               // Скелетон навигации
               <>
@@ -403,6 +403,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             )}
 
+            {viewAsUserId && isPartner && (
+              <button
+                onClick={() => { setSimPath("/partner"); closeSidebarOnMobile(); }}
+                className={navItemClass(simPath === "/partner", isOpen)}
+                title={!isOpen ? "Партнёрам" : undefined}
+              >
+                <Briefcase className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Партнёрам</span>}
+              </button>
+            )}
             {!viewAsUserId && isPartner && (
               <NavLink
                 to="/partner"

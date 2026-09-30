@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const EXAMPLE_PRICE = FULL_CHECKUP.price;
 
 export default function PartnerCabinet() {
   const qc = useQueryClient();
+  const readOnly = !!useContext(ViewAsPatientContext).viewAsUserId;
   const { data: me, isLoading } = usePartnerMe();
   const { data: orders = [] } = usePartnerOrders(!!me);
   const [code, setCode] = useState("");
@@ -95,8 +97,8 @@ export default function PartnerCabinet() {
         <CardHeader><CardTitle>Промокод и ссылка</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" />
-            <Button onClick={saveCode} disabled={savingCode || !code.trim() || code === me.code} className="h-11 shrink-0">
+            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Придумайте промокод" className="h-11" disabled={readOnly} />
+            <Button onClick={saveCode} disabled={readOnly || savingCode || !code.trim() || code === me.code} className="h-11 shrink-0">
               {savingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
             </Button>
           </div>
@@ -121,13 +123,13 @@ export default function PartnerCabinet() {
             <span className="text-muted-foreground">Скидка клиенту: <b className="text-foreground">{discount}%</b></span>
             <span className="text-muted-foreground">Вам: <b className="text-foreground">{20 - discount}%</b></span>
           </div>
-          <Slider min={0} max={20} step={1} value={[discount]} onValueChange={([v]) => setDiscount(v)} onValueCommit={([v]) => saveSettings(v, hideConsult)} disabled={savingSettings} />
+          <Slider min={0} max={20} step={1} value={[discount]} onValueChange={([v]) => setDiscount(v)} onValueCommit={([v]) => saveSettings(v, hideConsult)} disabled={readOnly || savingSettings} />
           <p className="text-sm text-muted-foreground">
             При чекапе за {money(EXAMPLE_PRICE)} клиент платит {money(clientPays)}, вы получаете {money(youGet)}.
           </p>
           <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
             <Label htmlFor="hide-consult" className="text-sm text-foreground">Не предлагать консультацию врача моим клиентам</Label>
-            <Switch id="hide-consult" checked={hideConsult} onCheckedChange={(v) => { setHideConsult(v); saveSettings(discount, v); }} disabled={savingSettings} />
+            <Switch id="hide-consult" checked={hideConsult} onCheckedChange={(v) => { setHideConsult(v); saveSettings(discount, v); }} disabled={readOnly || savingSettings} />
           </div>
         </CardContent>
       </Card>

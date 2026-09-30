@@ -106,6 +106,13 @@
       "when": 1790774367817,
       "tag": "0014_partner_auto_code",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790776035782,
+      "tag": "0015_partner_cabinet_staff_view",
+      "breakpoints": true
     }
   ]
 }

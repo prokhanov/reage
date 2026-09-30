@@ -3847,9 +3847,9 @@ export type Database = {
         }
         Returns: undefined
       }
-      partner_get_my: { Args: never; Returns: Json }
+      partner_get_my: { Args: { p_user_id?: string }; Returns: Json }
       partner_my_orders: {
-        Args: never
+        Args: { p_user_id?: string }
         Returns: {
           amount: number
           client_no: number
@@ -3869,6 +3869,7 @@ export type Database = {
         Args: { p_discount_pct: number; p_hide_consultation: boolean }
         Returns: Json
       }
+      partner_view_uid: { Args: { p_user_id: string }; Returns: string }
       publish_report_document: {
         Args: { p_analysis_id: string; p_blocks?: Json }
         Returns: string
