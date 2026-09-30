@@ -99,6 +99,13 @@
       "when": 1790769901129,
       "tag": "0013_partner_offer_privacy",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790774367817,
+      "tag": "0014_partner_auto_code",
+      "breakpoints": true
     }
   ]
 }

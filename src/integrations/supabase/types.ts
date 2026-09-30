@@ -3837,6 +3837,7 @@ export type Database = {
         Returns: number
       }
       normalize_contact_phone: { Args: { p: string }; Returns: string }
+      partner_auto_code: { Args: { p_len?: number }; Returns: string }
       partner_bind: {
         Args: {
           p_email: string
