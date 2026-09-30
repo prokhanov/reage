@@ -175,7 +175,7 @@ export function SupportChatWidget() {
               <div className="mb-1 max-w-[17rem] rounded-2xl rounded-br-sm border border-border/70 bg-card/95 px-4 py-3 text-sm font-medium leading-relaxed text-foreground shadow-lg backdrop-blur-md">
                 Здравствуйте! Выберите удобный способ связи.
               </div>
-              <Button asChild className="!h-12 w-[15rem] justify-between rounded-xl bg-info px-3 text-info-foreground shadow-lg hover:bg-info/90">
+              <Button asChild className="support-telegram-btn !h-12 w-[15rem] justify-between rounded-xl px-3 shadow-lg">
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)}>
                   <span className="font-semibold">Telegram</span>
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-foreground/15">
