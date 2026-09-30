@@ -446,10 +446,10 @@ export default function Patients() {
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
-                      <TableHead>Партнёр</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
+                      <TableHead>Партнёр</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -569,18 +569,6 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            {patient.partner ? (
-                              <Link
-                                to={`/admin/partners/${patient.partner.id}`}
-                                className="text-sm text-primary hover:underline whitespace-nowrap"
-                              >
-                                {patient.partner.name}
-                              </Link>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.bookingLocationType ? (
@@ -608,6 +596,18 @@ export default function Patients() {
                           </TableCell>
                           <TableCell className="text-center">
                             {patient.analysisCount}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {patient.partner ? (
+                              <Link
+                                to={`/admin/partners/${patient.partner.id}`}
+                                className="text-sm text-primary hover:underline whitespace-nowrap"
+                              >
+                                {patient.partner.name}
+                              </Link>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
                             <RowActions label={`Действия: ${patient.name || patient.email}`}>
