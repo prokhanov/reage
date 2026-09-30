@@ -19,6 +19,7 @@ import { RegisterGuardProvider } from "@/components/RegisterGuard";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { YandexMetrika } from "@/components/YandexMetrika";
 import { JivoVisibility } from "./components/JivoVisibility";
+import { PartnerOfferBanner } from "@/components/PartnerOfferBanner";
 
 // Statically imported — landing critical path
 import Index from "./pages/Index";
@@ -40,6 +41,9 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const LifestyleTest = lazy(() => import("./pages/LifestyleTest"));
 const AnalysisPrep = lazy(() => import("./pages/AnalysisPrep"));
 const Partners = lazy(() => import("./pages/Partners"));
+const RefRedirect = lazy(() => import("./pages/RefRedirect"));
+const PartnerCabinet = lazy(() => import("./pages/PartnerCabinet"));
+const AdminPartners = lazy(() => import("./pages/admin/AdminPartners"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Business = lazy(() => import("./pages/Business"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -131,6 +135,7 @@ const App = () => (
           <JivoVisibility />
           <RegisterGuardProvider>
           <Suspense fallback={<RouteFallback />}>
+          <PartnerOfferBanner />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -163,6 +168,7 @@ const App = () => (
             <Route path="/faq" element={<Faq />} />
             <Route path="/business" element={<Business />} />
             <Route path="/partners" element={<Partners />} />
+            <Route path="/r/:code" element={<RefRedirect />} />
             <Route path="/lifestyle-test" element={<LifestyleTest />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/:step" element={<Register />} />
@@ -206,6 +212,8 @@ const App = () => (
               <Route path="/dashboard" element={<PatientRoute><Dashboard /></PatientRoute>} />
               <Route path="/health-strategy" element={<PatientRoute><HealthStrategy /></PatientRoute>} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/partner" element={<PartnerCabinet />} />
+              <Route path="/admin/partners" element={<SuperAdminRoute><AdminPartners /></SuperAdminRoute>} />
               <Route path="/analyses" element={<PatientRoute><Analyses /></PatientRoute>} />
               <Route path="/analyses/:id" element={<PatientRoute><AnalysisDetail /></PatientRoute>} />
               <Route path="/biomarkers" element={<Navigate to="/dashboard" replace />} />

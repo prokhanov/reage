@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
+import { getRefCode } from "@/lib/partnerRef";
 import { normalizePhone } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +24,6 @@ import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 import { getYmClientId } from "@/lib/yandexMetrika";
 
-const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 const CBC_BONUS_PRICE = 990;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -76,14 +76,25 @@ export function EnergyCart() {
   const [middleName, setMiddleName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [promo, setPromo] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    type: "percent" | "fixed";
+    value: number;
+    partner: boolean;
+    hideConsultation: boolean;
+  } | null>(null);
   const [consult, setConsult] = useState(false);
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
-  const discount = appliedPromo ? Math.round(itemsSum * appliedPromo.discount) : 0;
+  const discount = !appliedPromo
+    ? 0
+    : appliedPromo.type === "fixed"
+      ? Math.min(appliedPromo.value, itemsSum)
+      : Math.round((itemsSum * appliedPromo.value) / 100);
+  const consultHidden = appliedPromo?.hideConsultation === true;
   const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
@@ -118,17 +129,46 @@ export function EnergyCart() {
     [clinic],
   );
 
-  const applyPromo = () => {
-    const code = promo.trim().toUpperCase();
-    const value = PROMOS[code];
-    if (!value) {
-      setAppliedPromo(null);
-      notify.error("Промокод не найден", "Проверьте написание кода.");
+  // Проверка кода на сервере: партнёр (по аккаунту/контактам/коду) важнее обычного промокода.
+  const checkPromo = async (code: string, opts: { silent?: boolean } = {}) => {
+    const { data } = await supabase.rpc("checkup_promo_preview" as any, {
+      p_code: code || null,
+      p_phone: phoneValid ? normalizePhone(phone) : null,
+      p_email: emailValid ? email.trim() : null,
+    });
+    const r = data as any;
+    if (!r?.success) {
+      if (!opts.silent) {
+        setAppliedPromo(null);
+        notify.error(r?.error ?? "Промокод не найден", "Проверьте написание кода.");
+      }
       return;
     }
-    setAppliedPromo({ code, discount: value });
-    notify.success("Промокод применён", `Скидка ${Math.round(value * 100)}%`);
+    const next = {
+      code: String(r.code ?? code).toUpperCase(),
+      type: r.discount_type === "fixed" ? ("fixed" as const) : ("percent" as const),
+      value: Number(r.discount_value) || 0,
+      partner: r.partner === true,
+      hideConsultation: r.hide_consultation === true,
+    };
+    setAppliedPromo(next.value > 0 || next.partner ? next : null);
+    if (next.partner) setPromo(next.code);
+    if (next.hideConsultation) setConsult(false);
+    if (!opts.silent) {
+      notify.success("Промокод применён", next.type === "fixed" ? `Скидка ${money(next.value)}` : `Скидка ${next.value}%`);
+    }
   };
+
+  const applyPromo = () => checkPromo(promo.trim().toUpperCase());
+
+  // Код из партнёрской ссылки подставляется сам; телефон/email могут указать на закреплённого партнёра.
+  useEffect(() => {
+    if (!cartOpen) return;
+    const ref = getRefCode();
+    if (ref && !promo) setPromo(ref);
+    checkPromo(promo.trim().toUpperCase() || ref || "", { silent: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartOpen, phoneValid, emailValid]);
 
   const handlePay = async () => {
     setTouched(true);
@@ -148,7 +188,7 @@ export function EnergyCart() {
           middleName: middleName.trim(),
           birthDate: birthIso,
           promoCode: appliedPromo?.code,
-          consultation: consult,
+          consultation: consult && !consultHidden,
           clinic: clinic
             ? {
                 id: String(clinic.id ?? ""),
@@ -407,7 +447,7 @@ export function EnergyCart() {
               </div>
             </Step>
 
-            {doctor.consultation_enabled && (
+            {doctor.consultation_enabled && !consultHidden && (
             <Step n={4} title="Добавить консультацию">
               <label
                 className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${

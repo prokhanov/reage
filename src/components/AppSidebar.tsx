@@ -17,6 +17,7 @@ import { useEmailConfirmation } from "@/hooks/useEmailConfirmation";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { performSafeLogout } from "@/lib/authLogout";
+import { useIsPartner } from "@/hooks/usePartnerCabinet";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ const adminNavItems: Array<{ to: string; label: string; icon: any; module: Admin
   { to: "/admin/checkups", label: "Чекапы", icon: ShoppingCart, module: "checkups" },
   { to: "/admin/labs", label: "Лаборатории", icon: MapPin, module: "lab_locations" },
   { to: "/admin/site", label: "Сайт", icon: Globe, module: "site_settings" },
+  { to: "/admin/partners", label: "Партнёры", icon: Briefcase, module: "site_settings" },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical, module: "data_management" },
 ];
 
@@ -70,6 +72,7 @@ const NAV_ICON = "h-[18px] w-[18px] shrink-0";
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { toast } = useToast();
+  const { data: isPartner } = useIsPartner();
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
@@ -397,6 +400,18 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               >
                 <User className={NAV_ICON} strokeWidth={1.6} />
                 {isOpen && <span className="truncate">Профиль</span>}
+              </NavLink>
+            )}
+
+            {!viewAsUserId && isPartner && (
+              <NavLink
+                to="/partner"
+                onClick={closeSidebarOnMobile}
+                className={({ isActive }) => navItemClass(!!isActive, isOpen)}
+                title={!isOpen ? "Партнёрам" : undefined}
+              >
+                <Briefcase className={NAV_ICON} strokeWidth={1.6} />
+                {isOpen && <span className="truncate">Партнёрам</span>}
               </NavLink>
             )}
 

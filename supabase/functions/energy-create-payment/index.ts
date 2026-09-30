@@ -38,7 +38,6 @@ const CONSULT_PRICE_FALLBACK = 3500;
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Промокоды лендинга (процент скидки).
-const PROMOS: Record<string, number> = { REAGE10: 0.1, ENERGY15: 0.15 };
 
 function md5(input: string): string {
   return createHash("md5").update(input).digest("hex");
@@ -190,18 +189,6 @@ Deno.serve(async (req) => {
       }, 500);
     }
 
-    const withConsult = consultation === true;
-    const consultAmount = withConsult ? CONSULT_PRICE : 0;
-    const original = itemsSum + consultAmount;
-    const code = (promoCode ?? "").trim().toUpperCase();
-    const rate = code ? PROMOS[code] : undefined;
-    if (code && !rate) return json({ error: "Промокод не найден" }, 400);
-    // Скидка по промокоду применяется только к набору анализов, не к консультации.
-    const discount = rate ? Math.round(itemsSum * rate) : 0;
-    const finalAmount = original - discount;
-    if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
-    const outSum = finalAmount.toFixed(2);
-
     // Пользователь может быть авторизован — тогда привяжем заказ к аккаунту.
     let userId: string | null = null;
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -210,6 +197,39 @@ Deno.serve(async (req) => {
       const { data } = await admin.auth.getUser(jwt);
       userId = data.user?.id ?? null;
     }
+
+    const code = (promoCode ?? "").trim().toUpperCase();
+    // Партнёр клиента: аккаунт → телефон/email → код. Промокоды не складываются.
+    const { data: partnerRes } = await admin.rpc("resolve_partner", {
+      p_user_id: userId, p_phone: phoneClean, p_email: emailClean, p_code: code || null,
+    });
+    const partner = partnerRes as { partner_id: string; discount_pct: number; hide_consultation: boolean; code: string | null } | null;
+
+    const withConsult = consultation === true && !partner?.hide_consultation;
+    const consultAmount = withConsult ? CONSULT_PRICE : 0;
+    const original = itemsSum + consultAmount;
+    // Скидка применяется только к набору анализов, не к консультации.
+    let discount = 0;
+    let appliedCode: string | null = null;
+    let partnerCommission: number | null = null;
+    if (partner) {
+      discount = Math.round((itemsSum * partner.discount_pct) / 100);
+      partnerCommission = Math.round((itemsSum * (20 - partner.discount_pct)) / 100);
+      appliedCode = partner.code ?? (code || null);
+    } else if (code) {
+      const { data: promoRes } = await admin.rpc("checkup_promo_preview", {
+        p_code: code, p_phone: null, p_email: emailClean,
+      });
+      const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string } | null;
+      if (!r?.success) return json({ error: r?.error ?? "Промокод не найден" }, 400);
+      discount = r.discount_type === "fixed"
+        ? Math.min(Number(r.discount_value), itemsSum)
+        : Math.round((itemsSum * Number(r.discount_value)) / 100);
+      appliedCode = r.code ?? code;
+    }
+    const finalAmount = original - discount;
+    if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
+    const outSum = finalAmount.toFixed(2);
 
     const { data: order, error: orderErr } = await admin
       .from("energy_orders")
@@ -230,7 +250,10 @@ Deno.serve(async (req) => {
         discount_amount: discount,
         out_sum: finalAmount,
         bonus_items: bonusItems.length > 0 ? [{ title: "Общий анализ крови", price: 990, final_price: 0, slugs: bonusItems }] : [],
-        promo_code: code || null,
+        promo_code: appliedCode,
+        partner_id: partner?.partner_id ?? null,
+        partner_discount_pct: partner ? partner.discount_pct : null,
+        partner_commission: partnerCommission,
         status: "pending",
         is_test: isTest,
         ym_client_id: typeof ymClientId === "string" && /^\d{1,32}$/.test(ymClientId) ? ymClientId : null,

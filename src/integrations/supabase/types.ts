@@ -1276,6 +1276,9 @@ export type Database = {
           out_sum: number
           paid_amount: number | null
           paid_at: string | null
+          partner_commission: number | null
+          partner_discount_pct: number | null
+          partner_id: string | null
           phone: string
           promo_code: string | null
           raw_callback: Json | null
@@ -1306,6 +1309,9 @@ export type Database = {
           out_sum: number
           paid_amount?: number | null
           paid_at?: string | null
+          partner_commission?: number | null
+          partner_discount_pct?: number | null
+          partner_id?: string | null
           phone: string
           promo_code?: string | null
           raw_callback?: Json | null
@@ -1336,6 +1342,9 @@ export type Database = {
           out_sum?: number
           paid_amount?: number | null
           paid_at?: string | null
+          partner_commission?: number | null
+          partner_discount_pct?: number | null
+          partner_id?: string | null
           phone?: string
           promo_code?: string | null
           raw_callback?: Json | null
@@ -1860,6 +1869,135 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_clients: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          partner_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          partner_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          partner_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_clients_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      partner_codes: {
+        Row: {
+          code: string
+          created_at: string
+          is_current: boolean
+          partner_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          is_current?: boolean
+          partner_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          is_current?: boolean
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      partner_payouts: {
+        Row: {
+          amount: number
+          id: string
+          note: string | null
+          paid_at: string
+          paid_by: string | null
+          partner_id: string
+          period: string
+        }
+        Insert: {
+          amount: number
+          id?: string
+          note?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          partner_id: string
+          period: string
+        }
+        Update: {
+          amount?: number
+          id?: string
+          note?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          partner_id?: string
+          period?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_payouts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          created_at: string
+          discount_pct: number
+          display_name: string | null
+          hide_consultation: boolean
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_pct?: number
+          display_name?: string | null
+          hide_consultation?: boolean
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_pct?: number
+          display_name?: string | null
+          hide_consultation?: boolean
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_reset_tokens: {
         Row: {
           created_at: string
@@ -2048,6 +2186,9 @@ export type Database = {
           out_sum: number
           paid_amount: number | null
           paid_at: string | null
+          partner_commission: number | null
+          partner_discount_pct: number | null
+          partner_id: string | null
           plan_id: string | null
           pricing_id: string | null
           promo_code_id: string | null
@@ -2068,6 +2209,9 @@ export type Database = {
           out_sum: number
           paid_amount?: number | null
           paid_at?: string | null
+          partner_commission?: number | null
+          partner_discount_pct?: number | null
+          partner_id?: string | null
           plan_id?: string | null
           pricing_id?: string | null
           promo_code_id?: string | null
@@ -2088,6 +2232,9 @@ export type Database = {
           out_sum?: number
           paid_amount?: number | null
           paid_at?: string | null
+          partner_commission?: number | null
+          partner_discount_pct?: number | null
+          partner_id?: string | null
           plan_id?: string | null
           pricing_id?: string | null
           promo_code_id?: string | null
@@ -2600,6 +2747,7 @@ export type Database = {
           max_uses: number | null
           notes: string | null
           one_per_user: boolean
+          scope: string
           starts_at: string | null
           updated_at: string
           used_count: number
@@ -2619,6 +2767,7 @@ export type Database = {
           max_uses?: number | null
           notes?: string | null
           one_per_user?: boolean
+          scope?: string
           starts_at?: string | null
           updated_at?: string
           used_count?: number
@@ -2638,6 +2787,7 @@ export type Database = {
           max_uses?: number | null
           notes?: string | null
           one_per_user?: boolean
+          scope?: string
           starts_at?: string | null
           updated_at?: string
           used_count?: number
@@ -3600,6 +3750,10 @@ export type Database = {
           table_name: string
         }[]
       }
+      checkup_promo_preview: {
+        Args: { p_code: string; p_email?: string; p_phone?: string }
+        Returns: Json
+      }
       clean_orphaned_user_data: {
         Args: never
         Returns: {
@@ -3682,6 +3836,38 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_contact_phone: { Args: { p: string }; Returns: string }
+      partner_bind: {
+        Args: {
+          p_email: string
+          p_partner: string
+          p_phone: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      partner_get_my: { Args: never; Returns: Json }
+      partner_my_orders: {
+        Args: never
+        Returns: {
+          amount: number
+          client_no: number
+          commission: number
+          discount_pct: number
+          kind: string
+          paid_at: string
+        }[]
+      }
+      partner_offer: {
+        Args: { p_code?: string; p_email?: string; p_phone?: string }
+        Returns: Json
+      }
+      partner_public_name: { Args: { p_partner: string }; Returns: string }
+      partner_set_code: { Args: { p_code: string }; Returns: Json }
+      partner_update_settings: {
+        Args: { p_discount_pct: number; p_hide_consultation: boolean }
+        Returns: Json
+      }
       publish_report_document: {
         Args: { p_analysis_id: string; p_blocks?: Json }
         Returns: string
@@ -3714,6 +3900,15 @@ export type Database = {
       }
       reset_slot_to_default: {
         Args: { p_date: string; p_time_slot: string }
+        Returns: Json
+      }
+      resolve_partner: {
+        Args: {
+          p_code: string
+          p_email: string
+          p_phone: string
+          p_user_id: string
+        }
         Returns: Json
       }
       unpublish_report_document: {
