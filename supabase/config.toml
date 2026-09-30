@@ -55,3 +55,6 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = false
   [functions.support-telegram-webhook]
     verify_jwt = false
+
+[functions.support-email-digest]
+verify_jwt = false
