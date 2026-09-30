@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { notify } from "@/lib/toast";
-import { getRefCode } from "@/lib/partnerRef";
+import { getRefCode, usePartnerOffer } from "@/lib/partnerRef";
 import { normalizePhone } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -95,7 +95,9 @@ export function EnergyCart() {
     : appliedPromo.type === "fixed"
       ? Math.min(appliedPromo.value, itemsSum)
       : Math.round((itemsSum * appliedPromo.value) / 100);
-  const consultHidden = appliedPromo?.hideConsultation === true || partnerHidesConsult;
+  const { data: partnerOffer } = usePartnerOffer();
+  const consultHidden =
+    appliedPromo?.hideConsultation === true || partnerHidesConsult || partnerOffer?.hide_consultation === true;
   const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
