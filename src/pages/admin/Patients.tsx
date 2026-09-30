@@ -140,6 +140,38 @@ export default function Patients() {
         return acc;
       }, {});
 
+      // Партнёрские привязки: к кому закреплён клиент (по аккаунту, телефону или email)
+      const { data: partnerClients } = await supabase
+        .from("partner_clients")
+        .select("partner_id, kind, value");
+
+      const partnerIds = [...new Set((partnerClients || []).map((c: any) => c.partner_id))];
+      const { data: partnerProfiles } = partnerIds.length
+        ? await supabase.from("profiles").select("id, name").in("id", partnerIds)
+        : { data: [] as any[] };
+      const partnerNameById = (partnerProfiles || []).reduce((acc: any, p: any) => {
+        acc[p.id] = p.name || "Партнёр";
+        return acc;
+      }, {});
+
+      const normalizePhone = (p?: string | null) => (p || "").replace(/\D/g, "");
+      const partnerByUser: Record<string, { id: string; name: string }> = {};
+      for (const profile of profiles || []) {
+        const phone = normalizePhone(profile.phone);
+        const email = (profile.email || "").toLowerCase();
+        const match = (partnerClients || []).find((c: any) =>
+          (c.kind === "account" && c.value === profile.id) ||
+          (c.kind === "phone" && phone && normalizePhone(c.value) === phone) ||
+          (c.kind === "email" && email && c.value.toLowerCase() === email)
+        );
+        if (match) {
+          partnerByUser[profile.id] = {
+            id: match.partner_id,
+            name: partnerNameById[match.partner_id] || "Партнёр",
+          };
+        }
+      }
+
       // Get analysis count for each user
       const profilesWithStats = await Promise.all(
         (profiles || []).map(async (profile) => {
