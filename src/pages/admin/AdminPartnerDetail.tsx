@@ -258,6 +258,13 @@ export default function AdminPartnerDetail() {
     catch { notify.error("Не удалось скопировать", link); }
   };
 
+  const resetRef = () => {
+    clearRefCode();
+    qc.invalidateQueries({ queryKey: ["partner-offer"] });
+    setRefReset(true);
+    setTimeout(() => setRefReset(false), 2000);
+  };
+
   if (isLoading) return <div className="p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!data?.partner) return (
     <div className="space-y-4 p-8">
