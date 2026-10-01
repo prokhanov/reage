@@ -34,11 +34,11 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
 };
 
 // Дополнительная услуга: онлайн-разбор результатов врачом.
-const CONSULT_PRICE_FALLBACK = 3500;
+const CONSULT_PRICE_FALLBACK = 3490;
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
 // Дополнительная услуга: выезд медсестры на дом. Скидки на неё не действуют.
-const HOME_VISIT_PRICE = 3000;
+const HOME_VISIT_PRICE = 2990;
 const HOME_VISIT_TITLE = "Выезд медсестры на дом";
 
 // Промокоды лендинга (процент скидки).
