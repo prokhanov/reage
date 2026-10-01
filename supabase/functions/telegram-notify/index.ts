@@ -157,7 +157,11 @@ export function buildMessage(
         `📧 ${e(payload.email || "—")}`,
         `📱 ${e(payload.phone || "—")}`,
       );
-      if (payload.clinic_title || payload.clinic_address) {
+      const isHomeVisit = String(payload.clinic_title || "").toLowerCase().includes("выезд медсестры");
+      if (isHomeVisit) {
+        lines.push(`🏠 Выезд медсестры на дом (+2 990 ₽)`);
+        if (payload.clinic_address) lines.push(`📍 ${e(payload.clinic_address)}`);
+      } else if (payload.clinic_title || payload.clinic_address) {
         lines.push(`📍 ${e([payload.clinic_title, payload.clinic_address].filter(Boolean).join(" · "))}`);
       }
       if (payload.promo_code) lines.push(`🏷 Промокод: ${e(payload.promo_code)}`);
