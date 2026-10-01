@@ -23,6 +23,7 @@ import Subscription from "@/pages/Subscription";
 import PartnerCabinet from "@/pages/PartnerCabinet";
 import HealthAssistant from "@/pages/HealthAssistant";
 import HealthStrategy from "@/pages/HealthStrategy";
+import OneTimeCheckups from "@/pages/OneTimeCheckups";
 function SimulatedContent() {
   const { simPath } = useContext(ViewAsPatientContext);
 
@@ -56,6 +57,8 @@ function SimulatedContent() {
       return <HealthAssistant />;
     case "/health-strategy":
       return <HealthStrategy />;
+    case "/one-time-checkups":
+      return <OneTimeCheckups />;
     default:
       return <Dashboard />;
   }

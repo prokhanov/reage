@@ -6,6 +6,7 @@ import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 
 const CART_KEY = "reage:checkup:cart";
 const CLINIC_KEY = "reage:checkup:clinic";
+const UPSELL_ORDER_KEY = "reage:checkup:upsell-order";
 
 function readCart(): string[] {
   try {
@@ -53,6 +54,7 @@ function writeClinic(item: LabMapItem | null) {
 export function clearCheckupCart() {
   writeCart([]);
   writeClinic(null);
+  localStorage.removeItem(UPSELL_ORDER_KEY);
 }
 
 interface EnergyOrderValue {
@@ -63,6 +65,8 @@ interface EnergyOrderValue {
   count: number;
   hasItem: (slug: string) => boolean;
   addItem: (slug: string) => void;
+  addUpsellItem: (slug: string, sourceOrderId: string) => void;
+  upsellOrderId: string | null;
   removeItem: (slug: string) => void;
   clearCart: () => void;
   clinic: LabMapItem | null;
@@ -88,6 +92,7 @@ export function EnergyOrderProvider({
   const [clinic, setClinicState] = useState<LabMapItem | null>(() => readClinic());
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
+  const [upsellOrderId, setUpsellOrderId] = useState<string | null>(() => localStorage.getItem(UPSELL_ORDER_KEY));
   const { resolve, bySlug } = useResolvedCheckups();
 
   const setClinic = useCallback((item: LabMapItem | null) => {
@@ -100,6 +105,7 @@ export function EnergyOrderProvider({
     const onStorage = (e: StorageEvent) => {
       if (e.key === CART_KEY) setSlugs(readCart());
       if (e.key === CLINIC_KEY) setClinicState(readClinic());
+      if (e.key === UPSELL_ORDER_KEY) setUpsellOrderId(e.newValue);
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -119,6 +125,12 @@ export function EnergyOrderProvider({
     [slugs, update],
   );
   const clearCart = useCallback(() => update([]), [update]);
+  const addUpsellItem = useCallback((slug: string, sourceOrderId: string) => {
+    update(slugs.includes(slug) ? slugs : [...slugs, slug]);
+    localStorage.setItem(UPSELL_ORDER_KEY, sourceOrderId);
+    setUpsellOrderId(sourceOrderId);
+    setCartOpen(true);
+  }, [slugs, update]);
 
   // Цены берём из настроек в админке, остальные данные — из каталога.
   const pageCheckup = useMemo<Checkup>(() => resolve(checkup), [checkup, resolve]);
@@ -135,6 +147,8 @@ export function EnergyOrderProvider({
       count: items.length,
       hasItem: (slug: string) => slugs.includes(slug),
       addItem,
+      addUpsellItem,
+      upsellOrderId,
       removeItem,
       clearCart,
       clinic,
@@ -148,7 +162,7 @@ export function EnergyOrderProvider({
         setCartOpen(true);
       },
     }),
-    [pageCheckup, items, slugs, addItem, removeItem, clearCart, clinic, cartOpen],
+    [pageCheckup, items, slugs, addItem, addUpsellItem, removeItem, clearCart, clinic, cartOpen, upsellOrderId],
   );
 
   return <EnergyOrderContext.Provider value={value}>{children}</EnergyOrderContext.Provider>;

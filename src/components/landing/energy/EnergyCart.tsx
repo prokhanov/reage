@@ -66,7 +66,7 @@ function birthDisplayToIso(display: string): string {
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem } =
+  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem, upsellOrderId } =
     useEnergyOrder();
   const { doctor } = useCheckupSettings();
   const CONSULT_PRICE = doctor.consultation_price;
@@ -99,7 +99,10 @@ export function EnergyCart() {
   const [homeComment, setHomeComment] = useState("");
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
-  const discount = !appliedPromo
+  const upsellDiscount = upsellOrderId ? Math.round(itemsSum * 0.15) : 0;
+  const discount = upsellOrderId
+    ? upsellDiscount
+    : !appliedPromo
     ? 0
     : appliedPromo.type === "fixed"
       ? Math.min(appliedPromo.value, itemsSum)
@@ -212,6 +215,7 @@ export function EnergyCart() {
           middleName: middleName.trim(),
           birthDate: birthIso,
           promoCode: appliedPromo?.code,
+          upsellOrderId,
           consultation: consult && !consultHidden,
           locationType: isHome ? "home" : "clinic",
           homeAddress: isHome ? homeAddressFull : null,
@@ -749,7 +753,13 @@ export function EnergyCart() {
                     <span className="">+{money(HOME_VISIT_PRICE)}</span>
                   </div>
                 )}
-                {appliedPromo && (
+                {upsellOrderId && (
+                  <div className="flex items-center justify-between text-success">
+                    <span>Дополнительный чекап · −15%</span>
+                    <span>−{money(upsellDiscount)}</span>
+                  </div>
+                )}
+                {appliedPromo && !upsellOrderId && (
                   <div className="flex items-center justify-between text-primary">
                     <span>Скидка · {appliedPromo.code}</span>
                     <span className="">−{money(discount)}</span>

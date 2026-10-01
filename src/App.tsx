@@ -60,6 +60,7 @@ const Prescriptions = lazy(() => import("./pages/Prescriptions"));
 const MyState = lazy(() => import("./pages/MyState"));
 const HealthAssistant = lazy(() => import("./pages/HealthAssistant"));
 const Subscription = lazy(() => import("./pages/Subscription"));
+const OneTimeCheckups = lazy(() => import("./pages/OneTimeCheckups"));
 const EnergyPaymentResult = lazy(() => import("./pages/EnergyPaymentResult"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const SubscriptionFail = lazy(() => import("./pages/SubscriptionFail"));
@@ -226,6 +227,7 @@ const App = () => (
               <Route path="/my-state" element={<PatientRoute><MyState /></PatientRoute>} />
               <Route path="/health-assistant" element={<PatientRoute><HealthAssistant /></PatientRoute>} />
               <Route path="/subscription" element={<PatientRoute><Subscription /></PatientRoute>} />
+              <Route path="/one-time-checkups" element={<PatientRoute><OneTimeCheckups /></PatientRoute>} />
 
               {/* Admin routes */}
               <Route
