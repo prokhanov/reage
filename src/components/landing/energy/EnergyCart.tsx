@@ -265,7 +265,9 @@ export function EnergyCart() {
                         </span>
                         <div className="min-w-0">
                           <div className="text-base font-semibold text-foreground">Общий анализ крови</div>
-                          <div className="text-sm text-muted-foreground">В подарок</div>
+                          <div className="text-sm text-muted-foreground">
+                            В подарок · {markersLabel(CBC_BONUS_MARKER_COUNT)}
+                          </div>
                         </div>
                       </div>
                       <div className="shrink-0 text-right text-base">
