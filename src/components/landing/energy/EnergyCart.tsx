@@ -661,7 +661,7 @@ export function EnergyCart() {
                         "Скажет, что пересдать",
                       ].map((point) => (
                         <li key={point} className="flex items-start gap-2.5 text-[15px] text-foreground">
-                          <Check className="mt-0.5 h-4.5 w-4.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                           {point}
                         </li>
                       ))}
