@@ -298,23 +298,42 @@ function IndexHeader() {
                     </button>
                   );
                 })}
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-2 rounded-lg border border-border px-3 py-3 text-center text-base font-medium text-foreground transition-colors hover:bg-muted/60"
-                >
-                  Войти
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    setTimeout(() => window.dispatchEvent(new CustomEvent("open-feedback-dialog")), 150);
-                  }}
-                  className="rounded-lg bg-foreground px-3 py-3 text-center text-base font-semibold text-background transition-colors hover:bg-foreground/90"
-                >
-                  Оставить заявку
-                </button>
+                {account ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-2 flex items-center gap-3 rounded-lg px-3 py-3 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                      {account.initials}
+                    </span>
+                    {account.name} — личный кабинет
+                  </Link>
+                ) : (
+                  <>
+                    {authChecked && (
+                      <Link
+                        to="/auth"
+                        onClick={() => setMobileOpen(false)}
+                        className="mt-2 rounded-lg border border-border px-3 py-3 text-center text-base font-medium text-foreground transition-colors hover:bg-muted/60"
+                      >
+                        Войти
+                      </Link>
+                    )}
+                    {authChecked && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          setTimeout(() => window.dispatchEvent(new CustomEvent("open-feedback-dialog")), 150);
+                        }}
+                        className="rounded-lg bg-foreground px-3 py-3 text-center text-base font-semibold text-background transition-colors hover:bg-foreground/90"
+                      >
+                        Оставить заявку
+                      </button>
+                    )}
+                  </>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
