@@ -140,7 +140,6 @@ export function EnergyOrderProvider({
     update(slugs.includes(slug) ? slugs : [...slugs, slug]);
     localStorage.setItem(UPSELL_ORDER_KEY, sourceOrderId);
     setUpsellOrderId(sourceOrderId);
-    setCartOpen(true);
   }, [slugs, update]);
 
   // Цены берём из настроек в админке, остальные данные — из каталога.

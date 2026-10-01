@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Clock3, Edit3, FlaskConical, Plus, Stethoscope } from "lucide-react";
+import { Check, Clock3, Edit3, FlaskConical, Plus, RotateCcw, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EditOneTimeCheckupDialog, type OneTimeCheckupRecord } from "@/components/checkups/EditOneTimeCheckupDialog";
 import { UpsellCheckoutDialog } from "@/components/checkups/UpsellCheckoutDialog";
@@ -31,10 +31,10 @@ function CheckupsContent() {
   const { hasPatientAccess } = usePatientModuleAccess();
   const { bySlug, resolve } = useResolvedCheckups();
   const { isActive } = useCheckupSettings();
-  const { addUpsellItem, openCart } = useEnergyOrder();
+  const { addUpsellItem, clearCart, hasItem, items, openCart, removeItem } = useEnergyOrder();
   const { doctor } = useCheckupSettings();
   const [editing, setEditing] = useState<OneTimeCheckupRecord | null>(null);
-  const [consultationInitiallySelected, setConsultationInitiallySelected] = useState(false);
+  const [consultationSelected, setConsultationSelected] = useState(false);
   const canEdit = isViewMode && hasPatientAccess;
 
   const { data: records = [], isLoading } = useQuery({
@@ -52,9 +52,16 @@ function CheckupsContent() {
   const eligibleUpsellRecord = records.find((record) => STATUS_STEP[record.status] < 3);
   const consultationPurchased = records.some((record) => record.consultation_purchased);
   const offers = BASE_CHECKUPS.map(resolve).filter((checkup) => isActive(checkup.slug) && !owned.has(checkup.slug));
+  const selectedCheckupsTotal = items.reduce((sum, item) => sum + Math.round(item.price * 0.85), 0);
+  const selectedTotal = selectedCheckupsTotal + (consultationSelected ? doctor.consultation_price : 0);
+  const selectedCount = items.length + (consultationSelected ? 1 : 0);
+  const resetSelection = () => {
+    clearCart();
+    setConsultationSelected(false);
+  };
 
   return (
-    <PageContainer width="wide">
+    <PageContainer width="wide" className={selectedCount > 0 ? "pb-32 md:pb-24" : undefined}>
       <PageHeader title="Разовые чекапы" description="Ваши записи на анализы и их статус" />
 
       <div className="space-y-4">
@@ -95,13 +102,24 @@ function CheckupsContent() {
         <section className="rounded-lg bg-success-soft p-5 md:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><h2 className="text-xl font-semibold">Добавьте ещё чекап</h2><span className="rounded bg-success px-2 py-1 text-xs font-semibold text-success-foreground">−15%</span></div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Всё возьмут в одном заборе крови — не нужно приходить ещё раз. Поэтому дешевле.</p></div><span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-2 text-xs text-muted-foreground"><Clock3 className="h-3.5 w-3.5" />Скидка действует до сдачи анализов</span></div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {offers.map((checkup) => <Card key={checkup.slug} className="shadow-none"><CardContent className="flex h-full flex-col p-4"><h3 className="font-semibold">{checkup.name}</h3><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{checkup.cardText}</p><div className="mt-auto flex items-end justify-between gap-3 pt-5"><div><span className="block text-xs text-muted-foreground line-through">{money(checkup.price)}</span><span className="text-lg font-semibold">{money(Math.round(checkup.price * 0.85))}</span></div><Button variant="outline" size="sm" className="gap-1.5" onClick={() => addUpsellItem(checkup.slug, eligibleUpsellRecord.order_id)}><Plus className="h-4 w-4" />Добавить</Button></div></CardContent></Card>)}
-            {!consultationPurchased && doctor.consultation_enabled && <Card className="shadow-none"><CardContent className="flex h-full flex-col p-4"><div className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /><h3 className="font-semibold">Разбор результатов с врачом</h3></div><p className="mt-1 text-xs text-muted-foreground">Онлайн-консультация после готовности анализов, 40 минут</p><div className="mt-auto flex items-end justify-between gap-3 pt-5"><span className="text-lg font-semibold">{money(doctor.consultation_price)}</span><Button variant="outline" size="sm" className="gap-1.5" onClick={() => { setConsultationInitiallySelected(true); openCart(); }}><Plus className="h-4 w-4" />Добавить</Button></div></CardContent></Card>}
+            {offers.map((checkup) => {
+              const selected = hasItem(checkup.slug);
+              return <Card key={checkup.slug} className={cn("shadow-none transition-colors", selected && "border-primary")}><CardContent className="flex h-full flex-col p-4"><h3 className="font-semibold">{checkup.name}</h3><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{checkup.cardText}</p><div className="mt-auto flex items-end justify-between gap-3 pt-5"><div><span className="block text-xs text-muted-foreground line-through">{money(checkup.price)}</span><span className="text-lg font-semibold">{money(Math.round(checkup.price * 0.85))}</span></div><Button variant={selected ? "default" : "outline"} size="sm" className="gap-1.5" onClick={() => selected ? removeItem(checkup.slug) : addUpsellItem(checkup.slug, eligibleUpsellRecord.order_id)}>{selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{selected ? "Выбрано" : "Добавить"}</Button></div></CardContent></Card>;
+            })}
+            {!consultationPurchased && doctor.consultation_enabled && <Card className={cn("shadow-none transition-colors", consultationSelected && "border-primary")}><CardContent className="flex h-full flex-col p-4"><div className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /><h3 className="font-semibold">Разбор результатов с врачом</h3></div><p className="mt-1 text-xs text-muted-foreground">Онлайн-консультация после готовности анализов, 40 минут</p><div className="mt-auto flex items-end justify-between gap-3 pt-5"><span className="text-lg font-semibold">{money(doctor.consultation_price)}</span><Button variant={consultationSelected ? "default" : "outline"} size="sm" className="gap-1.5" onClick={() => setConsultationSelected((selected) => !selected)}>{consultationSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{consultationSelected ? "Выбрано" : "Добавить"}</Button></div></CardContent></Card>}
           </div>
         </section>
       )}
+      {eligibleUpsellRecord && selectedCount > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 shadow-overlay backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
+            <div className="min-w-0"><p className="text-xs text-muted-foreground">Выбрано: {selectedCount} {selectedCount === 1 ? "позиция" : selectedCount < 5 ? "позиции" : "позиций"}</p><div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="font-semibold">{money(selectedTotal)}</span>{items.length > 0 && <span className="rounded bg-success-soft px-2 py-0.5 text-xs font-medium text-success">Экономия {money(Math.round(items.reduce((sum, item) => sum + item.price, 0) * 0.15))}</span>}</div></div>
+            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="shrink-0 gap-1.5" onClick={resetSelection}><RotateCcw className="h-4 w-4" />Сбросить</Button><Button className="min-w-0 flex-1 sm:flex-none" onClick={openCart}>Добавить и оплатить</Button></div>
+          </div>
+        </div>
+      )}
       <EditOneTimeCheckupDialog record={editing} checkupName={editing ? bySlug(editing.checkup_slug)?.name : undefined} onClose={() => setEditing(null)} />
-      {eligibleUpsellRecord && <UpsellCheckoutDialog source={eligibleUpsellRecord} consultationPurchased={consultationPurchased} consultationInitiallySelected={consultationInitiallySelected} onConsultationSelectionHandled={() => setConsultationInitiallySelected(false)} />}
+      {eligibleUpsellRecord && <UpsellCheckoutDialog source={eligibleUpsellRecord} consultationPurchased={consultationPurchased} consultation={consultationSelected} onConsultationChange={setConsultationSelected} />}
     </PageContainer>
   );
 }
