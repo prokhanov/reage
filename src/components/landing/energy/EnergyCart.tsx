@@ -15,7 +15,7 @@ import { getRefCode, usePartnerOffer } from "@/lib/partnerRef";
 import { normalizePhone } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 
-import { markersLabel, money } from "@/data/checkups";
+import { CBC_BONUS_MARKER_COUNT, markersLabel, money } from "@/data/checkups";
 import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/lib/checkupGoals";
 
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
