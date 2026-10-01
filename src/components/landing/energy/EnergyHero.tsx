@@ -38,15 +38,6 @@ export function EnergyHero({
         className="absolute -left-[16%] -top-[10%] h-[120%] w-[34%] rounded-[100%] bg-background"
         aria-hidden
       />
-      <p
-        className="absolute right-10 top-12 text-right text-xs font-medium uppercase leading-relaxed tracking-[0.22em] text-foreground/80"
-        style={{ textShadow: "0 1px 2px hsl(var(--background) / 0.85)" }}
-      >
-        <span className="whitespace-nowrap">{checkup.heroCaption[0]}</span>
-        <br />
-        <span className="whitespace-nowrap">{checkup.heroCaption[1]}</span>
-        <span className="mt-3 ml-auto block h-px w-16 bg-foreground/30" />
-      </p>
     </>
   );
 
