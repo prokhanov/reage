@@ -513,7 +513,7 @@ export function EnergyCart() {
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                       <IdCard className="h-4 w-4" aria-hidden />
                     </span>
-                    <span className="text-sm font-medium text-foreground">Возьмите паспорт</span>
+                    <span className="text-sm font-medium text-foreground">Приготовьте паспорт</span>
                   </li>
                   {checkup.prepNotes?.map((note) => (
                     <li key={note} className="flex items-center gap-3">
