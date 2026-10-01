@@ -274,9 +274,17 @@ Deno.serve(async (req) => {
     if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
     const outSum = finalAmount.toFixed(2);
 
+    // Секрет для одноразового автовхода после оплаты (только для гостей).
+    const claimSecret = userId ? null : crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+    const claimSecretHash = claimSecret
+      ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(claimSecret))))
+          .map((b) => b.toString(16).padStart(2, "0")).join("")
+      : null;
+
     const { data: order, error: orderErr } = await admin
       .from("energy_orders")
       .insert({
+        claim_secret_hash: claimSecretHash,
         user_id: userId,
         bundle: uniqueBundles[0] ?? "consultation",
         bundles: uniqueBundles,
@@ -379,7 +387,7 @@ Deno.serve(async (req) => {
       .concat(`Receipt=${encodeURIComponent(receiptEncoded)}`)
       .join("&");
 
-    return json({ url: `${ROBOKASSA_URL}?${query}`, invId, isTest });
+    return json({ url: `${ROBOKASSA_URL}?${query}`, invId, isTest, claimSecret });
   } catch (e) {
     console.error("energy-create-payment error", e);
     return json({ error: "Внутренняя ошибка" }, 500);
