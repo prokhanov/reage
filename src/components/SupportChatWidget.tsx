@@ -268,7 +268,7 @@ export function SupportChatWidget() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => { setCbState("form"); setCbErr(""); }}
+                    onClick={() => { setCbState("form"); setCbErr(""); setCbPhone(""); }}
                     className="mt-3 ml-[3.75rem] text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     Изменить номер
