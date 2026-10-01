@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Check, Clock, Gift, Heart, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
+import { Award, Building2, Check, Clock, FlaskConical, Gift, Heart, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -25,6 +25,8 @@ import { useEnergyOrder } from "./EnergyOrderContext";
 import { getYmClientId } from "@/lib/yandexMetrika";
 
 const CBC_BONUS_PRICE = 990;
+// Доплата за выезд медсестры на дом. Должна совпадать с сервером (energy-create-payment).
+const HOME_VISIT_PRICE = 3000;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -88,6 +90,12 @@ export function EnergyCart() {
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [locationType, setLocationType] = useState<"clinic" | "home">("clinic");
+  const [homeAddress, setHomeAddress] = useState("");
+  const [homeApartment, setHomeApartment] = useState("");
+  const [homeEntrance, setHomeEntrance] = useState("");
+  const [homeFloor, setHomeFloor] = useState("");
+  const [homeIntercom, setHomeIntercom] = useState("");
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = !appliedPromo
