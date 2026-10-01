@@ -382,7 +382,15 @@ export function EnergyCart() {
 
               {locationType === "home" ? (
                 <div className="mt-3 rounded-xl border border-border bg-card p-4">
-                  <label className="block">
+                  <p className="flex items-center gap-2 text-sm text-success">
+                    <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    Выезжаем по Москве и Московской области
+                  </p>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
+                    <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    Перезвоним чтобы согласовать удобное время и день
+                  </p>
+                  <label className="mt-3 block">
                     <span className="mb-1 block text-sm font-medium text-foreground">Адрес</span>
                     <Input
                       placeholder="ул. Кутузова, д. 8"
@@ -393,10 +401,6 @@ export function EnergyCart() {
                       aria-invalid={touched && !homeValid}
                     />
                   </label>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
-                    <Check className="h-4 w-4 shrink-0" aria-hidden />
-                    Выезжаем по Москве и Московской области
-                  </p>
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Кв.</span>
@@ -435,10 +439,6 @@ export function EnergyCart() {
                       />
                     </label>
                   </div>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
-                    <Check className="h-4 w-4 shrink-0" aria-hidden />
-                    Перезвоним чтобы согласовать удобное время и день
-                  </p>
                 </div>
               ) : clinic ? (
                 <div className="mt-3 rounded-xl border border-border bg-card p-4">
