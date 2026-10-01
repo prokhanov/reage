@@ -54,37 +54,39 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
           </ul>
           {checkup.cbcBonusEnabled && (
             <div className="mx-5 mb-5 sm:mx-8 sm:mb-8">
-                <div className="rounded-xl border border-success/30 bg-success-soft p-4 sm:p-5">
-                  <div className="grid grid-cols-[auto,1fr] items-start gap-x-3 sm:gap-x-4">
-                    <span className="col-start-1 row-start-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-success text-success-foreground">
+                <div className="rounded-xl border border-success/30 bg-success-soft p-4 sm:p-6">
+                  <div className="grid grid-cols-[auto,1fr] items-start gap-x-3 sm:flex sm:items-center sm:gap-x-5">
+                    <span className="col-start-1 row-start-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-success text-success-foreground sm:h-14 sm:w-14">
                       <Gift className="h-6 w-6" aria-hidden />
                     </span>
-                    <div className="col-start-2 row-start-1 min-w-0">
-                      <span className="inline-block rounded-full bg-success px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-success-foreground">
-                        в подарок
-                      </span>
-                      <h3 className="mt-1.5 font-display text-[1.35rem] leading-tight text-foreground sm:mt-0 sm:text-2xl md:text-[1.7rem]">
-                        Общий анализ крови
-                      </h3>
+                    <div className="col-start-2 row-start-1 min-w-0 sm:flex-1">
+                      <div className="sm:flex sm:flex-wrap sm:items-center sm:gap-x-3">
+                        <span className="inline-block rounded-full bg-success px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-success-foreground sm:order-2">
+                          в подарок
+                        </span>
+                        <h3 className="mt-1.5 font-display text-[1.35rem] leading-tight text-foreground sm:order-1 sm:mt-0 sm:text-2xl md:text-[1.7rem]">
+                          Общий анализ крови
+                        </h3>
+                      </div>
+                      <p className="mt-3 text-[15px] font-medium leading-relaxed text-foreground/90 sm:mt-1.5 sm:text-base">
+                        ОАК + СОЭ и лейкоцитарная формула,&nbsp;
+                        <span className="font-bold text-success">{markersLabel(CBC_BONUS_MARKER_COUNT)}</span>
+                        : воспаление и риск анемии — в этом же заборе крови, без доплаты
+                      </p>
                     </div>
-                    <p className="col-span-2 col-start-1 mt-3 text-[15px] font-medium leading-relaxed text-foreground/90 sm:col-span-1 sm:row-start-2 sm:mt-1 sm:text-base">
-                      ОАК + СОЭ и лейкоцитарная формула,&nbsp;
-                      <span className="font-bold text-success">{markersLabel(CBC_BONUS_MARKER_COUNT)}</span>
-                      : воспаление и риск анемии — в этом же заборе крови, без доплаты
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setCbcOpen((v) => !v)}
+                      aria-expanded={cbcOpen}
+                      className="col-span-2 col-start-1 mt-4 flex w-full items-center justify-between gap-2 border-t border-success/30 pt-3 text-left text-[15px] font-semibold text-foreground transition-colors hover:text-success sm:mt-0 sm:w-auto sm:shrink-0 sm:justify-center sm:rounded-full sm:border sm:border-border sm:bg-background sm:px-5 sm:py-3 sm:text-base sm:shadow-sm sm:hover:border-success/50"
+                    >
+                      {cbcOpen ? "Скрыть" : `Все ${markersLabel(CBC_BONUS_MARKER_COUNT)}`}
+                      <ChevronDown
+                        className={`h-5 w-5 shrink-0 transition-transform duration-300 ${cbcOpen ? "rotate-180" : ""}`}
+                        aria-hidden
+                      />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setCbcOpen((v) => !v)}
-                    aria-expanded={cbcOpen}
-                    className="mt-4 flex w-full items-center justify-between gap-2 border-t border-success/30 pt-3 text-left text-[15px] font-semibold text-foreground transition-colors hover:text-success sm:text-base"
-                  >
-                    {cbcOpen ? "Скрыть" : `Показать все ${markersLabel(CBC_BONUS_MARKER_COUNT)}`}
-                    <ChevronDown
-                      className={`h-5 w-5 shrink-0 transition-transform duration-300 ${cbcOpen ? "rotate-180" : ""}`}
-                      aria-hidden
-                    />
-                  </button>
                   {cbcOpen && (
                     <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
                       {CBC_BONUS_MARKERS.map((title) => (
