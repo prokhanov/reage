@@ -124,7 +124,7 @@ function validateBiomarkerStructure(
     const content = block[2] || "";
     const paragraphs = content.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
     if (paragraphs.length < 3) return `${code}: нет полного описания и персонального разбора`;
-    if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
+    if (!/^\s*Ваш(?:а|е|и)?\s+[^\n]*\d/im.test(content)) {
       return `${code}: нет строки «Ваш показатель…»`;
     }
     if (isDeviation(code) && !/Что это значит для вас/i.test(content)) {
@@ -141,7 +141,7 @@ const BLOCK_RE = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anc
 function blockIsIncomplete(code: string, content: string, isDeviation: (c: string) => boolean): boolean {
   const paragraphs = content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   if (paragraphs.length < 3) return true;
-  if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) return true;
+  if (!/^\s*Ваш(?:а|е|и)?\s+[^\n]*\d/im.test(content)) return true;
   if (isDeviation(code) && !/Что это значит для вас/i.test(content)) return true;
   return false;
 }
