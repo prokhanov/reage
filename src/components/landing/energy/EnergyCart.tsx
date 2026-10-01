@@ -640,9 +640,13 @@ export function EnergyCart() {
                           ]
                             .filter(Boolean)
                             .join(", "),
-                          ...doctor.credentials.slice(1).map((line) =>
-                            /gmc|лиценз/i.test(line) ? `лицензия ${line.replace(/^Лицензия\s*/i, "")}` : line.toLowerCase(),
-                          ),
+                          ...doctor.credentials
+                            .slice(1)
+                            .slice()
+                            .sort((a, b) => Number(/gmc|лиценз/i.test(a)) - Number(/gmc|лиценз/i.test(b)))
+                            .map((line) =>
+                              /gmc|лиценз/i.test(line) ? `лицензия ${line.replace(/^Лицензия\s*/i, "")}` : line.toLowerCase(),
+                            ),
                         ]
                           .filter(Boolean)
                           .join(" · ")}
