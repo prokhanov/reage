@@ -331,7 +331,7 @@ export function EnergyCart() {
             </Step>
 
             <Step n={2} title="Где сдать анализ">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <button
                   type="button"
                   onClick={() => setLocationType("clinic")}
