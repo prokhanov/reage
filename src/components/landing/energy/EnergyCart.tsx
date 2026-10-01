@@ -750,7 +750,11 @@ export function EnergyCart() {
                 )}
                 <div className="flex items-center justify-between border-t hairline pt-2 text-base font-semibold text-foreground">
                   <span>Итого</span>
-                  <span className="">{money(total)}</span>
+                  {items.length > 0 ? (
+                    <span className="">{money(total)}</span>
+                  ) : (
+                    <span className="text-sm font-medium text-muted-foreground">Выберите чекап</span>
+                  )}
                 </div>
               </div>
             </Step>
