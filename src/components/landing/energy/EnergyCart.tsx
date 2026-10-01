@@ -569,9 +569,11 @@ export function EnergyCart() {
                   </p>
                   {touched && !canPay && (
                     <p className="mt-2 text-xs text-destructive">
-                      {!clinic
-                        ? "Выберите клинику для сдачи анализов."
-                        : "Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие."}
+                      {locationType === "home"
+                        ? "Укажите адрес выезда медсестры."
+                        : !clinic
+                          ? "Выберите клинику для сдачи анализов."
+                          : "Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие."}
                     </p>
                   )}
                 </div>
@@ -664,6 +666,12 @@ export function EnergyCart() {
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Консультация врача</span>
                     <span className="">{money(CONSULT_PRICE)}</span>
+                  </div>
+                )}
+                {isHome && (
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>Выезд медсестры на дом</span>
+                    <span className="">+{money(HOME_VISIT_PRICE)}</span>
                   </div>
                 )}
                 {appliedPromo && (
