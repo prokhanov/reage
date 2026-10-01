@@ -373,7 +373,7 @@ serve(async (req) => {
     await supabase.from("report_documents").update({ blocks: [], edited_at: null, edited_by: null })
       .eq("analysis_id", analysisId);
 
-    return json({ success: true, merged: categoryRecs.length, length: text.length });
+    return json({ success: true, merged: categoryRecs.length, length: text.length, repaired: repairedCodes });
   } catch (e: any) {
     console.error("synthesize-whole-body error:", e);
     return json({ success: false, error: e?.message ?? String(e) }, 500);
