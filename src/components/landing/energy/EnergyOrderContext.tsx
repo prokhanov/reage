@@ -109,6 +109,11 @@ export function EnergyOrderProvider({
     writeClinic(item);
   }, []);
 
+  const update = useCallback((next: string[]) => {
+    setSlugs(next);
+    writeCart(next);
+  }, []);
+
   // Синхронизация между вкладками
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -154,11 +159,6 @@ export function EnergyOrderProvider({
     });
     return () => { cancelled = true; };
   }, [location, navigate, searchParams, setSearchParams, update]);
-
-  const update = useCallback((next: string[]) => {
-    setSlugs(next);
-    writeCart(next);
-  }, []);
 
   const addItem = useCallback(
     (slug: string) => update(slugs.includes(slug) ? slugs : [...slugs, slug]),
