@@ -119,7 +119,7 @@ function EmailVerificationListener() {
 
 function RouteAwareSupportChat() {
   const location = useLocation();
-  if (location.pathname === "/one-time-checkups") return null;
+  if (location.pathname === "/one-time-checkups" || location.pathname.startsWith("/admin")) return null;
   return <SupportChatWidget />;
 }
 

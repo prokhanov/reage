@@ -12,8 +12,9 @@ import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/l
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import type { OneTimeCheckupRecord } from "./EditOneTimeCheckupDialog";
 
-export function UpsellCheckoutDialog({ source, consultationPurchased, consultation, onConsultationChange }: {
+export function UpsellCheckoutDialog({ source, discountPct, consultationPurchased, consultation, onConsultationChange }: {
   source: OneTimeCheckupRecord;
+  discountPct: number;
   consultationPurchased: boolean;
   consultation: boolean;
   onConsultationChange: (selected: boolean) => void;
@@ -24,8 +25,9 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
   const [paying, setPaying] = useState(false);
 
   const itemsSum = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items]);
-  const discount = Math.round(itemsSum * 0.15);
+  const discount = Math.round(itemsSum * (discountPct / 100));
   const total = itemsSum - discount + (consultation ? doctor.consultation_price : 0);
+  const sameVisit = discountPct >= 15;
   const empty = items.length === 0 && !consultation;
   const place = source.location_type === "home"
     ? `Дома${source.address ? `, ${source.address}` : ""}`
@@ -76,7 +78,7 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
           {items.map((item) => (
             <div key={item.slug} className="flex items-start justify-between gap-3 text-sm">
               <div><p className="font-medium">{item.name}</p><p className="text-xs text-muted-foreground">{item.markers.length} показателей</p></div>
-              <div className="flex items-center gap-2"><span>{money(Math.round(item.price * 0.85))}</span><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(item.slug)} aria-label={`Удалить ${item.name}`}><X className="h-3.5 w-3.5" /></Button></div>
+              <div className="flex items-center gap-2"><span>{money(Math.round(item.price * (1 - discountPct / 100)))}</span><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(item.slug)} aria-label={`Удалить ${item.name}`}><X className="h-3.5 w-3.5" /></Button></div>
             </div>
           ))}
           {!consultationPurchased && doctor.consultation_enabled && (
@@ -85,11 +87,11 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
               <span className="flex items-center gap-2 text-sm font-medium">{money(doctor.consultation_price)}<span className={`flex h-5 w-5 items-center justify-center rounded border ${consultation ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{consultation && <Check className="h-3.5 w-3.5" />}</span></span>
             </button>
           )}
-          {items.length > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>Скидка 15% учтена</span><span>−{money(discount)}</span></div>}
+          {items.length > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>Скидка {discountPct}% учтена</span><span>−{money(discount)}</span></div>}
           <div className="flex justify-between border-t pt-3 font-semibold"><span>К оплате</span><span>{money(total)}</span></div>
           <div className="rounded-lg bg-success-soft p-3 text-xs text-success">
-            <p className="flex items-center gap-2 font-semibold"><MapPin className="h-4 w-4" />Сдадите вместе с текущим заказом</p>
-            <p className="mt-1 pl-6 text-foreground">{place} — один забор крови, в тот же визит</p>
+            <p className="flex items-center gap-2 font-semibold"><MapPin className="h-4 w-4" />{sameVisit ? "Сдадите вместе с текущим заказом" : "Оформим отдельным визитом"}</p>
+            <p className="mt-1 pl-6 text-foreground">{sameVisit ? `${place} — один забор крови, в тот же визит` : "Мы свяжемся с вами и подберём удобное время и место"}</p>
           </div>
           <label className="flex items-start gap-2 text-[11px] text-muted-foreground"><Checkbox checked={agree} onCheckedChange={(value) => setAgree(value === true)} className="mt-0.5" /><span>Согласен с <a href="/legal/terms" target="_blank" className="underline">офертой</a> и обработкой персональных данных</span></label>
           <Button className="w-full" size="lg" disabled={!agree || empty || paying} onClick={pay}>{paying ? "Переходим к оплате…" : `Оплатить ${money(total)}`}</Button>
