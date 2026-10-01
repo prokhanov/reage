@@ -411,7 +411,7 @@ Deno.serve(async (req) => {
     if (winner.kind === "report" && reportOffer) {
       const { data: reserved, error: reserveError } = await admin.rpc("reserve_report_checkup_offer", {
         p_offer_id: reportOffer.id,
-        p_user_id: userId,
+        p_user_id: reportOffer.user_id,
         p_checkup_slug: reportOffer.advertised_checkup_slug,
         p_order_id: order.id,
       });

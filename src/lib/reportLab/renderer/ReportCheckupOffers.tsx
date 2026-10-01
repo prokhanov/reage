@@ -21,6 +21,9 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
                   <div>
                     <div className="rl-offer-eyebrow">Следующий шаг</div>
                     <h2>{offer.advertised_checkup_name}</h2>
+                    {offer.advertised_checkup_summary && (
+                      <p className="rl-offer-summary">{offer.advertised_checkup_summary}</p>
+                    )}
                     <p className="rl-offer-lead">
                       {offer.pricing_mode === "full_upgrade"
                         ? "Стоимость вашего чекапа засчитаем — и дадим скидку −10%."

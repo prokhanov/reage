@@ -8,6 +8,7 @@ export interface ReportCheckupOffer {
   analysis_id: string;
   advertised_checkup_slug: string;
   advertised_checkup_name: string;
+  advertised_checkup_summary?: string | null;
   advertised_list_price: number;
   source_paid_amount: number;
   pricing_mode: "full_upgrade" | "ten_percent";
