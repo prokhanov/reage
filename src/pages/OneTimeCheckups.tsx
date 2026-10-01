@@ -86,12 +86,25 @@ function CheckupsContent() {
                   {canEdit && <Button variant="outline" size="sm" className="shrink-0 gap-2" onClick={() => setEditing(record)}><Edit3 className="h-3.5 w-3.5" />Изменить</Button>}
                 </div>
 
-                <div className="mt-6 grid grid-cols-4 gap-0 overflow-x-auto pb-2">
+                <div className="mt-4 flex flex-wrap gap-2 md:hidden">
                   {STEPS.map((step, index) => {
                     const done = currentStep >= index + 1;
-                    return <div key={step.key} className="min-w-[135px]"><div className="flex items-center"><span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", done ? "border-success bg-success text-success-foreground" : "border-border bg-background text-muted-foreground")}>{done ? <Check className="h-3 w-3" /> : null}</span>{index < STEPS.length - 1 && <span className={cn("h-px flex-1", currentStep > index + 1 ? "bg-success" : "bg-border")} />}</div><p className={cn("mt-2 pr-3 text-xs", done ? "text-foreground" : "text-muted-foreground")}>{step.label}</p></div>;
+                    return (
+                      <span key={step.key} className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs", done ? "bg-success-soft text-success" : "bg-muted text-muted-foreground")}>
+                        {done ? <Check className="h-3 w-3" /> : <Clock3 className="h-3 w-3" />}
+                        {step.label}
+                      </span>
+                    );
                   })}
                 </div>
+
+                <div className="mt-6 hidden grid-cols-4 gap-0 md:grid">
+                  {STEPS.map((step, index) => {
+                    const done = currentStep >= index + 1;
+                    return <div key={step.key} className="min-w-0"><div className="flex items-center"><span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", done ? "border-success bg-success text-success-foreground" : "border-border bg-background text-muted-foreground")}>{done ? <Check className="h-3 w-3" /> : null}</span>{index < STEPS.length - 1 && <span className={cn("h-px flex-1", currentStep > index + 1 ? "bg-success" : "bg-border")} />}</div><p className={cn("mt-2 pr-3 text-xs", done ? "text-foreground" : "text-muted-foreground")}>{step.label}</p></div>;
+                  })}
+                </div>
+
 
                 <div className="mt-4 grid gap-4 border-t hairline pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                   <div><p className="text-xs text-muted-foreground">Номер заявки</p><p className="mt-1 font-medium">{record.labquest_request_number || "Не назначен"}</p></div>
