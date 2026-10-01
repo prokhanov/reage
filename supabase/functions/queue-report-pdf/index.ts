@@ -74,7 +74,10 @@ Deno.serve(async (req) => {
     return json({ error: "document_not_published" }, 409);
   }
 
-  const hash = await computeReportPdfHash(blocks);
+  const reportOffers = Array.isArray((body.report as any)?.checkupOffers)
+    ? (body.report as any).checkupOffers
+    : [];
+  const hash = await computeReportPdfHash({ blocks, reportOffers });
   const path = reportPdfPath((doc as any).user_id, analysisId, hash);
 
   // Дедупликация: тот же контент + та же версия рендерера/темы → файл уже готов.

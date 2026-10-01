@@ -138,6 +138,8 @@ export interface LabReport {
    * Проставляет серверный рендер; в экранном превью не используется.
    */
   watermark?: string | null;
+  /** Персональные предложения, которые рендерятся последними страницами отчёта. */
+  checkupOffers?: import("@/lib/reportCheckupOffers").ReportCheckupOffer[];
 }
 
 

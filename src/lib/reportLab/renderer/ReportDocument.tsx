@@ -13,6 +13,7 @@ import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
+import { ReportCheckupOffers } from "./ReportCheckupOffers";
 import "../theme.css";
 import { reportFontFaceCss, ensureReportFontsLoaded } from "../reportFonts";
 
@@ -103,6 +104,9 @@ export function ReportDocument({ report, signalReady }: Props) {
         />
       ))}
       <ReportPrescriptions report={report} entry={getPrescriptionsEntry(doc)} />
+      {report.checkupOffers && report.checkupOffers.length > 0 && (
+        <ReportCheckupOffers offers={report.checkupOffers} />
+      )}
     </div>
   );
 }
