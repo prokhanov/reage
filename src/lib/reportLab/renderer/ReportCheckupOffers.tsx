@@ -24,7 +24,7 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
                     <h2>{offer.advertised_checkup_name}</h2>
                     <p className="rl-offer-lead">
                       {offer.pricing_mode === "full_upgrade"
-                        ? "Стоимость вашего чекапа засчитаем — и дадим ещё −10%."
+                        ? "Стоимость вашего чекапа засчитаем — и дадим скидку −10%."
                         : "Персональная скидка −10% на следующий чекап."}
                     </p>
                   </div>
@@ -39,7 +39,7 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
                     {offer.pricing_mode === "full_upgrade" && (
                       <div><span>Зачёт вашего чекапа</span><strong>−{money(offer.source_paid_amount)}</strong></div>
                     )}
-                    <div><span>Ещё −10%</span><strong>−{money(extraTenPercent)}</strong></div>
+                    <div><span>Скидка −10%</span><strong>−{money(extraTenPercent)}</strong></div>
                     <div className="rl-offer-total">
                       <span>Для вас<strong>{money(offer.final_price)}</strong></span>
                       <b>Выгода {discountPercent}%</b>

@@ -6,7 +6,7 @@
 // RENDERER_VERSION / THEME_VERSION бампаются вручную при изменении
 // шаблона отчёта или образа Playwright — это форсирует перерендер всех PDF.
 
-export const RENDERER_VERSION = "3";
+export const RENDERER_VERSION = "4";
 export const THEME_VERSION = "4";
 
 export const REPORT_PDF_BUCKET = "report-pdfs";
