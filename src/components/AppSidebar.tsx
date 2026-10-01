@@ -79,6 +79,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const { data: scheduledCount = 0 } = useScheduledBookingsCount();
+  const { data: openCheckupsCount = 0 } = useOpenCheckupsCount(viewAsUserId);
   const { data: myAssignmentsCount = 0 } = useMyAssignmentsCount();
   const { data: emailStatus } = useEmailConfirmation();
   const [patientName, setPatientName] = useState<string>("");
@@ -307,17 +308,27 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = navItemClass(!!(activeInSim), isOpen);
+              const isCheckupsItem = item.to === "/one-time-checkups";
+              const showCheckupsCount = isCheckupsItem && openCheckupsCount > 0;
 
               if (viewAsUserId) {
                 return (
                   <button
                     key={item.to}
                     onClick={() => { setSimPath(item.to); closeSidebarOnMobile(); }}
-                    className={baseClasses}
+                    className={cn(baseClasses, "relative")}
                     title={!isOpen ? item.label : undefined}
                   >
                     <item.icon className={NAV_ICON} strokeWidth={1.6} />
-                    {isOpen && <span className="truncate">{item.label}</span>}
+                    {isOpen && (
+                      <span className="truncate">
+                        {item.label}
+                        {showCheckupsCount && <span className="ml-1 text-primary">({openCheckupsCount})</span>}
+                      </span>
+                    )}
+                    {!isOpen && showCheckupsCount && (
+                      <span className="absolute top-2 right-[14px] w-2 h-2 bg-primary rounded-full" />
+                    )}
                   </button>
                 );
               }
@@ -328,12 +339,20 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   to={item.to}
                   onClick={closeSidebarOnMobile}
                   className={({ isActive }) =>
-                    navItemClass(!!(isActive), isOpen)
+                    cn(navItemClass(!!(isActive), isOpen), "relative")
                   }
                   title={!isOpen ? item.label : undefined}
                 >
                   <item.icon className={NAV_ICON} strokeWidth={1.6} />
-                  {isOpen && <span className="truncate">{item.label}</span>}
+                  {isOpen && (
+                    <span className="truncate">
+                      {item.label}
+                      {showCheckupsCount && <span className="ml-1 text-primary">({openCheckupsCount})</span>}
+                    </span>
+                  )}
+                  {!isOpen && showCheckupsCount && (
+                    <span className="absolute top-2 right-[14px] w-2 h-2 bg-primary rounded-full" />
+                  )}
                 </NavLink>
               );
             })}
