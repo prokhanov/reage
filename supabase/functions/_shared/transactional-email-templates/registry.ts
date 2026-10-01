@@ -3,6 +3,7 @@ import { template as feedbackTemplate } from './feedback-notification.tsx'
 import { template as passwordChangedTemplate } from './password-changed.tsx'
 import { template as subscriptionActivatedTemplate } from './subscription-activated.tsx'
 import { template as supportReplyTemplate } from './support-reply.tsx'
+import { template as checkupAccountTemplate } from './checkup-account-credentials.tsx'
 
 export interface TemplateEntry {
   component: (props: Record<string, any>) => ReactElement
@@ -18,5 +19,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'password-changed': passwordChangedTemplate,
   'subscription-activated': subscriptionActivatedTemplate,
   'support-reply': supportReplyTemplate,
+  'checkup-account-credentials': checkupAccountTemplate,
 }
 
