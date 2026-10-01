@@ -326,8 +326,115 @@ export function EnergyCart() {
             </Step>
 
             <Step n={2} title="Где сдать анализ">
-              {clinic ? (
-                <div className="rounded-xl border border-border bg-card p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLocationType("clinic")}
+                  aria-pressed={locationType === "clinic"}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    locationType === "clinic"
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <FlaskConical className="h-5 w-5 text-primary" aria-hidden />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        locationType === "clinic" ? "border-primary" : "border-border"
+                      }`}
+                    >
+                      {locationType === "clinic" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                    </span>
+                  </span>
+                  <span className="mt-3 block text-base font-semibold text-foreground">В лаборатории</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">Без доплаты</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationType("home")}
+                  aria-pressed={locationType === "home"}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    locationType === "home"
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <Home className="h-5 w-5 text-primary" aria-hidden />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        locationType === "home" ? "border-primary" : "border-border"
+                      }`}
+                    >
+                      {locationType === "home" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                    </span>
+                  </span>
+                  <span className="mt-3 block text-base font-semibold text-foreground">Дома</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">
+                    Выезд медсестры, +{money(HOME_VISIT_PRICE)}
+                  </span>
+                </button>
+              </div>
+
+              {locationType === "home" ? (
+                <div className="mt-3 rounded-xl border border-border bg-card p-4">
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-medium text-foreground">Адрес</span>
+                    <Input
+                      placeholder="ул. Кутузова, д. 8"
+                      autoComplete="street-address"
+                      value={homeAddress}
+                      onChange={(e) => setHomeAddress(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && !homeValid}
+                    />
+                  </label>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
+                    <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    Выезжаем по Москве и Московской области
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Кв.</span>
+                      <Input
+                        placeholder="5"
+                        value={homeApartment}
+                        onChange={(e) => setHomeApartment(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Подъезд</span>
+                      <Input
+                        placeholder="2"
+                        value={homeEntrance}
+                        onChange={(e) => setHomeEntrance(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Этаж</span>
+                      <Input
+                        placeholder="3"
+                        value={homeFloor}
+                        onChange={(e) => setHomeFloor(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Домофон</span>
+                      <Input
+                        placeholder="45К"
+                        value={homeIntercom}
+                        onChange={(e) => setHomeIntercom(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : clinic ? (
+                <div className="mt-3 rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                       Выбрано на карте
@@ -352,7 +459,7 @@ export function EnergyCart() {
                   variant="outline"
                   onClick={() => setPickerOpen(true)}
                   size="lg"
-                  className="h-12 w-full gap-2 text-base"
+                  className="mt-3 h-12 w-full gap-2 text-base"
                 >
                   <MapPin className="h-4 w-4" aria-hidden />
                   Выбрать клинику
