@@ -249,6 +249,41 @@ Deno.serve(async (req) => {
 
       if (eUpdErr) return textPlain("db error", 500);
 
+      // Автоаккаунт: гостю без аккаунта создаём кабинет, при совпадении — привязываем молча.
+      if (!(energyOrder as any).user_id) {
+        try {
+          const resolved = await resolveCheckupBuyer(admin, energyOrder as any);
+          if (resolved.userId) {
+            (energyOrder as any).user_id = resolved.userId;
+            await admin.from("energy_orders").update({
+              user_id: resolved.userId,
+              account_created: resolved.created,
+              login_token_hash: resolved.loginTokenHash,
+              login_token_expires_at: resolved.loginTokenHash ? new Date(Date.now() + 7 * 864e5).toISOString() : null,
+            }).eq("id", (energyOrder as any).id);
+            if (resolved.created && resolved.password && resolved.loginToken) {
+              const siteUrl = (Deno.env.get("SITE_URL") || "https://reage.life").replace(/\/$/, "");
+              await admin.functions.invoke("send-transactional-email", {
+                body: {
+                  templateName: "checkup-account-credentials",
+                  recipientEmail: (energyOrder as any).email,
+                  idempotencyKey: `checkup-account-${(energyOrder as any).id}`,
+                  templateData: {
+                    name: (energyOrder as any).first_name ?? null,
+                    login: (energyOrder as any).email,
+                    password: resolved.password,
+                    autoLoginUrl: `${siteUrl}/?auto_login=${resolved.loginToken}`,
+                    cabinetUrl: `${siteUrl}/one-time-checkups`,
+                  },
+                },
+              });
+            }
+          }
+        } catch (accErr) {
+          console.error("checkup auto-account failed", accErr);
+        }
+      }
+
       if ((energyOrder as any).user_id) {
         const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter((slug: string) => Boolean(slug) && slug !== "consultation");
         const perItemPaid = bundleList.length > 0 ? ePaid / bundleList.length : ePaid;
@@ -567,4 +602,70 @@ function collectHeaders(req: Request): Record<string, string> {
     h[k] = v;
   });
   return h;
+}
+
+
+// ---------- Автоаккаунт покупателя чекапа ----------
+async function sha256Hex(v: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function normalizeRuPhone(p: string | null | undefined): string | null {
+  const d = String(p ?? "").replace(/\D/g, "");
+  if (!d) return null;
+  if (d.length === 11 && (d[0] === "7" || d[0] === "8")) return "7" + d.slice(1);
+  if (d.length === 10) return "7" + d;
+  return d;
+}
+
+function generatePassword(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+}
+
+async function resolveCheckupBuyer(admin: any, eo: any): Promise<{
+  userId: string | null; created: boolean; password?: string; loginToken?: string; loginTokenHash: string | null;
+}> {
+  const email = String(eo.email ?? "").trim().toLowerCase();
+  const phone = normalizeRuPhone(eo.phone);
+  if (!email) return { userId: null, created: false, loginTokenHash: null };
+
+  // 1. Совпадение по email (приоритет), 2. по телефону — привязываем без входа и писем.
+  const { data: byEmail } = await admin.from("profiles").select("id").ilike("email", email).limit(1).maybeSingle();
+  if (byEmail?.id) return { userId: byEmail.id, created: false, loginTokenHash: null };
+  if (phone) {
+    const { data: byPhone } = await admin.from("profiles").select("id").eq("phone", phone).limit(1).maybeSingle();
+    if (byPhone?.id) return { userId: byPhone.id, created: false, loginTokenHash: null };
+  }
+
+  const password = generatePassword();
+  const { data: createdUser, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      first_name: eo.first_name ?? "",
+      last_name: eo.last_name ?? "",
+      middle_name: eo.middle_name ?? "",
+      birth_date: eo.birth_date ?? "",
+      phone: phone ?? "",
+      source: "checkup_auto",
+    },
+  });
+  if (error || !createdUser?.user) {
+    // Аккаунт мог существовать без профиля — тогда ничего не создаём и не логиним.
+    console.error("auto-account createUser failed", error?.message);
+    return { userId: null, created: false, loginTokenHash: null };
+  }
+  const uid = createdUser.user.id;
+  await admin.from("profiles").update({
+    email_verified: true,
+    middle_name: eo.middle_name ?? null,
+    phone: phone,
+  }).eq("id", uid).then(({ error: e }: any) => e && console.error("auto-account profile update", e.message));
+
+  const loginToken = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+  return { userId: uid, created: true, password, loginToken, loginTokenHash: await sha256Hex(loginToken) };
 }
