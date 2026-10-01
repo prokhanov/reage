@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Check, Clock, Gift, Heart, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
+import { Award, Building2, Check, Clock, FlaskConical, Gift, Heart, Home, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -25,6 +25,8 @@ import { useEnergyOrder } from "./EnergyOrderContext";
 import { getYmClientId } from "@/lib/yandexMetrika";
 
 const CBC_BONUS_PRICE = 990;
+// Доплата за выезд медсестры на дом. Должна совпадать с сервером (energy-create-payment).
+const HOME_VISIT_PRICE = 3000;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -88,6 +90,12 @@ export function EnergyCart() {
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [locationType, setLocationType] = useState<"clinic" | "home">("clinic");
+  const [homeAddress, setHomeAddress] = useState("");
+  const [homeApartment, setHomeApartment] = useState("");
+  const [homeEntrance, setHomeEntrance] = useState("");
+  const [homeFloor, setHomeFloor] = useState("");
+  const [homeIntercom, setHomeIntercom] = useState("");
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = !appliedPromo
@@ -98,7 +106,18 @@ export function EnergyCart() {
   const { data: partnerOffer } = usePartnerOffer();
   const consultHidden =
     appliedPromo?.hideConsultation === true || partnerHidesConsult || partnerOffer?.hide_consultation === true;
-  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
+  const isHome = locationType === "home";
+  const homeAddressFull = [
+    homeAddress.trim(),
+    homeApartment.trim() && `кв. ${homeApartment.trim()}`,
+    homeEntrance.trim() && `подъезд ${homeEntrance.trim()}`,
+    homeFloor.trim() && `этаж ${homeFloor.trim()}`,
+    homeIntercom.trim() && `домофон ${homeIntercom.trim()}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const homeValid = homeAddress.trim().length >= 5;
+  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0);
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -106,7 +125,14 @@ export function EnergyCart() {
   const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
   const birthIso = birthDisplayToIso(birthDate);
   const birthValid = birthIso !== "";
-  const canPay = !!clinic && emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
+  const canPay =
+    (isHome ? homeValid : !!clinic) &&
+    emailValid &&
+    phoneValid &&
+    nameValid &&
+    birthValid &&
+    agree &&
+    items.length > 0;
 
 
   const hours = useMemo(
@@ -182,13 +208,16 @@ export function EnergyCart() {
           birthDate: birthIso,
           promoCode: appliedPromo?.code,
           consultation: consult && !consultHidden,
-          clinic: clinic
-            ? {
-                id: String(clinic.id ?? ""),
-                title: clinic.title,
-                address: clinic.address_short || clinic.full_address,
-              }
-            : null,
+          locationType: isHome ? "home" : "clinic",
+          homeAddress: isHome ? homeAddressFull : null,
+          clinic:
+            !isHome && clinic
+              ? {
+                  id: String(clinic.id ?? ""),
+                  title: clinic.title,
+                  address: clinic.address_short || clinic.full_address,
+                }
+              : null,
         },
       });
 
@@ -297,8 +326,115 @@ export function EnergyCart() {
             </Step>
 
             <Step n={2} title="Где сдать анализ">
-              {clinic ? (
-                <div className="rounded-xl border border-border bg-card p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLocationType("clinic")}
+                  aria-pressed={locationType === "clinic"}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    locationType === "clinic"
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <FlaskConical className="h-5 w-5 text-primary" aria-hidden />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        locationType === "clinic" ? "border-primary" : "border-border"
+                      }`}
+                    >
+                      {locationType === "clinic" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                    </span>
+                  </span>
+                  <span className="mt-3 block text-base font-semibold text-foreground">В лаборатории</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">Без доплаты</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationType("home")}
+                  aria-pressed={locationType === "home"}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    locationType === "home"
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <Home className="h-5 w-5 text-primary" aria-hidden />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        locationType === "home" ? "border-primary" : "border-border"
+                      }`}
+                    >
+                      {locationType === "home" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                    </span>
+                  </span>
+                  <span className="mt-3 block text-base font-semibold text-foreground">Дома</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">
+                    Выезд медсестры, +{money(HOME_VISIT_PRICE)}
+                  </span>
+                </button>
+              </div>
+
+              {locationType === "home" ? (
+                <div className="mt-3 rounded-xl border border-border bg-card p-4">
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-medium text-foreground">Адрес</span>
+                    <Input
+                      placeholder="ул. Кутузова, д. 8"
+                      autoComplete="street-address"
+                      value={homeAddress}
+                      onChange={(e) => setHomeAddress(e.target.value)}
+                      className="h-12"
+                      aria-invalid={touched && !homeValid}
+                    />
+                  </label>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
+                    <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    Выезжаем по Москве и Московской области
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Кв.</span>
+                      <Input
+                        placeholder="5"
+                        value={homeApartment}
+                        onChange={(e) => setHomeApartment(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Подъезд</span>
+                      <Input
+                        placeholder="2"
+                        value={homeEntrance}
+                        onChange={(e) => setHomeEntrance(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Этаж</span>
+                      <Input
+                        placeholder="3"
+                        value={homeFloor}
+                        onChange={(e) => setHomeFloor(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-sm font-medium text-foreground">Домофон</span>
+                      <Input
+                        placeholder="45К"
+                        value={homeIntercom}
+                        onChange={(e) => setHomeIntercom(e.target.value)}
+                        className="h-12"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : clinic ? (
+                <div className="mt-3 rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                       Выбрано на карте
@@ -323,7 +459,7 @@ export function EnergyCart() {
                   variant="outline"
                   onClick={() => setPickerOpen(true)}
                   size="lg"
-                  className="h-12 w-full gap-2 text-base"
+                  className="mt-3 h-12 w-full gap-2 text-base"
                 >
                   <MapPin className="h-4 w-4" aria-hidden />
                   Выбрать клинику
@@ -433,9 +569,11 @@ export function EnergyCart() {
                   </p>
                   {touched && !canPay && (
                     <p className="mt-2 text-xs text-destructive">
-                      {!clinic
-                        ? "Выберите клинику для сдачи анализов."
-                        : "Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие."}
+                      {locationType === "home"
+                        ? "Укажите адрес выезда медсестры."
+                        : !clinic
+                          ? "Выберите клинику для сдачи анализов."
+                          : "Заполните фамилию, имя, дату рождения, email и телефон и подтвердите согласие."}
                     </p>
                   )}
                 </div>
@@ -528,6 +666,12 @@ export function EnergyCart() {
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Консультация врача</span>
                     <span className="">{money(CONSULT_PRICE)}</span>
+                  </div>
+                )}
+                {isHome && (
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>Выезд медсестры на дом</span>
+                    <span className="">+{money(HOME_VISIT_PRICE)}</span>
                   </div>
                 )}
                 {appliedPromo && (
