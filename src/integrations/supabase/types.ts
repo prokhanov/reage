@@ -1293,6 +1293,7 @@ export type Database = {
           clinic_address: string | null
           clinic_id: string | null
           clinic_title: string | null
+          consultation_purchased: boolean
           created_at: string
           discount_amount: number
           email: string
@@ -1327,6 +1328,7 @@ export type Database = {
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null
+          consultation_purchased?: boolean
           created_at?: string
           discount_amount?: number
           email: string
@@ -1361,6 +1363,7 @@ export type Database = {
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null
+          consultation_purchased?: boolean
           created_at?: string
           discount_amount?: number
           email?: string
