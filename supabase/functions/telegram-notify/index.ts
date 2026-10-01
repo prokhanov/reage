@@ -223,9 +223,10 @@ export function buildMessage(
     }
     case "nurse_call_requested": {
       const utmLine = formatUtm(payload.utm);
+      const isLauncher = payload.source === "contact_launcher";
       return (
         prefix +
-        "🏠 <b>Заявка: медсестра на дом (чекап)</b>\n" +
+        (isLauncher ? "📞 <b>Заявка на обратный звонок</b>\n" : "🏠 <b>Заявка: медсестра на дом (чекап)</b>\n") +
         `📱 ${e(payload.phone || "—")}\n` +
         `📄 ${e(payload.source || "—")}` +
         (payload.page_url ? `\n🔗 ${e(payload.page_url)}` : "") +
