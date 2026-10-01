@@ -21,7 +21,7 @@ const FALLBACK_PRODUCTS: Record<string, { name: string; price: number }> = {
   "female-hormones": { name: "Женские гормоны", price: 3990 },
   "male-hormones": { name: "Мужские гормоны", price: 4490 },
   hair: { name: "Волосы", price: 5990 },
-  full: { name: "Полный чекап ReAge", price: 23990 },
+  full: { name: "Полный чекап", price: 23990 },
 };
 
 function json(payload: unknown, status = 200) {
@@ -89,8 +89,9 @@ Deno.serve(async (req) => {
     if (row.is_active === false) products.delete(row.slug);
   }
   const parentByVariant = new Map<string, string>();
+  const baseProducts = new Map(products);
   for (const variant of variants ?? []) {
-    const parent = products.get(variant.parent_slug);
+    const parent = baseProducts.get(variant.parent_slug);
     if (!parent) continue;
     products.set(variant.slug, { name: `${parent.name} · ${variant.label}`, price: parent.price });
     parentByVariant.set(variant.slug, variant.parent_slug);
