@@ -106,7 +106,18 @@ export function EnergyCart() {
   const { data: partnerOffer } = usePartnerOffer();
   const consultHidden =
     appliedPromo?.hideConsultation === true || partnerHidesConsult || partnerOffer?.hide_consultation === true;
-  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0);
+  const isHome = locationType === "home";
+  const homeAddressFull = [
+    homeAddress.trim(),
+    homeApartment.trim() && `кв. ${homeApartment.trim()}`,
+    homeEntrance.trim() && `подъезд ${homeEntrance.trim()}`,
+    homeFloor.trim() && `этаж ${homeFloor.trim()}`,
+    homeIntercom.trim() && `домофон ${homeIntercom.trim()}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const homeValid = homeAddress.trim().length >= 5;
+  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0);
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -114,7 +125,14 @@ export function EnergyCart() {
   const nameValid = lastName.trim().length > 1 && firstName.trim().length > 1;
   const birthIso = birthDisplayToIso(birthDate);
   const birthValid = birthIso !== "";
-  const canPay = !!clinic && emailValid && phoneValid && nameValid && birthValid && agree && items.length > 0;
+  const canPay =
+    (isHome ? homeValid : !!clinic) &&
+    emailValid &&
+    phoneValid &&
+    nameValid &&
+    birthValid &&
+    agree &&
+    items.length > 0;
 
 
   const hours = useMemo(
@@ -190,13 +208,16 @@ export function EnergyCart() {
           birthDate: birthIso,
           promoCode: appliedPromo?.code,
           consultation: consult && !consultHidden,
-          clinic: clinic
-            ? {
-                id: String(clinic.id ?? ""),
-                title: clinic.title,
-                address: clinic.address_short || clinic.full_address,
-              }
-            : null,
+          locationType: isHome ? "home" : "clinic",
+          homeAddress: isHome ? homeAddressFull : null,
+          clinic:
+            !isHome && clinic
+              ? {
+                  id: String(clinic.id ?? ""),
+                  title: clinic.title,
+                  address: clinic.address_short || clinic.full_address,
+                }
+              : null,
         },
       });
 
