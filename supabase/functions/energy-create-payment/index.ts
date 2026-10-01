@@ -327,7 +327,7 @@ Deno.serve(async (req) => {
     }
 
     const choices = [
-      { kind: "upsell", amount: validUpsellOrderId ? Math.round(itemsSum * 0.15) : 0 },
+      { kind: "upsell", amount: validUpsellOrderId ? Math.round(itemsSum * (upsellDiscountPct / 100)) : 0 },
       { kind: "partner", amount: partner ? Math.round((itemsSum * partner.discount_pct) / 100) : 0 },
       { kind: "promo", amount: ordinaryPromoDiscount },
       { kind: "report", amount: reportOfferDiscount },
