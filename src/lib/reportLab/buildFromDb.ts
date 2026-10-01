@@ -155,7 +155,7 @@ export async function buildLabReportFromDb(
         .select("*")
         .eq("analysis_id", analysisId)
         .eq("is_active", true)
-        .is("used_at", null)
+        .eq("used_at", null)
         .order("created_at", { ascending: true }),
     ]);
 
