@@ -90,10 +90,14 @@ Deno.serve(async (req) => {
   }
   const parentByVariant = new Map<string, string>();
   const baseProducts = new Map(products);
+  const settingBySlug = new Map((settings ?? []).map((row) => [row.slug, row]));
   for (const variant of variants ?? []) {
     const parent = baseProducts.get(variant.parent_slug);
     if (!parent) continue;
-    products.set(variant.slug, { name: `${parent.name} · ${variant.label}`, price: parent.price });
+    const own = settingBySlug.get(variant.slug);
+    if (own?.is_active === false) { products.delete(variant.slug); continue; }
+    const price = own ? Number(own.price) : parent.price;
+    products.set(variant.slug, { name: `${parent.name} · ${variant.label}`, price });
     parentByVariant.set(variant.slug, variant.parent_slug);
   }
 
