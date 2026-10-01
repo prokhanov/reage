@@ -70,10 +70,11 @@ export default function Auth() {
       setSession(incomingSession);
       queryClient.invalidateQueries({ queryKey: ["userRole"] });
 
-      const from = (location.state as any)?.from?.pathname;
-      if (from && from !== "/auth") {
-        console.info("[auth-debug] Auth redirecting to previous route", { source, route: from });
-        navigate(from, { replace: true });
+      const from = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from;
+      if (from?.pathname && from.pathname !== "/auth") {
+        const route = `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`;
+        console.info("[auth-debug] Auth redirecting to previous route", { source, route });
+        navigate(route, { replace: true });
         return;
       }
 

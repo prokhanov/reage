@@ -27,6 +27,7 @@ function installFromMock(fixtures: Record<string, { data: unknown; error: unknow
     const api: Record<string, unknown> = {
       select: () => api,
       eq: () => api,
+      is: () => api,
       order: () => Promise.resolve(result),
       maybeSingle: () => Promise.resolve(result),
       then: thenable.then,

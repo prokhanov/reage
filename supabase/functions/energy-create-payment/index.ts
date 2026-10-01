@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
       homeAddress,
       upsellOrderId,
       consultationOnly,
+      reportOfferId,
     } = body as {
       ymClientId?: string | null;
       bundle?: string;
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
       homeAddress?: string | null;
       upsellOrderId?: string | null;
       consultationOnly?: boolean;
+      reportOfferId?: string | null;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
@@ -274,22 +276,55 @@ Deno.serve(async (req) => {
     let discount = 0;
     let appliedCode: string | null = null;
     let partnerCommission: number | null = null;
-    if (validUpsellOrderId) {
-      discount = Math.round(itemsSum * 0.15);
-    } else if (partner) {
-      discount = Math.round((itemsSum * partner.discount_pct) / 100);
-      partnerCommission = Math.round((itemsSum * (20 - partner.discount_pct)) / 100);
-      appliedCode = partner.code ?? (code || null);
-    } else if (code) {
+    let ordinaryPromoDiscount = 0;
+    let ordinaryPromoCode: string | null = null;
+    if (code && !partner) {
       const { data: promoRes } = await admin.rpc("checkup_promo_preview", {
         p_code: code, p_phone: null, p_email: emailClean,
       });
       const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string } | null;
       if (!r?.success) return json({ error: r?.error ?? "Промокод не найден" }, 400);
-      discount = r.discount_type === "fixed"
+      ordinaryPromoDiscount = r.discount_type === "fixed"
         ? Math.min(Number(r.discount_value), itemsSum)
         : Math.round((itemsSum * Number(r.discount_value)) / 100);
-      appliedCode = r.code ?? code;
+      ordinaryPromoCode = r.code ?? code;
+    }
+
+    let reportOffer: any = null;
+    let reportOfferDiscount = 0;
+    if (reportOfferId) {
+      if (!userId) return json({ error: "Войдите в кабинет для получения персональной цены" }, 401);
+      const { data: offer } = await admin
+        .from("report_checkup_offers")
+        .select("id, user_id, advertised_checkup_slug, advertised_list_price, final_price, discount_amount, code, expires_at, is_active, used_at")
+        .eq("id", reportOfferId)
+        .maybeSingle();
+      const targetIndex = offer ? uniqueBundles.indexOf(offer.advertised_checkup_slug) : -1;
+      if (!offer || offer.user_id !== userId || !offer.is_active || offer.used_at || new Date(offer.expires_at).getTime() <= Date.now() || targetIndex < 0) {
+        return json({ error: "Срок действия промокода истёк" }, 400);
+      }
+      if (items[targetIndex].price !== Number(offer.advertised_list_price)) {
+        return json({ error: "Цена чекапа изменилась — попросите сотрудника обновить предложение" }, 409);
+      }
+      reportOffer = offer;
+      reportOfferDiscount = Math.min(Number(offer.discount_amount), items[targetIndex].price - 1);
+    }
+
+    const choices = [
+      { kind: "upsell", amount: validUpsellOrderId ? Math.round(itemsSum * 0.15) : 0 },
+      { kind: "partner", amount: partner ? Math.round((itemsSum * partner.discount_pct) / 100) : 0 },
+      { kind: "promo", amount: ordinaryPromoDiscount },
+      { kind: "report", amount: reportOfferDiscount },
+    ].sort((a, b) => b.amount - a.amount);
+    const winner = choices[0];
+    discount = winner.amount;
+    if (winner.kind === "partner" && partner) {
+      partnerCommission = Math.round((itemsSum * (20 - partner.discount_pct)) / 100);
+      appliedCode = partner.code ?? (code || null);
+    } else if (winner.kind === "promo") {
+      appliedCode = ordinaryPromoCode;
+    } else if (winner.kind === "report" && reportOffer) {
+      appliedCode = reportOffer.code;
     }
     const finalAmount = original - discount;
     if (finalAmount <= 0) return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
@@ -301,6 +336,22 @@ Deno.serve(async (req) => {
       ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(claimSecret))))
           .map((b) => b.toString(16).padStart(2, "0")).join("")
       : null;
+
+    const discountShares = items.map((item, index) => {
+      if (winner.kind === "report") return uniqueBundles[index] === reportOffer?.advertised_checkup_slug ? discount : 0;
+      if (itemsSum <= 0) return 0;
+      if (index === items.length - 1) {
+        return discount - items.slice(0, -1).reduce((sum, prior) => sum + Math.round((discount * prior.price) / itemsSum), 0);
+      }
+      return Math.round((discount * item.price) / itemsSum);
+    });
+    const lineItems = items.map((item, index) => ({
+      slug: uniqueBundles[index],
+      title: item.title,
+      list_price: item.price,
+      discount: discountShares[index],
+      final_price: item.price - discountShares[index],
+    }));
 
     const { data: order, error: orderErr } = await admin
       .from("energy_orders")
@@ -323,21 +374,36 @@ Deno.serve(async (req) => {
         out_sum: finalAmount,
         bonus_items: bonusItems.length > 0 ? [{ title: "Общий анализ крови", price: 990, final_price: 0, slugs: bonusItems }] : [],
         promo_code: appliedCode,
-        partner_id: partner?.partner_id ?? null,
-        partner_discount_pct: partner ? partner.discount_pct : null,
+        partner_id: winner.kind === "partner" ? partner?.partner_id ?? null : null,
+        partner_discount_pct: winner.kind === "partner" && partner ? partner.discount_pct : null,
         partner_commission: partnerCommission,
         status: "pending",
         is_test: isTest,
         ym_client_id: typeof ymClientId === "string" && /^\d{1,32}$/.test(ymClientId) ? ymClientId : null,
         upsell_source_order_id: validUpsellOrderId,
         consultation_purchased: withConsult,
+        line_items: lineItems,
+        report_offer_id: winner.kind === "report" ? reportOffer?.id ?? null : null,
       })
-      .select("inv_id")
+      .select("id, inv_id")
       .single();
 
     if (orderErr || !order) {
       console.error("energy_orders insert failed", orderErr);
       return json({ error: "Не удалось создать заказ" }, 500);
+    }
+
+    if (winner.kind === "report" && reportOffer) {
+      const { data: reserved, error: reserveError } = await admin.rpc("reserve_report_checkup_offer", {
+        p_offer_id: reportOffer.id,
+        p_user_id: userId,
+        p_checkup_slug: reportOffer.advertised_checkup_slug,
+        p_order_id: order.id,
+      });
+      if (reserveError || reserved !== true) {
+        await admin.from("energy_orders").delete().eq("id", order.id).eq("status", "pending");
+        return json({ error: "Промокод уже используется или истёк" }, 409);
+      }
     }
 
     const invId = Number(order.inv_id);
@@ -347,9 +413,7 @@ Deno.serve(async (req) => {
       items: [
         // Скидку распределяем по позициям пропорционально, остаток кладём в первую.
         ...items.map((p, i) => {
-          const share = i === items.length - 1
-            ? discount - items.slice(0, -1).reduce((acc, x) => acc + Math.round((discount * x.price) / itemsSum), 0)
-            : Math.round((discount * p.price) / itemsSum);
+          const share = discountShares[i];
           return {
             name: p.title.slice(0, 128),
             quantity: 1,

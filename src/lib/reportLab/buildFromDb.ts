@@ -19,6 +19,7 @@ import type {
   ReportRecommendationRow,
 } from "./types";
 import { fetchReportDocument } from "./documentStore";
+import { decorateReportOffers, type ReportCheckupOffer } from "@/lib/reportCheckupOffers";
 
 type ProfileRow = {
   first_name: string | null;
@@ -123,7 +124,7 @@ export async function buildLabReportFromDb(
   if (!analysisId) throw new Error("buildLabReportFromDb: analysisId is required");
   if (!userId) throw new Error("buildLabReportFromDb: userId is required");
 
-  const [analysisRes, profileRes, valuesRes, recommendationsRes, prescriptionsRes] =
+  const [analysisRes, profileRes, valuesRes, recommendationsRes, prescriptionsRes, offersRes] =
     await Promise.all([
       supabase
         .from("analyses")
@@ -149,6 +150,13 @@ export async function buildLabReportFromDb(
         .select("id, name, form, dosage, how_to_take, duration, reason, effect, category")
         .eq("analysis_id", analysisId)
         .eq("is_archived", false),
+      supabase
+        .from("report_checkup_offers")
+        .select("*")
+        .eq("analysis_id", analysisId)
+        .eq("is_active", true)
+        .is("used_at", null)
+        .order("created_at", { ascending: true }),
     ]);
 
   if (analysisRes.error) throw analysisRes.error;
@@ -156,6 +164,7 @@ export async function buildLabReportFromDb(
   if (valuesRes.error) throw valuesRes.error;
   if (recommendationsRes.error) throw recommendationsRes.error;
   if (prescriptionsRes.error) throw prescriptionsRes.error;
+  if (offersRes.error) throw offersRes.error;
 
   const analysisRow = analysisRes.data as AnalysisRow | null;
   if (!analysisRow) throw new Error(`Анализ не найден: ${analysisId}`);
@@ -225,6 +234,8 @@ export async function buildLabReportFromDb(
       ? (analysisRow.cover_overrides as CoverOverrides)
       : null;
 
+  const checkupOffers = await decorateReportOffers((offersRes.data ?? []) as ReportCheckupOffer[]);
+
   const report: LabReport = {
     version: 1,
     generatedAt: new Date().toISOString(),
@@ -238,6 +249,7 @@ export async function buildLabReportFromDb(
     doc: null,
     docStatus: null,
     docEditedAt: null,
+    checkupOffers,
   };
 
   // Сохранённый документ — источник истины для рендера. Если его ещё нет

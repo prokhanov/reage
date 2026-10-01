@@ -66,7 +66,7 @@ function birthDisplayToIso(display: string): string {
 }
 
 export function EnergyCart() {
-  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem, upsellOrderId } =
+  const { cartOpen, closeCart, clinic, setClinic, checkup, items, removeItem, upsellOrderId, reportOfferId } =
     useEnergyOrder();
   const { doctor } = useCheckupSettings();
   const CONSULT_PRICE = doctor.consultation_price;
@@ -87,6 +87,14 @@ export function EnergyCart() {
   } | null>(null);
   const [consult, setConsult] = useState(false);
   const [partnerHidesConsult, setPartnerHidesConsult] = useState(false);
+  const [reportOffer, setReportOffer] = useState<{
+    id: string;
+    advertised_checkup_slug: string;
+    code: string;
+    final_price: number;
+    discount_amount: number;
+    expires_at: string;
+  } | null>(null);
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -149,15 +157,34 @@ export function EnergyCart() {
     return () => { cancelled = true; subscription.unsubscribe(); };
   }, []);
 
+  useEffect(() => {
+    if (!reportOfferId || !cartOpen) {
+      setReportOffer(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("report_checkup_offers")
+      .select("id, advertised_checkup_slug, code, final_price, discount_amount, expires_at")
+      .eq("id", reportOfferId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setReportOffer(data ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [cartOpen, reportOfferId]);
+
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const upsellDiscount = upsellOrderId ? Math.round(itemsSum * 0.15) : 0;
-  const discount = upsellOrderId
-    ? upsellDiscount
-    : !appliedPromo
+  const promoDiscount = !appliedPromo
     ? 0
     : appliedPromo.type === "fixed"
       ? Math.min(appliedPromo.value, itemsSum)
       : Math.round((itemsSum * appliedPromo.value) / 100);
+  const offerDiscount = reportOffer && items.some((item) => item.slug === reportOffer.advertised_checkup_slug)
+    ? Math.min(Number(reportOffer.discount_amount), itemsSum)
+    : 0;
+  const discount = Math.max(upsellDiscount, promoDiscount, offerDiscount);
   const { data: partnerOffer } = usePartnerOffer();
   const consultHidden =
     appliedPromo?.hideConsultation === true || partnerHidesConsult || partnerOffer?.hide_consultation === true;
@@ -266,6 +293,7 @@ export function EnergyCart() {
           middleName: middleName.trim(),
           birthDate: birthIso,
           promoCode: appliedPromo?.code,
+          reportOfferId,
           upsellOrderId,
           consultation: consult && !consultHidden,
           locationType: isHome ? "home" : "clinic",
@@ -848,16 +876,22 @@ export function EnergyCart() {
                     <span className="">+{money(HOME_VISIT_PRICE)}</span>
                   </div>
                 )}
-                {upsellOrderId && (
+                {upsellOrderId && upsellDiscount === discount && upsellDiscount > 0 && (
                   <div className="flex items-center justify-between text-success">
                     <span>Дополнительный чекап · −15%</span>
                     <span>−{money(upsellDiscount)}</span>
                   </div>
                 )}
-                {appliedPromo && !upsellOrderId && (
+                {appliedPromo && promoDiscount === discount && promoDiscount > 0 && offerDiscount !== discount && (
                   <div className="flex items-center justify-between text-primary">
                     <span>Скидка · {appliedPromo.code}</span>
                     <span className="">−{money(discount)}</span>
+                  </div>
+                )}
+                {reportOffer && offerDiscount === discount && offerDiscount > 0 && (
+                  <div className="flex items-center justify-between text-success">
+                    <span>Персональное предложение · {reportOffer.code}</span>
+                    <span>−{money(offerDiscount)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between border-t hairline pt-2 text-base font-semibold text-foreground">

@@ -8,3 +8,4 @@
 - The global contact launcher offers the public ReAge Telegram chat and the on-site support chat; keep unread counts on the launcher so replies remain visible before opening either channel.
 - Store each paid checkup item as one row in `one_time_checkups`, linked to its `energy_orders` payment; patients have read-only access while staff with `patients` permission can update operational fields.
 - Guest checkup buyers get an account created in `robokassa-result` only after a verified payment; auto-login (`energy-claim-session`) is issued solely for accounts created by that order — any email/phone match links the order silently without login or email, to prevent account takeover.
+- Store report-banner offers separately in `report_checkup_offers`; authorize, reserve, and redeem them server-side so one patient/SKU/usage cannot affect ordinary promo codes or partner attribution.
