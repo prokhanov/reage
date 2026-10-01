@@ -208,8 +208,8 @@ html, body {
 }
 .reportlab .rl-offer-rings { position: absolute; width: 52mm; height: 52mm; right: -8mm; top: -15mm; border: .3mm solid rgba(255,255,255,.12); border-radius: 50%; }
 .reportlab .rl-offer-rings::after { content: ""; position: absolute; inset: 14mm; border: .3mm solid rgba(255,255,255,.12); border-radius: 50%; }
-.reportlab .rl-offer-layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 76mm; gap: 10mm; min-height: 118mm; }
-.reportlab .rl-offer-copy { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.reportlab .rl-offer-layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 76mm; gap: 10mm; align-items: start; }
+.reportlab .rl-offer-copy { min-width: 0; display: flex; flex-direction: column; gap: 14mm; }
 .reportlab .rl-offer-eyebrow { font: 600 9pt/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: .08em; color: #a9c8b7; }
 .reportlab .rl-offer h2 { max-width: 78mm; margin: 5mm 0 3mm; font: 500 24pt/1.08 var(--font-serif); color: #f7faf8; overflow-wrap: anywhere; }
 .reportlab .rl-offer-lead { max-width: 76mm; font: 500 10.5pt/1.4 var(--font-sans); color: #d9e7df; }
