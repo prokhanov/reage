@@ -200,7 +200,11 @@ html, body {
 }
 
 /* ─── Персональное предложение в конце отчёта ─────────────────────────── */
-.reportlab .rl-offer-page { min-height: 270mm; display: flex; align-items: center; }
+.reportlab .rl-offer-page { min-height: 270mm; display: flex; flex-direction: column; justify-content: center; gap: 8mm; }
+.reportlab .rl-offer-page--multi { justify-content: flex-start; gap: 6mm; }
+.reportlab .rl-offer-page .rl-offer { break-inside: avoid; page-break-inside: avoid; }
+.reportlab .rl-offer-page--multi .rl-offer { padding: 8mm 10mm; }
+.reportlab .rl-offer-page--multi .rl-offer h2 { font-size: 20pt; margin: 3mm 0 2mm; }
 .reportlab .rl-offer {
   width: 100%; padding: 12mm; border-radius: 8mm; position: relative;
   overflow: hidden; background: #1d4433; color: #f7faf8; box-sizing: border-box;
