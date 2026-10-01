@@ -111,10 +111,11 @@ function CheckupsContent() {
         </section>
       )}
       {eligibleUpsellRecord && selectedCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 shadow-overlay backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
-            <div className="min-w-0"><p className="text-xs text-muted-foreground">Выбрано: {selectedCount} {selectedCount === 1 ? "позиция" : selectedCount < 5 ? "позиции" : "позиций"}</p><div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="font-semibold">{money(selectedTotal)}</span>{items.length > 0 && <span className="rounded bg-success-soft px-2 py-0.5 text-xs font-medium text-success">Экономия {money(Math.round(items.reduce((sum, item) => sum + item.price, 0) * 0.15))}</span>}</div></div>
-            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="shrink-0 gap-1.5" onClick={resetSelection}><RotateCcw className="h-4 w-4" />Сбросить</Button><Button className="min-w-0 flex-1 sm:flex-none" onClick={openCart}>Добавить и оплатить</Button></div>
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 shadow-overlay backdrop-blur-md lg:left-[264px]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex sm:justify-between md:px-6">
+            <div className="min-w-0"><p className="text-[11px] leading-tight text-muted-foreground">Выбрано: {selectedCount} {selectedCount === 1 ? "позиция" : selectedCount < 5 ? "позиции" : "позиций"}</p><div className="mt-1 flex min-w-0 items-center gap-2"><span className="shrink-0 text-base font-semibold">{money(selectedTotal)}</span>{items.length > 0 && <span className="truncate rounded bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">Экономия {money(Math.round(items.reduce((sum, item) => sum + item.price, 0) * 0.15))}</span>}</div></div>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 sm:hidden" onClick={resetSelection} aria-label="Сбросить выбор"><RotateCcw className="h-4 w-4" /></Button>
+            <div className="col-span-2 flex items-center gap-2 sm:col-span-1"><Button variant="ghost" size="sm" className="hidden shrink-0 gap-1.5 sm:inline-flex" onClick={resetSelection}><RotateCcw className="h-4 w-4" />Сбросить</Button><Button className="h-11 min-w-0 flex-1 px-4 sm:h-control-md sm:flex-none" onClick={openCart}>Добавить и оплатить</Button></div>
           </div>
         </div>
       )}
