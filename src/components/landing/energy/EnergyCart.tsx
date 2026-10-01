@@ -336,48 +336,62 @@ export function EnergyCart() {
                   type="button"
                   onClick={() => setLocationType("clinic")}
                   aria-pressed={locationType === "clinic"}
-                  className={`rounded-xl border p-4 text-left transition-colors ${
+                  className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
                     locationType === "clinic"
                       ? "border-primary bg-primary/5"
                       : "border-border bg-card hover:border-primary/40"
                   }`}
                 >
-                  <span className="flex items-center justify-between">
-                    <FlaskConical className="h-5 w-5 text-primary" aria-hidden />
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                        locationType === "clinic" ? "border-primary" : "border-border"
-                      }`}
-                    >
-                      {locationType === "clinic" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
-                    </span>
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                      locationType === "clinic" ? "border-primary" : "border-muted-foreground/40"
+                    }`}
+                  >
+                    {locationType === "clinic" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
                   </span>
-                  <span className="mt-3 block text-base font-semibold text-foreground">В лаборатории</span>
-                  <span className="mt-0.5 block text-sm text-muted-foreground">Без доплаты</span>
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      locationType === "clinic" ? "bg-card shadow-sm" : ""
+                    }`}
+                  >
+                    <FlaskConical className="h-5 w-5 text-primary" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold text-foreground">В лаборатории</span>
+                    <span className="block text-sm text-muted-foreground">Без доплаты</span>
+                  </span>
+                  <span className="shrink-0 text-base font-semibold text-foreground">0 ₽</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setLocationType("home")}
                   aria-pressed={locationType === "home"}
-                  className={`rounded-xl border p-4 text-left transition-colors ${
+                  className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
                     locationType === "home"
-                      ? "border-primary bg-primary/5"
+                      ? "border-primary bg-primary/10"
                       : "border-border bg-card hover:border-primary/40"
                   }`}
                 >
-                  <span className="flex items-center justify-between">
-                    <Home className="h-5 w-5 text-primary" aria-hidden />
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                        locationType === "home" ? "border-primary" : "border-border"
-                      }`}
-                    >
-                      {locationType === "home" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
-                    </span>
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                      locationType === "home" ? "border-primary" : "border-muted-foreground/40"
+                    }`}
+                  >
+                    {locationType === "home" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
                   </span>
-                  <span className="mt-3 block text-base font-semibold text-foreground">Дома</span>
-                  <span className="mt-0.5 block text-sm text-muted-foreground">
-                    Выезд медсестры, +{money(HOME_VISIT_PRICE)}
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      locationType === "home" ? "bg-card shadow-sm" : ""
+                    }`}
+                  >
+                    <Home className="h-5 w-5 text-primary" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold text-foreground">Дома</span>
+                    <span className="block text-sm text-muted-foreground">Выезд медсестры</span>
+                  </span>
+                  <span className={`shrink-0 text-base font-semibold ${locationType === "home" ? "text-primary" : "text-foreground"}`}>
+                    +{money(HOME_VISIT_PRICE)}
                   </span>
                 </button>
               </div>
