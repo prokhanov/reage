@@ -112,7 +112,7 @@ interface Props {
   readOnly?: boolean;
 }
 
-export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, readOnly = false }: Props) {
+export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, renderHeader, readOnly = false }: Props) {
   const [mode, setMode] = useState<"lab" | "home">("lab");
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(confirmed?.id ?? null);
