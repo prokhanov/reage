@@ -27,13 +27,13 @@ interface AppSidebarProps {
 
 const navItems = [
   { to: "/dashboard", label: "Моё здоровье", icon: Home },
+  { to: "/one-time-checkups", label: "Чекапы", icon: ShoppingCart },
   { to: "/analyses", label: "Анализы", icon: FlaskConical },
   { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },
   { to: "/prescriptions", label: "Рекомендации", icon: FileText },
   { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
-  { to: "/one-time-checkups", label: "Чекапы", icon: ShoppingCart },
 ];
 
 import type { AdminModule } from "@/lib/adminModules";
