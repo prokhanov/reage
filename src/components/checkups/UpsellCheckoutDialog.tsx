@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, Lock, MapPin, Stethoscope, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,24 +12,16 @@ import { goalPaymentClick, invIdFromPaymentUrl, rememberCheckupOrder } from "@/l
 import { useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
 import type { OneTimeCheckupRecord } from "./EditOneTimeCheckupDialog";
 
-export function UpsellCheckoutDialog({ source, consultationPurchased, consultationInitiallySelected, onConsultationSelectionHandled }: {
+export function UpsellCheckoutDialog({ source, consultationPurchased, consultation, onConsultationChange }: {
   source: OneTimeCheckupRecord;
   consultationPurchased: boolean;
-  consultationInitiallySelected: boolean;
-  onConsultationSelectionHandled: () => void;
+  consultation: boolean;
+  onConsultationChange: (selected: boolean) => void;
 }) {
   const { cartOpen, closeCart, items, removeItem } = useEnergyOrder();
   const { doctor } = useCheckupSettings();
-  const [consultation, setConsultation] = useState(false);
   const [agree, setAgree] = useState(true);
   const [paying, setPaying] = useState(false);
-
-  useEffect(() => {
-    if (cartOpen && consultationInitiallySelected) {
-      setConsultation(true);
-      onConsultationSelectionHandled();
-    }
-  }, [cartOpen, consultationInitiallySelected, onConsultationSelectionHandled]);
 
   const itemsSum = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items]);
   const discount = Math.round(itemsSum * 0.15);
@@ -85,7 +77,7 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
             </div>
           ))}
           {!consultationPurchased && doctor.consultation_enabled && (
-            <button type="button" className="flex w-full items-center justify-between gap-3 rounded-lg border p-3 text-left" onClick={() => setConsultation((value) => !value)}>
+            <button type="button" className="flex w-full items-center justify-between gap-3 rounded-lg border p-3 text-left" onClick={() => onConsultationChange(!consultation)}>
               <span className="flex items-center gap-2"><Stethoscope className="h-4 w-4 text-primary" /><span><span className="block text-sm font-medium">Разбор результатов с врачом</span><span className="block text-xs text-muted-foreground">40 минут онлайн</span></span></span>
               <span className="flex items-center gap-2 text-sm font-medium">{money(doctor.consultation_price)}<span className={`flex h-5 w-5 items-center justify-center rounded border ${consultation ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{consultation && <Check className="h-3.5 w-3.5" />}</span></span>
             </button>
