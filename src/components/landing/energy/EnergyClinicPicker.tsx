@@ -4,6 +4,7 @@ import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home,
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getUtm } from "@/lib/utm";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import labquestLogo from "@/assets/labquest-logo.png";
 import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
