@@ -96,6 +96,7 @@ export function EnergyCart() {
   const [homeEntrance, setHomeEntrance] = useState("");
   const [homeFloor, setHomeFloor] = useState("");
   const [homeIntercom, setHomeIntercom] = useState("");
+  const [homeComment, setHomeComment] = useState("");
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = !appliedPromo
@@ -113,6 +114,7 @@ export function EnergyCart() {
     homeEntrance.trim() && `подъезд ${homeEntrance.trim()}`,
     homeFloor.trim() && `этаж ${homeFloor.trim()}`,
     homeIntercom.trim() && `домофон ${homeIntercom.trim()}`,
+    homeComment.trim() && `комментарий: ${homeComment.trim()}`,
   ]
     .filter(Boolean)
     .join(", ");
