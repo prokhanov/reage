@@ -761,3 +761,13 @@ All colors MUST be HSL.
   background: linear-gradient(180deg, #8b7cf8 0%, #6c5ce7 100%);
   color: #ffffff;
 }
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
