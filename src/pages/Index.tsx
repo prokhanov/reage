@@ -215,24 +215,45 @@ function IndexHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-3">
-          <Button
-            asChild
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="hidden h-9 px-3 sm:inline-flex"
-          >
-            <Link to="/auth">Войти</Link>
-          </Button>
+          {account ? (
+            <Link
+              to="/dashboard"
+              aria-label="Личный кабинет"
+              className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted/60 sm:pr-3"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground sm:h-11 sm:w-11">
+                {account.initials}
+              </span>
+              <span className="hidden text-base font-bold text-foreground sm:block">
+                {account.name}
+              </span>
+            </Link>
+          ) : (
+            <>
+              {authChecked && (
+                <Button
+                  asChild
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="hidden h-9 px-3 sm:inline-flex"
+                >
+                  <Link to="/auth">Войти</Link>
+                </Button>
+              )}
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-            className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 md:inline-flex"
-          >
-            Оставить заявку
-          </Button>
+              {authChecked && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
+                  className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 md:inline-flex"
+                >
+                  Оставить заявку
+                </Button>
+              )}
+            </>
+          )}
 
           <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-10 w-10 sm:h-11 sm:w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
             <ShoppingCart className="h-5 w-5" />
