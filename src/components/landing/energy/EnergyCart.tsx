@@ -117,7 +117,10 @@ export function EnergyCart() {
     .filter(Boolean)
     .join(", ");
   const homeValid = homeAddress.trim().length >= 5;
-  const total = itemsSum - discount + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0);
+  // Доплаты (выезд, консультация) и скидка считаем только когда выбран основной продукт — чекап.
+  const total = items.length > 0
+    ? itemsSum - discount + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0)
+    : 0;
   const hasCbcBonus = items.some((item) => item.cbcBonusEnabled);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -662,13 +665,13 @@ export function EnergyCart() {
                     </span>
                   </div>
                 )}
-                {consult && (
+                {items.length > 0 && consult && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Консультация врача</span>
                     <span className="">{money(CONSULT_PRICE)}</span>
                   </div>
                 )}
-                {isHome && (
+                {items.length > 0 && isHome && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Выезд медсестры на дом</span>
                     <span className="">+{money(HOME_VISIT_PRICE)}</span>
@@ -730,7 +733,7 @@ export function EnergyCart() {
               size="lg"
               className="h-12 w-full text-base"
             >
-              {paying ? "Переходим к оплате…" : `Перейти к оплате · ${money(total)}`}
+              {paying ? "Переходим к оплате…" : items.length > 0 ? `Перейти к оплате · ${money(total)}` : "Добавьте чекап"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               Оплата на защищённой странице банка-эквайера
