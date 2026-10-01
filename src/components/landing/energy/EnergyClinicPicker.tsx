@@ -106,6 +106,8 @@ interface Props {
   layout?: "section" | "stack";
   /** Дополнительный контент справа от переключателя городов. */
   header?: React.ReactNode;
+  /** Кастомная шапка: получает строчный выбор города (или null, когда выбор скрыт). */
+  renderHeader?: (cityTrigger: React.ReactNode) => React.ReactNode;
   /** Только просмотр: скрыть выбор отделения, карта без клика по точкам. */
   readOnly?: boolean;
 }
