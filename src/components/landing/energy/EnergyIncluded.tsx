@@ -14,6 +14,8 @@ interface Props {
 }
 
 export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
+  const [cbcOpen, setCbcOpen] = useState(false);
+
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
