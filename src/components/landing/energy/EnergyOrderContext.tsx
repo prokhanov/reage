@@ -131,7 +131,11 @@ export function EnergyOrderProvider({
     },
     [slugs, update],
   );
-  const clearCart = useCallback(() => update([]), [update]);
+  const clearCart = useCallback(() => {
+    update([]);
+    localStorage.removeItem(UPSELL_ORDER_KEY);
+    setUpsellOrderId(null);
+  }, [update]);
   const addUpsellItem = useCallback((slug: string, sourceOrderId: string) => {
     update(slugs.includes(slug) ? slugs : [...slugs, slug]);
     localStorage.setItem(UPSELL_ORDER_KEY, sourceOrderId);

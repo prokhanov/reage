@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
       locationType = "clinic",
       homeAddress,
       upsellOrderId,
+      consultationOnly,
     } = body as {
       ymClientId?: string | null;
       bundle?: string;
@@ -101,10 +102,11 @@ Deno.serve(async (req) => {
       locationType?: "clinic" | "home";
       homeAddress?: string | null;
       upsellOrderId?: string | null;
+      consultationOnly?: boolean;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
-    const bundleList = Array.isArray(bundles) && bundles.length > 0 ? bundles : [bundle];
+    const bundleList = consultationOnly === true ? [] : Array.isArray(bundles) && bundles.length > 0 ? bundles : [bundle];
     const uniqueBundles = [...new Set(bundleList.map((b) => String(b)))];
     // Варианты чекапов (например, «Полный · Расширенный») создаются в админке —
     // название собираем из родительского чекапа и подписи варианта.
@@ -129,35 +131,48 @@ Deno.serve(async (req) => {
     if (products.some((p) => !p)) return json({ error: "Неизвестный набор анализов" }, 400);
     const items = (products as { title: string; price: number }[]).map((p) => ({ ...p }));
 
-    const emailClean = (email ?? "").trim().toLowerCase();
-    const phoneClean = (phone ?? "").trim();
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const admin = createClient(supabaseUrl, serviceKey);
+    let userId: string | null = null;
+    if (jwt && jwt !== Deno.env.get("SUPABASE_ANON_KEY")) {
+      const { data, error } = await admin.auth.getUser(jwt);
+      if (error) return json({ error: "Сессия недействительна" }, 401);
+      userId = data.user?.id ?? null;
+    }
+    let sourceOrder: any = null;
+    if (upsellOrderId && userId) {
+      const { data } = await admin.from("energy_orders").select("*").eq("id", upsellOrderId).eq("user_id", userId).eq("status", "paid").maybeSingle();
+      sourceOrder = data;
+    }
+    const emailClean = (email ?? sourceOrder?.email ?? "").trim().toLowerCase();
+    const phoneClean = (phone ?? sourceOrder?.phone ?? "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
       return json({ error: "Укажите корректный email" }, 400);
     }
     if (phoneClean.replace(/\D/g, "").length < 10) {
       return json({ error: "Укажите корректный телефон" }, 400);
     }
-    const isHome = locationType === "home";
-    const homeAddressClean = (homeAddress ?? "").trim().slice(0, 300);
+    const resolvedLocationType = sourceOrder ? (/дом|выезд/i.test(String(sourceOrder.clinic_title ?? "")) ? "home" : "clinic") : locationType;
+    const isHome = resolvedLocationType === "home";
+    const homeAddressClean = (homeAddress ?? sourceOrder?.clinic_address ?? "").trim().slice(0, 300);
     if (isHome && homeAddressClean.length < 5) {
       return json({ error: "Укажите адрес выезда медсестры" }, 400);
     }
-    if (!isHome && (!clinic || !(clinic.title ?? "").trim())) {
+    if (!isHome && (!sourceOrder && (!clinic || !(clinic.title ?? "").trim()))) {
       return json({ error: "Выберите клинику для сдачи анализов" }, 400);
     }
 
-    const lastNameClean = (lastName ?? "").trim().slice(0, 100);
-    const firstNameClean = (firstName ?? "").trim().slice(0, 100);
-    const middleNameClean = (middleName ?? "").trim().slice(0, 100);
-    const birthDateClean = (birthDate ?? "").trim();
+    const lastNameClean = (lastName ?? sourceOrder?.last_name ?? "").trim().slice(0, 100);
+    const firstNameClean = (firstName ?? sourceOrder?.first_name ?? "").trim().slice(0, 100);
+    const middleNameClean = (middleName ?? sourceOrder?.middle_name ?? "").trim().slice(0, 100);
+    const birthDateClean = (birthDate ?? sourceOrder?.birth_date ?? "").trim();
     if (lastNameClean.length < 2 || firstNameClean.length < 2) {
       return json({ error: "Укажите фамилию и имя" }, 400);
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDateClean) || isNaN(Date.parse(birthDateClean))) {
       return json({ error: "Укажите дату рождения" }, 400);
     }
-
-    const admin = createClient(supabaseUrl, serviceKey);
 
     // Цены администрируются в разделе «Чекапы» админки; каталог в коде — запасной вариант.
     const PRICE_ALIASES: Record<string, string> = {
@@ -204,26 +219,9 @@ Deno.serve(async (req) => {
       }, 500);
     }
 
-    // Пользователь может быть авторизован — тогда привяжем заказ к аккаунту.
-    let userId: string | null = null;
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (jwt && jwt !== Deno.env.get("SUPABASE_ANON_KEY")) {
-      const { data, error } = await admin.auth.getUser(jwt);
-      if (error) return json({ error: "Сессия недействительна" }, 401);
-      userId = data.user?.id ?? null;
-    }
-
     let validUpsellOrderId: string | null = null;
     if (upsellOrderId) {
       if (!userId) return json({ error: "Войдите в кабинет для получения скидки" }, 401);
-      const { data: sourceOrder } = await admin
-        .from("energy_orders")
-        .select("id, user_id, status")
-        .eq("id", upsellOrderId)
-        .eq("user_id", userId)
-        .eq("status", "paid")
-        .maybeSingle();
       if (!sourceOrder) return json({ error: "Скидка для этого заказа недоступна" }, 400);
       const { data: sourceRecords } = await admin
         .from("one_time_checkups")
@@ -235,6 +233,7 @@ Deno.serve(async (req) => {
       if (uniqueBundles.some((slug) => (sourceRecords ?? []).some((record) => record.checkup_slug === slug))) {
         return json({ error: "Этот чекап уже есть в заказе" }, 400);
       }
+      if (consultationOnly === true && sourceOrder.consultation_purchased === true) return json({ error: "Консультация уже оплачена" }, 400);
       validUpsellOrderId = sourceOrder.id;
     }
 
@@ -246,6 +245,7 @@ Deno.serve(async (req) => {
     const partner = partnerRes as { partner_id: string; discount_pct: number; hide_consultation: boolean; code: string | null } | null;
 
     const withConsult = consultation === true && !partner?.hide_consultation;
+    if (consultationOnly === true && !withConsult) return json({ error: "Выберите консультацию" }, 400);
     const consultAmount = withConsult ? CONSULT_PRICE : 0;
     const homeFee = isHome ? HOME_VISIT_PRICE : 0;
     const original = itemsSum + consultAmount + homeFee;
@@ -287,8 +287,8 @@ Deno.serve(async (req) => {
         middle_name: middleNameClean || null,
         birth_date: birthDateClean,
         clinic_id: isHome ? null : clinic?.id ?? null,
-        clinic_title: isHome ? HOME_VISIT_TITLE : clinic?.title ?? null,
-        clinic_address: isHome ? homeAddressClean : clinic?.address ?? null,
+        clinic_title: sourceOrder?.clinic_title ?? (isHome ? HOME_VISIT_TITLE : clinic?.title ?? null),
+        clinic_address: sourceOrder?.clinic_address ?? (isHome ? homeAddressClean : clinic?.address ?? null),
         original_amount: original,
         discount_amount: discount,
         out_sum: finalAmount,
@@ -301,6 +301,7 @@ Deno.serve(async (req) => {
         is_test: isTest,
         ym_client_id: typeof ymClientId === "string" && /^\d{1,32}$/.test(ymClientId) ? ymClientId : null,
         upsell_source_order_id: validUpsellOrderId,
+        consultation_purchased: withConsult,
       })
       .select("inv_id")
       .single();
