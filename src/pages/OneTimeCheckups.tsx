@@ -13,7 +13,6 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { BASE_CHECKUPS, useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { bookingStatusLabels } from "@/lib/bookingStatusLabels";
 import { cn } from "@/lib/utils";
 import { money } from "@/data/checkups";
 import { notify } from "@/lib/toast";
@@ -25,7 +24,7 @@ const STEPS = [
   { key: "ready", label: "Результаты готовы" },
 ];
 
-const STATUS_STEP: Record<string, number> = { waiting_call: 1, no_answer: 1, not_scheduled: 1, scheduled: 1, application_submitted: 2, collected: 3, report_pending: 3, report_ready: 4 };
+const STATUS_STEP: Record<string, number> = { paid: 1, waiting_call: 1, no_answer: 1, not_scheduled: 1, scheduled: 1, application_submitted: 2, collected: 3, report_pending: 3, report_ready: 4 };
 
 function CheckupsContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -82,7 +81,7 @@ function CheckupsContent() {
             <Card key={record.id} className="border-border/80 shadow-none">
               <CardContent className="p-5 md:p-6">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-semibold">{checkup?.name ?? record.checkup_slug}</h2><span className="rounded-full bg-success-soft px-2.5 py-1 text-xs font-medium text-success">{bookingStatusLabels[record.status] ?? record.status}</span></div><p className="mt-1 text-sm text-muted-foreground">{checkup?.cardText ?? "Персональный набор анализов"}</p></div>
+                  <div className="min-w-0"><h2 className="text-lg font-semibold">{checkup?.name ?? record.checkup_slug}</h2><p className="mt-1 text-sm text-muted-foreground">{checkup?.cardText ?? "Персональный набор анализов"}</p></div>
                   {canEdit && <Button variant="outline" size="sm" className="shrink-0 gap-2" onClick={() => setEditing(record)}><Edit3 className="h-3.5 w-3.5" />Изменить</Button>}
                 </div>
 

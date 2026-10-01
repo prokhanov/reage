@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
           order_id: (energyOrder as any).id,
           checkup_slug: slug,
           paid_amount: perItemPaid,
-          status: "waiting_call",
+          status: "paid",
           location_type: isHome ? "home" : "clinic",
           location_title: locationTitle,
           address: (energyOrder as any).clinic_address ?? null,
