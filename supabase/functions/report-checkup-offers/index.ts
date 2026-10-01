@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
   if (allowed !== true) return json({ error: "Нет доступа" }, 403);
 
   const { analysisId, action } = parsed.data;
-  const [{ data: analysis }, { data: source }] = await Promise.all([
+  const [{ data: analysis }, { data: linkedSource }] = await Promise.all([
     admin.from("analyses").select("id, user_id").eq("id", analysisId).maybeSingle(),
     admin
       .from("one_time_checkups")
@@ -97,6 +97,20 @@ Deno.serve(async (req) => {
       .maybeSingle(),
   ]);
   if (!analysis) return json({ error: "Анализ не найден" }, 404);
+  // Если чекап не привязан к анализу — берём последний оплаченный чекап пациента без отчёта.
+  let source = linkedSource;
+  if (!source) {
+    const { data: fallbackSource } = await admin
+      .from("one_time_checkups")
+      .select("id, user_id, checkup_slug, paid_amount")
+      .eq("user_id", analysis.user_id)
+      .is("analysis_id", null)
+      .gt("paid_amount", 0)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    source = fallbackSource;
+  }
   if (source && source.user_id !== analysis.user_id) return json({ error: "Данные отчёта не совпадают" }, 409);
 
   const [{ data: settings }, { data: variants }, { data: current }] = await Promise.all([
@@ -190,7 +204,26 @@ Deno.serve(async (req) => {
   }
 
   for (const candidate of candidates.filter((item) => selectedSlugs.has(item.slug))) {
-    if (currentBySlug.has(candidate.slug)) continue;
+    const existing = currentBySlug.get(candidate.slug);
+    if (existing) {
+      // Пересчитываем неиспользованный баннер, если цена изменилась (например, нашёлся оплаченный чекап).
+      if (!existing.used_at && Number(existing.final_price) !== candidate.finalPrice) {
+        await admin.from("report_checkup_offers").update({
+          pricing_mode: candidate.pricingMode,
+          source_checkup_id: source?.id ?? null,
+          source_checkup_slug: source?.checkup_slug ?? "report",
+          source_paid_amount: candidate.sourcePaid,
+          advertised_list_price: candidate.listPrice,
+          final_price: candidate.finalPrice,
+          discount_amount: candidate.discountAmount,
+          updated_at: new Date().toISOString(),
+        }).eq("id", existing.id);
+        if (existing.promo_code_id) {
+          await admin.from("promo_codes").update({ discount_value: candidate.discountAmount }).eq("id", existing.promo_code_id);
+        }
+      }
+      continue;
+    }
     let inserted = false;
     for (let attempt = 0; attempt < 6 && !inserted; attempt += 1) {
       const code = makeCode();
