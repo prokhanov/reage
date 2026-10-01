@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Menu, ShoppingCart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { AutoLoginHandler } from "@/components/AutoLoginHandler";
@@ -101,6 +102,64 @@ function IndexHeader() {
   const { count, openCart } = useEnergyOrder();
   const [activeHref, setActiveHref] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Активная сессия: показываем аватар + имя вместо «Войти» / «Оставить заявку».
+  const [authChecked, setAuthChecked] = useState(false);
+  const [account, setAccount] = useState<{ initials: string; name: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAccount = async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, first_name, last_name, email")
+        .eq("id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data) {
+        setAccount(null);
+        return;
+      }
+      const first = (data.first_name || "").trim();
+      const last = (data.last_name || "").trim();
+      const fallbackName = (data.name || "").trim();
+      const displayName = first || fallbackName.split(" ")[0] || (data.email ? data.email.split("@")[0] : "");
+      const initials =
+        [first, last]
+          .filter(Boolean)
+          .map((part) => part[0]?.toUpperCase())
+          .join("") ||
+        fallbackName
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase())
+          .join("") ||
+        (data.email ? data.email[0].toUpperCase() : "");
+      setAccount(displayName ? { initials: initials || "?", name: displayName } : null);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (session?.user && event !== "SIGNED_OUT") {
+        setAuthChecked(true);
+        loadAccount(session.user.id);
+      } else {
+        setAuthChecked(true);
+        setAccount(null);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      setAuthChecked(true);
+      if (session?.user) loadAccount(session.user.id);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const ids = navItems.map((i) => i.href.replace("#", ""));
