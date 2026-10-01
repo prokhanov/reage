@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, Building2, Check, Clock, FlaskConical, Gift, Home, IdCard, Lock, MapPin, Plus, Video, X } from "lucide-react";
 
-import expertDoctor from "@/assets/energy/reage-doctor.jpg";
+import expertDoctor from "@/assets/energy/reage-doctor.webp";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

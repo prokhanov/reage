@@ -1,6 +1,6 @@
 import { FlaskConical } from "lucide-react";
 
-import heroFull from "@/assets/energy/hero-base40.jpg";
+import heroFull from "@/assets/energy/hero-base40.webp";
 
 import type { Checkup } from "@/data/checkups";
 

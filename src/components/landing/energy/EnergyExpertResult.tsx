@@ -14,7 +14,7 @@ import { DemoReportDialog } from "@/components/landing/energy/DemoReportDialog";
 import { PrescriptionCard, type PrescriptionCardData } from "@/components/prescriptions/PrescriptionCard";
 import { useReportBiomarkers } from "@/hooks/useReportBiomarkers";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
-import expertDoctor from "@/assets/energy/reage-doctor.jpg";
+import expertDoctor from "@/assets/energy/reage-doctor.webp";
 
 /**
  * Демо-карточки биомаркеров для лендинга: та же шкала и та же логика статусов,
