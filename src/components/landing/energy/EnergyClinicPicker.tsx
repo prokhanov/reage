@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Building2, CheckCircle2, Clock, Crosshair, Home, MapPin, Minus, Navigation, Phone, Plus } from "lucide-react";
+import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Phone, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,10 +10,68 @@ const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap"))
 
 export type CityKey = "msk" | "spb";
 
-export const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
-  { key: "msk", label: "Москва и МО", center: [55.7558, 37.6173], zoom: 10 },
-  { key: "spb", label: "Санкт-Петербург", center: [59.9386, 30.3141], zoom: 11 },
+export const CITIES: { key: CityKey; label: string; inLabel: string; center: [number, number]; zoom: number }[] = [
+  { key: "msk", label: "Москва и МО", inLabel: "в Москве и МО", center: [55.7558, 37.6173], zoom: 10 },
+  { key: "spb", label: "Санкт-Петербург", inLabel: "в Санкт-Петербурге", center: [59.9386, 30.3141], zoom: 11 },
 ];
+
+/** Строчный выбор города в шапке: «в Москве и МО ⌄» с выпадающим списком. */
+function CityInlineSelect({ city, onChange }: { city: CityKey; onChange: (next: CityKey) => void }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  const current = CITIES.find((c) => c.key === city)!;
+
+  return (
+    <div ref={rootRef} className="relative inline-block align-baseline">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary underline decoration-dashed decoration-primary/50 underline-offset-4 transition-colors hover:decoration-primary"
+      >
+        <span>{current.inLabel}</span>
+        <ChevronDown className={`h-4 w-4 self-center transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Выбор города"
+          className="absolute left-0 top-full z-30 mt-2 w-60 overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg"
+        >
+          {CITIES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              role="option"
+              aria-selected={c.key === city}
+              onClick={() => {
+                onChange(c.key);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted ${
+                c.key === city ? "font-medium text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              <span>{c.label}</span>
+              {c.key === city && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const cityOf = (item: LabMapItem): CityKey => (item.lat > 58 ? "spb" : "msk");
 
@@ -48,11 +106,13 @@ interface Props {
   layout?: "section" | "stack";
   /** Дополнительный контент справа от переключателя городов. */
   header?: React.ReactNode;
+  /** Кастомная шапка: получает строчный выбор города (или null, когда выбор скрыт). */
+  renderHeader?: (cityTrigger: React.ReactNode) => React.ReactNode;
   /** Только просмотр: скрыть выбор отделения, карта без клика по точкам. */
   readOnly?: boolean;
 }
 
-export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, readOnly = false }: Props) {
+export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, renderHeader, readOnly = false }: Props) {
   const [mode, setMode] = useState<"lab" | "home">("lab");
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(confirmed?.id ?? null);
@@ -170,8 +230,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   return (
     <div className="min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {header}
-        {(!showTabs || mode === "lab") && (
+        {renderHeader
+          ? renderHeader(!showTabs || mode === "lab" ? <CityInlineSelect city={city} onChange={selectCity} /> : null)
+          : header}
+        {!renderHeader && (!showTabs || mode === "lab") && (
           <div className="flex w-full shrink-0 rounded-xl border border-border bg-card p-1 sm:w-auto">
             {CITIES.map((c) => (
               <button
@@ -193,10 +255,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
       </div>
 
       {showTabs && (
-        <div className="mt-5 inline-flex w-full max-w-md rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Где сдать анализы">
+        <div className="mt-6 flex gap-6 border-b hairline sm:gap-8" role="tablist" aria-label="Где сдать анализы">
           {(
             [
-              { key: "lab", label: "В лаборатории", icon: Building2 },
+              { key: "lab", label: "В лаборатории", icon: FlaskConical },
               { key: "home", label: "Дома", icon: Home },
             ] as const
           ).map((t) => {
@@ -209,10 +271,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 role="tab"
                 aria-selected={active}
                 onClick={() => setMode(t.key)}
-                className={`min-h-11 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-base font-medium transition-colors md:text-lg ${
                   active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden />

@@ -9,16 +9,22 @@ export function MainWhereToTest({ id }: { id?: string }) {
           onConfirm={() => {}}
           readOnly
           layout="section"
-          header={
-            <div>
-              <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
+          renderHeader={(cityTrigger) => (
+            <div className="min-w-0">
+              <h2 className="font-display text-[2.1rem] leading-tight text-foreground md:text-5xl">
                 Сдайте анализы сегодня
               </h2>
-              <p className="mt-2 text-base text-muted-foreground md:text-lg">
-                Десятки отделений по Москве, СПб и всей России — записываться заранее не нужно.
+              <p className="mt-3 text-lg leading-relaxed text-muted-foreground md:text-xl">
+                {cityTrigger ? (
+                  <>
+                    Выберите отделение {cityTrigger} — записываться заранее не нужно.
+                  </>
+                ) : (
+                  <>Выберите отделение — записываться заранее не нужно.</>
+                )}
               </p>
             </div>
-          }
+          )}
         />
       </div>
     </section>
