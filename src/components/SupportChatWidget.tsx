@@ -302,7 +302,7 @@ export function SupportChatWidget() {
               ) : (
                 <button type="button" onClick={() => { setCbState("form"); setCbErr(""); }} className={rowCls}>
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><PhoneIncoming className="h-5 w-5" /></span>
-                  <RowText title="Перезвоните мне" sub="Оставьте номер — наберём сами" />
+                  <RowText title="Заказать обратный звонок" sub="Оставьте номер — наберём сами" />
                 </button>
               )}
             </div>
