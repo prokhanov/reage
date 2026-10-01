@@ -876,13 +876,13 @@ export function EnergyCart() {
                     <span className="">+{money(HOME_VISIT_PRICE)}</span>
                   </div>
                 )}
-                {upsellOrderId && (
+                {upsellOrderId && upsellDiscount === discount && upsellDiscount > 0 && (
                   <div className="flex items-center justify-between text-success">
                     <span>Дополнительный чекап · −15%</span>
                     <span>−{money(upsellDiscount)}</span>
                   </div>
                 )}
-                {appliedPromo && !upsellOrderId && (
+                {appliedPromo && promoDiscount === discount && promoDiscount > 0 && offerDiscount !== discount && (
                   <div className="flex items-center justify-between text-primary">
                     <span>Скидка · {appliedPromo.code}</span>
                     <span className="">−{money(discount)}</span>

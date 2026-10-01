@@ -5,6 +5,7 @@ import { ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
 import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { notify } from "@/lib/toast";
 
 const CART_KEY = "reage:checkup:cart";
 const CLINIC_KEY = "reage:checkup:clinic";
@@ -151,6 +152,7 @@ export function EnergyOrderProvider({
           } else {
             localStorage.removeItem(REPORT_OFFER_KEY);
             setReportOfferId(null);
+            notify.error("Срок действия промокода истёк", "Чекап открыт по текущей цене.");
           }
           const next = new URLSearchParams(searchParams);
           next.delete("offer");

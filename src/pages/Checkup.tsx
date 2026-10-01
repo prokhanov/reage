@@ -110,7 +110,8 @@ export function CheckupPage({ checkup }: { checkup: Checkup }) {
 
 export default function Checkup() {
   const { slug } = useParams();
-  const checkup = getCheckupBySlug(slug);
+  const { bySlug } = useResolvedCheckups();
+  const checkup = getCheckupBySlug(slug) ?? bySlug(slug);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
