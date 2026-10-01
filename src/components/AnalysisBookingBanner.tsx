@@ -376,7 +376,7 @@ export function AnalysisBookingBanner() {
               <Icon className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-0.5 min-w-0 flex-1">
-              <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
+              <p className="font-semibold text-sm text-foreground leading-snug">{title}</p>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
               {bookingInfo?.labquest_request_number && statusKey === "application_submitted" && (
                 <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
