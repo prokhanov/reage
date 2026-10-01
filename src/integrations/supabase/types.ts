@@ -510,6 +510,36 @@ export type Database = {
         }
         Relationships: []
       }
+      callback_requests: {
+        Row: {
+          created_at: string
+          id: string
+          page_url: string | null
+          phone: string
+          source: string
+          user_id: string | null
+          utm: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          phone: string
+          source?: string
+          user_id?: string | null
+          utm?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          phone?: string
+          source?: string
+          user_id?: string | null
+          utm?: Json | null
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           created_at: string

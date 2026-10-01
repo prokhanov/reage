@@ -1,7 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Phone, Plus } from "lucide-react";
+import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Plus, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getUtm } from "@/lib/utm";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import labquestLogo from "@/assets/labquest-logo.png";
 import LabLocationsMapType, { normalizeHours, type LabMapItem } from "@/components/admin/LabLocationsMap";
@@ -97,6 +100,106 @@ const formatDistance = (km: number) =>
   km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(km < 10 ? 1 : 0)} км`;
 
 export const clinicHoursLine = (item: LabMapItem) => normalizeHours(item.hours ?? []).slice(0, 3).join(" · ");
+
+/** Приводит ввод к 11 цифрам, начинающимся с 7: понимает +7, 7, 8 и 10-значные номера вида 910… */
+function normalizeRuPhoneDigits(raw: string): string {
+  let d = (raw || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d[0] === "8") d = "7" + d.slice(1);
+  else if (d[0] !== "7") d = "7" + d;
+  return d.slice(0, 11);
+}
+
+/** Форматирует ввод как +7 (910) 123-45-67 по мере набора. */
+function formatRuPhoneInput(raw: string): string {
+  const d = normalizeRuPhoneDigits(raw);
+  if (!d) return "";
+  let out = "+7";
+  if (d.length > 1) out += ` (${d.slice(1, 4)}`;
+  if (d.length >= 4) out += ")";
+  if (d.length > 4) out += ` ${d.slice(4, 7)}`;
+  if (d.length > 7) out += `-${d.slice(7, 9)}`;
+  if (d.length > 9) out += `-${d.slice(9, 11)}`;
+  return out;
+}
+
+/** Форма «Заказать медсестру на дом»: телефон + отправка заявки. */
+function NurseCallForm() {
+  const [phone, setPhone] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const digits = normalizeRuPhoneDigits(phone);
+    if (digits.length !== 11 || !digits.startsWith("7")) {
+      setError("Введите номер полностью — например, +7 (910) 123-45-67");
+      return;
+    }
+    const normalized = `+${digits}`;
+    const payload: TablesInsert<"callback_requests"> = {
+      phone: normalized,
+      source: "nurse_home",
+      page_url: `${window.location.pathname}${window.location.search}`.slice(0, 500),
+      utm: getUtm(),
+      user_id: null,
+    };
+    setSending(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      payload.user_id = userData?.user?.id ?? null;
+      const { error: insErr } = await supabase.from("callback_requests").insert(payload);
+      if (insErr) throw insErr;
+      setSent(true);
+    } catch {
+      setError("Не удалось отправить. Позвоните нам: +7 (995) 998-46-38");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-left">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+        <p className="text-sm leading-relaxed text-foreground">
+          Заявка принята — перезвоним и согласуем удобные день и время.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          value={phone}
+          onChange={(e) => {
+            setPhone(formatRuPhoneInput(e.target.value));
+            setError(null);
+          }}
+          placeholder="+7 (___) ___-__-__"
+          aria-label="Ваш телефон"
+          maxLength={18}
+          className="h-12 min-w-0 flex-1 text-base"
+        />
+        <Button type="submit" disabled={sending} className="h-12 shrink-0 gap-2 whitespace-nowrap px-5 text-base">
+          <Send className="h-4 w-4" aria-hidden />
+          {sending ? "Отправляем…" : "Отправить"}
+        </Button>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <p className="text-sm text-muted-foreground">
+        Заказать медсестру на дом — быстро перезвоним и согласуем удобные день и время.
+      </p>
+    </form>
+  );
+}
 
 interface Props {
   /** Подтверждённое отделение (из общего состояния страницы). */
@@ -314,17 +417,8 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               ))}
             </ul>
           </div>
-          <div className="space-y-3 md:justify-self-end md:text-center">
-            <a
-              href="tel:+79959984638"
-              className="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:w-auto"
-            >
-              <Phone className="h-4 w-4" aria-hidden />
-              Вызвать медсестру
-            </a>
-            <p className="text-sm text-muted-foreground">
-              Заказать медсестру на дом — быстро перезвоним и согласуем удобные день и время.
-            </p>
+          <div className="md:justify-self-end md:w-[340px]">
+            <NurseCallForm />
           </div>
         </div>
       ) : (
