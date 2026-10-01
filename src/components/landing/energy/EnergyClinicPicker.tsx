@@ -292,9 +292,14 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Home className="h-6 w-6 text-primary" aria-hidden />
               </div>
-              <h3 className="font-display text-xl font-semibold leading-tight text-foreground md:text-2xl">
-                Медсестра приедет к вам
-              </h3>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                <h3 className="font-display text-xl font-semibold leading-tight text-foreground md:text-2xl">
+                  Медсестра приедет к вам
+                </h3>
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium leading-relaxed text-primary">
+                  только Москва и МО
+                </span>
+              </div>
             </div>
             <ul className="mt-5 space-y-3">
               {[
