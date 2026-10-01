@@ -135,7 +135,12 @@ Deno.serve(async (req) => {
     if (phoneClean.replace(/\D/g, "").length < 10) {
       return json({ error: "Укажите корректный телефон" }, 400);
     }
-    if (!clinic || !(clinic.title ?? "").trim()) {
+    const isHome = locationType === "home";
+    const homeAddressClean = (homeAddress ?? "").trim().slice(0, 300);
+    if (isHome && homeAddressClean.length < 5) {
+      return json({ error: "Укажите адрес выезда медсестры" }, 400);
+    }
+    if (!isHome && (!clinic || !(clinic.title ?? "").trim())) {
       return json({ error: "Выберите клинику для сдачи анализов" }, 400);
     }
 
@@ -215,7 +220,8 @@ Deno.serve(async (req) => {
 
     const withConsult = consultation === true && !partner?.hide_consultation;
     const consultAmount = withConsult ? CONSULT_PRICE : 0;
-    const original = itemsSum + consultAmount;
+    const homeFee = isHome ? HOME_VISIT_PRICE : 0;
+    const original = itemsSum + consultAmount + homeFee;
     // Скидка применяется только к набору анализов, не к консультации.
     let discount = 0;
     let appliedCode: string | null = null;
@@ -251,9 +257,9 @@ Deno.serve(async (req) => {
         first_name: firstNameClean,
         middle_name: middleNameClean || null,
         birth_date: birthDateClean,
-        clinic_id: clinic?.id ?? null,
-        clinic_title: clinic?.title ?? null,
-        clinic_address: clinic?.address ?? null,
+        clinic_id: isHome ? null : clinic?.id ?? null,
+        clinic_title: isHome ? HOME_VISIT_TITLE : clinic?.title ?? null,
+        clinic_address: isHome ? homeAddressClean : clinic?.address ?? null,
         original_amount: original,
         discount_amount: discount,
         out_sum: finalAmount,
@@ -299,6 +305,18 @@ Deno.serve(async (req) => {
                 name: CONSULT_TITLE,
                 quantity: 1,
                 sum: Number(consultAmount.toFixed(2)),
+                payment_method: "full_payment",
+                payment_object: "service",
+                tax: "none",
+              },
+            ]
+          : []),
+        ...(homeFee > 0
+          ? [
+              {
+                name: HOME_VISIT_TITLE,
+                quantity: 1,
+                sum: Number(homeFee.toFixed(2)),
                 payment_method: "full_payment",
                 payment_object: "service",
                 tax: "none",
