@@ -29,7 +29,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      style={{ "--dashboard-sidebar-offset": sidebarOpen ? "264px" : "76px" } as React.CSSProperties}
+    >
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}
