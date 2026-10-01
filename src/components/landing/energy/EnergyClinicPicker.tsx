@@ -318,7 +318,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               Вызвать медсестру
             </a>
             <p className="text-sm text-muted-foreground">
-              Позвоните — согласуем время визита.
+              Заказать медсестру на дом — быстро перезвоним и согласуем удобные день и время.
             </p>
           </div>
         </div>
