@@ -60,6 +60,10 @@ Deno.serve(async (req) => {
       if (body.action === "admin_save") {
         const patch: Record<string, unknown> = { support_chat_id: body.chat_id || null };
         if (body.bot_token) patch.support_bot_token = body.bot_token;
+        // Другая группа или другой бот — старые темы там не существуют, создадим заново при следующем сообщении
+        if (String(s.support_chat_id ?? "") !== String(body.chat_id ?? "") || (body.bot_token && body.bot_token !== s.support_bot_token)) {
+          await db.from("support_conversations").update({ tg_topic_id: null }).not("tg_topic_id", "is", null);
+        }
         const { data: upd, error: updErr } = await db.from("telegram_notification_settings").update(patch).eq("singleton", true).select("support_bot_token");
         if (updErr) return json({ error: updErr.message }, 500);
         if (!upd?.length) return json({ error: "Строка настроек не найдена" }, 500);
@@ -122,18 +126,7 @@ Deno.serve(async (req) => {
       };
       await db.from("support_conversations").update(patch).eq("id", conv.id);
       Object.assign(conv, patch);
-      if (conv.tg_topic_id) {
-        const title = (pname || prof?.email || conv.name || conv.email || "").slice(0, 120);
-        if (title) {
-          await tg(s.support_bot_token, "editForumTopic", { chat_id: chatId, message_thread_id: conv.tg_topic_id, name: title });
-        }
-        await tg(s.support_bot_token, "sendMessage", {
-          chat_id: chatId, message_thread_id: conv.tg_topic_id, parse_mode: "HTML",
-          text: `🔐 <b>Посетитель вошёл в аккаунт</b>\n👤 id ${esc(userId)}\n` +
-            (pname ? `Имя: ${esc(pname)}\n` : "") + `📧 ${esc(prof?.email || "—")}` +
-            (prof?.phone ? `\n📱 ${esc(prof.phone)}` : ""),
-        });
-      }
+      (conv as any)._loginNotice = { pname, prof };
     }
 
     const ensureTopic = async () => {
@@ -144,9 +137,10 @@ Deno.serve(async (req) => {
       const topicId = r.data.result.message_thread_id as number;
       await db.from("support_conversations").update({ tg_topic_id: topicId }).eq("id", conv.id);
       conv.tg_topic_id = topicId;
+      const { count: prev } = await db.from("support_messages").select("id", { count: "exact", head: true }).eq("conversation_id", conv.id);
       await tg(s.support_bot_token, "sendMessage", {
         chat_id: chatId, message_thread_id: topicId, parse_mode: "HTML",
-        text: `🆕 <b>Новый посетитель</b>\n👤 ${conv.user_id ? `id ${esc(conv.user_id)}` : "гость"}\n` +
+        text: `${prev ? "♻️ <b>Тема пересоздана</b> (прежняя удалена, история — на сайте)" : "🆕 <b>Новый посетитель</b>"}\n👤 ${conv.user_id ? `id ${esc(conv.user_id)}` : "гость"}\n` +
           (conv.name ? `Имя: ${esc(conv.name)}\n` : "") +
           `📧 ${esc(conv.email || "—")}\n` + (conv.phone ? `📱 ${esc(conv.phone)}\n` : "") +
           `🔗 ${esc(conv.page || "—")}`,
@@ -154,21 +148,46 @@ Deno.serve(async (req) => {
       return topicId;
     };
 
+    // Calls a topic method; if the topic was closed — reopen it, if deleted/invalid — create a new one. Then retry once.
+    const topicCall = async (method: string, payload: Record<string, unknown>) => {
+      let topicId = await ensureTopic();
+      let r = await tg(s.support_bot_token, method, { chat_id: chatId, message_thread_id: topicId, ...payload });
+      if (r.ok) return r;
+      const d = String(r.data?.description ?? "");
+      if (/TOPIC_CLOSED/i.test(d)) {
+        await tg(s.support_bot_token, "reopenForumTopic", { chat_id: chatId, message_thread_id: topicId });
+      } else if (/thread not found|TOPIC_ID_INVALID|TOPIC_DELETED/i.test(d)) {
+        await db.from("support_conversations").update({ tg_topic_id: null }).eq("id", conv.id);
+        conv.tg_topic_id = null;
+        topicId = await ensureTopic();
+      } else if (/TOPIC_NOT_MODIFIED/i.test(d)) {
+        return { ok: true, data: r.data };
+      } else {
+        return r;
+      }
+      return await tg(s.support_bot_token, method, { chat_id: chatId, message_thread_id: topicId, ...payload });
+    };
+
+    const login = (conv as any)._loginNotice;
+    if (login && conv.tg_topic_id) {
+      const { pname, prof } = login;
+      const title = (pname || prof?.email || conv.name || conv.email || "").slice(0, 120);
+      if (title) await topicCall("editForumTopic", { name: title });
+      await topicCall("sendMessage", {
+        parse_mode: "HTML",
+        text: `🔐 <b>Посетитель вошёл в аккаунт</b>\n👤 id ${esc(userId)}\n` +
+          (pname ? `Имя: ${esc(pname)}\n` : "") + `📧 ${esc(prof?.email || "—")}` +
+          (prof?.phone ? `\n📱 ${esc(prof.phone)}` : ""),
+      });
+    }
+
     if (body.action === "send") {
       const since = new Date(Date.now() - 60_000).toISOString();
       const { count } = await db.from("support_messages").select("id", { count: "exact", head: true })
         .eq("conversation_id", conv.id).eq("direction", "visitor").gte("created_at", since);
       if ((count ?? 0) >= 8) return json({ error: "Подождите минуту" }, 429);
 
-      let topicId = await ensureTopic();
-      let r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
-      // Тему удалили/закрыли в Telegram — создаём новую и повторяем
-      if (!r.ok && /thread not found|TOPIC_ID_INVALID|TOPIC_DELETED|TOPIC_CLOSED/i.test(String(r.data?.description ?? ""))) {
-        await db.from("support_conversations").update({ tg_topic_id: null }).eq("id", conv.id);
-        conv.tg_topic_id = null;
-        topicId = await ensureTopic();
-        r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
-      }
+      const r = await topicCall("sendMessage", { text: body.text });
       if (!r.ok) return json({ error: "Сообщение не отправилось. Проверьте соединение и повторите" }, 502);
       await db.from("support_messages").insert({ conversation_id: conv.id, direction: "visitor", text: body.text, tg_message_id: r.data.result.message_id, read_by_visitor: true });
       await db.from("support_conversations").update({ last_seen_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", conv.id);
@@ -178,10 +197,9 @@ Deno.serve(async (req) => {
     // contact
     await db.from("support_conversations").update({ name: body.name, email: body.email.toLowerCase(), phone: body.phone || null }).eq("id", conv.id);
     Object.assign(conv, { name: body.name, email: body.email.toLowerCase(), phone: body.phone || null });
-    const topicId = await ensureTopic();
-    await tg(s.support_bot_token, "editForumTopic", { chat_id: chatId, message_thread_id: topicId, name: body.name.slice(0, 120) });
-    await tg(s.support_bot_token, "sendMessage", {
-      chat_id: chatId, message_thread_id: topicId, parse_mode: "HTML",
+    await topicCall("editForumTopic", { name: body.name.slice(0, 120) });
+    await topicCall("sendMessage", {
+      parse_mode: "HTML",
       text: `📇 <b>Контакты</b>\n👤 ${esc(body.name)}\n📧 ${esc(body.email)}\n📱 ${esc(body.phone || "—")}`,
     });
     await db.from("support_messages").insert({ conversation_id: conv.id, direction: "system", text: THANKS, read_by_visitor: true });
