@@ -255,10 +255,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
       </div>
 
       {showTabs && (
-        <div className="mt-5 inline-flex w-full max-w-md rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Где сдать анализы">
+        <div className="mt-6 flex gap-6 border-b hairline sm:gap-8" role="tablist" aria-label="Где сдать анализы">
           {(
             [
-              { key: "lab", label: "В лаборатории", icon: Building2 },
+              { key: "lab", label: "В лаборатории", icon: FlaskConical },
               { key: "home", label: "Дома", icon: Home },
             ] as const
           ).map((t) => {
@@ -271,10 +271,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
                 role="tab"
                 aria-selected={active}
                 onClick={() => setMode(t.key)}
-                className={`min-h-11 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-base font-medium transition-colors md:text-lg ${
                   active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden />
