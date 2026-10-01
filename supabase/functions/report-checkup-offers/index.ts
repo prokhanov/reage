@@ -33,7 +33,7 @@ function json(payload: unknown, status = 200) {
 
 function makeCode(): string {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const bytes = crypto.getRandomValues(new Uint8Array(5));
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
