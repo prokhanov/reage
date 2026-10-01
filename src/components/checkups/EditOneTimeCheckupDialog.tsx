@@ -102,6 +102,7 @@ export function EditOneTimeCheckupDialog({ record, checkupName, onClose }: { rec
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["one-time-checkups"] });
+      await queryClient.invalidateQueries({ queryKey: ["openCheckupsCount"] });
       notify.success("Запись обновлена");
       onClose();
     },
