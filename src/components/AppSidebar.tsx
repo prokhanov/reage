@@ -18,6 +18,7 @@ import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadg
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { performSafeLogout } from "@/lib/authLogout";
 import { useIsPartner } from "@/hooks/usePartnerCabinet";
+import { useOpenCheckupsCount } from "@/hooks/useOpenCheckupsCount";
 
 interface AppSidebarProps {
   isOpen: boolean;
