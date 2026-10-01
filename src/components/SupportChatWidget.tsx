@@ -296,7 +296,7 @@ export function SupportChatWidget() {
                   </form>
                   {cbErr && <p className="mt-2 px-1 text-xs text-destructive">{cbErr}</p>}
                   <p className="mt-2 px-1 pb-1 text-[11px] leading-snug text-muted-foreground">
-                    Нажимая кнопку, вы соглашаетесь с <a href="/privacy" target="_blank" className="text-primary underline">обработкой персональных данных</a>
+                    Нажимая кнопку, вы соглашаетесь с <a href="/legal/privacy" target="_blank" className="text-primary underline">обработкой персональных данных</a>
                   </p>
                 </div>
               ) : (
