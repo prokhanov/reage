@@ -1305,6 +1305,7 @@ export type Database = {
           inv_id: number
           is_test: boolean
           last_name: string | null
+          line_items: Json
           login_token_expires_at: string | null
           login_token_hash: string | null
           login_token_used_at: string | null
@@ -1319,6 +1320,7 @@ export type Database = {
           phone: string
           promo_code: string | null
           raw_callback: Json | null
+          report_offer_id: string | null
           robokassa_signature: string | null
           status: string
           updated_at: string
@@ -1346,6 +1348,7 @@ export type Database = {
           inv_id?: number
           is_test?: boolean
           last_name?: string | null
+          line_items?: Json
           login_token_expires_at?: string | null
           login_token_hash?: string | null
           login_token_used_at?: string | null
@@ -1360,6 +1363,7 @@ export type Database = {
           phone: string
           promo_code?: string | null
           raw_callback?: Json | null
+          report_offer_id?: string | null
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
@@ -1387,6 +1391,7 @@ export type Database = {
           inv_id?: number
           is_test?: boolean
           last_name?: string | null
+          line_items?: Json
           login_token_expires_at?: string | null
           login_token_hash?: string | null
           login_token_used_at?: string | null
@@ -1401,6 +1406,7 @@ export type Database = {
           phone?: string
           promo_code?: string | null
           raw_callback?: Json | null
+          report_offer_id?: string | null
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
@@ -1409,6 +1415,13 @@ export type Database = {
           ym_client_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "energy_orders_report_offer_id_fkey"
+            columns: ["report_offer_id"]
+            isOneToOne: false
+            referencedRelation: "report_checkup_offers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "energy_orders_upsell_source_order_id_fkey"
             columns: ["upsell_source_order_id"]
@@ -3049,6 +3062,99 @@ export type Database = {
           },
         ]
       }
+      report_checkup_offers: {
+        Row: {
+          advertised_checkup_name: string
+          advertised_checkup_slug: string
+          advertised_list_price: number
+          analysis_id: string
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_amount: number
+          display_until: string
+          expires_at: string
+          final_price: number
+          id: string
+          is_active: boolean
+          pricing_mode: string
+          reserved_order_id: string | null
+          reserved_until: string | null
+          source_checkup_id: string | null
+          source_checkup_slug: string
+          source_paid_amount: number
+          updated_at: string
+          used_at: string | null
+          used_order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          advertised_checkup_name: string
+          advertised_checkup_slug: string
+          advertised_list_price: number
+          analysis_id: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_amount: number
+          display_until?: string
+          expires_at?: string
+          final_price: number
+          id?: string
+          is_active?: boolean
+          pricing_mode: string
+          reserved_order_id?: string | null
+          reserved_until?: string | null
+          source_checkup_id?: string | null
+          source_checkup_slug: string
+          source_paid_amount: number
+          updated_at?: string
+          used_at?: string | null
+          used_order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          advertised_checkup_name?: string
+          advertised_checkup_slug?: string
+          advertised_list_price?: number
+          analysis_id?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_amount?: number
+          display_until?: string
+          expires_at?: string
+          final_price?: number
+          id?: string
+          is_active?: boolean
+          pricing_mode?: string
+          reserved_order_id?: string | null
+          reserved_until?: string | null
+          source_checkup_id?: string | null
+          source_checkup_slug?: string
+          source_paid_amount?: number
+          updated_at?: string
+          used_at?: string | null
+          used_order_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_checkup_offers_source_checkup_id_fkey"
+            columns: ["source_checkup_id"]
+            isOneToOne: false
+            referencedRelation: "one_time_checkups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_checkup_offers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_documents: {
         Row: {
           analysis_id: string
@@ -4142,9 +4248,22 @@ export type Database = {
         }
         Returns: Json
       }
+      redeem_report_checkup_offer: {
+        Args: { p_offer_id: string; p_order_id: string }
+        Returns: boolean
+      }
       report_document_status: {
         Args: { p_analysis_id: string }
         Returns: string
+      }
+      reserve_report_checkup_offer: {
+        Args: {
+          p_checkup_slug: string
+          p_offer_id: string
+          p_order_id: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       reset_slot_to_default: {
         Args: { p_date: string; p_time_slot: string }
