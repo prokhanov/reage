@@ -37,6 +37,10 @@ const BUNDLES: Record<string, { title: string; price: number }> = {
 const CONSULT_PRICE_FALLBACK = 3500;
 const CONSULT_TITLE = "Консультация врача — разбор результатов";
 
+// Дополнительная услуга: выезд медсестры на дом. Скидки на неё не действуют.
+const HOME_VISIT_PRICE = 3000;
+const HOME_VISIT_TITLE = "Выезд медсестры на дом";
+
 // Промокоды лендинга (процент скидки).
 
 function md5(input: string): string {
@@ -78,6 +82,8 @@ Deno.serve(async (req) => {
       middleName,
       birthDate,
       ymClientId,
+      locationType = "clinic",
+      homeAddress,
     } = body as {
       ymClientId?: string | null;
       bundle?: string;
@@ -91,6 +97,8 @@ Deno.serve(async (req) => {
       firstName?: string;
       middleName?: string;
       birthDate?: string;
+      locationType?: "clinic" | "home";
+      homeAddress?: string | null;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
