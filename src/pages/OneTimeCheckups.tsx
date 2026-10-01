@@ -106,7 +106,7 @@ function CheckupsContent() {
 
 
                 <div className="mt-4 grid gap-4 border-t hairline pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                  <div><p className="text-xs text-muted-foreground">Номер заявки</p><p className="mt-1 font-medium">{record.labquest_request_number || "Не назначен"}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Номер заявки</p><p className={`mt-1 ${record.labquest_request_number ? "font-medium" : "text-sm text-muted-foreground"}`}>{record.labquest_request_number || "Появится позже"}</p></div>
                   <div><p className="text-xs text-muted-foreground">Где сдавать</p><p className="mt-1 font-medium">{record.location_type === "home" ? "Дома" : record.location_title || "В лаборатории"}</p>{record.address && <p className="mt-0.5 text-xs text-muted-foreground">{record.address}</p>}</div>
                   <div><p className="text-xs text-muted-foreground">Когда</p><p className="mt-1 font-medium">{record.appointment_date ? new Date(`${record.appointment_date}T00:00:00`).toLocaleDateString("ru-RU") : "Без записи"}{record.appointment_time ? `, ${record.appointment_time.slice(0, 5)}` : ""}</p></div>
                   <div><p className="text-xs text-muted-foreground">Оплачено</p><p className="mt-1 font-semibold">{money(Number(record.paid_amount))}</p></div>
