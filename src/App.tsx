@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useEmailVerificationHandler } from "@/hooks/useEmailVerificationHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SuperAdminRoute } from "@/components/SuperAdminRoute";
@@ -117,6 +117,12 @@ function EmailVerificationListener() {
   return null;
 }
 
+function RouteAwareSupportChat() {
+  const location = useLocation();
+  if (location.pathname === "/one-time-checkups") return null;
+  return <SupportChatWidget />;
+}
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[60vh] w-full items-center justify-center">
@@ -134,7 +140,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
-          <SupportChatWidget />
+          <RouteAwareSupportChat />
           <RegisterGuardProvider>
           <Suspense fallback={<RouteFallback />}>
           <PartnerOfferBanner />
