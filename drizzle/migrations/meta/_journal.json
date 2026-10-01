@@ -176,6 +176,13 @@
       "when": 1790852597897,
       "tag": "0024_create_report_checkup_offers",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790853006089,
+      "tag": "0025_fix_report_offer_atomic_results",
+      "breakpoints": true
     }
   ]
 }
