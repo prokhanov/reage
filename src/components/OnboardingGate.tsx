@@ -77,7 +77,23 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
 
         if (cancelled) return;
 
-        const done = !!(profile as any)?.onboarding_completed;
+        let done = !!(profile as any)?.onboarding_completed;
+        // Возврат после успешной оплаты разового чекапа: анкету считаем пропущенной (как «Заполнить позже»).
+        const params = new URLSearchParams(location.search);
+        if (!done && location.pathname === "/one-time-checkups" && params.get("payment") === "success") {
+          const { count } = await supabase
+            .from("one_time_checkups")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", uid);
+          if ((count ?? 0) > 0) {
+            await supabase
+              .from("profiles")
+              .update({ onboarding_completed: true, onboarding_skipped_at: new Date().toISOString() } as any)
+              .eq("id", uid);
+            done = true;
+          }
+        }
+        if (cancelled) return;
         setMustOnboard(!done);
         setChecked(true);
 
