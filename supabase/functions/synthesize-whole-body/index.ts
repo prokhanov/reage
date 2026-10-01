@@ -187,7 +187,8 @@ export function repairFromSource(
     if (src) { appended.push(src); repaired.push(g.join(" / ")); }
   }
   if (appended.length) text = `${text.trim()}\n\n${appended.join("\n\n")}`;
-  return { text: normalizeMeaningBlocks(text), repaired, missing: missingGroups.length };
+  const keep = new Set(expectedGroups.filter((g) => g.some((c) => devSet.has(c.toLowerCase()))).flat().map((c) => c.toLowerCase()));
+  return { text: normalizeMeaningBlocks(text, keep), repaired, missing: missingGroups.length };
 }
 
 // Приводит блок «Что это значит для вас» к эталону обычного отчёта:
@@ -294,6 +295,10 @@ serve(async (req) => {
     const expectedCodes = [...new Set(extractBiomarkerCodes(categoryReports))];
     const deviationCodes = [...new Set(extractDeviationCodes(categoryReports))];
     const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
+    const devLower = new Set(deviationCodes.map((c) => c.toLowerCase()));
+    const keepMeaningCodes = new Set(
+      expectedGroups.filter((g) => g.some((c) => devLower.has(c.toLowerCase()))).flat().map((c) => c.toLowerCase()),
+    );
 
     const model = mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
     const startedAt = Date.now();
@@ -326,7 +331,7 @@ serve(async (req) => {
         // Отступы табом/4 пробелами превращают абзац в блок кода (моноширинный, без переноса)
         .replace(/^[\t ]+(?=\S)/gm, "")
         .trim();
-      out = normalizeMeaningBlocks(out);
+      out = normalizeMeaningBlocks(out, keepMeaningCodes);
       if (out.length < 1500 || expectedCodes.length === 0) {
         lastErr = `Ответ ИИ не прошёл проверку: длина ${out.length}, биомаркеров ${expectedCodes.length}`;
         continue;
