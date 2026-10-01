@@ -96,6 +96,7 @@ export function EnergyCart() {
   const [homeEntrance, setHomeEntrance] = useState("");
   const [homeFloor, setHomeFloor] = useState("");
   const [homeIntercom, setHomeIntercom] = useState("");
+  const [homeComment, setHomeComment] = useState("");
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const discount = !appliedPromo
@@ -113,6 +114,7 @@ export function EnergyCart() {
     homeEntrance.trim() && `подъезд ${homeEntrance.trim()}`,
     homeFloor.trim() && `этаж ${homeFloor.trim()}`,
     homeIntercom.trim() && `домофон ${homeIntercom.trim()}`,
+    homeComment.trim() && `комментарий: ${homeComment.trim()}`,
   ]
     .filter(Boolean)
     .join(", ");
@@ -439,6 +441,16 @@ export function EnergyCart() {
                       />
                     </label>
                   </div>
+                  <label className="mt-3 block">
+                    <span className="mb-1 block text-sm font-medium text-foreground">Комментарий</span>
+                    <textarea
+                      placeholder="Например: позвонить за 15 минут, калитка со двора"
+                      value={homeComment}
+                      onChange={(e) => setHomeComment(e.target.value)}
+                      rows={3}
+                      className="w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </label>
                 </div>
               ) : clinic ? (
                 <div className="mt-3 rounded-xl border border-border bg-card p-4">
