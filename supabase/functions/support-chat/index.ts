@@ -160,8 +160,15 @@ Deno.serve(async (req) => {
         .eq("conversation_id", conv.id).eq("direction", "visitor").gte("created_at", since);
       if ((count ?? 0) >= 8) return json({ error: "Подождите минуту" }, 429);
 
-      const topicId = await ensureTopic();
-      const r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
+      let topicId = await ensureTopic();
+      let r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
+      // Тему удалили/закрыли в Telegram — создаём новую и повторяем
+      if (!r.ok && /thread not found|TOPIC_ID_INVALID|TOPIC_DELETED|TOPIC_CLOSED/i.test(String(r.data?.description ?? ""))) {
+        await db.from("support_conversations").update({ tg_topic_id: null }).eq("id", conv.id);
+        conv.tg_topic_id = null;
+        topicId = await ensureTopic();
+        r = await tg(s.support_bot_token, "sendMessage", { chat_id: chatId, message_thread_id: topicId, text: body.text });
+      }
       if (!r.ok) return json({ error: "Сообщение не отправилось. Проверьте соединение и повторите" }, 502);
       await db.from("support_messages").insert({ conversation_id: conv.id, direction: "visitor", text: body.text, tg_message_id: r.data.result.message_id, read_by_visitor: true });
       await db.from("support_conversations").update({ last_seen_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", conv.id);
