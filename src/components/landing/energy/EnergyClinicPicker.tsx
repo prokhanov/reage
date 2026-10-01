@@ -53,6 +53,7 @@ interface Props {
 }
 
 export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", header, readOnly = false }: Props) {
+  const [mode, setMode] = useState<"lab" | "home">("lab");
   const [items, setItems] = useState<LabMapItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(confirmed?.id ?? null);
   const [city, setCity] = useState<CityKey>(() => (confirmed ? cityOf(confirmed) : detectCity()));
@@ -63,6 +64,7 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   const [isWide, setIsWide] = useState(false);
   const mapRef = useRef<{ zoomIn: () => void; zoomOut: () => void } | null>(null);
   const externalZoom = layout === "stack";
+  const showTabs = layout === "section";
 
   useEffect(() => {
     const update = () => {
