@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Plus, Send } from "lucide-react";
+import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,9 @@ export const CITIES: { key: CityKey; label: string; inLabel: string; center: [nu
   { key: "msk", label: "Москва и МО", inLabel: "в Москве и МО", center: [55.7558, 37.6173], zoom: 10 },
   { key: "spb", label: "Санкт-Петербург", inLabel: "в Санкт-Петербурге", center: [59.9386, 30.3141], zoom: 11 },
 ];
+
+/** Цена выезда медсестры на дом (совпадает с корзиной и оплатой). */
+const NURSE_HOME_PRICE = 2990;
 
 /** Строчный выбор города в шапке: «в Москве и МО ⌄» с выпадающим списком. */
 function CityInlineSelect({ city, onChange }: { city: CityKey; onChange: (next: CityKey) => void }) {
@@ -162,42 +165,57 @@ function NurseCallForm() {
 
   if (sent) {
     return (
-      <div className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-left">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
-        <p className="text-sm leading-relaxed text-foreground">
-          Заявка принята — перезвоним и согласуем удобные день и время.
-        </p>
+      <div className="rounded-2xl bg-primary/10 p-6 sm:p-7">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+          <p className="text-base leading-relaxed text-foreground">
+            Заявка принята — перезвоним и согласуем день и время приезда.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-2.5">
-      <Input
-        type="tel"
-        inputMode="tel"
-        autoComplete="tel"
-        value={phone}
-        onChange={(e) => {
-          setPhone(formatRuPhoneInput(e.target.value));
-          setError(null);
-        }}
-        placeholder="+7 (___) ___-__-__"
-        aria-label="Ваш телефон"
-        maxLength={18}
-        className="h-14 w-full text-lg"
-      />
-      <Button
-        type="submit"
-        disabled={sending}
-        className="h-14 w-full gap-2 text-lg font-semibold"
-      >
-        <Send className="h-5 w-5" aria-hidden />
-        {sending ? "Отправляем…" : "Отправить"}
-      </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <p className="text-sm text-muted-foreground">
-        Быстро перезвоним и согласуем удобные день и время.
+    <form onSubmit={submit} noValidate className="rounded-2xl bg-primary/10 p-5 sm:p-6">
+      <p className="text-lg font-semibold text-foreground">Оставьте телефон</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Перезвоним и согласуем день и время приезда
+      </p>
+      <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
+        <Input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          value={phone}
+          onChange={(e) => {
+            setPhone(formatRuPhoneInput(e.target.value));
+            setError(null);
+          }}
+          placeholder="+7 (___) ___-__-__"
+          aria-label="Ваш телефон"
+          maxLength={18}
+          className="h-12 min-w-0 flex-1 border-border bg-card text-base sm:h-14"
+        />
+        <Button
+          type="submit"
+          disabled={sending}
+          className="h-12 shrink-0 whitespace-nowrap text-base font-semibold sm:h-14 sm:px-7 sm:text-lg"
+        >
+          {sending ? "Отправляем…" : "Перезвоните мне"}
+        </Button>
+      </div>
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        Нажимая кнопку, вы соглашаетесь с{" "}
+        <a
+          href="/legal/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-muted-foreground/50 underline-offset-2 transition-colors hover:text-foreground"
+        >
+          обработкой персональных данных
+        </a>
       </p>
     </form>
   );
@@ -391,37 +409,33 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
       )}
 
       {showTabs && mode === "home" ? (
-        <div className="mt-5 grid gap-4 rounded-xl border border-border bg-card p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)] md:gap-8 md:items-center">
+        <div className="mt-5 grid gap-6 rounded-2xl border border-border bg-card p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] lg:items-center lg:gap-10">
           <div className="min-w-0">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <Home className="h-6 w-6 text-primary" aria-hidden />
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+                <Home className="h-7 w-7 text-primary" aria-hidden />
               </div>
-              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                <h3 className="font-display text-xl font-semibold leading-tight text-foreground md:text-2xl">
+              <div className="min-w-0">
+                <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
                   Медсестра приедет к вам
                 </h3>
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium leading-relaxed text-primary">
-                  только Москва и МО
-                </span>
+                <p className="mt-1 text-base text-muted-foreground">Москва и Московская область</p>
               </div>
             </div>
-            <ul className="mt-5 space-y-3">
+            <ul className="mt-6 space-y-3.5">
               {[
-                "Забор крови дома или на работе — в удобное вам время",
-                "Натощак, процедура занимает 15 минут",
-                "Доступно в Москве и Московской области",
+                "Дома или на работе — в удобное вам время",
+                "Сдаётся натощак, сама процедура — около 15 минут",
+                `Выезд — ${NURSE_HOME_PRICE.toLocaleString("ru-RU")} ₽`,
               ].map((text) => (
-                <li key={text} className="flex items-start gap-3 text-base text-muted-foreground">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                <li key={text} className="flex items-start gap-3 text-base text-foreground">
+                  <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" aria-hidden />
                   <span className="min-w-0">{text}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="md:justify-self-end md:w-[340px]">
-            <NurseCallForm />
-          </div>
+          <NurseCallForm />
         </div>
       ) : (
         <>
