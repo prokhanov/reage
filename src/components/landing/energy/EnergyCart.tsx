@@ -647,7 +647,7 @@ export function EnergyCart() {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <div className="no-scrollbar -mx-1 mt-4 flex items-center gap-2 overflow-x-auto px-1 pb-0.5">
                     <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
                       <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
                       40 минут
