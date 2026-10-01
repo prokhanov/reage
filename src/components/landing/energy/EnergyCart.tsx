@@ -26,7 +26,7 @@ import { getYmClientId } from "@/lib/yandexMetrika";
 
 const CBC_BONUS_PRICE = 990;
 // Доплата за выезд медсестры на дом. Должна совпадать с сервером (energy-create-payment).
-const HOME_VISIT_PRICE = 3000;
+const HOME_VISIT_PRICE = 2990;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
