@@ -36,6 +36,7 @@ export function AnalysisBookingBanner() {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
   const [medicalAnketaFilled, setMedicalAnketaFilled] = useState(true);
   const { data: userRoleData, isLoading } = useUserRole();
   const { getUserId, isViewMode } = useViewAsUser();
@@ -81,6 +82,8 @@ export function AnalysisBookingBanner() {
       setHasActiveSubscription(subscription?.status === "active");
     } catch (error) {
       console.error("Error checking subscription status:", error);
+    } finally {
+      setSubscriptionLoaded(true);
     }
   };
 
@@ -298,6 +301,18 @@ export function AnalysisBookingBanner() {
     }
   }
 
+  // У пациента без активной подписки запись начинается с выбора тарифа:
+  // кнопка ведёт в диалог подписки (см. handleSchedule).
+  const subscriptionPitch =
+    !hasActiveSubscription &&
+    subscriptionLoaded &&
+    (statusKey === "empty" || statusKey === "not_scheduled");
+  let title = text.title;
+  if (subscriptionPitch) {
+    title = "Для записи на анализы требуется подписка";
+    subtitle = "Выберите тариф годового мониторинга";
+  }
+
   // Statuses where we show the "Инструкция" button instead of a scheduling action
   const instructionStatuses = ["scheduled", "application_submitted"];
   const showInstructions = instructionStatuses.includes(statusKey);
@@ -311,7 +326,9 @@ export function AnalysisBookingBanner() {
   ];
   const showButton = !terminalStatuses.includes(statusKey);
   let buttonLabel = "Назначить дату";
-  if (mode === "phone") {
+  if (subscriptionPitch) {
+    buttonLabel = "Выбрать тариф";
+  } else if (mode === "phone") {
     if (statusKey === "waiting_call") buttonLabel = "Запланировать сдачу";
     else if (statusKey === "no_answer") buttonLabel = "Запросить звонок";
     else buttonLabel = "Оставить заявку";
@@ -359,7 +376,7 @@ export function AnalysisBookingBanner() {
               <Icon className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-0.5 min-w-0 flex-1">
-              <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
+              <p className="font-semibold text-sm text-foreground leading-snug">{title}</p>
               <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
               {bookingInfo?.labquest_request_number && statusKey === "application_submitted" && (
                 <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
