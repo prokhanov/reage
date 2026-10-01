@@ -162,6 +162,13 @@
       "when": 1790845452659,
       "tag": "0022_expose_checkup_consultation_purchase",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790847689001,
+      "tag": "0023_energy_orders_auto_account",
+      "breakpoints": true
     }
   ]
 }

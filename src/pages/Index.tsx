@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Loader2, Menu, ShoppingCart } from "lucide-react";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
+import { AutoLoginHandler } from "@/components/AutoLoginHandler";
 import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 import { initActiveTimeTracker } from "@/lib/activeTimeTracker";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
@@ -265,6 +266,7 @@ const Index = () => {
     <EnergyOrderProvider checkup={FULL_CHECKUP}>
       <div className="min-h-screen bg-background overflow-x-clip">
         <VerifyEmailTokenHandler />
+        <AutoLoginHandler />
         <PasswordResetTokenHandler />
         <IndexHeader />
         <HeroPortrait />

@@ -240,6 +240,11 @@ export function EnergyCart() {
       if (!url) throw new Error("Не получен платёжный URL");
       const slugs = items.map((item) => item.slug);
       rememberCheckupOrder(invIdFromPaymentUrl(url), slugs);
+      const claimSecret = (data as { claimSecret?: string | null } | null)?.claimSecret;
+      const claimInv = (data as { invId?: number } | null)?.invId;
+      if (claimSecret && claimInv) {
+        try { localStorage.setItem(`reage_claim_${claimInv}`, claimSecret); } catch { /* приватный режим */ }
+      }
       goalPaymentClick(slugs);
       window.location.href = url;
     } catch (e) {

@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin
       .from("energy_orders")
-      .select("id, status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles, upsell_source_order_id, consultation_purchased")
+      .select("id, status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles, upsell_source_order_id, consultation_purchased, account_created")
       .eq("inv_id", invId)
       .maybeSingle();
 
@@ -40,6 +40,14 @@ Deno.serve(async (req) => {
     if (!data) return json({ error: "Заказ не найден" }, 404);
 
     let status = data.status;
+    // Новый автоаккаунт: ждём, пока появятся карточки чекапов.
+    if (status === "paid" && !data.upsell_source_order_id && (data as any).account_created === true) {
+      const bundles = (data.bundles ?? []).filter((slug: string) => slug && slug !== "consultation");
+      if (bundles.length > 0) {
+        const { count } = await admin.from("one_time_checkups").select("id", { count: "exact", head: true }).eq("order_id", data.id);
+        if ((count ?? 0) < bundles.length) status = "pending";
+      }
+    }
     if (status === "paid" && data.upsell_source_order_id) {
       const bundles = (data.bundles ?? []).filter((slug: string) => slug && slug !== "consultation");
       if (bundles.length > 0) {
@@ -69,6 +77,7 @@ Deno.serve(async (req) => {
       email: String(data.email ?? ""),
       isUpsell: Boolean(data.upsell_source_order_id),
       consultationPurchased: data.consultation_purchased === true,
+      accountCreated: (data as { account_created?: boolean }).account_created === true,
     });
   } catch (e) {
     console.error("energy-order-status error", e);
