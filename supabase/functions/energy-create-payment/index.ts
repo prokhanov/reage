@@ -181,6 +181,20 @@ Deno.serve(async (req) => {
       return json({ error: "Укажите дату рождения" }, 400);
     }
 
+    // Вошедшему покупателю дописываем в профиль только те поля, которых там ещё нет
+    // (например отчество или дату рождения, введённые в корзине). Заполненные поля не трогаем.
+    if (userId && prof) {
+      const patch: Record<string, string> = {};
+      if (!pv("first_name") && firstNameClean) patch.first_name = firstNameClean;
+      if (!pv("last_name") && lastNameClean) patch.last_name = lastNameClean;
+      if (!pv("middle_name") && middleNameClean) patch.middle_name = middleNameClean;
+      if (!String(prof.birth_date ?? "").trim() && birthDateClean) patch.birth_date = birthDateClean;
+      if (!pv("phone") && phoneClean) patch.phone = phoneClean;
+      if (Object.keys(patch).length > 0) {
+        await admin.from("profiles").update(patch).eq("id", userId);
+      }
+    }
+
     // Цены администрируются в разделе «Чекапы» админки; каталог в коде — запасной вариант.
     const PRICE_ALIASES: Record<string, string> = {
       "cardio-risk-40": "cardio-risk",

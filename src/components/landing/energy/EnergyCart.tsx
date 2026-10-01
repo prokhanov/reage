@@ -596,41 +596,50 @@ export function EnergyCart() {
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Фамилия</span>
-                      <Input
-                        placeholder="Иванова"
-                        autoComplete="family-name"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        readOnly={isLocked("last_name")}
-                        disabled={accountLoading}
-                        className="h-12"
-                        aria-invalid={touched && lastName.trim().length <= 1}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="Иванова"
+                          autoComplete="family-name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          readOnly={isLocked("last_name")}
+                          disabled={accountLoading}
+                          className={`h-12 ${isLocked("last_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
+                          aria-invalid={touched && lastName.trim().length <= 1}
+                        />
+                        {isLocked("last_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
+                      </div>
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Имя</span>
-                      <Input
-                        placeholder="Анна"
-                        autoComplete="given-name"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        readOnly={isLocked("first_name")}
-                        disabled={accountLoading}
-                        className="h-12"
-                        aria-invalid={touched && firstName.trim().length <= 1}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="Анна"
+                          autoComplete="given-name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          readOnly={isLocked("first_name")}
+                          disabled={accountLoading}
+                          className={`h-12 ${isLocked("first_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
+                          aria-invalid={touched && firstName.trim().length <= 1}
+                        />
+                        {isLocked("first_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
+                      </div>
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Отчество</span>
-                      <Input
-                        placeholder="Сергеевна"
-                        autoComplete="additional-name"
-                        value={middleName}
-                        onChange={(e) => setMiddleName(e.target.value)}
-                        readOnly={isLocked("middle_name")}
-                        disabled={accountLoading}
-                        className="h-12"
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="Сергеевна"
+                          autoComplete="additional-name"
+                          value={middleName}
+                          onChange={(e) => setMiddleName(e.target.value)}
+                          readOnly={isLocked("middle_name")}
+                          disabled={accountLoading}
+                          className={`h-12 ${isLocked("middle_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
+                        />
+                        {isLocked("middle_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
+                      </div>
                     </label>
                   </div>
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -648,7 +657,10 @@ export function EnergyCart() {
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Телефон</span>
                       {isLocked("phone") ? (
-                        <Input value={phone} readOnly className="h-12" />
+                        <div className="relative">
+                          <Input value={phone} readOnly className="h-12 bg-muted/60 pr-10 text-muted-foreground" />
+                          <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                        </div>
                       ) : (
                         <PhoneInput
                           value={phone}
@@ -662,18 +674,21 @@ export function EnergyCart() {
                     <span className="mb-1 block text-sm font-medium text-foreground">
                       Email — сюда придёт результат
                     </span>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      placeholder="anna@mail.ru"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      readOnly={isLocked("email")}
-                      disabled={accountLoading}
-                      className="h-12"
-                      aria-invalid={touched && !emailValid}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="email"
+                        inputMode="email"
+                        placeholder="anna@mail.ru"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        readOnly={isLocked("email")}
+                        disabled={accountLoading}
+                        className={`h-12 ${isLocked("email") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
+                        aria-invalid={touched && !emailValid}
+                      />
+                      {isLocked("email") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
+                    </div>
                   </label>
                   <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                     <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
