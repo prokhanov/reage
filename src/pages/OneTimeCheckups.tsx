@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Clock3, Edit3, FlaskConical, Plus, RotateCcw, Stethoscope } from "lucide-react";
+import { ArrowRight, BookOpen, Check, Clock3, Edit3, FlaskConical, Plus, RotateCcw, Stethoscope } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { EditOneTimeCheckupDialog, type OneTimeCheckupRecord } from "@/components/checkups/EditOneTimeCheckupDialog";
 import { UpsellCheckoutDialog } from "@/components/checkups/UpsellCheckoutDialog";
@@ -111,6 +111,19 @@ function CheckupsContent() {
                   <div><p className="text-xs text-muted-foreground">Когда</p><p className="mt-1 font-medium">{record.appointment_date ? new Date(`${record.appointment_date}T00:00:00`).toLocaleDateString("ru-RU") : "Без записи"}{record.appointment_time ? `, ${record.appointment_time.slice(0, 5)}` : ""}</p></div>
                   <div><p className="text-xs text-muted-foreground">Оплачено</p><p className="mt-1 font-semibold">{money(Number(record.paid_amount))}</p></div>
                 </div>
+                {currentStep < 3 && (
+                  <Link
+                    to="/prep"
+                    className="group mt-5 flex items-center gap-3 rounded-xl border hairline bg-muted/40 px-4 py-3 transition-colors hover:border-primary/50 hover:bg-primary/5"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><BookOpen className="h-4 w-4" /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium">Как подготовиться к сдаче анализов</span>
+                      <span className="block text-xs text-muted-foreground">Питание, время сдачи, лекарства — коротко и по делу</span>
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </Link>
+                )}
                 {record.status === "report_ready" && record.analysis_id && <Button asChild className="mt-5"><Link to={`/analyses/${record.analysis_id}`}>Смотреть результаты</Link></Button>}
               </CardContent>
             </Card>

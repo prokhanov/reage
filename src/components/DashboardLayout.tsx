@@ -6,6 +6,10 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -17,7 +21,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Баннер показываем только когда контекст разрешил демо-режим:
   // пациенту на своём аккаунте или админу в кабинете пациента.
-  const canShowDemoBanner = demoMode;
+  const { pathname } = useLocation();
+  const { viewAsUserId } = useViewAsUser() as any;
+  const onCheckupsPage = pathname === "/one-time-checkups";
+  // На «Разовых чекапах» плашку демо не показываем, если есть оплаченный чекап.
+  const { data: hasPaidCheckup } = useQuery({
+    queryKey: ["has-one-time-checkup", viewAsUserId ?? "self"],
+    enabled: onCheckupsPage && demoMode,
+    queryFn: async () => {
+      const uid = viewAsUserId ?? (await supabase.auth.getUser()).data.user?.id;
+      if (!uid) return false;
+      const { count } = await supabase
+        .from("one_time_checkups")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid);
+      return (count ?? 0) > 0;
+    },
+  });
+  const canShowDemoBanner = demoMode && !(onCheckupsPage && hasPaidCheckup !== false);
 
 
   
