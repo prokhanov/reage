@@ -48,21 +48,9 @@ function CheckupsContent() {
     },
   });
 
-  const { data: paidOrders = [] } = useQuery({
-    queryKey: ["one-time-checkup-orders", records.map((record) => record.order_id).join(",")],
-    queryFn: async () => {
-      const orderIds = [...new Set(records.map((record) => record.order_id))];
-      if (orderIds.length === 0) return [];
-      const { data, error } = await supabase.from("energy_orders").select("id, consultation_purchased").in("id", orderIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-    enabled: records.length > 0,
-  });
-
   const owned = useMemo(() => new Set(records.map((record) => record.checkup_slug)), [records]);
   const eligibleUpsellRecord = records.find((record) => STATUS_STEP[record.status] < 3);
-  const consultationPurchased = paidOrders.some((order) => order.consultation_purchased);
+  const consultationPurchased = records.some((record) => record.consultation_purchased);
   const offers = BASE_CHECKUPS.map(resolve).filter((checkup) => isActive(checkup.slug) && !owned.has(checkup.slug));
 
   return (

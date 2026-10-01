@@ -32,6 +32,7 @@ export type OneTimeCheckupRecord = {
   appointment_time: string | null;
   internal_comment: string | null;
   analysis_id: string | null;
+  consultation_purchased: boolean;
   created_at: string;
 };
 

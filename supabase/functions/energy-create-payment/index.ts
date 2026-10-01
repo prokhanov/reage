@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
       if (uniqueBundles.some((slug) => (sourceRecords ?? []).some((record) => record.checkup_slug === slug))) {
         return json({ error: "Этот чекап уже есть в заказе" }, 400);
       }
-      if (consultationOnly === true && sourceOrder.consultation_purchased === true) return json({ error: "Консультация уже оплачена" }, 400);
+      if (consultation === true && sourceOrder.consultation_purchased === true) return json({ error: "Консультация уже оплачена" }, 400);
       validUpsellOrderId = sourceOrder.id;
     }
 
@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
     const withConsult = consultation === true && !partner?.hide_consultation;
     if (consultationOnly === true && !withConsult) return json({ error: "Выберите консультацию" }, 400);
     const consultAmount = withConsult ? CONSULT_PRICE : 0;
-    const homeFee = isHome ? HOME_VISIT_PRICE : 0;
+    const homeFee = isHome && !sourceOrder ? HOME_VISIT_PRICE : 0;
     const original = itemsSum + consultAmount + homeFee;
     // Скидка применяется только к набору анализов, не к консультации.
     let discount = 0;
@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
       .from("energy_orders")
       .insert({
         user_id: userId,
-        bundle: uniqueBundles[0],
+        bundle: uniqueBundles[0] ?? sourceOrder?.bundle ?? "consultation",
         bundles: uniqueBundles,
         email: emailClean,
         phone: phoneClean,
@@ -366,7 +366,7 @@ Deno.serve(async (req) => {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
-      Description: `${items.map((p) => p.title).join(" + ")}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
+       Description: `${items.length > 0 ? items.map((p) => p.title).join(" + ") : CONSULT_TITLE}: заказ #${invId}${isTest ? " (TEST)" : ""}`.slice(0, 100),
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",

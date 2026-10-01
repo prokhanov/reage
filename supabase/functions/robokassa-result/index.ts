@@ -263,9 +263,17 @@ Deno.serve(async (req) => {
           location_type: isHome ? "home" : "clinic",
           location_title: locationTitle,
           address: (energyOrder as any).clinic_address ?? null,
+           consultation_purchased: (energyOrder as any).consultation_purchased === true,
         }));
         const { error: recordError } = await admin.from("one_time_checkups").upsert(rows, { onConflict: "order_id,checkup_slug", ignoreDuplicates: true });
         if (recordError) console.error("one_time_checkups create failed", recordError);
+         if ((energyOrder as any).consultation_purchased === true && (energyOrder as any).upsell_source_order_id) {
+           const { error: consultationError } = await admin
+             .from("one_time_checkups")
+             .update({ consultation_purchased: true })
+             .eq("order_id", (energyOrder as any).upsell_source_order_id);
+           if (consultationError) console.error("one_time_checkups consultation update failed", consultationError);
+         }
       }
 
       // Закрепляем клиента за партнёром / учитываем использование обычного промокода
