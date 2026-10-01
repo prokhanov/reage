@@ -309,8 +309,7 @@ export function AnalysisBookingBanner() {
     (statusKey === "empty" || statusKey === "not_scheduled");
   let title = text.title;
   if (subscriptionPitch) {
-    title = "Для записи на анализы требуется подписка";
-    subtitle = "Выберите тариф годового мониторинга";
+    subtitle = "Оставьте заявку — менеджер перезвонит и согласует дату визита";
   }
 
   // Statuses where we show the "Инструкция" button instead of a scheduling action
