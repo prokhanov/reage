@@ -16,7 +16,6 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
         return (
           <section className="rl-page rl-offer-page" key={offer.id} data-section-title="Следующий шаг">
             <div className="rl-offer">
-              <div className="rl-offer-rings" aria-hidden />
               <div className="rl-offer-layout">
                 <div className="rl-offer-copy">
                   <div>
@@ -53,7 +52,7 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
                     </div>
                     <div className="rl-offer-qr">
                       {offer.qr_data_url && <img src={offer.qr_data_url} alt="QR-код для оформления" />}
-                      <span>Наведите камеру,<br />чтобы оформить</span>
+                      <span>Отсканируйте, чтобы оформить</span>
                     </div>
                   </div>
                 </div>

@@ -33,8 +33,8 @@ function json(payload: unknown, status = 200) {
 
 function makeCode(): string {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  return `REPORT-${Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("")}`;
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
 Deno.serve(async (req) => {
