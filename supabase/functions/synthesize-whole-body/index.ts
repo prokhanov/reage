@@ -284,9 +284,15 @@ serve(async (req) => {
     const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
 
     const model = mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
+    const startedAt = Date.now();
     let text = "";
     let lastErr = "";
+    let repairedCodes: string[] = [];
+    let best: { text: string; repaired: string[] } | null = null;
     for (let attempt = 1; attempt <= 2 && !text; attempt++) {
+      // Второй вызов ИИ — только если первый уложился быстро: иначе оркестратор
+      // оборвёт шаг по таймауту и прогресс «зависнет».
+      if (attempt === 2 && Date.now() - startedAt > 55_000) break;
       const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -309,12 +315,29 @@ serve(async (req) => {
         .replace(/^[\t ]+(?=\S)/gm, "")
         .trim();
       out = normalizeMeaningBlocks(out);
-      const structureError = validateBiomarkerStructure(out, expectedGroups, deviationCodes);
-      if (out.length < 1500 || expectedCodes.length === 0 || structureError) {
-        lastErr = `Ответ ИИ не прошёл проверку: ${structureError || `длина ${out.length}, биомаркеров ${expectedCodes.length}`}`;
+      if (out.length < 1500 || expectedCodes.length === 0) {
+        lastErr = `Ответ ИИ не прошёл проверку: длина ${out.length}, биомаркеров ${expectedCodes.length}`;
         continue;
       }
-      text = out.startsWith(WHOLE_BODY_TYPE) ? out : `${WHOLE_BODY_TYPE}\n\n${out}`;
+      const fixed = repairFromSource(out, categoryReports, expectedGroups, deviationCodes);
+      const structureError = validateBiomarkerStructure(fixed.text, expectedGroups, deviationCodes);
+      if (structureError) {
+        lastErr = `Ответ ИИ не прошёл проверку: ${structureError}`;
+        continue;
+      }
+      if (fixed.repaired.length > 3 && attempt === 1) {
+        // Много пропусков — пробуем ещё раз, но этот вариант держим как запасной.
+        best = fixed;
+        lastErr = `ИИ потерял блоки у ${fixed.repaired.length} показателей`;
+        continue;
+      }
+      if (best && best.repaired.length <= fixed.repaired.length) { /* keep best */ } else best = fixed;
+      break;
+    }
+    if (best) {
+      repairedCodes = best.repaired;
+      text = best.text.startsWith(WHOLE_BODY_TYPE) ? best.text : `${WHOLE_BODY_TYPE}\n\n${best.text}`;
+      if (repairedCodes.length) console.log(`[whole-body] repaired from source: ${repairedCodes.join(", ")}`);
     }
     if (!text) return json({ success: false, error: lastErr || "empty AI response" }, 502);
 
