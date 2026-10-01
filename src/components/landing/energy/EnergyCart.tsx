@@ -620,53 +620,55 @@ export function EnergyCart() {
                   consult ? "border-primary" : "border-border"
                 }`}
               >
-                <div className="flex items-start gap-4 p-4 sm:p-5">
-                  <img
-                    src={expertDoctor}
-                    alt={doctor.name}
-                    loading="lazy"
-                    className="h-20 w-20 shrink-0 rounded-full object-cover object-top"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-display text-xl leading-tight text-foreground sm:text-2xl">
-                      Разбор результатов с врачом
-                    </h4>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {[
-                        doctor.name,
-                        [
-                          doctor.specialty.replace(/^Врач-/, "").toLowerCase(),
-                          doctor.credentials[0],
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={expertDoctor}
+                      alt={doctor.name}
+                      loading="lazy"
+                      className="h-20 w-20 shrink-0 rounded-full object-cover object-top"
+                    />
+                    <div className="min-w-0">
+                      <h4 className="font-display text-xl leading-tight text-foreground sm:text-2xl">
+                        Разбор результатов с врачом
+                      </h4>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {[
+                          doctor.name,
+                          [
+                            doctor.specialty.replace(/^Врач-/, "").toLowerCase(),
+                            doctor.credentials[0],
+                          ]
+                            .filter(Boolean)
+                            .join(", "),
                         ]
                           .filter(Boolean)
-                          .join(", "),
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
-                        <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                        40 минут
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
-                        <Video className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                        Онлайн
-                      </span>
-                      {doctor.credentials.slice(1).map((line, i) => {
-                        const isLicense = /gmc|лиценз/i.test(line);
-                        const Icon = isLicense ? IdCard : BarChart3;
-                        return (
-                          <span
-                            key={line}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
-                          >
-                            <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                            {isLicense ? `Лицензия ${line}` : line}
-                          </span>
-                        );
-                      })}
+                          .join(" · ")}
+                      </p>
                     </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-start gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                      <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      40 минут
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                      <Video className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                      Онлайн
+                    </span>
+                    {doctor.credentials.slice(1).map((line, i) => {
+                      const isLicense = /gmc|лиценз/i.test(line);
+                      const Icon = isLicense ? IdCard : BarChart3;
+                      return (
+                        <span
+                          key={line}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
+                        >
+                          <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                          {isLicense ? `Лицензия ${line}` : line}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline bg-primary/5 px-4 py-3.5 sm:px-5">
