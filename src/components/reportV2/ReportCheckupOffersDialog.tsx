@@ -72,7 +72,7 @@ export function ReportCheckupOffersDialog({
           </div>
         ) : candidates.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Для этого отчёта нет доступных предложений.
+            Сейчас нет доступных чекапов для баннеров.
           </p>
         ) : (
           <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
