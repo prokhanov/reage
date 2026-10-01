@@ -23,6 +23,9 @@ export interface PromoCode {
   created_at: string;
   updated_at: string;
   batch?: { id: string; name: string } | null;
+  scope?: string;
+  /** Если код создан баннером в отчёте пациента. */
+  report_offer?: { checkup: string; patient: string | null; used: boolean } | null;
 }
 
 export interface PromoBatch {
@@ -49,6 +52,7 @@ export interface PromoCodeFilters {
   search?: string;
   batchId?: string | null;
   status?: "all" | "active" | "inactive" | "expired" | "exhausted";
+  source?: "all" | "report" | "regular";
 }
 
 export function usePromoCodes(filters: PromoCodeFilters = {}) {
@@ -57,7 +61,7 @@ export function usePromoCodes(filters: PromoCodeFilters = {}) {
     queryFn: async () => {
       let q = supabase
         .from("promo_codes")
-        .select("*, batch:promo_code_batches(id, name)")
+        .select("*, batch:promo_code_batches(id, name), offers:report_checkup_offers(advertised_checkup_name, user_id, used_at)")
         .order("created_at", { ascending: false })
         .limit(2000);
 
@@ -71,7 +75,27 @@ export function usePromoCodes(filters: PromoCodeFilters = {}) {
       const { data, error } = await q;
       if (error) throw error;
 
-      let rows = (data ?? []) as unknown as PromoCode[];
+      const raw = (data ?? []) as any[];
+      const ownerIds = [...new Set(raw.flatMap((r) => (r.offers ?? []).map((o: any) => o.user_id)).filter(Boolean))];
+      const names = new Map<string, string>();
+      if (ownerIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .in("id", ownerIds);
+        for (const p of profiles ?? []) {
+          names.set(p.id, [p.last_name, p.first_name].filter(Boolean).join(" ") || p.email || "");
+        }
+      }
+      let rows = raw.map(({ offers, ...r }) => {
+        const o = offers?.[0];
+        return {
+          ...r,
+          report_offer: o ? { checkup: o.advertised_checkup_name, patient: names.get(o.user_id) ?? null, used: !!o.used_at } : null,
+        };
+      }) as PromoCode[];
+      if (filters.source === "report") rows = rows.filter((r) => r.report_offer);
+      if (filters.source === "regular") rows = rows.filter((r) => !r.report_offer);
       if (filters.status && filters.status !== "all") {
         const now = new Date();
         rows = rows.filter((r) => {
