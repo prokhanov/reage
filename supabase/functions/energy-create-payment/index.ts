@@ -243,6 +243,7 @@ Deno.serve(async (req) => {
     }
 
     let validUpsellOrderId: string | null = null;
+    let upsellDiscountPct = 0;
     if (upsellOrderId) {
       if (!userId) return json({ error: "Войдите в кабинет для получения скидки" }, 401);
       if (!sourceOrder) return json({ error: "Скидка для этого заказа недоступна" }, 400);
@@ -250,9 +251,9 @@ Deno.serve(async (req) => {
         .from("one_time_checkups")
         .select("checkup_slug, status")
         .eq("order_id", sourceOrder.id);
-      if ((sourceRecords ?? []).some((record) => ["collected", "report_pending", "report_ready"].includes(record.status))) {
-        return json({ error: "Скидка действует только до сдачи анализов" }, 400);
-      }
+      // До сдачи крови скидка 15%, после сдачи — 10% (скидка постоянного клиента).
+      const collected = (sourceRecords ?? []).some((record) => ["collected", "report_pending", "report_ready"].includes(record.status));
+      upsellDiscountPct = collected ? 10 : 15;
       if (uniqueBundles.some((slug) => (sourceRecords ?? []).some((record) => record.checkup_slug === slug))) {
         return json({ error: "Этот чекап уже есть в заказе" }, 400);
       }
