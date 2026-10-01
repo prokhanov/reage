@@ -3,6 +3,7 @@ import { ChevronRight, Loader2, MessageCircle, Phone, RotateCcw, Send, X } from 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 
 type Msg = { id: string; direction: "visitor" | "operator" | "system"; text: string; created_at: string; read_by_visitor: boolean };
 const TOKEN_KEY = "reage:support-token";
@@ -64,6 +65,7 @@ function MessageText({ text }: { text: string }) {
 }
 
 export function SupportChatWidget() {
+  const location = useLocation();
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -81,6 +83,8 @@ export function SupportChatWidget() {
   const textRef = useRef<HTMLTextAreaElement>(null);
   const openRef = useRef(chatOpen);
   openRef.current = chatOpen;
+
+  if (location.pathname === "/one-time-checkups") return null;
 
   const refresh = useCallback(async () => {
     try {
