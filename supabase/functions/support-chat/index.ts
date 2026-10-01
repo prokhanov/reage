@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         const r = await tg(s.support_bot_token, "setWebhook", {
           url: `${SUPABASE_URL}/functions/v1/support-telegram-webhook`,
           secret_token: s.support_webhook_secret,
-          allowed_updates: ["message"],
+          allowed_updates: ["message", "edited_message"],
         });
         return json({ ok: r.ok, error: r.ok ? undefined : r.data?.description });
       }
