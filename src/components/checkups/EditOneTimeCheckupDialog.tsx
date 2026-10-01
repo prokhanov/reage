@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { bookingStatusLabels, bookingStatusOrder, type BookingStatus } from "@/lib/bookingStatusLabels";
+import { CHECKUP_STATUSES, normalizeCheckupStatus, type CheckupStatus } from "@/lib/checkupStatuses";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ export type OneTimeCheckupRecord = {
   order_id: string;
   checkup_slug: string;
   paid_amount: number;
-  status: BookingStatus;
+  status: string;
   labquest_request_number: string | null;
   location_type: "clinic" | "home";
   lab_location_id: string | null;
@@ -38,7 +38,7 @@ export type OneTimeCheckupRecord = {
 
 export function EditOneTimeCheckupDialog({ record, checkupName, onClose }: { record: OneTimeCheckupRecord | null; checkupName?: string; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<BookingStatus>("waiting_call");
+  const [status, setStatus] = useState<CheckupStatus>("paid");
   const [requestNumber, setRequestNumber] = useState("");
   const [locationType, setLocationType] = useState<"clinic" | "home">("clinic");
   const [labId, setLabId] = useState("");
@@ -49,7 +49,7 @@ export function EditOneTimeCheckupDialog({ record, checkupName, onClose }: { rec
 
   useEffect(() => {
     if (!record) return;
-    setStatus(record.status);
+    setStatus(normalizeCheckupStatus(record.status));
     setRequestNumber(record.labquest_request_number ?? "");
     setLocationType(record.location_type);
     setLabId(record.lab_location_id ?? "");
@@ -120,7 +120,7 @@ export function EditOneTimeCheckupDialog({ record, checkupName, onClose }: { rec
         </DialogHeader>
         <div className="grid gap-5 overflow-y-auto px-6 py-5 sm:px-7">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2"><Label>Статус</Label><Select value={status} onValueChange={(value) => setStatus(value as BookingStatus)}><SelectTrigger className="h-12"><SelectValue /></SelectTrigger><SelectContent>{bookingStatusOrder.map((value) => <SelectItem key={value} value={value}>{bookingStatusLabels[value]}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-2"><Label>Статус</Label><Select value={status} onValueChange={(value) => setStatus(value as CheckupStatus)}><SelectTrigger className="h-12"><SelectValue /></SelectTrigger><SelectContent>{CHECKUP_STATUSES.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div>
             <div className="space-y-2"><Label htmlFor="request-number">Номер заявки</Label><Input className="h-12" id="request-number" value={requestNumber} onChange={(event) => setRequestNumber(event.target.value)} placeholder="№ заявки" /></div>
           </div>
           <div className="space-y-2">
