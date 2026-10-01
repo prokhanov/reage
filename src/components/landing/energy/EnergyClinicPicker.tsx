@@ -230,8 +230,10 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
   return (
     <div className="min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {header}
-        {(!showTabs || mode === "lab") && (
+        {renderHeader
+          ? renderHeader(!showTabs || mode === "lab" ? <CityInlineSelect city={city} onChange={selectCity} /> : null)
+          : header}
+        {!renderHeader && (!showTabs || mode === "lab") && (
           <div className="flex w-full shrink-0 rounded-xl border border-border bg-card p-1 sm:w-auto">
             {CITIES.map((c) => (
               <button
