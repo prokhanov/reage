@@ -277,7 +277,7 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
     const nextReport = report ? { ...report, checkupOffers: offers } : report;
     setReport(nextReport);
     onSaved?.();
-    if (!nextReport || !["published", "edited"].includes(nextReport.docStatus ?? "")) return;
+    if (!nextReport || nextReport.docStatus !== "published") return;
     try {
       const token = await getFreshAccessToken();
       await fetch(edgeFunctionUrl("queue-report-pdf"), {

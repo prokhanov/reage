@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     admin.from("report_checkup_offers").select("*").eq("analysis_id", analysisId).eq("is_active", true),
   ]);
 
-  const products = new Map(Object.entries(FALLBACK_PRODUCTS));
+  const products = new Map<string, { name: string; price: number }>(Object.entries(FALLBACK_PRODUCTS));
   for (const row of settings ?? []) {
     const fallback = products.get(row.slug);
     if (fallback && row.is_active !== false) products.set(row.slug, { ...fallback, price: Number(row.price) });
