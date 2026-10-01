@@ -678,11 +678,15 @@ export function EnergyCart() {
                   </div>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant={consult ? "default" : "outline"}
                     onClick={() => setConsult(!consult)}
                     aria-pressed={consult}
                     aria-label="Добавить консультацию врача"
-                    className="h-11 rounded-xl border-primary/40 px-5 text-primary hover:bg-primary hover:text-primary-foreground"
+                    className={
+                      consult
+                        ? "h-11 rounded-xl px-5 bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "h-11 rounded-xl border-primary/40 px-5 text-primary hover:bg-primary hover:text-primary-foreground"
+                    }
                   >
                     {consult ? (
                       <>
