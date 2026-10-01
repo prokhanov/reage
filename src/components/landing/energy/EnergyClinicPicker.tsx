@@ -414,17 +414,8 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
               ))}
             </ul>
           </div>
-          <div className="space-y-3 md:justify-self-end md:text-center">
-            <a
-              href="tel:+79959984638"
-              className="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:w-auto"
-            >
-              <Phone className="h-4 w-4" aria-hidden />
-              Вызвать медсестру
-            </a>
-            <p className="text-sm text-muted-foreground">
-              Заказать медсестру на дом — быстро перезвоним и согласуем удобные день и время.
-            </p>
+          <div className="md:justify-self-end md:w-[340px]">
+            <NurseCallForm />
           </div>
         </div>
       ) : (
