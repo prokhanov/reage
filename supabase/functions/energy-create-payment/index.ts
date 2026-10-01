@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
       .from("energy_orders")
       .insert({
         user_id: userId,
-        bundle: uniqueBundles[0] ?? sourceOrder?.bundle ?? "consultation",
+        bundle: uniqueBundles[0] ?? "consultation",
         bundles: uniqueBundles,
         email: emailClean,
         phone: phoneClean,

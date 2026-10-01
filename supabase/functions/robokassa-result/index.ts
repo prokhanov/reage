@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
       if (eUpdErr) return textPlain("db error", 500);
 
       if ((energyOrder as any).user_id) {
-        const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter(Boolean);
+        const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter((slug: string) => Boolean(slug) && slug !== "consultation");
         const perItemPaid = bundleList.length > 0 ? ePaid / bundleList.length : ePaid;
         const locationTitle = (energyOrder as any).clinic_title ?? null;
         const isHome = /дом|выезд/i.test(String(locationTitle ?? ""));

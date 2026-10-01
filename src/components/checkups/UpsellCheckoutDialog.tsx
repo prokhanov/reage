@@ -18,7 +18,7 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
   consultationInitiallySelected: boolean;
   onConsultationSelectionHandled: () => void;
 }) {
-  const { cartOpen, closeCart, items, removeItem, clearCart } = useEnergyOrder();
+  const { cartOpen, closeCart, items, removeItem } = useEnergyOrder();
   const { doctor } = useCheckupSettings();
   const [consultation, setConsultation] = useState(false);
   const [agree, setAgree] = useState(true);
