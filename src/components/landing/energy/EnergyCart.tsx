@@ -30,14 +30,14 @@ const HOME_VISIT_PRICE = 2990;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="flex gap-3">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-        {n}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</h3>
-        <div className="mt-2">{children}</div>
+    <section>
+      <div className="flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+          {n}
+        </span>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">{title}</h3>
       </div>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }
