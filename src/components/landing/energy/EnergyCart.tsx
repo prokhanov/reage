@@ -636,8 +636,8 @@ export function EnergyCart() {
                         {[
                           doctor.name,
                           [
-                            doctor.specialty.replace(/^Врач-/, "").toLowerCase(),
-                            doctor.credentials[0],
+                            doctor.specialty.replace(/^Врач-/, "").toLowerCase().replace(/^./, (letter) => letter.toUpperCase()),
+                            doctor.credentials[0]?.toLowerCase(),
                           ]
                             .filter(Boolean)
                             .join(", "),
