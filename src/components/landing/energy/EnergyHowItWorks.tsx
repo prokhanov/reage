@@ -122,9 +122,19 @@ export function EnergyHowItWorks({ id, full = false }: Props) {
                   <h3 className="font-display text-base font-medium text-foreground md:text-lg">
                     {title}
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {s.text}
-                  </p>
+                  {Array.isArray(s.text) ? (
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {s.text.map((line, li) => (
+                        <span key={li} className="block">
+                          {line}
+                        </span>
+                      ))}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {s.text}
+                    </p>
+                  )}
                 </div>
               </div>
             );
