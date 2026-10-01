@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id, user_id, partner_id, upsell_source_order_id",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id, user_id, partner_id, upsell_source_order_id, consultation_purchased",
       )
       .eq("inv_id", invId)
       .maybeSingle();
@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
       if (eUpdErr) return textPlain("db error", 500);
 
       if ((energyOrder as any).user_id) {
-        const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter(Boolean);
+        const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter((slug: string) => Boolean(slug) && slug !== "consultation");
         const perItemPaid = bundleList.length > 0 ? ePaid / bundleList.length : ePaid;
         const locationTitle = (energyOrder as any).clinic_title ?? null;
         const isHome = /дом|выезд/i.test(String(locationTitle ?? ""));
@@ -263,9 +263,17 @@ Deno.serve(async (req) => {
           location_type: isHome ? "home" : "clinic",
           location_title: locationTitle,
           address: (energyOrder as any).clinic_address ?? null,
+           consultation_purchased: (energyOrder as any).consultation_purchased === true,
         }));
         const { error: recordError } = await admin.from("one_time_checkups").upsert(rows, { onConflict: "order_id,checkup_slug", ignoreDuplicates: true });
         if (recordError) console.error("one_time_checkups create failed", recordError);
+         if ((energyOrder as any).consultation_purchased === true && (energyOrder as any).upsell_source_order_id) {
+           const { error: consultationError } = await admin
+             .from("one_time_checkups")
+             .update({ consultation_purchased: true })
+             .eq("order_id", (energyOrder as any).upsell_source_order_id);
+           if (consultationError) console.error("one_time_checkups consultation update failed", consultationError);
+         }
       }
 
       // Закрепляем клиента за партнёром / учитываем использование обычного промокода

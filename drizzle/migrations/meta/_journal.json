@@ -148,6 +148,20 @@
       "when": 1790844772773,
       "tag": "0020_add_checkup_upsell_source",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790845387927,
+      "tag": "0021_track_checkup_consultation_purchase",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790845452659,
+      "tag": "0022_expose_checkup_consultation_purchase",
+      "breakpoints": true
     }
   ]
 }
