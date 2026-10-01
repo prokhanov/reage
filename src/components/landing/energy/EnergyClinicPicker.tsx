@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Plus, Send } from "lucide-react";
+import { Check, ChevronDown, CheckCircle2, Clock, Crosshair, FlaskConical, Home, MapPin, Minus, Navigation, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,12 +195,12 @@ function NurseCallForm() {
           placeholder="+7 (___) ___-__-__"
           aria-label="Ваш телефон"
           maxLength={18}
-          className="h-13 min-w-0 flex-1 border-border bg-card text-base sm:h-14"
+          className="h-12 min-w-0 flex-1 border-border bg-card text-base sm:h-14"
         />
         <Button
           type="submit"
           disabled={sending}
-          className="h-13 shrink-0 whitespace-nowrap text-base font-semibold sm:h-14 sm:px-7 sm:text-lg"
+          className="h-12 shrink-0 whitespace-nowrap text-base font-semibold sm:h-14 sm:px-7 sm:text-lg"
         >
           {sending ? "Отправляем…" : "Перезвоните мне"}
         </Button>
