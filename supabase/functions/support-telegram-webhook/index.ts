@@ -16,6 +16,25 @@ Deno.serve(async (req) => {
 
   try {
     const update = await req.json();
+
+    // Operator edited a reply in Telegram — update the text on the site
+    const em = update.edited_message;
+    if (em) {
+      if (String(em.chat?.id) === String(s.support_chat_id) && !em.from?.is_bot) {
+        const newText = String(em.text ?? em.caption ?? "").trim();
+        if (newText && !newText.startsWith("//")) {
+          const { data: upd } = await db.from("support_messages").update({ text: newText })
+            .eq("tg_message_id", em.message_id).eq("direction", "operator").select("id");
+          if (upd?.length) {
+            await tg(s.support_bot_token, "setMessageReaction", {
+              chat_id: em.chat.id, message_id: em.message_id, reaction: [{ type: "emoji", emoji: "✍" }],
+            });
+          }
+        }
+      }
+      return new Response("ok");
+    }
+
     const m = update.message;
     if (!m?.chat?.id || m.from?.is_bot) return new Response("ok");
     const text: string = (m.text ?? m.caption ?? "").trim();
@@ -34,6 +53,28 @@ Deno.serve(async (req) => {
     if (m.forum_topic_created || m.forum_topic_edited || m.forum_topic_closed || m.forum_topic_reopened ||
         m.pinned_message || m.new_chat_members || m.left_chat_member) return new Response("ok");
     if (text.startsWith("//")) return new Response("ok");
+
+    // /del as a reply to own answer — remove it from the site (Telegram doesn't notify bots about deletions)
+    if (/^\/(del|delete|удалить)(@\w+)?$/i.test(text)) {
+      const target = m.reply_to_message;
+      const isRealReply = target && target.message_id !== m.message_thread_id;
+      let removed = 0;
+      if (isRealReply) {
+        const { data: del } = await db.from("support_messages").delete()
+          .eq("tg_message_id", target.message_id).eq("direction", "operator").select("id");
+        removed = del?.length ?? 0;
+      }
+      if (removed) {
+        await tg(s.support_bot_token, "deleteMessage", { chat_id: m.chat.id, message_id: target.message_id });
+        await tg(s.support_bot_token, "deleteMessage", { chat_id: m.chat.id, message_id: m.message_id });
+      } else {
+        await tg(s.support_bot_token, "sendMessage", {
+          chat_id: m.chat.id, message_thread_id: m.message_thread_id, reply_to_message_id: m.message_id,
+          text: "Чтобы удалить ответ у посетителя, ответьте командой /del на сам свой ответ.",
+        });
+      }
+      return new Response("ok");
+    }
 
     const { data: conv } = await db.from("support_conversations").select("id, email, name")
       .eq("tg_topic_id", m.message_thread_id).maybeSingle();
