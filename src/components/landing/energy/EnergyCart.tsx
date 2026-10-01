@@ -592,6 +592,8 @@ export function EnergyCart() {
                       <button type="button" className="text-primary underline-offset-2 hover:underline" onClick={() => supabase.auth.signOut()}>
                         Не вы? Выйти
                       </button>
+                      <br />
+                      Неверные данные? Измените в личном кабинете.
                     </p>
                   )}
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
