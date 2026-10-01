@@ -107,12 +107,12 @@ export function EnergyCart() {
     const reset = () => {
       setAccount((prev) => {
         if (prev) {
-          if (prev.locked.has("last_name")) setLastName("");
-          if (prev.locked.has("first_name")) setFirstName("");
-          if (prev.locked.has("middle_name")) setMiddleName("");
-          if (prev.locked.has("phone")) setPhone("");
-          if (prev.locked.has("email")) setEmail("");
-          if (prev.locked.has("birth_date")) setBirthDate("");
+          setLastName("");
+          setFirstName("");
+          setMiddleName("");
+          setPhone("");
+          setEmail("");
+          setBirthDate("");
         }
         return null;
       });
