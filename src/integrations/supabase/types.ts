@@ -1315,6 +1315,7 @@ export type Database = {
           robokassa_signature: string | null
           status: string
           updated_at: string
+          upsell_source_order_id: string | null
           user_id: string | null
           ym_client_id: string | null
         }
@@ -1348,6 +1349,7 @@ export type Database = {
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
+          upsell_source_order_id?: string | null
           user_id?: string | null
           ym_client_id?: string | null
         }
@@ -1381,10 +1383,19 @@ export type Database = {
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
+          upsell_source_order_id?: string | null
           user_id?: string | null
           ym_client_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "energy_orders_upsell_source_order_id_fkey"
+            columns: ["upsell_source_order_id"]
+            isOneToOne: false
+            referencedRelation: "energy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       health_model_settings: {
         Row: {

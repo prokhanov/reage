@@ -1,0 +1,2 @@
+ALTER TABLE public.energy_orders ADD COLUMN upsell_source_order_id uuid REFERENCES public.energy_orders(id) ON DELETE SET NULL;
+CREATE INDEX energy_orders_upsell_source_idx ON public.energy_orders(upsell_source_order_id);
