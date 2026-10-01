@@ -216,6 +216,18 @@ export function buildMessage(
         `\n\n💬 ${e(payload.message || "—")}`
       );
     }
+    case "nurse_call_requested": {
+      const utmLine = formatUtm(payload.utm);
+      return (
+        prefix +
+        "🏠 <b>Заявка: медсестра на дом (чекап)</b>\n" +
+        `📱 ${e(payload.phone || "—")}\n` +
+        `📄 ${e(payload.source || "—")}` +
+        (payload.page_url ? `\n🔗 ${e(payload.page_url)}` : "") +
+        utmLine +
+        `\n🕒 ${e(formatDate(payload.requested_at || new Date().toISOString()))}`
+      );
+    }
     case "callback_requested": {
       return (
         prefix +
