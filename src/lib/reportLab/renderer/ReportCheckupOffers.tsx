@@ -14,12 +14,12 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
           ? Math.round((offer.discount_amount / offer.advertised_list_price) * 100)
           : 0;
         return (
-          <section className="rl-page rl-offer-page" key={offer.id} data-section-title="Следующий шаг">
+          <section className="rl-page rl-offer-page" key={offer.id}>
             <div className="rl-offer">
               <div className="rl-offer-layout">
                 <div className="rl-offer-copy">
                   <div>
-                    <div className="rl-offer-eyebrow">Следующий шаг</div>
+                    <div className="rl-offer-eyebrow" data-section-title="Следующий шаг">Следующий шаг</div>
                     <h2>{offer.advertised_checkup_name}</h2>
                     {offer.advertised_checkup_summary && (
                       <p className="rl-offer-summary">{offer.advertised_checkup_summary}</p>
