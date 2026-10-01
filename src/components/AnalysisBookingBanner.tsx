@@ -233,10 +233,10 @@ export function AnalysisBookingBanner() {
   // Build dynamic texts
   const fallbackMap: Record<string, { title: string; subtitle: string }> = {
     empty: {
-      title: "Запишитесь на анализы",
+      title: "Подписка на годовой мониторинг: запишитесь на анализы",
       subtitle:
         mode === "phone"
-          ? "Оставьте заявку — менеджер перезвонит"
+          ? "Оставьте заявку — менеджер перезвонит и согласует дату визита"
           : "Медсестра приедет к вам домой или выберите клинику для визита",
     },
     waiting_call: {
@@ -248,7 +248,7 @@ export function AnalysisBookingBanner() {
       subtitle: "Запросите повторный звонок",
     },
     not_scheduled: {
-      title: "Запишитесь на анализы",
+      title: "Подписка на годовой мониторинг: запишитесь на анализы",
       subtitle: "Медсестра приедет к вам домой или выберите клинику для визита",
     },
     scheduled: {
