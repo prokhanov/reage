@@ -143,7 +143,7 @@ function NurseCallForm() {
       phone: normalized,
       source: "nurse_home",
       page_url: `${window.location.pathname}${window.location.search}`.slice(0, 500),
-      utm: getUtm(),
+      utm: getUtm() as TablesInsert<"callback_requests">["utm"],
       user_id: null,
     };
     setSending(true);
