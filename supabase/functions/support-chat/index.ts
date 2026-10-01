@@ -114,19 +114,22 @@ Deno.serve(async (req) => {
       }).select().single();
       if (error) throw error;
       conv = created;
-    } else if (userId && !conv.user_id) {
-      // Guest chat, now logged in — attach to account on the fly
+    } else if (userId && (!conv.user_id || conv.user_id === userId)) {
+      // Logged-in visitor: account profile data wins over what was typed in the guest form
       const { data: prof } = await db.from("profiles").select("first_name,last_name,email,phone").eq("id", userId).maybeSingle();
       const pname = prof ? [prof.first_name, prof.last_name].filter(Boolean).join(" ") || null : null;
       const patch = {
         user_id: userId,
-        name: conv.name || pname,
-        email: conv.email || prof?.email || null,
-        phone: conv.phone || prof?.phone || null,
+        name: pname || conv.name,
+        email: prof?.email || conv.email || null,
+        phone: prof?.phone || conv.phone || null,
       };
-      await db.from("support_conversations").update(patch).eq("id", conv.id);
-      Object.assign(conv, patch);
-      (conv as any)._loginNotice = { pname, prof };
+      const changed = !conv.user_id || patch.name !== conv.name || patch.email !== conv.email || patch.phone !== conv.phone;
+      if (changed) {
+        await db.from("support_conversations").update(patch).eq("id", conv.id);
+        if (!conv.user_id) (conv as any)._loginNotice = { pname, prof };
+        Object.assign(conv, patch);
+      }
     }
 
     const ensureTopic = async () => {
