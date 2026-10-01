@@ -32,6 +32,7 @@ const navItems = [
   { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
+  { to: "/one-time-checkups", label: "Чекапы", icon: ShoppingCart },
 ];
 
 import type { AdminModule } from "@/lib/adminModules";

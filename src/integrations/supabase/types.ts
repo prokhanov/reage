@@ -1315,6 +1315,7 @@ export type Database = {
           robokassa_signature: string | null
           status: string
           updated_at: string
+          upsell_source_order_id: string | null
           user_id: string | null
           ym_client_id: string | null
         }
@@ -1348,6 +1349,7 @@ export type Database = {
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
+          upsell_source_order_id?: string | null
           user_id?: string | null
           ym_client_id?: string | null
         }
@@ -1381,10 +1383,19 @@ export type Database = {
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
+          upsell_source_order_id?: string | null
           user_id?: string | null
           ym_client_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "energy_orders_upsell_source_order_id_fkey"
+            columns: ["upsell_source_order_id"]
+            isOneToOne: false
+            referencedRelation: "energy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       health_model_settings: {
         Row: {
@@ -1898,6 +1909,88 @@ export type Database = {
           resolved?: boolean
         }
         Relationships: []
+      }
+      one_time_checkups: {
+        Row: {
+          address: string | null
+          analysis_id: string | null
+          appointment_date: string | null
+          appointment_time: string | null
+          checkup_slug: string
+          created_at: string
+          id: string
+          internal_comment: string | null
+          lab_location_id: string | null
+          labquest_request_number: string | null
+          location_title: string | null
+          location_type: string
+          order_id: string
+          paid_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          analysis_id?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
+          checkup_slug: string
+          created_at?: string
+          id?: string
+          internal_comment?: string | null
+          lab_location_id?: string | null
+          labquest_request_number?: string | null
+          location_title?: string | null
+          location_type?: string
+          order_id: string
+          paid_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          analysis_id?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
+          checkup_slug?: string
+          created_at?: string
+          id?: string
+          internal_comment?: string | null
+          lab_location_id?: string | null
+          labquest_request_number?: string | null
+          location_title?: string | null
+          location_type?: string
+          order_id?: string
+          paid_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "one_time_checkups_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "one_time_checkups_lab_location_id_fkey"
+            columns: ["lab_location_id"]
+            isOneToOne: false
+            referencedRelation: "lab_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "one_time_checkups_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "energy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_clients: {
         Row: {
