@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, Building2, Check, Clock, FlaskConical, Gift, Heart, Home, IdCard, Lock, MapPin, Stethoscope, X } from "lucide-react";
+import { BarChart3, Building2, Check, Clock, FlaskConical, Gift, Home, IdCard, Lock, MapPin, Plus, Video, X } from "lucide-react";
 
 import expertDoctor from "@/assets/energy/reage-doctor.jpg";
 
@@ -615,52 +615,87 @@ export function EnergyCart() {
 
             {doctor.consultation_enabled && !consultHidden && (
             <Step n={4} title="Добавить консультацию">
-              <label
-                className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
-                  consult ? "border-primary bg-primary/5" : "border-border bg-card"
+              <div
+                className={`overflow-hidden rounded-2xl border transition-colors ${
+                  consult ? "border-primary" : "border-border"
                 }`}
               >
-                <Checkbox
-                  checked={consult}
-                  onCheckedChange={(v) => setConsult(v === true)}
-                  className="mt-1 h-5 w-5"
-                  aria-label="Добавить консультацию врача"
-                />
-                <img
-                  src={expertDoctor}
-                  alt="Врач ReAge"
-                  loading="lazy"
-                  className="h-16 w-14 shrink-0 rounded-lg object-cover object-top"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-base font-semibold text-foreground">Консультация врача</span>
-                    <span className="shrink-0 text-base text-foreground">
-                      +{money(CONSULT_PRICE)}
-                    </span>
-                  </div>
-                  <div className="mt-0.5 text-sm text-muted-foreground">
-                    {`Д-р ${doctor.name} · разбор результатов 40 минут онлайн`}
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    {doctor.specialty && (
-                      <span className="inline-flex items-center gap-1">
-                        <Stethoscope className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                        {doctor.specialty}
+                <div className="flex items-start gap-4 p-4 sm:p-5">
+                  <img
+                    src={expertDoctor}
+                    alt={doctor.name}
+                    loading="lazy"
+                    className="h-20 w-20 shrink-0 rounded-full object-cover object-top"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display text-xl leading-tight text-foreground sm:text-2xl">
+                      Разбор результатов с врачом
+                    </h4>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[
+                        doctor.name,
+                        [
+                          doctor.specialty.replace(/^Врач-/, "").toLowerCase(),
+                          doctor.credentials[0],
+                        ]
+                          .filter(Boolean)
+                          .join(", "),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                        <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                        40 минут
                       </span>
-                    )}
-                    {doctor.credentials.map((line, i) => {
-                      const Icon = i === 0 ? Heart : i === 1 ? Award : Clock;
-                      return (
-                        <span key={line} className="inline-flex items-center gap-1">
-                          <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                          {line}
-                        </span>
-                      );
-                    })}
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                        <Video className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                        Онлайн
+                      </span>
+                      {doctor.credentials.slice(1).map((line, i) => {
+                        const isLicense = /gmc|лиценз/i.test(line);
+                        const Icon = isLicense ? IdCard : BarChart3;
+                        return (
+                          <span
+                            key={line}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
+                          >
+                            <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
+                            {isLicense ? `Лицензия ${line}` : line}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </label>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline bg-primary/5 px-4 py-3.5 sm:px-5">
+                  <div>
+                    <div className="text-xl font-bold text-foreground">{money(CONSULT_PRICE)}</div>
+                    <div className="text-xs text-muted-foreground">к стоимости заказа</div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setConsult(!consult)}
+                    aria-pressed={consult}
+                    aria-label="Добавить консультацию врача"
+                    className="h-11 rounded-xl border-primary/40 px-5 text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {consult ? (
+                      <>
+                        <Check className="h-4 w-4" aria-hidden />
+                        В заказе
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" aria-hidden />
+                        Добавить
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </Step>
             )}
 
