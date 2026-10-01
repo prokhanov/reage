@@ -194,15 +194,18 @@ export function repairFromSource(
 // только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
 // «Это может проявляться:» перед пунктами и фиксированная финальная строка.
 const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Рекомендации».";
-export function normalizeMeaningBlocks(text: string): string {
+// keepCodes — показатели, у которых блок есть в эталонном разделе по системам:
+// их блок никогда не вырезается, даже если формулировка строки «Ваш…» неочевидна.
+export function normalizeMeaningBlocks(text: string, keepCodes?: Set<string>): string {
   return text.replace(
-    /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
-    (_m, open, body: string, close) => {
+    /(<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
+    (_m, open, rawCode: string, body: string, close) => {
       const idx = body.search(/^\s*Что это значит для вас:?\s*$/im);
       if (idx < 0) return open + body + close;
       const head = body.slice(0, idx).replace(/\s+$/, "");
       const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
-      const isDeviation = isDeviationValueLine(valueLine);
+      const keep = keepCodes?.has(rawCode.trim().toLowerCase()) ?? false;
+      const isDeviation = keep || isDeviationValueLine(valueLine);
       if (!isDeviation) return `${open}${head}\n${close}`;
       const rawLines = body.slice(idx).split("\n").map((l) => l.trim());
       const lines = rawLines.slice(rawLines.findIndex((l) => /^Что это значит для вас/i.test(l)) + 1);
