@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { CalendarIcon, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { bookingStatusLabels, bookingStatusOrder, type BookingStatus } from "@/lib/bookingStatusLabels";
 import { notify } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 export type OneTimeCheckupRecord = {
   id: string;
@@ -62,6 +68,16 @@ export function EditOneTimeCheckupDialog({ record, onClose }: { record: OneTimeC
     enabled: !!record,
   });
 
+  const { data: patient } = useQuery({
+    queryKey: ["checkup-patient-name", record?.user_id],
+    queryFn: async () => {
+      if (!record) return null;
+      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", record.user_id).maybeSingle();
+      return data;
+    },
+    enabled: !!record,
+  });
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!record) return;
@@ -93,21 +109,36 @@ export function EditOneTimeCheckupDialog({ record, onClose }: { record: OneTimeC
 
   return (
     <Dialog open={!!record} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
-        <DialogHeader><DialogTitle>Изменить запись</DialogTitle></DialogHeader>
-        <div className="grid gap-4 py-2">
-          <div className="space-y-2"><Label>Статус</Label><Select value={status} onValueChange={(value) => setStatus(value as BookingStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{bookingStatusOrder.map((value) => <SelectItem key={value} value={value}>{bookingStatusLabels[value]}</SelectItem>)}</SelectContent></Select></div>
-          <div className="space-y-2"><Label htmlFor="request-number">Номер заявки в лаборатории</Label><Input id="request-number" value={requestNumber} onChange={(event) => setRequestNumber(event.target.value)} /></div>
-          <div className="space-y-2"><Label>Где сдавать</Label><Select value={locationType} onValueChange={(value) => setLocationType(value as "clinic" | "home")}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="clinic">В лаборатории</SelectItem><SelectItem value="home">Дома</SelectItem></SelectContent></Select></div>
+      <DialogContent className="flex max-h-[92dvh] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl p-0 sm:rounded-3xl [&>button]:hidden">
+        <DialogHeader className="relative border-b px-6 py-6 pr-16 text-left sm:px-7">
+          <DialogTitle className="text-2xl font-semibold">Редактировать запись</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {record?.checkup_slug ? "Чекап" : "Запись"} · {[patient?.first_name, patient?.last_name].filter(Boolean).join(" ") || "Пациент"}
+          </p>
+          <Button type="button" variant="ghost" size="icon" className="absolute right-5 top-5" onClick={onClose} aria-label="Закрыть"><X className="h-5 w-5" /></Button>
+        </DialogHeader>
+        <div className="grid gap-5 overflow-y-auto px-6 py-5 sm:px-7">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2"><Label>Статус</Label><Select value={status} onValueChange={(value) => setStatus(value as BookingStatus)}><SelectTrigger className="h-12"><SelectValue /></SelectTrigger><SelectContent>{bookingStatusOrder.map((value) => <SelectItem key={value} value={value}>{bookingStatusLabels[value]}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="request-number">Номер заявки</Label><Input className="h-12" id="request-number" value={requestNumber} onChange={(event) => setRequestNumber(event.target.value)} placeholder="№ заявки" /></div>
+          </div>
+          <div className="space-y-2">
+            <Label>Где сдавать</Label>
+            <div className="grid grid-cols-2 rounded-xl bg-muted p-1">
+              <Button type="button" variant={locationType === "clinic" ? "secondary" : "ghost"} className={cn("h-10", locationType === "clinic" && "bg-background shadow-sm")} onClick={() => setLocationType("clinic")}>В лаборатории</Button>
+              <Button type="button" variant={locationType === "home" ? "secondary" : "ghost"} className={cn("h-10", locationType === "home" && "bg-background shadow-sm")} onClick={() => setLocationType("home")}>Дома</Button>
+            </div>
+          </div>
           {locationType === "clinic" ? (
-            <div className="space-y-2"><Label>Отделение</Label><Select value={labId} onValueChange={setLabId}><SelectTrigger><SelectValue placeholder="Выберите отделение" /></SelectTrigger><SelectContent>{labs.map((lab) => <SelectItem key={lab.id} value={lab.id}>{lab.title} · {lab.address_short || lab.full_address}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-2"><Label>Отделение</Label><Select value={labId} onValueChange={setLabId}><SelectTrigger className="h-12"><SelectValue placeholder="Выберите отделение" /></SelectTrigger><SelectContent>{labs.map((lab) => <SelectItem key={lab.id} value={lab.id}>{lab.title} · {lab.address_short || lab.full_address}</SelectItem>)}</SelectContent></Select></div>
           ) : (
-            <div className="space-y-2"><Label htmlFor="home-address">Адрес выезда</Label><Input id="home-address" value={address} onChange={(event) => setAddress(event.target.value)} /></div>
+            <div className="space-y-2"><Label htmlFor="home-address">Адрес выезда</Label><Input className="h-12" id="home-address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Город, улица, дом, квартира" /></div>
           )}
-          <div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="appointment-date">Дата</Label><Input id="appointment-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} /></div><div className="space-y-2"><Label htmlFor="appointment-time">Время</Label><Input id="appointment-time" type="time" value={time} onChange={(event) => setTime(event.target.value)} /></div></div>
-          <div className="space-y-2"><Label htmlFor="internal-comment">Внутренний комментарий</Label><Textarea id="internal-comment" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Пациент этот комментарий не увидит" /></div>
+          <div className="rounded-xl bg-muted px-4 py-3 text-sm leading-relaxed text-muted-foreground">При выборе «Дома» вместо отделения появятся: адрес, квартира, подъезд, этаж, домофон, дата и интервал приезда.</div>
+          {locationType === "home" && <div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label>Дата</Label><Popover><PopoverTrigger asChild><Button variant="outline" className={cn("h-12 w-full justify-start text-left font-normal", !date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{date ? format(new Date(`${date}T00:00:00`), "d MMMM yyyy", { locale: ru }) : "Выберите дату"}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={date ? new Date(`${date}T00:00:00`) : undefined} onSelect={(value) => setDate(value ? format(value, "yyyy-MM-dd") : "")} initialFocus className="pointer-events-auto p-3" /></PopoverContent></Popover></div><div className="space-y-2"><Label htmlFor="appointment-time">Время</Label><Input className="h-12" id="appointment-time" type="time" value={time} onChange={(event) => setTime(event.target.value)} /></div></div>}
+          <div className="space-y-2"><Label htmlFor="internal-comment">Внутренний комментарий</Label><Textarea className="min-h-20 resize-y" id="internal-comment" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Видят только сотрудники" /></div>
         </div>
-        <DialogFooter><Button variant="outline" onClick={onClose}>Отмена</Button><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>{mutation.isPending ? "Сохранение…" : "Сохранить"}</Button></DialogFooter>
+        <DialogFooter className="flex-row items-center border-t px-6 py-4 sm:justify-between sm:px-7"><p className="mr-auto hidden text-sm text-muted-foreground sm:block">Пациент сразу увидит изменения</p><Button variant="outline" onClick={onClose}>Отмена</Button><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>{mutation.isPending ? "Сохранение…" : "Сохранить"}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
