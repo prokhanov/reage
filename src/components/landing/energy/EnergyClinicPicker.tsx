@@ -171,27 +171,98 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
     <div className="min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {header}
-        <div className="flex w-full shrink-0 rounded-xl border border-border bg-card p-1 sm:w-auto">
-          {CITIES.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => selectCity(c.key)}
-              aria-pressed={city === c.key}
-              className={`min-h-11 flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-none sm:px-4 ${
-                city === c.key
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
+        {(!showTabs || mode === "lab") && (
+          <div className="flex w-full shrink-0 rounded-xl border border-border bg-card p-1 sm:w-auto">
+            {CITIES.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => selectCity(c.key)}
+                aria-pressed={city === c.key}
+                className={`min-h-11 flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-none sm:px-4 ${
+                  city === c.key
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div
+      {showTabs && (
+        <div className="mt-5 inline-flex w-full max-w-md rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Где сдать анализы">
+          {(
+            [
+              { key: "lab", label: "В лаборатории", icon: Building2 },
+              { key: "home", label: "Дома", icon: Home },
+            ] as const
+          ).map((t) => {
+            const Icon = t.icon;
+            const active = mode === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setMode(t.key)}
+                className={`min-h-11 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {showTabs && mode === "home" ? (
+        <div className="mt-5 grid gap-4 rounded-xl border border-border bg-card p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)] md:gap-8 md:items-center">
+          <div className="min-w-0">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <Home className="h-6 w-6 text-primary" aria-hidden />
+              </div>
+              <h3 className="font-display text-xl font-semibold leading-tight text-foreground md:text-2xl">
+                Медсестра приедет к вам
+              </h3>
+            </div>
+            <ul className="mt-5 space-y-3">
+              {[
+                "Забор крови дома или на работе — в удобное вам время",
+                "Натощак, процедура занимает 15 минут",
+                "Доступно в Москве и Московской области",
+              ].map((text) => (
+                <li key={text} className="flex items-start gap-3 text-base text-muted-foreground">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  <span className="min-w-0">{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="space-y-3 md:justify-self-end md:text-center">
+            <a
+              href="tel:+79959984638"
+              className="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:w-auto"
+            >
+              <Phone className="h-4 w-4" aria-hidden />
+              Вызвать медсестру
+            </a>
+            <p className="text-sm text-muted-foreground">
+              Позвоните — согласуем время визита.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+        <div
         className={`mt-5 grid gap-4 md:gap-5 ${
           layout === "section" && !readOnly ? "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]" : ""
         }`}
