@@ -278,7 +278,7 @@ export function SupportChatWidget() {
                 <div className="mt-1 rounded-2xl border border-primary/60 p-2">
                   <button type="button" onClick={() => setCbState("idle")} className={cn(rowCls, "py-2")}>
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><PhoneIncoming className="h-5 w-5" /></span>
-                    <RowText title="Перезвоните мне" sub={`Перезвоним в течение ${CALLBACK_MINUTES} минут`} icon={<ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground/70" />} />
+                    <RowText title="Заказать обратный звонок" sub={`Перезвоним в течение ${CALLBACK_MINUTES} минут`} icon={<ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground/70" />} />
                   </button>
                   <form onSubmit={submitCallback} className="mt-2 flex gap-2 px-1">
                     <input
