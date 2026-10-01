@@ -22,7 +22,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Баннер показываем только когда контекст разрешил демо-режим:
   // пациенту на своём аккаунте или админу в кабинете пациента.
   const { pathname } = useLocation();
-  const { viewAsUserId } = useViewAsUser() as any;
+  const { viewAsUserId } = useViewAsUser();
   const onCheckupsPage = pathname === "/one-time-checkups";
   // На «Разовых чекапах» плашку демо не показываем, если есть оплаченный чекап.
   const { data: hasPaidCheckup } = useQuery({
