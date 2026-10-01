@@ -202,7 +202,7 @@ export function normalizeMeaningBlocks(text: string): string {
       if (idx < 0) return open + body + close;
       const head = body.slice(0, idx).replace(/\s+$/, "");
       const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
-      const isDeviation = /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(valueLine);
+      const isDeviation = isDeviationValueLine(valueLine);
       if (!isDeviation) return `${open}${head}\n${close}`;
       const rawLines = body.slice(idx).split("\n").map((l) => l.trim());
       const lines = rawLines.slice(rawLines.findIndex((l) => /^Что это значит для вас/i.test(l)) + 1);
