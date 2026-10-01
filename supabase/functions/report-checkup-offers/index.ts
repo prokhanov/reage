@@ -74,14 +74,11 @@ Deno.serve(async (req) => {
       .maybeSingle(),
   ]);
   if (!analysis) return json({ error: "Анализ не найден" }, 404);
-  if (!source || source.user_id !== analysis.user_id) {
-    return json({ error: "Баннеры доступны только для отчёта по разовому чекапу" }, 409);
-  }
+  if (source && source.user_id !== analysis.user_id) return json({ error: "Данные отчёта не совпадают" }, 409);
 
-  const [{ data: settings }, { data: variants }, { data: boughtRows }, { data: current }] = await Promise.all([
+  const [{ data: settings }, { data: variants }, { data: current }] = await Promise.all([
     admin.from("checkup_settings").select("slug, price, is_active"),
     admin.from("checkup_variants").select("slug, parent_slug, label"),
-    admin.from("one_time_checkups").select("checkup_slug").eq("user_id", analysis.user_id),
     admin.from("report_checkup_offers").select("*").eq("analysis_id", analysisId).eq("is_active", true),
   ]);
 
@@ -99,15 +96,15 @@ Deno.serve(async (req) => {
     parentByVariant.set(variant.slug, variant.parent_slug);
   }
 
-  const bought = new Set((boughtRows ?? []).map((row) => row.checkup_slug as string));
   const candidates = [...products.entries()]
-    .filter(([slug]) => !bought.has(slug))
     .map(([slug, product]) => {
       const isFull = slug === "full" || parentByVariant.get(slug) === "full";
-      const sourceIsMini = source.checkup_slug !== "full" && parentByVariant.get(source.checkup_slug) !== "full";
+      const sourceIsMini = Boolean(
+        source && source.checkup_slug !== "full" && parentByVariant.get(source.checkup_slug) !== "full",
+      );
       const pricingMode = isFull && sourceIsMini ? "full_upgrade" : "ten_percent";
       const listPrice = Math.round(product.price);
-      const sourcePaid = Math.round(Number(source.paid_amount));
+      const sourcePaid = source ? Math.round(Number(source.paid_amount)) : 0;
       const finalPrice = pricingMode === "full_upgrade"
         ? Math.round((listPrice - sourcePaid) * 0.9)
         : Math.round(listPrice * 0.9);
@@ -151,8 +148,8 @@ Deno.serve(async (req) => {
       const { error } = await admin.from("report_checkup_offers").insert({
         analysis_id: analysisId,
         user_id: analysis.user_id,
-        source_checkup_id: source.id,
-        source_checkup_slug: source.checkup_slug,
+        source_checkup_id: source?.id ?? null,
+        source_checkup_slug: source?.checkup_slug ?? "report",
         source_paid_amount: candidate.sourcePaid,
         advertised_checkup_slug: candidate.slug,
         advertised_checkup_name: candidate.name,
