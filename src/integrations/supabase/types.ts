@@ -1899,6 +1899,88 @@ export type Database = {
         }
         Relationships: []
       }
+      one_time_checkups: {
+        Row: {
+          address: string | null
+          analysis_id: string | null
+          appointment_date: string | null
+          appointment_time: string | null
+          checkup_slug: string
+          created_at: string
+          id: string
+          internal_comment: string | null
+          lab_location_id: string | null
+          labquest_request_number: string | null
+          location_title: string | null
+          location_type: string
+          order_id: string
+          paid_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          analysis_id?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
+          checkup_slug: string
+          created_at?: string
+          id?: string
+          internal_comment?: string | null
+          lab_location_id?: string | null
+          labquest_request_number?: string | null
+          location_title?: string | null
+          location_type?: string
+          order_id: string
+          paid_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          analysis_id?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
+          checkup_slug?: string
+          created_at?: string
+          id?: string
+          internal_comment?: string | null
+          lab_location_id?: string | null
+          labquest_request_number?: string | null
+          location_title?: string | null
+          location_type?: string
+          order_id?: string
+          paid_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "one_time_checkups_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "one_time_checkups_lab_location_id_fkey"
+            columns: ["lab_location_id"]
+            isOneToOne: false
+            referencedRelation: "lab_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "one_time_checkups_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "energy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_clients: {
         Row: {
           created_at: string
