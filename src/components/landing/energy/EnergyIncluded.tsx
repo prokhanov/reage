@@ -1,7 +1,13 @@
-import { Gift } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Gift } from "lucide-react";
 
 import type { Checkup } from "@/data/checkups";
-import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel } from "@/data/checkups";
+import {
+  CBC_BONUS_MARKER_COUNT,
+  CBC_BONUS_MARKERS,
+  ENERGY_CHECKUP,
+  markersLabel,
+} from "@/data/checkups";
 
 interface Props {
   checkup?: Checkup;
