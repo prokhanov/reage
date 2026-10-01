@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { notify } from "@/lib/notify";
+import { notify } from "@/lib/toast";
 
 /** Обрабатывает ссылку автовхода из письма: https://reage.life/?auto_login=<token>. */
 export function AutoLoginHandler() {
