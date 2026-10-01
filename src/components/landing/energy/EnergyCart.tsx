@@ -435,6 +435,10 @@ export function EnergyCart() {
                       />
                     </label>
                   </div>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-success">
+                    <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    Перезвоним чтобы согласовать удобное время и день
+                  </p>
                 </div>
               ) : clinic ? (
                 <div className="mt-3 rounded-xl border border-border bg-card p-4">
