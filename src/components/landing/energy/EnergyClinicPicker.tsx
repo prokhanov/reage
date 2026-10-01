@@ -138,16 +138,18 @@ function NurseCallForm() {
       return;
     }
     const normalized = `+${digits}`;
+    const payload: TablesInsert<"callback_requests"> = {
+      phone: normalized,
+      source: "nurse_home",
+      page_url: `${window.location.pathname}${window.location.search}`.slice(0, 500),
+      utm: getUtm(),
+      user_id: null,
+    };
     setSending(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const { error: insErr } = await supabase.from("callback_requests").insert({
-        phone: normalized,
-        source: "nurse_home",
-        page_url: `${window.location.pathname}${window.location.search}`.slice(0, 500),
-        utm: getUtm(),
-        user_id: userData?.user?.id ?? null,
-      });
+      payload.user_id = userData?.user?.id ?? null;
+      const { error: insErr } = await supabase.from("callback_requests").insert(payload);
       if (insErr) throw insErr;
       setSent(true);
     } catch {
