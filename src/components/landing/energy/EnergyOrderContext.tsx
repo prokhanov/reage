@@ -170,6 +170,10 @@ export function EnergyOrderProvider({
     (slug: string) => {
       const next = slugs.filter((s) => s !== slug);
       update(next);
+      if (reportOfferId) {
+        localStorage.removeItem(REPORT_OFFER_KEY);
+        setReportOfferId(null);
+      }
       if (next.length === 0) {
         localStorage.removeItem(UPSELL_ORDER_KEY);
         localStorage.removeItem(REPORT_OFFER_KEY);
@@ -177,7 +181,7 @@ export function EnergyOrderProvider({
         setReportOfferId(null);
       }
     },
-    [slugs, update],
+    [slugs, update, reportOfferId],
   );
   const clearCart = useCallback(() => {
     update([]);
