@@ -76,13 +76,22 @@ function extractDeviationCodes(text: string): string[] {
       chunks.push({ code: headings[index][1]?.trim() || "", content: text.slice(start, end) });
     }
   }
+  // Эталон — обычный отчёт: блок «Что это значит для вас» обязателен только
+  // там, где он уже есть в разделе по системам.
   return chunks
-    .filter(({ content }) => {
-      const valueLine = content.split("\n").find((line) => /^\s*Ваш/i.test(line)) || "";
-      return /находится\s+(?:ниже|выше)|находится\s+в\s+критическ|отклонен|отклонён/i.test(valueLine);
-    })
+    .filter(({ content }) => /Что это значит для вас/i.test(content))
     .map(({ code }) => code)
     .filter(Boolean);
+}
+
+// Отклонение определяется по первой фразе строки «Ваш показатель…».
+// «В допустимом/оптимальном диапазоне … ниже оптимального» — это норма.
+export function isDeviationValueLine(line: string): boolean {
+  const first = (line.split(/(?<=[.!?])\s+/)[0] || line).trim();
+  if (/в\s+(?:допустимом|оптимальном|референсном|нормальном)\s+диапазоне|в\s+пределах\s+(?:нормы|референс)/i.test(first)) {
+    return false;
+  }
+  return /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(first);
 }
 
 function validateBiomarkerStructure(
@@ -115,7 +124,7 @@ function validateBiomarkerStructure(
     const content = block[2] || "";
     const paragraphs = content.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
     if (paragraphs.length < 3) return `${code}: нет полного описания и персонального разбора`;
-    if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) {
+    if (!/^\s*Ваш(?:а|е|и)?\s+[^\n]*\d/im.test(content)) {
       return `${code}: нет строки «Ваш показатель…»`;
     }
     if (isDeviation(code) && !/Что это значит для вас/i.test(content)) {
@@ -132,7 +141,7 @@ const BLOCK_RE = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anc
 function blockIsIncomplete(code: string, content: string, isDeviation: (c: string) => boolean): boolean {
   const paragraphs = content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   if (paragraphs.length < 3) return true;
-  if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) return true;
+  if (!/^\s*Ваш(?:а|е|и)?\s+[^\n]*\d/im.test(content)) return true;
   if (isDeviation(code) && !/Что это значит для вас/i.test(content)) return true;
   return false;
 }
@@ -178,22 +187,26 @@ export function repairFromSource(
     if (src) { appended.push(src); repaired.push(g.join(" / ")); }
   }
   if (appended.length) text = `${text.trim()}\n\n${appended.join("\n\n")}`;
-  return { text: normalizeMeaningBlocks(text), repaired, missing: missingGroups.length };
+  const keep = new Set(expectedGroups.filter((g) => g.some((c) => devSet.has(c.toLowerCase()))).flat().map((c) => c.toLowerCase()));
+  return { text: normalizeMeaningBlocks(text, keep), repaired, missing: missingGroups.length };
 }
 
 // Приводит блок «Что это значит для вас» к эталону обычного отчёта:
 // только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
 // «Это может проявляться:» перед пунктами и фиксированная финальная строка.
 const FINAL_LINE = "Рекомендации по коррекции вы найдёте в разделе «Рекомендации».";
-export function normalizeMeaningBlocks(text: string): string {
+// keepCodes — показатели, у которых блок есть в эталонном разделе по системам:
+// их блок никогда не вырезается, даже если формулировка строки «Ваш…» неочевидна.
+export function normalizeMeaningBlocks(text: string, keepCodes?: Set<string>): string {
   return text.replace(
-    /(<!--\s*anchor:biomarker\s+[^\n>]+?\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
-    (_m, open, body: string, close) => {
+    /(<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->)([\s\S]*?)(<!--\s*anchor:biomarker_end\s*-->)/gi,
+    (_m, open, rawCode: string, body: string, close) => {
       const idx = body.search(/^\s*Что это значит для вас:?\s*$/im);
       if (idx < 0) return open + body + close;
       const head = body.slice(0, idx).replace(/\s+$/, "");
       const valueLine = head.split("\n").find((l) => /^\s*Ваш/i.test(l)) || "";
-      const isDeviation = /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(valueLine);
+      const keep = keepCodes?.has(rawCode.trim().toLowerCase()) ?? false;
+      const isDeviation = keep || isDeviationValueLine(valueLine);
       if (!isDeviation) return `${open}${head}\n${close}`;
       const rawLines = body.slice(idx).split("\n").map((l) => l.trim());
       const lines = rawLines.slice(rawLines.findIndex((l) => /^Что это значит для вас/i.test(l)) + 1);
@@ -282,6 +295,10 @@ serve(async (req) => {
     const expectedCodes = [...new Set(extractBiomarkerCodes(categoryReports))];
     const deviationCodes = [...new Set(extractDeviationCodes(categoryReports))];
     const userPrompt = userTemplate.replace(/{categoryReports}/g, categoryReports);
+    const devLower = new Set(deviationCodes.map((c) => c.toLowerCase()));
+    const keepMeaningCodes = new Set(
+      expectedGroups.filter((g) => g.some((c) => devLower.has(c.toLowerCase()))).flat().map((c) => c.toLowerCase()),
+    );
 
     const model = mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
     const startedAt = Date.now();
@@ -314,7 +331,7 @@ serve(async (req) => {
         // Отступы табом/4 пробелами превращают абзац в блок кода (моноширинный, без переноса)
         .replace(/^[\t ]+(?=\S)/gm, "")
         .trim();
-      out = normalizeMeaningBlocks(out);
+      out = normalizeMeaningBlocks(out, keepMeaningCodes);
       if (out.length < 1500 || expectedCodes.length === 0) {
         lastErr = `Ответ ИИ не прошёл проверку: длина ${out.length}, биомаркеров ${expectedCodes.length}`;
         continue;
