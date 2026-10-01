@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
     const { data: energyOrder } = await admin
       .from("energy_orders")
       .select(
-        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id, user_id, partner_id",
+        "id, inv_id, out_sum, status, is_test, bundle, bundles, bonus_items, email, phone, last_name, first_name, middle_name, birth_date, clinic_title, clinic_address, promo_code, original_amount, discount_amount, ym_client_id, user_id, partner_id, upsell_source_order_id",
       )
       .eq("inv_id", invId)
       .maybeSingle();
@@ -248,6 +248,25 @@ Deno.serve(async (req) => {
       });
 
       if (eUpdErr) return textPlain("db error", 500);
+
+      if ((energyOrder as any).user_id) {
+        const bundleList = ((energyOrder as any).bundles?.length ? (energyOrder as any).bundles : [(energyOrder as any).bundle]).filter(Boolean);
+        const perItemPaid = bundleList.length > 0 ? ePaid / bundleList.length : ePaid;
+        const locationTitle = (energyOrder as any).clinic_title ?? null;
+        const isHome = /дом|выезд/i.test(String(locationTitle ?? ""));
+        const rows = bundleList.map((slug: string) => ({
+          user_id: (energyOrder as any).user_id,
+          order_id: (energyOrder as any).id,
+          checkup_slug: slug,
+          paid_amount: perItemPaid,
+          status: "waiting_call",
+          location_type: isHome ? "home" : "clinic",
+          location_title: locationTitle,
+          address: (energyOrder as any).clinic_address ?? null,
+        }));
+        const { error: recordError } = await admin.from("one_time_checkups").upsert(rows, { onConflict: "order_id,checkup_slug", ignoreDuplicates: true });
+        if (recordError) console.error("one_time_checkups create failed", recordError);
+      }
 
       // Закрепляем клиента за партнёром / учитываем использование обычного промокода
       try {

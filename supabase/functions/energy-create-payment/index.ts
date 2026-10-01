@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
       ymClientId,
       locationType = "clinic",
       homeAddress,
+      upsellOrderId,
     } = body as {
       ymClientId?: string | null;
       bundle?: string;
@@ -99,6 +100,7 @@ Deno.serve(async (req) => {
       birthDate?: string;
       locationType?: "clinic" | "home";
       homeAddress?: string | null;
+      upsellOrderId?: string | null;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
@@ -207,8 +209,33 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     if (jwt && jwt !== Deno.env.get("SUPABASE_ANON_KEY")) {
-      const { data } = await admin.auth.getUser(jwt);
+      const { data, error } = await admin.auth.getUser(jwt);
+      if (error) return json({ error: "Сессия недействительна" }, 401);
       userId = data.user?.id ?? null;
+    }
+
+    let validUpsellOrderId: string | null = null;
+    if (upsellOrderId) {
+      if (!userId) return json({ error: "Войдите в кабинет для получения скидки" }, 401);
+      const { data: sourceOrder } = await admin
+        .from("energy_orders")
+        .select("id, user_id, status")
+        .eq("id", upsellOrderId)
+        .eq("user_id", userId)
+        .eq("status", "paid")
+        .maybeSingle();
+      if (!sourceOrder) return json({ error: "Скидка для этого заказа недоступна" }, 400);
+      const { data: sourceRecords } = await admin
+        .from("one_time_checkups")
+        .select("checkup_slug, status")
+        .eq("order_id", sourceOrder.id);
+      if ((sourceRecords ?? []).some((record) => ["collected", "report_pending", "report_ready"].includes(record.status))) {
+        return json({ error: "Скидка действует только до сдачи анализов" }, 400);
+      }
+      if (uniqueBundles.some((slug) => (sourceRecords ?? []).some((record) => record.checkup_slug === slug))) {
+        return json({ error: "Этот чекап уже есть в заказе" }, 400);
+      }
+      validUpsellOrderId = sourceOrder.id;
     }
 
     const code = (promoCode ?? "").trim().toUpperCase();
@@ -226,7 +253,9 @@ Deno.serve(async (req) => {
     let discount = 0;
     let appliedCode: string | null = null;
     let partnerCommission: number | null = null;
-    if (partner) {
+    if (validUpsellOrderId) {
+      discount = Math.round(itemsSum * 0.15);
+    } else if (partner) {
       discount = Math.round((itemsSum * partner.discount_pct) / 100);
       partnerCommission = Math.round((itemsSum * (20 - partner.discount_pct)) / 100);
       appliedCode = partner.code ?? (code || null);
@@ -271,6 +300,7 @@ Deno.serve(async (req) => {
         status: "pending",
         is_test: isTest,
         ym_client_id: typeof ymClientId === "string" && /^\d{1,32}$/.test(ymClientId) ? ymClientId : null,
+        upsell_source_order_id: validUpsellOrderId,
       })
       .select("inv_id")
       .single();
