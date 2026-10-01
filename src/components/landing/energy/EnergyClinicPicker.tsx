@@ -10,10 +10,68 @@ const LabLocationsMap = lazy(() => import("@/components/admin/LabLocationsMap"))
 
 export type CityKey = "msk" | "spb";
 
-export const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
-  { key: "msk", label: "Москва и МО", center: [55.7558, 37.6173], zoom: 10 },
-  { key: "spb", label: "Санкт-Петербург", center: [59.9386, 30.3141], zoom: 11 },
+export const CITIES: { key: CityKey; label: string; inLabel: string; center: [number, number]; zoom: number }[] = [
+  { key: "msk", label: "Москва и МО", inLabel: "в Москве и МО", center: [55.7558, 37.6173], zoom: 10 },
+  { key: "spb", label: "Санкт-Петербург", inLabel: "в Санкт-Петербурге", center: [59.9386, 30.3141], zoom: 11 },
 ];
+
+/** Строчный выбор города в шапке: «в Москве и МО ⌄» с выпадающим списком. */
+function CityInlineSelect({ city, onChange }: { city: CityKey; onChange: (next: CityKey) => void }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  const current = CITIES.find((c) => c.key === city)!;
+
+  return (
+    <div ref={rootRef} className="relative inline-block align-baseline">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary underline decoration-dashed decoration-primary/50 underline-offset-4 transition-colors hover:decoration-primary"
+      >
+        <span>{current.inLabel}</span>
+        <ChevronDown className={`h-4 w-4 self-center transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Выбор города"
+          className="absolute left-0 top-full z-30 mt-2 w-60 overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg"
+        >
+          {CITIES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              role="option"
+              aria-selected={c.key === city}
+              onClick={() => {
+                onChange(c.key);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted ${
+                c.key === city ? "font-medium text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              <span>{c.label}</span>
+              {c.key === city && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const cityOf = (item: LabMapItem): CityKey => (item.lat > 58 ? "spb" : "msk");
 
