@@ -441,6 +441,16 @@ export function EnergyCart() {
                       />
                     </label>
                   </div>
+                  <label className="mt-3 block">
+                    <span className="mb-1 block text-sm font-medium text-foreground">Комментарий</span>
+                    <textarea
+                      placeholder="Например: позвонить за 15 минут, калитка со двора"
+                      value={homeComment}
+                      onChange={(e) => setHomeComment(e.target.value)}
+                      rows={3}
+                      className="w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </label>
                 </div>
               ) : clinic ? (
                 <div className="mt-3 rounded-xl border border-border bg-card p-4">
