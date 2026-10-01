@@ -143,12 +143,13 @@ export function buildMessage(
     case "checkup_paid": {
       const list: string[] = Array.isArray(payload.bundles) && payload.bundles.length
         ? payload.bundles.map((b: unknown) => String(b))
-        : [String(payload.bundle || "—")];
+        : payload.bundle && payload.bundle !== "consultation" ? [String(payload.bundle)] : [];
       const title = list.map((b) => CHECKUP_TITLES[b] || b).join("\n📦 ");
       const fio = [payload.last_name, payload.first_name, payload.middle_name].filter(Boolean).join(" ");
       const lines = [
-        prefix + (list.length > 1 ? "🛒 <b>Оплачены чекапы</b>" : "🛒 <b>Оплачен чекап</b>"),
-        `📦 ${e(title)}`,
+        prefix + (payload.is_upsell ? "➕ <b>Доплата к заказу</b>" : list.length > 1 ? "🛒 <b>Оплачены чекапы</b>" : "🛒 <b>Оплачен чекап</b>"),
+        ...(title ? [`📦 ${e(title)}`] : []),
+        ...(payload.consultation_purchased ? ["🩺 Разбор результатов с врачом"] : []),
         `💵 ${e(formatAmount(payload.amount))}`,
       ];
       if (fio) lines.push(`👤 ${e(fio)}`);

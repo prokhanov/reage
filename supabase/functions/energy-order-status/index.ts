@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin
       .from("energy_orders")
-      .select("status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles")
+      .select("status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles, upsell_source_order_id, consultation_purchased")
       .eq("inv_id", invId)
       .maybeSingle();
 
@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
       clinicTitle: data.clinic_title,
       clinicAddress: data.clinic_address,
       email: String(data.email ?? ""),
+      isUpsell: Boolean(data.upsell_source_order_id),
+      consultationPurchased: data.consultation_purchased === true,
     });
   } catch (e) {
     console.error("energy-order-status error", e);
