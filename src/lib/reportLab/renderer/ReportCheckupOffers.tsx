@@ -3,10 +3,16 @@ import type { ReportCheckupOffer } from "@/lib/reportCheckupOffers";
 const money = (value: number) => `${Math.round(value).toLocaleString("ru-RU")} ₽`;
 const date = (value: string) => new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
 
+const PER_PAGE = 3;
+
 export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }) {
+  const pages: ReportCheckupOffer[][] = [];
+  for (let i = 0; i < offers.length; i += PER_PAGE) pages.push(offers.slice(i, i + PER_PAGE));
   return (
     <>
-      {offers.map((offer) => {
+      {pages.map((group, pageIndex) => (
+      <section className={`rl-page rl-offer-page${group.length > 1 ? " rl-offer-page--multi" : ""}`} key={pageIndex}>
+      {group.map((offer, index) => {
         const extraTenPercent = offer.pricing_mode === "full_upgrade"
           ? Math.round((offer.advertised_list_price - offer.source_paid_amount) * 0.1)
           : offer.discount_amount;
@@ -14,12 +20,11 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
           ? Math.round((offer.discount_amount / offer.advertised_list_price) * 100)
           : 0;
         return (
-          <section className="rl-page rl-offer-page" key={offer.id}>
-            <div className="rl-offer">
+            <div className="rl-offer" key={offer.id}>
               <div className="rl-offer-layout">
                 <div className="rl-offer-copy">
                   <div>
-                    <div className="rl-offer-eyebrow" data-section-title="Следующий шаг">Следующий шаг</div>
+                    <div className="rl-offer-eyebrow" {...(index === 0 ? { "data-section-title": "Следующий шаг" } : {})}>Следующий шаг</div>
                     <h2>{offer.advertised_checkup_name}</h2>
                     {offer.advertised_checkup_summary && (
                       <p className="rl-offer-summary">{offer.advertised_checkup_summary}</p>
@@ -61,9 +66,10 @@ export function ReportCheckupOffers({ offers }: { offers: ReportCheckupOffer[] }
                 </div>
               </div>
             </div>
-          </section>
         );
       })}
+      </section>
+      ))}
     </>
   );
 }
