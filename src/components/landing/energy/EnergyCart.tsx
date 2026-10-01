@@ -629,55 +629,53 @@ export function EnergyCart() {
                       className="h-20 w-20 shrink-0 rounded-full object-cover object-top"
                     />
                     <div className="min-w-0">
-                      <h4 className="font-display text-xl leading-tight text-foreground sm:text-2xl">
-                        Разбор результатов с врачом
+                      <h4 className="text-lg font-bold leading-tight text-foreground">
+                        {doctor.name}
                       </h4>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {[
-                          doctor.name,
                           [
                             doctor.specialty.replace(/^Врач-/, "").toLowerCase().replace(/^./, (letter) => letter.toUpperCase()),
                             doctor.credentials[0]?.toLowerCase(),
                           ]
                             .filter(Boolean)
                             .join(", "),
+                          ...doctor.credentials
+                            .slice(1)
+                            .slice()
+                            .sort((a, b) => Number(/gmc|лиценз/i.test(a)) - Number(/gmc|лиценз/i.test(b)))
+                            .map((line) =>
+                              /gmc|лиценз/i.test(line) ? `лицензия ${line.replace(/^Лицензия\s*/i, "")}` : line.toLowerCase(),
+                            ),
                         ]
                           .filter(Boolean)
                           .join(" · ")}
                       </p>
                     </div>
                   </div>
-                  <div className="no-scrollbar -mx-1 mt-4 flex items-center gap-2 overflow-x-auto px-1 pb-0.5">
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
-                      <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      40 минут
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
-                      <Video className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                      Онлайн
-                    </span>
-                    {doctor.credentials.slice(1)
-                      .slice()
-                      .sort((a, b) => Number(/стаж/i.test(b)) - Number(/стаж/i.test(a)))
-                      .map((line, i) => {
-                      const isLicense = /gmc|лиценз/i.test(line);
-                      const Icon = isLicense ? IdCard : BarChart3;
-                      return (
-                        <span
-                          key={line}
-                          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
-                        >
-                          <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
-                          {isLicense ? `Лицензия ${line}` : line}
-                        </span>
-                      );
-                    })}
+                  <div className="mt-4 border-t hairline pt-4">
+                    <h5 className="font-display text-xl leading-tight text-foreground sm:text-2xl">
+                      Разбор ваших анализов
+                    </h5>
+                    <ul className="mt-3 space-y-2.5">
+                      {[
+                        "Объяснит отклонения",
+                        "Советы по питанию и образу жизни",
+                        "Направит к профильному врачу",
+                        "Скажет, что пересдать",
+                      ].map((point) => (
+                        <li key={point} className="flex items-start gap-2.5 text-[15px] text-foreground">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline bg-primary/5 px-4 py-3.5 sm:px-5">
                   <div>
                     <div className="text-xl font-bold text-foreground">{money(CONSULT_PRICE)}</div>
-                    <div className="text-xs text-muted-foreground">к стоимости заказа</div>
+                    <div className="text-xs text-muted-foreground">40 минут онлайн</div>
                   </div>
                   <Button
                     type="button"
