@@ -24,6 +24,29 @@ const FALLBACK_PRODUCTS: Record<string, { name: string; price: number }> = {
   full: { name: "Полный чекап", price: 23990 },
 };
 
+const TOPICS: Record<string, string> = {
+  energy: "железо, щитовидная железа, витамины",
+  thyroid: "гормоны щитовидной железы",
+  iron: "запасы железа и анемия",
+  "cardio-risk": "холестерин, сосуды, воспаление",
+  metabolic: "сахар, инсулин, липиды",
+  liver: "ферменты и функция печени",
+  kidney: "функция почек",
+  base: "базовая картина здоровья",
+  vitamins: "витамины и минералы",
+  "female-hormones": "женские гормоны",
+  "male-hormones": "мужские гормоны",
+  hair: "причины выпадения волос",
+  full: "все системы организма",
+};
+
+function plural(n: number) {
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return "показатель";
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return "показателя";
+  return "показателей";
+}
+
 function json(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
@@ -101,6 +124,25 @@ Deno.serve(async (req) => {
     parentByVariant.set(variant.slug, variant.parent_slug);
   }
 
+  const { data: markerRows } = await admin.from("checkup_markers").select("checkup_slug");
+  const markerCount = new Map<string, number>();
+  for (const row of markerRows ?? []) markerCount.set(row.checkup_slug, (markerCount.get(row.checkup_slug) ?? 0) + 1);
+  const summaryFor = (slug: string) => {
+    const n = markerCount.get(slug) ?? 0;
+    const topic = TOPICS[slug] ?? TOPICS[parentByVariant.get(slug) ?? ""] ?? "";
+    return [n > 0 ? `${n} ${plural(n)}` : "", topic].filter(Boolean).join(" · ") || null;
+  };
+  // Старые баннеры без описания получают его автоматически.
+  for (const offer of current ?? []) {
+    if (!offer.advertised_checkup_summary) {
+      const summary = summaryFor(offer.advertised_checkup_slug as string);
+      if (summary) {
+        offer.advertised_checkup_summary = summary;
+        await admin.from("report_checkup_offers").update({ advertised_checkup_summary: summary }).eq("id", offer.id);
+      }
+    }
+  }
+
   const candidates = [...products.entries()]
     .map(([slug, product]) => {
       const isFull = slug === "full" || parentByVariant.get(slug) === "full";
@@ -116,6 +158,7 @@ Deno.serve(async (req) => {
       return {
         slug,
         name: product.name,
+        summary: summaryFor(slug),
         listPrice,
         pricingMode,
         sourcePaid,
@@ -149,7 +192,28 @@ Deno.serve(async (req) => {
   for (const candidate of candidates.filter((item) => selectedSlugs.has(item.slug))) {
     if (currentBySlug.has(candidate.slug)) continue;
     let inserted = false;
-    for (let attempt = 0; attempt < 4 && !inserted; attempt += 1) {
+    for (let attempt = 0; attempt < 6 && !inserted; attempt += 1) {
+      const code = makeCode();
+      const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+      // Сначала общий промокод (уникальность кода — по всей базе промокодов).
+      const { data: promo, error: promoError } = await admin.from("promo_codes").insert({
+        code,
+        discount_type: "fixed",
+        discount_value: candidate.discountAmount,
+        applies_to: "all_plans",
+        bound_user_id: analysis.user_id,
+        max_uses: 1,
+        one_per_user: true,
+        expires_at: expiresAt,
+        is_active: true,
+        scope: "checkups",
+        notes: `Баннер отчёта: ${candidate.name}`,
+        created_by: actorId,
+      }).select("id").single();
+      if (promoError) {
+        if (promoError.code === "23505") continue;
+        return json({ error: "Не удалось создать промокод" }, 500);
+      }
       const { error } = await admin.from("report_checkup_offers").insert({
         analysis_id: analysisId,
         user_id: analysis.user_id,
@@ -158,15 +222,21 @@ Deno.serve(async (req) => {
         source_paid_amount: candidate.sourcePaid,
         advertised_checkup_slug: candidate.slug,
         advertised_checkup_name: candidate.name,
+        advertised_checkup_summary: candidate.summary,
         advertised_list_price: candidate.listPrice,
         pricing_mode: candidate.pricingMode,
         final_price: candidate.finalPrice,
         discount_amount: candidate.discountAmount,
-        code: makeCode(),
+        code,
+        expires_at: expiresAt,
+        promo_code_id: promo.id,
         created_by: actorId,
       });
       if (!error) inserted = true;
-      else if (error.code !== "23505") return json({ error: "Не удалось создать промокод" }, 500);
+      else {
+        await admin.from("promo_codes").delete().eq("id", promo.id);
+        if (error.code !== "23505") return json({ error: "Не удалось создать промокод" }, 500);
+      }
     }
     if (!inserted) return json({ error: "Не удалось создать уникальный промокод" }, 500);
   }
