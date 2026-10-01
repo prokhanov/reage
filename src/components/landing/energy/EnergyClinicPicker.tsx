@@ -450,6 +450,11 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
           </Suspense>
         </div>
         </div>
+        {showTabs && !readOnly && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Клик по группе точек на карте приближает карту к этим отделениям.
+          </p>
+        )}
         </>
       )}
     </div>
