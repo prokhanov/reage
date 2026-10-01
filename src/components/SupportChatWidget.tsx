@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Check, ChevronRight, ChevronUp, Loader2, MessageCircle, MessageSquare, Phone, PhoneIncoming, RotateCcw, Send, X } from "lucide-react";
 import { getUtm } from "@/lib/utm";
+import { formatPhone as formatRuPhone, normalizeRuPhoneDigits } from "@/components/ui/phone-input";
 
 const CALLBACK_MINUTES = 15;
 const rowCls = "flex w-full items-center gap-4 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-accent/60";
@@ -18,18 +19,8 @@ function RowText({ title, sub, icon }: { title: string; sub: string; icon?: Reac
 }
 
 function formatPhone(v: string) {
-  let d = v.replace(/\D/g, "");
-  if (d.startsWith("8")) d = "7" + d.slice(1);
-  if (!d.startsWith("7")) d = "7" + d;
-  d = d.slice(0, 11);
-  const p = d.slice(1);
-  let out = "+7";
-  if (p.length) out += " (" + p.slice(0, 3);
-  if (p.length >= 3) out += ")";
-  if (p.length > 3) out += " " + p.slice(3, 6);
-  if (p.length > 6) out += "-" + p.slice(6, 8);
-  if (p.length > 8) out += "-" + p.slice(8, 10);
-  return out;
+  const d = normalizeRuPhoneDigits(v.replace(/\D/g, "")).slice(0, 11);
+  return d ? formatRuPhone(d) : "";
 }
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -177,7 +168,7 @@ export function SupportChatWidget() {
   const showForm = hasVisitorMsg && !hasContact;
 
   const [cbState, setCbState] = useState<"idle" | "form" | "sent">("idle");
-  const [cbPhone, setCbPhone] = useState("+7 (");
+  const [cbPhone, setCbPhone] = useState("");
   const [cbErr, setCbErr] = useState("");
   const [cbSending, setCbSending] = useState(false);
 
@@ -185,7 +176,7 @@ export function SupportChatWidget() {
     e.preventDefault();
     setCbErr("");
     const digits = cbPhone.replace(/\D/g, "");
-    if (digits.length !== 11) return setCbErr("Введите номер полностью");
+    if (digits.length !== 11 || !digits.startsWith("7")) return setCbErr("Введите номер полностью");
     setCbSending(true);
     try {
       const { data } = await supabase.auth.getUser();
@@ -290,7 +281,7 @@ export function SupportChatWidget() {
                       placeholder="+7 (___) ___-__-__"
                       className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 text-base text-foreground outline-none focus:border-primary"
                     />
-                    <Button type="submit" disabled={cbSending} className="h-12 shrink-0 rounded-xl px-4 font-semibold">
+                    <Button type="submit" disabled={cbSending} className="!h-12 shrink-0 self-stretch rounded-xl px-4 py-0 font-semibold">
                       {cbSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Жду звонка"}
                     </Button>
                   </form>
