@@ -32,15 +32,34 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin
       .from("energy_orders")
-      .select("status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles, upsell_source_order_id, consultation_purchased")
+      .select("id, status, is_test, out_sum, clinic_title, clinic_address, email, bundle, bundles, upsell_source_order_id, consultation_purchased")
       .eq("inv_id", invId)
       .maybeSingle();
 
     if (error) return json({ error: "Не удалось получить заказ" }, 500);
     if (!data) return json({ error: "Заказ не найден" }, 404);
 
+    let status = data.status;
+    if (status === "paid" && data.upsell_source_order_id) {
+      const bundles = (data.bundles ?? []).filter((slug: string) => slug && slug !== "consultation");
+      if (bundles.length > 0) {
+        const { count } = await admin
+          .from("one_time_checkups")
+          .select("id", { count: "exact", head: true })
+          .eq("order_id", data.id);
+        if ((count ?? 0) < bundles.length) status = "pending";
+      } else if (data.consultation_purchased === true) {
+        const { count } = await admin
+          .from("one_time_checkups")
+          .select("id", { count: "exact", head: true })
+          .eq("order_id", data.upsell_source_order_id)
+          .eq("consultation_purchased", true);
+        if ((count ?? 0) === 0) status = "pending";
+      }
+    }
+
     return json({
-      status: data.status,
+      status,
       bundle: data.bundle,
       bundles: (data as { bundles?: string[] | null }).bundles ?? null,
       isTest: data.is_test,

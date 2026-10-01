@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Clock3, Edit3, FlaskConical, Plus, RotateCcw, Stethoscope } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -50,7 +50,7 @@ function CheckupsContent() {
     },
   });
 
-  useMemo(() => {
+  useEffect(() => {
     if (searchParams.get("payment") !== "success") return;
     notify.success("Оплата прошла", "Новые позиции добавлены к вашему заказу.");
     setSearchParams({}, { replace: true });
