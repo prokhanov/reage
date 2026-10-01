@@ -76,13 +76,22 @@ function extractDeviationCodes(text: string): string[] {
       chunks.push({ code: headings[index][1]?.trim() || "", content: text.slice(start, end) });
     }
   }
+  // Эталон — обычный отчёт: блок «Что это значит для вас» обязателен только
+  // там, где он уже есть в разделе по системам.
   return chunks
-    .filter(({ content }) => {
-      const valueLine = content.split("\n").find((line) => /^\s*Ваш/i.test(line)) || "";
-      return /находится\s+(?:ниже|выше)|находится\s+в\s+критическ|отклонен|отклонён/i.test(valueLine);
-    })
+    .filter(({ content }) => /Что это значит для вас/i.test(content))
     .map(({ code }) => code)
     .filter(Boolean);
+}
+
+// Отклонение определяется по первой фразе строки «Ваш показатель…».
+// «В допустимом/оптимальном диапазоне … ниже оптимального» — это норма.
+export function isDeviationValueLine(line: string): boolean {
+  const first = (line.split(/(?<=[.!?])\s+/)[0] || line).trim();
+  if (/в\s+(?:допустимом|оптимальном|референсном|нормальном)\s+диапазоне|в\s+пределах\s+(?:нормы|референс)/i.test(first)) {
+    return false;
+  }
+  return /находится\s+(?:ниже|выше)|критическ|отклонен|отклонён/i.test(first);
 }
 
 function validateBiomarkerStructure(
