@@ -1920,6 +1920,7 @@ export type Database = {
           appointment_date: string | null
           appointment_time: string | null
           checkup_slug: string
+          consultation_purchased: boolean
           created_at: string
           id: string
           internal_comment: string | null
@@ -1939,6 +1940,7 @@ export type Database = {
           appointment_date?: string | null
           appointment_time?: string | null
           checkup_slug: string
+          consultation_purchased?: boolean
           created_at?: string
           id?: string
           internal_comment?: string | null
@@ -1958,6 +1960,7 @@ export type Database = {
           appointment_date?: string | null
           appointment_time?: string | null
           checkup_slug?: string
+          consultation_purchased?: boolean
           created_at?: string
           id?: string
           internal_comment?: string | null
