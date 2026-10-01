@@ -121,7 +121,14 @@ export function EnergyOrderProvider({
     [slugs, update],
   );
   const removeItem = useCallback(
-    (slug: string) => update(slugs.filter((s) => s !== slug)),
+    (slug: string) => {
+      const next = slugs.filter((s) => s !== slug);
+      update(next);
+      if (next.length === 0) {
+        localStorage.removeItem(UPSELL_ORDER_KEY);
+        setUpsellOrderId(null);
+      }
+    },
     [slugs, update],
   );
   const clearCart = useCallback(() => update([]), [update]);
