@@ -278,29 +278,44 @@ Deno.serve(async (req) => {
     let partnerCommission: number | null = null;
     let ordinaryPromoDiscount = 0;
     let ordinaryPromoCode: string | null = null;
-    if (code && !partner) {
+    let codeOfferId: string | null = null;
+    if (code) {
       const { data: promoRes } = await admin.rpc("checkup_promo_preview", {
         p_code: code, p_phone: null, p_email: emailClean,
       });
-      const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string } | null;
-      if (!r?.success) return json({ error: r?.error ?? "Промокод не найден" }, 400);
-      ordinaryPromoDiscount = r.discount_type === "fixed"
-        ? Math.min(Number(r.discount_value), itemsSum)
-        : Math.round((itemsSum * Number(r.discount_value)) / 100);
-      ordinaryPromoCode = r.code ?? code;
+      const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string; report_offer?: boolean; offer_id?: string } | null;
+      if (r?.report_offer && r.offer_id) {
+        codeOfferId = r.offer_id;
+      } else if (!partner) {
+        if (!r?.success) return json({ error: r?.error ?? "Промокод не найден" }, 400);
+        ordinaryPromoDiscount = r.discount_type === "fixed"
+          ? Math.min(Number(r.discount_value), itemsSum)
+          : Math.round((itemsSum * Number(r.discount_value)) / 100);
+        ordinaryPromoCode = r.code ?? code;
+      }
     }
+    // Код баннера, введённый вручную, проверяется как предложение из отчёта.
+    const effectiveOfferId = reportOfferId || codeOfferId;
 
     let reportOffer: any = null;
     let reportOfferDiscount = 0;
-    if (reportOfferId) {
-      if (!userId) return json({ error: "Войдите в кабинет для получения персональной цены" }, 401);
+    if (effectiveOfferId) {
       const { data: offer } = await admin
         .from("report_checkup_offers")
-        .select("id, user_id, advertised_checkup_slug, advertised_list_price, final_price, discount_amount, code, expires_at, is_active, used_at")
-        .eq("id", reportOfferId)
+        .select("id, user_id, advertised_checkup_slug, advertised_checkup_name, advertised_list_price, final_price, discount_amount, code, expires_at, is_active, used_at")
+        .eq("id", effectiveOfferId)
         .maybeSingle();
+      let ownerOk = Boolean(offer && userId && offer.user_id === userId);
+      if (offer && !ownerOk && emailClean) {
+        const { data: ownerProfile } = await admin.from("profiles").select("email").eq("id", offer.user_id).maybeSingle();
+        ownerOk = !!ownerProfile?.email && ownerProfile.email.toLowerCase() === emailClean.toLowerCase();
+      }
+      if (offer && !ownerOk) return json({ error: "Промокод выдан другому пациенту" }, 400);
+      if (offer && uniqueBundles.indexOf(offer.advertised_checkup_slug) < 0) {
+        return json({ error: "Промокод действует только на чекап «" + (offer.advertised_checkup_name ?? "из баннера") + "»" }, 400);
+      }
       const targetIndex = offer ? uniqueBundles.indexOf(offer.advertised_checkup_slug) : -1;
-      if (!offer || offer.user_id !== userId || !offer.is_active || offer.used_at || new Date(offer.expires_at).getTime() <= Date.now() || targetIndex < 0) {
+      if (!offer || !offer.is_active || offer.used_at || new Date(offer.expires_at).getTime() <= Date.now() || targetIndex < 0) {
         return json({ error: "Срок действия промокода истёк" }, 400);
       }
       if (items[targetIndex].price !== Number(offer.advertised_list_price)) {
@@ -396,7 +411,7 @@ Deno.serve(async (req) => {
     if (winner.kind === "report" && reportOffer) {
       const { data: reserved, error: reserveError } = await admin.rpc("reserve_report_checkup_offer", {
         p_offer_id: reportOffer.id,
-        p_user_id: userId,
+        p_user_id: reportOffer.user_id,
         p_checkup_slug: reportOffer.advertised_checkup_slug,
         p_order_id: order.id,
       });

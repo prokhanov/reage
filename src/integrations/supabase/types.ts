@@ -3066,6 +3066,7 @@ export type Database = {
         Row: {
           advertised_checkup_name: string
           advertised_checkup_slug: string
+          advertised_checkup_summary: string | null
           advertised_list_price: number
           analysis_id: string
           code: string
@@ -3078,6 +3079,7 @@ export type Database = {
           id: string
           is_active: boolean
           pricing_mode: string
+          promo_code_id: string | null
           reserved_order_id: string | null
           reserved_until: string | null
           source_checkup_id: string | null
@@ -3091,6 +3093,7 @@ export type Database = {
         Insert: {
           advertised_checkup_name: string
           advertised_checkup_slug: string
+          advertised_checkup_summary?: string | null
           advertised_list_price: number
           analysis_id: string
           code: string
@@ -3103,6 +3106,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           pricing_mode: string
+          promo_code_id?: string | null
           reserved_order_id?: string | null
           reserved_until?: string | null
           source_checkup_id?: string | null
@@ -3116,6 +3120,7 @@ export type Database = {
         Update: {
           advertised_checkup_name?: string
           advertised_checkup_slug?: string
+          advertised_checkup_summary?: string | null
           advertised_list_price?: number
           analysis_id?: string
           code?: string
@@ -3128,6 +3133,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           pricing_mode?: string
+          promo_code_id?: string | null
           reserved_order_id?: string | null
           reserved_until?: string | null
           source_checkup_id?: string | null
@@ -3139,6 +3145,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "report_checkup_offers_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "report_checkup_offers_source_checkup_id_fkey"
             columns: ["source_checkup_id"]

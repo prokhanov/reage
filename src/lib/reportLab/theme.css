@@ -211,6 +211,7 @@ html, body {
 .reportlab .rl-offer-eyebrow { font: 600 9pt/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: .08em; color: #a9c8b7; }
 .reportlab .rl-offer h2 { max-width: 78mm; margin: 5mm 0 3mm; font: 500 24pt/1.08 var(--font-serif); color: #f7faf8; overflow-wrap: anywhere; }
 .reportlab .rl-offer-lead { max-width: 76mm; font: 500 10.5pt/1.4 var(--font-sans); color: #d9e7df; }
+.reportlab .rl-offer-summary { max-width: 78mm; margin: -1mm 0 3mm; font: 600 8.5pt/1.35 var(--font-sans); letter-spacing: .02em; color: #a9c4b6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .reportlab .rl-offer-ticket { min-width: 0; display: grid; align-content: start; gap: 4mm; }
 .reportlab .rl-offer-breakdown { padding: 6mm; border: .3mm solid rgba(255,255,255,.14); border-radius: 5mm; background: rgba(255,255,255,.1); }
 .reportlab .rl-offer-breakdown > div { display: flex; justify-content: space-between; align-items: flex-start; gap: 4mm; margin-bottom: 3mm; font-size: 9pt; color: #d7e2dc; }

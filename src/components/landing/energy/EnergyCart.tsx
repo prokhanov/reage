@@ -95,6 +95,15 @@ export function EnergyCart() {
     discount_amount: number;
     expires_at: string;
   } | null>(null);
+  // Код из баннера отчёта, введённый вручную в поле промокода.
+  const [manualOffer, setManualOffer] = useState<{
+    id: string;
+    advertised_checkup_slug: string;
+    code: string;
+    final_price: number;
+    discount_amount: number;
+    expires_at: string;
+  } | null>(null);
   const [agree, setAgree] = useState(true);
   const [touched, setTouched] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -181,8 +190,9 @@ export function EnergyCart() {
     : appliedPromo.type === "fixed"
       ? Math.min(appliedPromo.value, itemsSum)
       : Math.round((itemsSum * appliedPromo.value) / 100);
-  const offerDiscount = reportOffer && items.some((item) => item.slug === reportOffer.advertised_checkup_slug)
-    ? Math.min(Number(reportOffer.discount_amount), itemsSum)
+  const activeOffer = reportOffer ?? manualOffer;
+  const offerDiscount = activeOffer && items.some((item) => item.slug === activeOffer.advertised_checkup_slug)
+    ? Math.min(Number(activeOffer.discount_amount), itemsSum)
     : 0;
   const discount = Math.max(upsellDiscount, promoDiscount, offerDiscount);
   const { data: partnerOffer } = usePartnerOffer();
@@ -234,6 +244,27 @@ export function EnergyCart() {
       p_email: emailValid ? email.trim() : null,
     });
     const r = data as any;
+    if (r?.success && r.report_offer) {
+      const hasTarget = items.some((item) => item.slug === r.advertised_checkup_slug);
+      if (!hasTarget) {
+        setManualOffer(null);
+        if (!opts.silent) notify.error("Промокод не подходит к корзине", `Код действует только на «${r.advertised_checkup_name}». Добавьте этот чекап в корзину.`);
+        return;
+      }
+      setAppliedPromo(null);
+      setManualOffer({
+        id: r.offer_id,
+        advertised_checkup_slug: r.advertised_checkup_slug,
+        code: String(r.code).toUpperCase(),
+        final_price: Number(r.final_price),
+        discount_amount: Number(r.discount_value),
+        expires_at: r.expires_at,
+      });
+      setPromo(String(r.code).toUpperCase());
+      if (!opts.silent) notify.success("Промокод применён", `Скидка ${money(Number(r.discount_value))} на «${r.advertised_checkup_name}»`);
+      return;
+    }
+    if (!opts.silent) setManualOffer(null);
     if (!r?.success) {
       setPartnerHidesConsult(false);
       if (!opts.silent) {
@@ -292,7 +323,7 @@ export function EnergyCart() {
           firstName: firstName.trim(),
           middleName: middleName.trim(),
           birthDate: birthIso,
-          promoCode: appliedPromo?.code,
+          promoCode: appliedPromo?.code ?? manualOffer?.code,
           reportOfferId,
           upsellOrderId,
           consultation: consult && !consultHidden,
@@ -888,9 +919,9 @@ export function EnergyCart() {
                     <span className="">−{money(discount)}</span>
                   </div>
                 )}
-                {reportOffer && offerDiscount === discount && offerDiscount > 0 && (
+                {activeOffer && offerDiscount === discount && offerDiscount > 0 && (
                   <div className="flex items-center justify-between text-success">
-                    <span>Персональное предложение · {reportOffer.code}</span>
+                    <span>Персональное предложение · {activeOffer.code}</span>
                     <span>−{money(offerDiscount)}</span>
                   </div>
                 )}

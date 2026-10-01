@@ -86,6 +86,7 @@ export default function PromoCodes() {
   const [createOpen, setCreateOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editing, setEditing] = useState<PromoCode | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<"all" | "report" | "regular">("all");
   const [deleteIds, setDeleteIds] = useState<string[] | null>(null);
   const [deleteBatchId, setDeleteBatchId] = useState<string | null>(null);
 
@@ -95,6 +96,7 @@ export default function PromoCodes() {
     search: search || undefined,
     batchId: batchFilter === "all" ? null : batchFilter,
     status: statusFilter,
+    source: sourceFilter,
   };
 
   const { data: codes, isLoading: codesLoading } = usePromoCodes(filters);
@@ -234,6 +236,14 @@ export default function PromoCodes() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as "all" | "report" | "regular")}>
+                  <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все источники</SelectItem>
+                    <SelectItem value="regular">Обычные</SelectItem>
+                    <SelectItem value="report">Баннеры отчётов</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as PromoCodeFilters["status"])}>
                   <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -319,10 +329,22 @@ export default function PromoCodes() {
                                   <Copy className="h-3 w-3" />
                                 </Button>
                               </div>
+                              {c.report_offer && (
+                                <div className="mt-1 space-y-0.5">
+                                  <Badge variant="secondary" className="text-[10px]">Баннер отчёта</Badge>
+                                  {c.report_offer.patient && (
+                                    <div className="text-xs text-muted-foreground">{c.report_offer.patient}</div>
+                                  )}
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell>{formatDiscount(c)}</TableCell>
                             <TableCell>
-                              {c.applies_to === "all_plans" ? "Все тарифы" : "Выбранные"}
+                              {c.report_offer
+                                ? <span className="text-xs">Только «{c.report_offer.checkup}»</span>
+                                : c.scope === "checkups"
+                                  ? "Чекапы"
+                                  : c.applies_to === "all_plans" ? "Все тарифы" : "Выбранные"}
                             </TableCell>
                             <TableCell>
                               {c.used_count}
