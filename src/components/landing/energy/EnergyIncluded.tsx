@@ -78,7 +78,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                       type="button"
                       onClick={() => setCbcOpen((v) => !v)}
                       aria-expanded={cbcOpen}
-                      className="col-span-2 col-start-1 mt-4 hidden w-full items-center justify-between gap-2 border-t border-success/30 pt-3 text-left text-[15px] font-semibold text-foreground transition-colors hover:text-success max-sm:flex sm:mt-0 sm:w-auto sm:shrink-0 sm:justify-center sm:rounded-full sm:border sm:border-border sm:bg-background sm:px-5 sm:py-3 sm:text-base sm:shadow-sm sm:hover:border-success/50"
+                      className="col-span-2 col-start-1 mt-4 flex w-full items-center justify-between gap-2 border-t border-success/30 pt-3 text-left text-[15px] font-semibold text-foreground transition-colors hover:text-success sm:mt-0 sm:w-auto sm:shrink-0 sm:justify-center sm:rounded-full sm:border sm:border-border sm:bg-background sm:px-5 sm:py-3 sm:text-base sm:shadow-sm sm:hover:border-success/50"
                     >
                       {cbcOpen ? "Скрыть" : `Все ${markersLabel(CBC_BONUS_MARKER_COUNT)}`}
                       <ChevronDown
