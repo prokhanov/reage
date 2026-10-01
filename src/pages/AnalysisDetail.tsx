@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -186,6 +187,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             setShowEditReport(true);
           } else {
             console.warn(`❌ [report job ${job.id}] FAILED: ${j.error ?? "—"}`);
+            showGenerationFailure(j.error);
           }
         }
       }, 2500);
@@ -493,6 +495,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       "prescriptions": "Подбор назначений и нутрицевтиков...",
       "finalize:summary": "Формирование общего резюме...",
       "finalize:bioage": "Расчёт биологического возраста...",
+      "whole_body": "Объединяем в «Организм в целом» (до ~2 мин)...",
     };
 
     const pollInterval = setInterval(async () => {
@@ -694,11 +697,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           }
         });
       } else {
-        toast({
-          title: "Ошибка анализа",
-          description: error.message || "Не удалось выполнить анализ",
-          variant: "destructive",
-        });
+        showGenerationFailure(error?.message);
       }
     } finally {
       setAnalyzing(false);
