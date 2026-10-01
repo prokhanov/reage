@@ -29,7 +29,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
         <div className="mt-6 rounded-2xl border border-border bg-card sm:mt-8">
           <div className="flex flex-col gap-2 px-5 pt-5 sm:flex-row sm:items-start sm:justify-between sm:px-8 sm:pt-8">
             <h3 className="font-display text-xl text-foreground sm:text-2xl">
-               Витамины и минералы
+               Биомаркеры
             </h3>
             <div className="shrink-0 text-base font-semibold text-muted-foreground">
               {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? ` + ${markersLabel(CBC_BONUS_MARKER_COUNT)} ОАК в подарок` : ""}
