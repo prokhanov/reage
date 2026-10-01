@@ -81,7 +81,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                   aria-expanded={cbcOpen}
                   className="mt-3 inline-flex w-full items-center justify-between gap-2 rounded-lg px-1 py-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-success sm:mt-4 sm:text-base"
                 >
-                  {cbcOpen ? "Скрыть список показателей" : `Показать все ${markersLabel(CBC_BONUS_MARKER_COUNT)}`}
+                  {cbcOpen ? "Скрыть список показателей" : "Раскрыть"}
                   <ChevronDown
                     className={`h-5 w-5 shrink-0 transition-transform duration-300 ${cbcOpen ? "rotate-180" : ""}`}
                     aria-hidden
