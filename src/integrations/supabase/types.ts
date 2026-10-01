@@ -1286,10 +1286,13 @@ export type Database = {
       }
       energy_orders: {
         Row: {
+          account_created: boolean
           birth_date: string | null
           bonus_items: Json
           bundle: string
           bundles: string[] | null
+          claim_secret_hash: string | null
+          claim_used_at: string | null
           clinic_address: string | null
           clinic_id: string | null
           clinic_title: string | null
@@ -1302,6 +1305,9 @@ export type Database = {
           inv_id: number
           is_test: boolean
           last_name: string | null
+          login_token_expires_at: string | null
+          login_token_hash: string | null
+          login_token_used_at: string | null
           middle_name: string | null
           original_amount: number
           out_sum: number
@@ -1321,10 +1327,13 @@ export type Database = {
           ym_client_id: string | null
         }
         Insert: {
+          account_created?: boolean
           birth_date?: string | null
           bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
+          claim_secret_hash?: string | null
+          claim_used_at?: string | null
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null
@@ -1337,6 +1346,9 @@ export type Database = {
           inv_id?: number
           is_test?: boolean
           last_name?: string | null
+          login_token_expires_at?: string | null
+          login_token_hash?: string | null
+          login_token_used_at?: string | null
           middle_name?: string | null
           original_amount: number
           out_sum: number
@@ -1356,10 +1368,13 @@ export type Database = {
           ym_client_id?: string | null
         }
         Update: {
+          account_created?: boolean
           birth_date?: string | null
           bonus_items?: Json
           bundle?: string
           bundles?: string[] | null
+          claim_secret_hash?: string | null
+          claim_used_at?: string | null
           clinic_address?: string | null
           clinic_id?: string | null
           clinic_title?: string | null
@@ -1372,6 +1387,9 @@ export type Database = {
           inv_id?: number
           is_test?: boolean
           last_name?: string | null
+          login_token_expires_at?: string | null
+          login_token_hash?: string | null
+          login_token_used_at?: string | null
           middle_name?: string | null
           original_amount?: number
           out_sum?: number
