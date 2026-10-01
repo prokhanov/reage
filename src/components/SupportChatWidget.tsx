@@ -258,12 +258,21 @@ export function SupportChatWidget() {
                 <RowText title="Позвонить" sub="+7 (995) 998-46-38" />
               </a>
               {cbState === "sent" ? (
-                <div className="mt-1 flex items-center gap-4 rounded-2xl bg-success/10 px-3 py-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-5 w-5" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold leading-snug text-foreground">Заявка принята</span>
-                    <span className="block text-sm leading-snug text-muted-foreground">Перезвоним на {cbPhone} в течение {CALLBACK_MINUTES} минут</span>
-                  </span>
+                <div className="mt-1 rounded-2xl bg-success/10 px-3 py-4">
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-5 w-5" /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-semibold leading-snug text-foreground">Заявка принята</span>
+                      <span className="block text-sm leading-snug text-muted-foreground">Перезвоним на {cbPhone} в течение {CALLBACK_MINUTES} минут</span>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setCbState("form"); setCbErr(""); }}
+                    className="mt-3 ml-[3.75rem] text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+                  >
+                    Изменить номер
+                  </button>
                 </div>
               ) : cbState === "form" ? (
                 <div className="mt-1 rounded-2xl border border-primary/60 p-2">
