@@ -35,7 +35,22 @@ type OrderInfo = {
   bundles?: string[] | null;
   isUpsell?: boolean;
   consultationPurchased?: boolean;
+  accountCreated?: boolean;
 };
+
+/** Одноразовый автовход в только что созданный аккаунт (ключ сохранён при оформлении в этом браузере). */
+async function tryClaimSession(invId: string): Promise<boolean> {
+  const key = `reage_claim_${invId}`;
+  let secret: string | null = null;
+  try { secret = localStorage.getItem(key); } catch { return false; }
+  if (!secret) return false;
+  try { localStorage.removeItem(key); } catch { /* ignore */ }
+  const { data } = await supabase.functions.invoke("energy-claim-session", { body: { invId: Number(invId), claimSecret: secret } });
+  const tokenHash = (data as { tokenHash?: string } | null)?.tokenHash;
+  if (!tokenHash) return false;
+  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
+  return !error;
+}
 
 /**
  * /energy/success и /energy/fail — страницы возврата с Робокассы для гостевого
@@ -70,6 +85,14 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
           setState("paid");
           // Цель «оплачено» отправляет сервер (офлайн-конверсия из уведомления Робокассы).
           clearCheckupCart();
+          if (info.accountCreated && !info.isUpsell) {
+            const ok = await tryClaimSession(invId);
+            if (cancelled) return;
+            if (ok) {
+              navigate(`/one-time-checkups?payment=success&InvId=${encodeURIComponent(invId)}`, { replace: true });
+              return;
+            }
+          }
           if (info.isUpsell) {
             navigate(`/one-time-checkups?payment=success&InvId=${encodeURIComponent(invId)}`, { replace: true });
           }
