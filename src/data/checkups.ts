@@ -16,18 +16,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import heroBase40 from "@/assets/energy/hero-base40.jpg";
-import heroCardio from "@/assets/energy/hero-cardio.jpg";
-import heroFemaleHormones from "@/assets/energy/hero-female-hormones.jpg";
-import heroHair from "@/assets/energy/hero-hair.jpg";
-import heroIron from "@/assets/energy/hero-iron.jpg";
-import heroKidney from "@/assets/energy/hero-kidney.jpg";
-import heroLiver from "@/assets/energy/hero-liver.jpg";
-import heroMaleHormones from "@/assets/energy/hero-male-hormones.jpg";
-import heroMetabolic from "@/assets/energy/hero-metabolic.jpg";
-import heroThyroid from "@/assets/energy/hero-thyroid.jpg";
-import heroVitamins from "@/assets/energy/hero-vitamins.jpg";
-import heroWoman from "@/assets/energy/hero-woman.jpg";
+import heroBase40 from "@/assets/energy/hero-base40.webp";
+import heroCardio from "@/assets/energy/hero-cardio.webp";
+import heroFemaleHormones from "@/assets/energy/hero-female-hormones.webp";
+import heroHair from "@/assets/energy/hero-hair.webp";
+import heroIron from "@/assets/energy/hero-iron.webp";
+import heroKidney from "@/assets/energy/hero-kidney.webp";
+import heroLiver from "@/assets/energy/hero-liver.webp";
+import heroMaleHormones from "@/assets/energy/hero-male-hormones.webp";
+import heroMetabolic from "@/assets/energy/hero-metabolic.webp";
+import heroThyroid from "@/assets/energy/hero-thyroid.webp";
+import heroVitamins from "@/assets/energy/hero-vitamins.webp";
+import heroWoman from "@/assets/energy/hero-woman.webp";
 
 export type CheckupAccent = "primary" | "accent" | "info";
 export type CheckupShape =
