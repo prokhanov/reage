@@ -647,22 +647,25 @@ export function EnergyCart() {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap items-start gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                  <div className="mt-4 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
                       <Clock className="h-3.5 w-3.5 text-primary/80" aria-hidden />
                       40 минут
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground">
                       <Video className="h-3.5 w-3.5 text-primary/80" aria-hidden />
                       Онлайн
                     </span>
-                    {doctor.credentials.slice(1).map((line, i) => {
+                    {doctor.credentials.slice(1)
+                      .slice()
+                      .sort((a, b) => Number(/стаж/i.test(b)) - Number(/стаж/i.test(a)))
+                      .map((line, i) => {
                       const isLicense = /gmc|лиценз/i.test(line);
                       const Icon = isLicense ? IdCard : BarChart3;
                       return (
                         <span
                           key={line}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
+                          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground"
                         >
                           <Icon className="h-3.5 w-3.5 text-primary/80" aria-hidden />
                           {isLicense ? `Лицензия ${line}` : line}
