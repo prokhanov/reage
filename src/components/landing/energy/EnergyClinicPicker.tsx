@@ -172,27 +172,29 @@ function NurseCallForm() {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-2">
-      <div className="flex gap-2">
-        <Input
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => {
-            setPhone(formatRuPhoneInput(e.target.value));
-            setError(null);
-          }}
-          placeholder="+7 (___) ___-__-__"
-          aria-label="Ваш телефон"
-          maxLength={18}
-          className="h-12 min-w-0 flex-1 text-base"
-        />
-        <Button type="submit" disabled={sending} className="h-12 shrink-0 gap-2 whitespace-nowrap px-5 text-base">
-          <Send className="h-4 w-4" aria-hidden />
-          {sending ? "Отправляем…" : "Отправить"}
-        </Button>
-      </div>
+    <form onSubmit={submit} noValidate className="space-y-2.5">
+      <Input
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        value={phone}
+        onChange={(e) => {
+          setPhone(formatRuPhoneInput(e.target.value));
+          setError(null);
+        }}
+        placeholder="+7 (___) ___-__-__"
+        aria-label="Ваш телефон"
+        maxLength={18}
+        className="h-14 w-full text-lg"
+      />
+      <Button
+        type="submit"
+        disabled={sending}
+        className="h-14 w-full gap-2 text-lg font-semibold"
+      >
+        <Send className="h-5 w-5" aria-hidden />
+        {sending ? "Отправляем…" : "Отправить"}
+      </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <p className="text-sm text-muted-foreground">
         Быстро перезвоним и согласуем удобные день и время.
