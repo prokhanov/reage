@@ -3,10 +3,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { LabMapItem } from "@/components/admin/LabLocationsMap";
 import { ENERGY_CHECKUP, type Checkup } from "@/data/checkups";
 import { useResolvedCheckups } from "@/hooks/useResolvedCheckups";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const CART_KEY = "reage:checkup:cart";
 const CLINIC_KEY = "reage:checkup:clinic";
 const UPSELL_ORDER_KEY = "reage:checkup:upsell-order";
+const REPORT_OFFER_KEY = "reage:checkup:report-offer";
 
 function readCart(): string[] {
   try {
@@ -55,6 +58,7 @@ export function clearCheckupCart() {
   writeCart([]);
   writeClinic(null);
   localStorage.removeItem(UPSELL_ORDER_KEY);
+  localStorage.removeItem(REPORT_OFFER_KEY);
 }
 
 interface EnergyOrderValue {
@@ -67,6 +71,7 @@ interface EnergyOrderValue {
   addItem: (slug: string) => void;
   addUpsellItem: (slug: string, sourceOrderId: string) => void;
   upsellOrderId: string | null;
+  reportOfferId: string | null;
   removeItem: (slug: string) => void;
   clearCart: () => void;
   clinic: LabMapItem | null;
@@ -93,6 +98,10 @@ export function EnergyOrderProvider({
   const [cartOpen, setCartOpen] = useState(false);
   const [slugs, setSlugs] = useState<string[]>(() => readCart());
   const [upsellOrderId, setUpsellOrderId] = useState<string | null>(() => localStorage.getItem(UPSELL_ORDER_KEY));
+  const [reportOfferId, setReportOfferId] = useState<string | null>(() => localStorage.getItem(REPORT_OFFER_KEY));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { resolve, bySlug } = useResolvedCheckups();
 
   const setClinic = useCallback((item: LabMapItem | null) => {
@@ -106,10 +115,45 @@ export function EnergyOrderProvider({
       if (e.key === CART_KEY) setSlugs(readCart());
       if (e.key === CLINIC_KEY) setClinicState(readClinic());
       if (e.key === UPSELL_ORDER_KEY) setUpsellOrderId(e.newValue);
+      if (e.key === REPORT_OFFER_KEY) setReportOfferId(e.newValue);
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  useEffect(() => {
+    const offerId = searchParams.get("offer");
+    if (!offerId || !/^[0-9a-f-]{36}$/i.test(offerId)) return;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (!data.session) {
+        navigate("/auth", { state: { from: location }, replace: true });
+        return;
+      }
+      supabase
+        .from("report_checkup_offers")
+        .select("id, advertised_checkup_slug, expires_at, is_active, used_at")
+        .eq("id", offerId)
+        .maybeSingle()
+        .then(({ data: offer }) => {
+          if (cancelled) return;
+          if (offer?.is_active && !offer.used_at && new Date(offer.expires_at).getTime() > Date.now()) {
+            update([offer.advertised_checkup_slug]);
+            localStorage.setItem(REPORT_OFFER_KEY, offer.id);
+            setReportOfferId(offer.id);
+            setCartOpen(true);
+          } else {
+            localStorage.removeItem(REPORT_OFFER_KEY);
+            setReportOfferId(null);
+          }
+          const next = new URLSearchParams(searchParams);
+          next.delete("offer");
+          setSearchParams(next, { replace: true });
+        });
+    });
+    return () => { cancelled = true; };
+  }, [location, navigate, searchParams, setSearchParams, update]);
 
   const update = useCallback((next: string[]) => {
     setSlugs(next);
@@ -126,7 +170,9 @@ export function EnergyOrderProvider({
       update(next);
       if (next.length === 0) {
         localStorage.removeItem(UPSELL_ORDER_KEY);
+        localStorage.removeItem(REPORT_OFFER_KEY);
         setUpsellOrderId(null);
+        setReportOfferId(null);
       }
     },
     [slugs, update],
@@ -134,7 +180,9 @@ export function EnergyOrderProvider({
   const clearCart = useCallback(() => {
     update([]);
     localStorage.removeItem(UPSELL_ORDER_KEY);
+    localStorage.removeItem(REPORT_OFFER_KEY);
     setUpsellOrderId(null);
+    setReportOfferId(null);
   }, [update]);
   const addUpsellItem = useCallback((slug: string, sourceOrderId: string) => {
     update(slugs.includes(slug) ? slugs : [...slugs, slug]);
@@ -159,6 +207,7 @@ export function EnergyOrderProvider({
       addItem,
       addUpsellItem,
       upsellOrderId,
+      reportOfferId,
       removeItem,
       clearCart,
       clinic,
@@ -172,7 +221,7 @@ export function EnergyOrderProvider({
         setCartOpen(true);
       },
     }),
-    [pageCheckup, items, slugs, addItem, addUpsellItem, removeItem, clearCart, clinic, cartOpen, upsellOrderId],
+    [pageCheckup, items, slugs, addItem, addUpsellItem, removeItem, clearCart, clinic, cartOpen, upsellOrderId, reportOfferId],
   );
 
   return <EnergyOrderContext.Provider value={value}>{children}</EnergyOrderContext.Provider>;

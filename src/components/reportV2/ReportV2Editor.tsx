@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText, ShieldCheck, EyeOff } from "lucide-react";
+import { Loader2, Download, Info, ExternalLink, MoreVertical, Send, X, FileText, ShieldCheck, EyeOff, PanelsTopLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,6 +45,8 @@ import { PdfCanvas } from "./ReportPdfView";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { ReportCheckupOffersDialog } from "./ReportCheckupOffersDialog";
+import type { ReportCheckupOffer } from "@/lib/reportCheckupOffers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -269,6 +271,28 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
   // Финальная пагинация считается на сервере — этот просмотр показывает то,
   // что реально увидит пациент (Paged.js в редакторе — только черновой ориентир).
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [offersOpen, setOffersOpen] = useState(false);
+
+  const handleOffersSaved = useCallback(async (offers: ReportCheckupOffer[]) => {
+    const nextReport = report ? { ...report, checkupOffers: offers } : report;
+    setReport(nextReport);
+    onSaved?.();
+    if (!nextReport || !["published", "edited"].includes(nextReport.docStatus ?? "")) return;
+    try {
+      const token = await getFreshAccessToken();
+      await fetch(edgeFunctionUrl("queue-report-pdf"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ analysisId, report: nextReport }),
+      });
+    } catch (error) {
+      console.error("[ReportV2Editor] offer PDF refresh failed", error);
+    }
+  }, [analysisId, onSaved, report]);
 
   const publish = useCallback(async () => {
     if (!report) return;
@@ -965,6 +989,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
   const toolbarExtras = (
     <>
       {canPublish && (
+        <Button size="sm" variant="outline" onClick={() => setOffersOpen(true)} title="Выбрать предложения в конце отчёта">
+          <PanelsTopLeft className="mr-2 h-4 w-4" />
+          Баннеры
+        </Button>
+      )}
+      {canPublish && (
         <Button
           size="sm"
           variant="outline"
@@ -1078,6 +1108,12 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
               <Download className="mr-2 h-4 w-4" />
             )}
             Скачать PDF
+          </DropdownMenuItem>
+        )}
+        {canPublish && (
+          <DropdownMenuItem onSelect={() => setOffersOpen(true)}>
+            <PanelsTopLeft className="mr-2 h-4 w-4" />
+            Баннеры
           </DropdownMenuItem>
         )}
         {canPublish && (
@@ -1294,6 +1330,13 @@ export function ReportV2Editor({ analysisId, userId, mode, onSaved, onDocStatusC
           }
         }}
         prescription={(rxEditRow as never) ?? null}
+      />
+
+      <ReportCheckupOffersDialog
+        analysisId={analysisId}
+        open={offersOpen}
+        onOpenChange={setOffersOpen}
+        onSaved={(offers) => void handleOffersSaved(offers)}
       />
 
       <EditAdvisoryDialog
