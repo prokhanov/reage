@@ -1,5 +1,36 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { ChevronRight, Loader2, MessageCircle, Phone, RotateCcw, Send, X } from "lucide-react";
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Check, ChevronRight, ChevronUp, Loader2, MessageCircle, MessageSquare, Phone, PhoneIncoming, RotateCcw, Send, X } from "lucide-react";
+import { getUtm } from "@/lib/utm";
+
+const CALLBACK_MINUTES = 15;
+const rowCls = "flex w-full items-center gap-4 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-accent/60";
+
+function RowText({ title, sub, icon }: { title: string; sub: string; icon?: ReactNode }) {
+  return (
+    <>
+      <span className="min-w-0 flex-1">
+        <span className="block text-base font-semibold leading-snug text-foreground">{title}</span>
+        <span className="block text-sm leading-snug text-muted-foreground">{sub}</span>
+      </span>
+      {icon ?? <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />}
+    </>
+  );
+}
+
+function formatPhone(v: string) {
+  let d = v.replace(/\D/g, "");
+  if (d.startsWith("8")) d = "7" + d.slice(1);
+  if (!d.startsWith("7")) d = "7" + d;
+  d = d.slice(0, 11);
+  const p = d.slice(1);
+  let out = "+7";
+  if (p.length) out += " (" + p.slice(0, 3);
+  if (p.length >= 3) out += ")";
+  if (p.length > 3) out += " " + p.slice(3, 6);
+  if (p.length > 6) out += "-" + p.slice(6, 8);
+  if (p.length > 8) out += "-" + p.slice(8, 10);
+  return out;
+}
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -145,6 +176,33 @@ export function SupportChatWidget() {
   const hasVisitorMsg = msgs.some((m) => m.direction === "visitor");
   const showForm = hasVisitorMsg && !hasContact;
 
+  const [cbState, setCbState] = useState<"idle" | "form" | "sent">("idle");
+  const [cbPhone, setCbPhone] = useState("+7 (");
+  const [cbErr, setCbErr] = useState("");
+  const [cbSending, setCbSending] = useState(false);
+
+  const submitCallback = async (e: FormEvent) => {
+    e.preventDefault();
+    setCbErr("");
+    const digits = cbPhone.replace(/\D/g, "");
+    if (digits.length !== 11) return setCbErr("Введите номер полностью");
+    setCbSending(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const { error } = await supabase.from("callback_requests").insert({
+        phone: `+${digits}`,
+        source: "contact_launcher",
+        page_url: `${window.location.pathname}${window.location.search}`.slice(0, 500),
+        utm: getUtm() as never,
+        user_id: data?.user?.id ?? null,
+      });
+      if (error) throw error;
+      setCbState("sent");
+    } catch {
+      setCbErr("Не удалось отправить. Позвоните нам: +7 (995) 998-46-38");
+    } finally { setCbSending(false); }
+  };
+
   const openChat = () => {
     setLauncherOpen(false);
     setChatOpen(true);
@@ -184,69 +242,69 @@ export function SupportChatWidget() {
       {!chatOpen && (
         <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
           {launcherOpen && (
-            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 w-[min(23rem,calc(100vw-2rem))] origin-bottom-right animate-enter rounded-2xl border border-border/70 bg-card p-5 shadow-xl">
-              <p className="mb-3 text-lg font-semibold tracking-tight text-foreground">Где удобнее написать?</p>
-              <a
-                href={TELEGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
-              >
-                <span className="support-telegram-circle flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm">
-                  <Send className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold leading-snug text-foreground">Написать в Telegram</span>
-                  <span className="block text-sm leading-snug text-muted-foreground">Ответим в мессенджере</span>
-                </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+            <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 max-h-[calc(100vh-8rem)] w-[min(22rem,calc(100vw-2rem))] origin-bottom-right animate-enter overflow-y-auto rounded-3xl border border-border/70 bg-card px-2 pb-2 pt-5 shadow-xl">
+              <p className="px-3 text-lg font-semibold tracking-tight text-foreground">Как с нами связаться?</p>
+              <p className="mb-1 mt-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Написать</p>
+              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)} className={rowCls}>
+                <span className="support-telegram-circle flex h-11 w-11 shrink-0 items-center justify-center rounded-full"><Send className="h-5 w-5" /></span>
+                <RowText title="Telegram" sub="Ответим в мессенджере" />
               </a>
-              <a
-                href="https://max.ru/u/f9LHodD0cOKTTycJgx2GSK9k_P7Z6wyFZKum4VrFWKHt9gwYy3V0jjv5iAg"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
-              >
-                <span className="support-max-circle flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm">
-                  <span className="text-lg font-black leading-none">M</span>
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold leading-snug text-foreground">Написать в MAX</span>
-                  <span className="block text-sm leading-snug text-muted-foreground">+7 (996) 789-74-04</span>
-                </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              <a href="https://max.ru/u/f9LHodD0cOKTTycJgx2GSK9k_P7Z6wyFZKum4VrFWKHt9gwYy3V0jjv5iAg" target="_blank" rel="noopener noreferrer" onClick={() => setLauncherOpen(false)} className={rowCls}>
+                <span className="support-max-circle flex h-11 w-11 shrink-0 items-center justify-center rounded-full"><span className="text-lg font-black leading-none">M</span></span>
+                <RowText title="MAX" sub="+7 (996) 789-74-04" />
               </a>
-              <button
-                type="button"
-                onClick={openChat}
-                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
-              >
-                <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                  <MessageCircle className="h-5 w-5" />
+              <button type="button" onClick={openChat} className={rowCls}>
+                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <MessageSquare className="h-5 w-5" />
                   {unread > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground ring-2 ring-card">{unreadLabel}</span>}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold leading-snug text-foreground">Чат на сайте</span>
-                  <span className="block text-sm leading-snug text-muted-foreground">Ответим прямо здесь и продублируем на почту</span>
-                </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+                <RowText title="Чат на сайте" sub="Ответим здесь и продублируем на почту" />
               </button>
-              <a
-                href="tel:+79959984638"
-                onClick={() => setLauncherOpen(false)}
-                className="flex items-center gap-4 rounded-xl px-1 py-3 text-left"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-sm">
-                  <Phone className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold leading-snug text-foreground">Позвонить</span>
-                  <span className="block text-sm leading-snug text-muted-foreground">+7 (995) 998-46-38</span>
-                </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+              <div className="mx-3 my-2 border-t border-border/70" />
+              <p className="mb-1 mt-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Поговорить</p>
+              <a href="tel:+79959984638" onClick={() => setLauncherOpen(false)} className={rowCls}>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground"><Phone className="h-5 w-5" /></span>
+                <RowText title="Позвонить" sub="+7 (995) 998-46-38" />
               </a>
+              {cbState === "sent" ? (
+                <div className="mt-1 flex items-center gap-4 rounded-2xl bg-success/10 px-3 py-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold leading-snug text-foreground">Заявка принята</span>
+                    <span className="block text-sm leading-snug text-muted-foreground">Перезвоним на {cbPhone} в течение {CALLBACK_MINUTES} минут</span>
+                  </span>
+                </div>
+              ) : cbState === "form" ? (
+                <div className="mt-1 rounded-2xl border border-primary/60 p-2">
+                  <button type="button" onClick={() => setCbState("idle")} className={cn(rowCls, "py-2")}>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><PhoneIncoming className="h-5 w-5" /></span>
+                    <RowText title="Перезвоните мне" sub={`Перезвоним в течение ${CALLBACK_MINUTES} минут`} icon={<ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground/70" />} />
+                  </button>
+                  <form onSubmit={submitCallback} className="mt-2 flex gap-2 px-1">
+                    <input
+                      autoFocus
+                      type="tel"
+                      inputMode="tel"
+                      value={cbPhone}
+                      onChange={(e) => setCbPhone(formatPhone(e.target.value))}
+                      placeholder="+7 (___) ___-__-__"
+                      className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 text-base text-foreground outline-none focus:border-primary"
+                    />
+                    <Button type="submit" disabled={cbSending} className="h-12 shrink-0 rounded-xl px-4 font-semibold">
+                      {cbSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Жду звонка"}
+                    </Button>
+                  </form>
+                  {cbErr && <p className="mt-2 px-1 text-xs text-destructive">{cbErr}</p>}
+                  <p className="mt-2 px-1 pb-1 text-[11px] leading-snug text-muted-foreground">
+                    Нажимая кнопку, вы соглашаетесь с <a href="/legal/privacy" target="_blank" className="text-primary underline">обработкой персональных данных</a>
+                  </p>
+                </div>
+              ) : (
+                <button type="button" onClick={() => { setCbState("form"); setCbErr(""); }} className={rowCls}>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><PhoneIncoming className="h-5 w-5" /></span>
+                  <RowText title="Перезвоните мне" sub="Оставьте номер — наберём сами" />
+                </button>
+              )}
             </div>
           )}
           <div className="flex items-center gap-3">
