@@ -26,7 +26,7 @@ export const DEFAULT_DOCTOR: CheckupDoctor = {
   credentials: ["Кардиолог", "GMC, Великобритания", "Стаж 7+ лет"],
   description:
     "Врач с более чем 7-летним клиническим опытом в терапии, кардиологии, сердечно-сосудистой хирургии и амбулаторной медицине. Зарегистрирована в General Medical Council (GMC), Великобритания. Помогает разобраться в результатах анализов и оценить их в контексте общего состояния здоровья.",
-  consultation_price: 3490,
+  consultation_price: 2990,
   consultation_enabled: true,
 };
 
