@@ -202,32 +202,37 @@ html, body {
 /* ─── Персональное предложение в конце отчёта ─────────────────────────── */
 .reportlab .rl-offer-page { min-height: 270mm; display: flex; align-items: center; }
 .reportlab .rl-offer {
-  width: 100%; min-height: 196mm; padding: 14mm; border-radius: 8mm; position: relative;
+  width: 100%; min-height: 142mm; padding: 12mm; border-radius: 8mm; position: relative;
   overflow: hidden; background: #1d4433; color: #f7faf8; box-sizing: border-box;
   break-inside: avoid; page-break-inside: avoid;
 }
-.reportlab .rl-offer-rings { position: absolute; width: 65mm; height: 65mm; right: -9mm; top: -13mm; border: .3mm solid rgba(255,255,255,.12); border-radius: 50%; }
+.reportlab .rl-offer-rings { position: absolute; width: 52mm; height: 52mm; right: -8mm; top: -15mm; border: .3mm solid rgba(255,255,255,.12); border-radius: 50%; }
 .reportlab .rl-offer-rings::after { content: ""; position: absolute; inset: 14mm; border: .3mm solid rgba(255,255,255,.12); border-radius: 50%; }
+.reportlab .rl-offer-layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 76mm; gap: 10mm; min-height: 118mm; }
+.reportlab .rl-offer-copy { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .reportlab .rl-offer-eyebrow { font: 600 9pt/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: .08em; color: #a9c8b7; }
-.reportlab .rl-offer h2 { max-width: 150mm; margin: 5mm 0 2mm; font: 500 26pt/1.08 var(--font-serif); color: #f7faf8; }
-.reportlab .rl-offer-lead { font: 500 11pt/1.4 var(--font-sans); color: #d9e7df; }
-.reportlab .rl-offer-grid { display: grid; grid-template-columns: 1.15fr .95fr; gap: 5mm; margin-top: 12mm; }
-.reportlab .rl-offer-breakdown { padding: 8mm; border: .3mm solid rgba(255,255,255,.14); border-radius: 5mm; background: rgba(255,255,255,.1); }
-.reportlab .rl-offer-breakdown > div { display: flex; justify-content: space-between; gap: 5mm; margin-bottom: 4mm; font-size: 10pt; color: #d7e2dc; }
+.reportlab .rl-offer h2 { max-width: 78mm; margin: 5mm 0 3mm; font: 500 24pt/1.08 var(--font-serif); color: #f7faf8; overflow-wrap: anywhere; }
+.reportlab .rl-offer-lead { max-width: 76mm; font: 500 10.5pt/1.4 var(--font-sans); color: #d9e7df; }
+.reportlab .rl-offer-ticket { min-width: 0; display: grid; align-content: start; gap: 4mm; }
+.reportlab .rl-offer-breakdown { padding: 6mm; border: .3mm solid rgba(255,255,255,.14); border-radius: 5mm; background: rgba(255,255,255,.1); }
+.reportlab .rl-offer-breakdown > div { display: flex; justify-content: space-between; align-items: flex-start; gap: 4mm; margin-bottom: 3mm; font-size: 9pt; color: #d7e2dc; }
 .reportlab .rl-offer-breakdown strong { white-space: nowrap; color: #f7faf8; }
-.reportlab .rl-offer-breakdown .rl-offer-total { margin: 1mm 0 0; padding-top: 5mm; border-top: .3mm solid rgba(255,255,255,.22); font-size: 13pt; font-weight: 700; }
-.reportlab .rl-offer-side { display: grid; gap: 4mm; }
-.reportlab .rl-offer-code, .reportlab .rl-offer-qr { border-radius: 5mm; background: #ffffff; color: #202922; padding: 6mm; }
+.reportlab .rl-offer-breakdown .rl-offer-total { align-items: flex-end; margin: 1mm 0 0; padding-top: 4mm; border-top: .3mm dashed rgba(255,255,255,.22); }
+.reportlab .rl-offer-total > span { display: grid; gap: 1mm; font-size: 9pt; }
+.reportlab .rl-offer-total > span strong { font-size: 20pt; line-height: 1; }
+.reportlab .rl-offer-total > b { padding: 1.2mm 2mm; border-radius: 1.5mm; background: #e3f0e8; color: #285840; font-size: 7.5pt; text-transform: uppercase; white-space: nowrap; }
+.reportlab .rl-offer-voucher { display: grid; grid-template-columns: minmax(0, 1fr) 25mm; gap: 4mm; border-radius: 5mm; background: #ffffff; color: #202922; padding: 5mm; }
+.reportlab .rl-offer-code { min-width: 0; }
 .reportlab .rl-offer-code > span { color: #6b726d; font-size: 8.5pt; }
-.reportlab .rl-offer-code > strong { display: block; margin: 1mm 0 3mm; font: 700 18pt/1 var(--font-mono); letter-spacing: .04em; }
-.reportlab .rl-offer-code > div { display: flex; align-items: center; justify-content: space-between; gap: 3mm; color: #6b726d; font-size: 8pt; }
-.reportlab .rl-offer-code b { padding: 1.5mm 3mm; border-radius: 2mm; background: #e3f0e8; color: #285840; font-size: 10pt; }
-.reportlab .rl-offer-qr { display: flex; align-items: center; gap: 4mm; }
-.reportlab .rl-offer-qr img { width: 23mm; height: 23mm; image-rendering: crisp-edges; }
-.reportlab .rl-offer-qr span { color: #626963; font-size: 9pt; line-height: 1.35; }
-.reportlab .rl-offer-footer { display: flex; align-items: center; justify-content: space-between; gap: 8mm; margin-top: 10mm; }
-.reportlab .rl-offer-footer a { padding: 4mm 7mm; border-radius: 3mm; background: #ffffff; color: #1d4433; font-weight: 700; text-decoration: none; }
-.reportlab .rl-offer-footer > span { color: #b8ccbf; text-align: right; font-size: 8.5pt; line-height: 1.35; }
+.reportlab .rl-offer-code > strong { display: block; max-width: 100%; margin: 1mm 0 3mm; font: 700 13.5pt/1.1 var(--font-mono); letter-spacing: .02em; overflow-wrap: anywhere; }
+.reportlab .rl-offer-code > div { display: grid; gap: 1.5mm; color: #6b726d; font-size: 7.5pt; line-height: 1.3; }
+.reportlab .rl-offer-code b { justify-self: start; padding: 1mm 2mm; border-radius: 1.5mm; background: #e3f0e8; color: #285840; font-size: 9pt; }
+.reportlab .rl-offer-qr { display: flex; flex-direction: column; justify-content: center; gap: 2mm; border-left: .3mm solid #e3f0e8; padding-left: 4mm; }
+.reportlab .rl-offer-qr img { width: 20mm; height: 20mm; image-rendering: crisp-edges; }
+.reportlab .rl-offer-qr span { color: #626963; font-size: 7pt; line-height: 1.3; }
+.reportlab .rl-offer-footer { display: grid; justify-items: start; gap: 4mm; }
+.reportlab .rl-offer-footer a { padding: 3.5mm 6mm; border-radius: 3mm; background: #ffffff; color: #1d4433; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.reportlab .rl-offer-footer > span { color: #b8ccbf; font-size: 8pt; line-height: 1.35; }
 
 /* ─── Reset контейнера документа ─────────────────────────────────────────
    Убираем зависимость от дефолтных стилей браузера (разные line-height,
