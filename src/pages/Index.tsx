@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Menu, ShoppingCart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 import { AutoLoginHandler } from "@/components/AutoLoginHandler";
@@ -101,6 +102,64 @@ function IndexHeader() {
   const { count, openCart } = useEnergyOrder();
   const [activeHref, setActiveHref] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Активная сессия: показываем аватар + имя вместо «Войти» / «Оставить заявку».
+  const [authChecked, setAuthChecked] = useState(false);
+  const [account, setAccount] = useState<{ initials: string; name: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAccount = async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, first_name, last_name, email")
+        .eq("id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data) {
+        setAccount(null);
+        return;
+      }
+      const first = (data.first_name || "").trim();
+      const last = (data.last_name || "").trim();
+      const fallbackName = (data.name || "").trim();
+      const displayName = first || fallbackName.split(" ")[0] || (data.email ? data.email.split("@")[0] : "");
+      const initials =
+        [first, last]
+          .filter(Boolean)
+          .map((part) => part[0]?.toUpperCase())
+          .join("") ||
+        fallbackName
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase())
+          .join("") ||
+        (data.email ? data.email[0].toUpperCase() : "");
+      setAccount(displayName ? { initials: initials || "?", name: displayName } : null);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (session?.user && event !== "SIGNED_OUT") {
+        setAuthChecked(true);
+        loadAccount(session.user.id);
+      } else {
+        setAuthChecked(true);
+        setAccount(null);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      setAuthChecked(true);
+      if (session?.user) loadAccount(session.user.id);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const ids = navItems.map((i) => i.href.replace("#", ""));
@@ -156,24 +215,45 @@ function IndexHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-3">
-          <Button
-            asChild
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="hidden h-9 px-3 sm:inline-flex"
-          >
-            <Link to="/auth">Войти</Link>
-          </Button>
+          {account ? (
+            <Link
+              to="/dashboard"
+              aria-label="Личный кабинет"
+              className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted/60 sm:pr-3"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground sm:h-11 sm:w-11">
+                {account.initials}
+              </span>
+              <span className="hidden text-base font-bold text-foreground sm:block">
+                {account.name}
+              </span>
+            </Link>
+          ) : (
+            <>
+              {authChecked && (
+                <Button
+                  asChild
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="hidden h-9 px-3 sm:inline-flex"
+                >
+                  <Link to="/auth">Войти</Link>
+                </Button>
+              )}
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
-            className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 md:inline-flex"
-          >
-            Оставить заявку
-          </Button>
+              {authChecked && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-feedback-dialog"))}
+                  className="hidden h-9 bg-foreground px-3 text-background hover:bg-foreground/90 md:inline-flex"
+                >
+                  Оставить заявку
+                </Button>
+              )}
+            </>
+          )}
 
           <Button type="button" variant="ghost" size="icon" onClick={openCart} className="relative h-10 w-10 sm:h-11 sm:w-11" aria-label={count ? `Корзина, товаров: ${count}` : "Корзина, пусто"}>
             <ShoppingCart className="h-5 w-5" />
@@ -218,23 +298,42 @@ function IndexHeader() {
                     </button>
                   );
                 })}
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-2 rounded-lg border border-border px-3 py-3 text-center text-base font-medium text-foreground transition-colors hover:bg-muted/60"
-                >
-                  Войти
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    setTimeout(() => window.dispatchEvent(new CustomEvent("open-feedback-dialog")), 150);
-                  }}
-                  className="rounded-lg bg-foreground px-3 py-3 text-center text-base font-semibold text-background transition-colors hover:bg-foreground/90"
-                >
-                  Оставить заявку
-                </button>
+                {account ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-2 flex items-center gap-3 rounded-lg px-3 py-3 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                      {account.initials}
+                    </span>
+                    {account.name} — личный кабинет
+                  </Link>
+                ) : (
+                  <>
+                    {authChecked && (
+                      <Link
+                        to="/auth"
+                        onClick={() => setMobileOpen(false)}
+                        className="mt-2 rounded-lg border border-border px-3 py-3 text-center text-base font-medium text-foreground transition-colors hover:bg-muted/60"
+                      >
+                        Войти
+                      </Link>
+                    )}
+                    {authChecked && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          setTimeout(() => window.dispatchEvent(new CustomEvent("open-feedback-dialog")), 150);
+                        }}
+                        className="rounded-lg bg-foreground px-3 py-3 text-center text-base font-semibold text-background transition-colors hover:bg-foreground/90"
+                      >
+                        Оставить заявку
+                      </button>
+                    )}
+                  </>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
