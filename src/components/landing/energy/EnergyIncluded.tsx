@@ -69,6 +69,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                       </span>
                     </div>
                     <p className="mt-1 text-sm font-medium leading-relaxed text-foreground/90 sm:text-base">
+                      ОАК + СОЭ и лейкоцитарная формула,&nbsp;
                       <span className="font-bold text-success">{markersLabel(CBC_BONUS_MARKER_COUNT)}</span>
                       : воспаление и риск анемии — в этом же заборе крови, без доплаты
                     </p>
