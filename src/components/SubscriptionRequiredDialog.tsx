@@ -118,7 +118,7 @@ export function SubscriptionRequiredDialog({
       <DialogContent className="max-w-5xl" aria-describedby="subscription-description">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl md:text-3xl">
-            Для записи на анализы требуется подписка
+            Выберите тариф годового мониторинга
           </DialogTitle>
         </DialogHeader>
         <p id="subscription-description" className="sr-only">
