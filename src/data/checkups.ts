@@ -518,6 +518,11 @@ export function getCheckupBySlug(slug: string | undefined): Checkup | undefined 
 
 export const money = (value: number) => `${value.toLocaleString("ru-RU")} ₽`;
 
+/** Подставляет актуальное число показателей в текст вида «83 показателя …». */
+export function withMarkersCount(text: string, count: number): string {
+  return text.replace(/\d+\s+показател[а-яё]*/i, markersLabel(count));
+}
+
 /** Показатели подарочного ОАК (полный общий анализ крови с лейкоцитарной формулой и СОЭ). */
 export const CBC_BONUS_MARKERS: string[] = [
   "Общее количество лейкоцитов (WBC)",
