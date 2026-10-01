@@ -35,7 +35,7 @@ export type OneTimeCheckupRecord = {
   created_at: string;
 };
 
-export function EditOneTimeCheckupDialog({ record, onClose }: { record: OneTimeCheckupRecord | null; onClose: () => void }) {
+export function EditOneTimeCheckupDialog({ record, checkupName, onClose }: { record: OneTimeCheckupRecord | null; checkupName?: string; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<BookingStatus>("waiting_call");
   const [requestNumber, setRequestNumber] = useState("");
@@ -113,7 +113,7 @@ export function EditOneTimeCheckupDialog({ record, onClose }: { record: OneTimeC
         <DialogHeader className="relative border-b px-6 py-6 pr-16 text-left sm:px-7">
           <DialogTitle className="text-2xl font-semibold">Редактировать запись</DialogTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            {record?.checkup_slug ? "Чекап" : "Запись"} · {[patient?.first_name, patient?.last_name].filter(Boolean).join(" ") || "Пациент"}
+            {checkupName || "Чекап"} · {[patient?.first_name, patient?.last_name].filter(Boolean).join(" ") || "Пациент"}
           </p>
           <Button type="button" variant="ghost" size="icon" className="absolute right-5 top-5" onClick={onClose} aria-label="Закрыть"><X className="h-5 w-5" /></Button>
         </DialogHeader>

@@ -96,7 +96,7 @@ function CheckupsContent() {
           </div>
         </section>
       )}
-      <EditOneTimeCheckupDialog record={editing} onClose={() => setEditing(null)} />
+      <EditOneTimeCheckupDialog record={editing} checkupName={editing ? bySlug(editing.checkup_slug)?.name : undefined} onClose={() => setEditing(null)} />
       <EnergyCart />
     </PageContainer>
   );
