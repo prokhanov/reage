@@ -127,6 +127,60 @@ function validateBiomarkerStructure(
   return null;
 }
 
+const BLOCK_RE = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->([\s\S]*?)<!--\s*anchor:biomarker_end\s*-->/gi;
+
+function blockIsIncomplete(code: string, content: string, isDeviation: (c: string) => boolean): boolean {
+  const paragraphs = content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  if (paragraphs.length < 3) return true;
+  if (!/Ваш(?:а|е|и)?\s+(?:абсолютный\s+)?(?:показатель|уровень|значение|индекс|результат)/i.test(content)) return true;
+  if (isDeviation(code) && !/Что это значит для вас/i.test(content)) return true;
+  return false;
+}
+
+// Дословно подставляет из системных разделов блоки показателей, которые ИИ
+// потерял или обрезал, и дописывает пропавшие показатели целиком.
+export function repairFromSource(
+  out: string,
+  source: string,
+  expectedGroups: string[][],
+  deviationCodes: string[],
+): { text: string; repaired: string[]; missing: number } {
+  const srcBlocks = new Map<string, string>();
+  for (const m of source.matchAll(BLOCK_RE)) {
+    const code = m[1]?.trim().toLowerCase();
+    if (code && !srcBlocks.has(code)) srcBlocks.set(code, m[0]);
+  }
+  const groupOf = (code: string) =>
+    expectedGroups.find((g) => g.some((c) => c.toLowerCase() === code.toLowerCase())) ?? [code];
+  const devSet = new Set(deviationCodes.map((c) => c.toLowerCase()));
+  const isDeviation = (code: string) => groupOf(code).some((c) => devSet.has(c.toLowerCase()));
+  const srcFor = (code: string) => {
+    for (const c of groupOf(code)) { const b = srcBlocks.get(c.toLowerCase()); if (b) return b; }
+    return null;
+  };
+
+  const repaired: string[] = [];
+  let text = out.replace(BLOCK_RE, (whole, rawCode: string, content: string) => {
+    const code = rawCode.trim();
+    if (!blockIsIncomplete(code, content, isDeviation)) return whole;
+    const src = srcFor(code);
+    if (!src) return whole;
+    repaired.push(code);
+    return src;
+  });
+
+  const found = new Set([...text.matchAll(/<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/gi)]
+    .map((m) => m[1]?.trim().toLowerCase()));
+  const missingGroups = expectedGroups.filter((g) => !g.some((c) => found.has(c.toLowerCase())));
+  const appended: string[] = [];
+  for (const g of missingGroups) {
+    const src = srcFor(g[0]);
+    if (src) { appended.push(src); repaired.push(g.join(" / ")); }
+  }
+  if (appended.length) text = `${text.trim()}\n\n${appended.join("\n\n")}`;
+  return { text: normalizeMeaningBlocks(text), repaired, missing: missingGroups.length };
+}
+
 // Приводит блок «Что это значит для вас» к эталону обычного отчёта:
 // только при 🟠/🔴 (выше/ниже нормы, критично), заголовок с двоеточием,
 // «Это может проявляться:» перед пунктами и фиксированная финальная строка.
