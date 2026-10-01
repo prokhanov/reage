@@ -112,6 +112,7 @@ export function EnergyCart() {
           if (prev.locked.has("middle_name")) setMiddleName("");
           if (prev.locked.has("phone")) setPhone("");
           if (prev.locked.has("email")) setEmail("");
+          if (prev.locked.has("birth_date")) setBirthDate("");
         }
         return null;
       });
@@ -137,7 +138,7 @@ export function EnergyCart() {
       if (ph && isPhoneValid(ph)) { setPhone(ph); locked.add("phone"); }
       const bd = t(data?.birth_date).slice(0, 10);
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(bd);
-      if (m) setBirthDate((cur) => cur || `${m[3]}.${m[2]}.${m[1]}`);
+      if (m) { setBirthDate((cur) => cur || `${m[3]}.${m[2]}.${m[1]}`); locked.add("birth_date"); }
       setAccount({ name: [fn, ln].filter(Boolean).join(" ") || em, locked });
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -595,72 +596,76 @@ export function EnergyCart() {
                   )}
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-foreground">Фамилия</span>
-                      <div className="relative">
-                        <Input
-                          placeholder="Иванова"
-                          autoComplete="family-name"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          readOnly={isLocked("last_name")}
-                          disabled={accountLoading}
-                          className={`h-12 ${isLocked("last_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
-                          aria-invalid={touched && lastName.trim().length <= 1}
-                        />
-                        {isLocked("last_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
-                      </div>
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        Фамилия
+                        {isLocked("last_name") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
+                      </span>
+                      <Input
+                        placeholder="Иванова"
+                        autoComplete="family-name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        readOnly={isLocked("last_name")}
+                        disabled={accountLoading}
+                        className={`h-12 ${isLocked("last_name") ? "bg-muted/60 text-muted-foreground" : ""}`}
+                        aria-invalid={touched && lastName.trim().length <= 1}
+                      />
                     </label>
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-foreground">Имя</span>
-                      <div className="relative">
-                        <Input
-                          placeholder="Анна"
-                          autoComplete="given-name"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          readOnly={isLocked("first_name")}
-                          disabled={accountLoading}
-                          className={`h-12 ${isLocked("first_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
-                          aria-invalid={touched && firstName.trim().length <= 1}
-                        />
-                        {isLocked("first_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
-                      </div>
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        Имя
+                        {isLocked("first_name") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
+                      </span>
+                      <Input
+                        placeholder="Анна"
+                        autoComplete="given-name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        readOnly={isLocked("first_name")}
+                        disabled={accountLoading}
+                        className={`h-12 ${isLocked("first_name") ? "bg-muted/60 text-muted-foreground" : ""}`}
+                        aria-invalid={touched && firstName.trim().length <= 1}
+                      />
                     </label>
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-foreground">Отчество</span>
-                      <div className="relative">
-                        <Input
-                          placeholder="Сергеевна"
-                          autoComplete="additional-name"
-                          value={middleName}
-                          onChange={(e) => setMiddleName(e.target.value)}
-                          readOnly={isLocked("middle_name")}
-                          disabled={accountLoading}
-                          className={`h-12 ${isLocked("middle_name") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
-                        />
-                        {isLocked("middle_name") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
-                      </div>
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        Отчество
+                        {isLocked("middle_name") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
+                      </span>
+                      <Input
+                        placeholder="Сергеевна"
+                        autoComplete="additional-name"
+                        value={middleName}
+                        onChange={(e) => setMiddleName(e.target.value)}
+                        readOnly={isLocked("middle_name")}
+                        disabled={accountLoading}
+                        className={`h-12 ${isLocked("middle_name") ? "bg-muted/60 text-muted-foreground" : ""}`}
+                      />
                     </label>
                   </div>
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-foreground">Дата рождения</span>
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        Дата рождения
+                        {isLocked("birth_date") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
+                      </span>
                       <Input
                         inputMode="numeric"
                         placeholder="ДД.ММ.ГГГГ"
                         value={birthDate}
                         onChange={(e) => setBirthDate(formatBirthInput(e.target.value))}
-                        className="h-12"
+                        readOnly={isLocked("birth_date")}
+                        className={`h-12 ${isLocked("birth_date") ? "bg-muted/60 text-muted-foreground" : ""}`}
                         aria-invalid={touched && !birthValid}
                       />
                     </label>
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-foreground">Телефон</span>
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        Телефон
+                        {isLocked("phone") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
+                      </span>
                       {isLocked("phone") ? (
-                        <div className="relative">
-                          <Input value={phone} readOnly className="h-12 bg-muted/60 pr-10 text-muted-foreground" />
-                          <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-                        </div>
+                        <Input value={phone} readOnly className="h-12 bg-muted/60 text-muted-foreground" />
                       ) : (
                         <PhoneInput
                           value={phone}
@@ -671,24 +676,22 @@ export function EnergyCart() {
                     </label>
                   </div>
                   <label className="mt-3 block">
-                    <span className="mb-1 block text-sm font-medium text-foreground">
+                    <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
                       Email — сюда придёт результат
+                      {isLocked("email") && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Данные из профиля, изменить нельзя" />}
                     </span>
-                    <div className="relative">
-                      <Input
-                        type="email"
-                        inputMode="email"
-                        placeholder="anna@mail.ru"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        readOnly={isLocked("email")}
-                        disabled={accountLoading}
-                        className={`h-12 ${isLocked("email") ? "bg-muted/60 pr-10 text-muted-foreground" : ""}`}
-                        aria-invalid={touched && !emailValid}
-                      />
-                      {isLocked("email") && <Lock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />}
-                    </div>
+                    <Input
+                      type="email"
+                      inputMode="email"
+                      placeholder="anna@mail.ru"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      readOnly={isLocked("email")}
+                      disabled={accountLoading}
+                      className={`h-12 ${isLocked("email") ? "bg-muted/60 text-muted-foreground" : ""}`}
+                      aria-invalid={touched && !emailValid}
+                    />
                   </label>
                   <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                     <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
