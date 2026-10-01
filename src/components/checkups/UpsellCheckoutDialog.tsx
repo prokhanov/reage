@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Lock, MapPin, Stethoscope, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { money } from "@/data/checkups";
@@ -66,7 +66,10 @@ export function UpsellCheckoutDialog({ source, consultationPurchased, consultati
     <Dialog open={cartOpen} onOpenChange={(open) => !open && closeCart()}>
       <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl p-0 [&>button]:hidden">
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <DialogTitle className="text-xl font-semibold">Добавить к заказу</DialogTitle>
+          <div>
+            <DialogTitle className="text-xl font-semibold">Добавить к заказу</DialogTitle>
+            <DialogDescription className="sr-only">Проверьте выбранные позиции и перейдите к оплате</DialogDescription>
+          </div>
           <Button variant="ghost" size="icon" onClick={closeCart} aria-label="Закрыть"><X className="h-4 w-4" /></Button>
         </div>
         <div className="space-y-3 px-5 py-4">

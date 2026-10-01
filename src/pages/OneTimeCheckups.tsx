@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Clock3, Edit3, FlaskConical, Plus, RotateCcw, Stethoscope } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { EditOneTimeCheckupDialog, type OneTimeCheckupRecord } from "@/components/checkups/EditOneTimeCheckupDialog";
 import { UpsellCheckoutDialog } from "@/components/checkups/UpsellCheckoutDialog";
 import { EnergyOrderProvider, useEnergyOrder } from "@/components/landing/energy/EnergyOrderContext";
@@ -16,6 +16,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { bookingStatusLabels } from "@/lib/bookingStatusLabels";
 import { cn } from "@/lib/utils";
 import { money } from "@/data/checkups";
+import { notify } from "@/lib/toast";
 
 const STEPS = [
   { key: "paid", label: "Оплачен" },
@@ -27,6 +28,7 @@ const STEPS = [
 const STATUS_STEP: Record<string, number> = { waiting_call: 1, no_answer: 1, not_scheduled: 1, scheduled: 1, application_submitted: 2, collected: 3, report_pending: 3, report_ready: 4 };
 
 function CheckupsContent() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { getUserId, isViewMode } = useViewAsUser();
   const { hasPatientAccess } = usePatientModuleAccess();
   const { bySlug, resolve } = useResolvedCheckups();
@@ -47,6 +49,12 @@ function CheckupsContent() {
       return (data ?? []) as OneTimeCheckupRecord[];
     },
   });
+
+  useEffect(() => {
+    if (searchParams.get("payment") !== "success") return;
+    notify.success("Оплата прошла", "Новые позиции добавлены к вашему заказу.");
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const owned = useMemo(() => new Set(records.map((record) => record.checkup_slug)), [records]);
   const eligibleUpsellRecord = records.find((record) => STATUS_STEP[record.status] < 3);

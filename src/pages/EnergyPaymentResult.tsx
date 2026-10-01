@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,8 @@ type OrderInfo = {
   email: string;
   bundle?: string | null;
   bundles?: string[] | null;
+  isUpsell?: boolean;
+  consultationPurchased?: boolean;
 };
 
 /**
@@ -42,6 +44,7 @@ type OrderInfo = {
  */
 export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail" }) {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const invId = params.get("InvId");
   const [order, setOrder] = useState<OrderInfo | null>(null);
   const [state, setState] = useState<"loading" | "paid" | "pending" | "error">(
@@ -67,6 +70,9 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
           setState("paid");
           // Цель «оплачено» отправляет сервер (офлайн-конверсия из уведомления Робокассы).
           clearCheckupCart();
+          if (info.isUpsell) {
+            navigate(`/one-time-checkups?payment=success&InvId=${encodeURIComponent(invId)}`, { replace: true });
+          }
           return;
         }
       }
@@ -82,7 +88,7 @@ export default function EnergyPaymentResult({ mode }: { mode: "success" | "fail"
     return () => {
       cancelled = true;
     };
-  }, [invId, mode]);
+  }, [invId, mode, navigate]);
 
   useEffect(() => {
     if (mode === "fail") goalPaymentFailed(invId);

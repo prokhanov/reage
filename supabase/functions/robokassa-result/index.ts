@@ -308,6 +308,8 @@ Deno.serve(async (req) => {
         original_amount: (energyOrder as any).original_amount ?? null,
         discount_amount: (energyOrder as any).discount_amount ?? null,
         amount: ePaid,
+         is_upsell: Boolean((energyOrder as any).upsell_source_order_id),
+         consultation_purchased: (energyOrder as any).consultation_purchased === true,
         is_test: eIsTest,
         paid_at: new Date().toISOString(),
       });
