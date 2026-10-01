@@ -98,6 +98,45 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     loadData();
   }, [id, isDemoAnalysis, demoLoading]);
 
+  // Повтор только финального шага «Организм в целом»: разделы по системам уже
+  // готовы, поэтому весь отчёт заново не генерируется.
+  const retryWholeBody = async () => {
+    if (!id) return;
+    setAnalysisProgress({ current: 0, total: 1, currentCategory: "whole_body", stage: "Объединяем в «Организм в целом» (до ~2 мин)..." });
+    setAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("synthesize-whole-body", { body: { analysisId: id } });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Не удалось объединить разделы");
+      toast({ title: "Отчёт готов", description: "Раздел «Организм в целом» собран." });
+      loadData();
+      setEditReportAnalysisId(id);
+      setShowEditReport(true);
+    } catch (e: any) {
+      showGenerationFailure(`synthesize-whole-body ${e?.message ?? ""}`);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const showGenerationFailure = (raw?: string | null) => {
+    const msg = raw || "Не удалось выполнить анализ";
+    const isWholeBody = /synthesize-whole-body/.test(msg);
+    const reason = msg.match(/"error":"([^"]+)"/)?.[1] || msg.replace(/^synthesize-whole-body\s*/, "");
+    toast({
+      title: isWholeBody ? "Не удалось собрать «Организм в целом»" : "Ошибка анализа",
+      description: isWholeBody
+        ? `Разделы по системам готовы и сохранены. Причина: ${reason}`
+        : msg,
+      variant: "destructive",
+      duration: isWholeBody ? 60_000 : undefined,
+      action: isWholeBody ? (
+        <ToastAction altText="Повторить только «Организм в целом»" onClick={() => void retryWholeBody()}>
+          Повторить только «Организм в целом»
+        </ToastAction>
+      ) : undefined,
+    });
+  };
+
   // При маунте: если по этому анализу уже идёт генерация — подцепляемся к ней,
   // показываем диалог прогресса и ждём финал, не запуская новый job.
   useEffect(() => {
