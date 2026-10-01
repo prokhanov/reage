@@ -29,12 +29,28 @@ Deno.serve(async (req) => {
       return new Response("ok");
     }
 
-    if (chatId !== String(s.support_chat_id) || !m.message_thread_id || m.forum_topic_created) return new Response("ok");
-    if (!text || text.startsWith("//")) return new Response("ok");
+    if (chatId !== String(s.support_chat_id) || !m.message_thread_id) return new Response("ok");
+    // Service events (topic created/renamed/closed/reopened, pins, joins) — ignore
+    if (m.forum_topic_created || m.forum_topic_edited || m.forum_topic_closed || m.forum_topic_reopened ||
+        m.pinned_message || m.new_chat_members || m.left_chat_member) return new Response("ok");
+    if (text.startsWith("//")) return new Response("ok");
 
     const { data: conv } = await db.from("support_conversations").select("id, email, name")
       .eq("tg_topic_id", m.message_thread_id).maybeSingle();
-    if (!conv) return new Response("ok");
+    if (!conv) {
+      if (text) await tg(s.support_bot_token, "sendMessage", {
+        chat_id: m.chat.id, message_thread_id: m.message_thread_id, reply_to_message_id: m.message_id,
+        text: "⚠️ Эта тема не связана с посетителем сайта (старая или пересозданная) — ответ не доставлен. Пишите в актуальную тему посетителя.",
+      });
+      return new Response("ok");
+    }
+    if (!text) {
+      await tg(s.support_bot_token, "sendMessage", {
+        chat_id: m.chat.id, message_thread_id: m.message_thread_id, reply_to_message_id: m.message_id,
+        text: "⚠️ Посетителю доставляется только текст. Файлы, фото, стикеры и голосовые не передаются — напишите словами.",
+      });
+      return new Response("ok");
+    }
 
     const { data: inserted, error } = await db.from("support_messages").insert({
       conversation_id: conv.id, direction: "operator", text, tg_message_id: m.message_id,
