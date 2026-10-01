@@ -1,13 +1,21 @@
-import { Gift } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Gift } from "lucide-react";
 
 import type { Checkup } from "@/data/checkups";
-import { CBC_BONUS_MARKER_COUNT, ENERGY_CHECKUP, markersLabel } from "@/data/checkups";
+import {
+  CBC_BONUS_MARKER_COUNT,
+  CBC_BONUS_MARKERS,
+  ENERGY_CHECKUP,
+  markersLabel,
+} from "@/data/checkups";
 
 interface Props {
   checkup?: Checkup;
 }
 
 export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
+  const [cbcOpen, setCbcOpen] = useState(false);
+
   return (
     <section className="overflow-x-hidden border-b hairline">
       <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 md:py-16">
@@ -46,23 +54,47 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
           </ul>
           {checkup.cbcBonusEnabled && (
             <div className="mx-5 mb-5 sm:mx-8 sm:mb-8">
-              <div className="flex min-w-0 items-center gap-3 rounded-xl border border-warning/30 bg-warning-soft p-4 sm:gap-4 sm:p-5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning text-warning-foreground sm:h-12 sm:w-12">
-                  <Gift className="h-6 w-6" aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display text-lg text-foreground sm:text-xl md:text-2xl">
-                      Общий анализ крови
-                    </h3>
-                    <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold uppercase tracking-wide text-warning-foreground sm:text-sm">
-                      в подарок
-                    </span>
+              <div className="rounded-xl border border-warning/30 bg-warning-soft p-4 sm:p-5">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning text-warning-foreground sm:h-12 sm:w-12">
+                    <Gift className="h-6 w-6" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display text-lg text-foreground sm:text-xl md:text-2xl">
+                        Общий анализ крови
+                      </h3>
+                      <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold uppercase tracking-wide text-warning-foreground sm:text-sm">
+                        в подарок
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium leading-relaxed text-foreground/90 sm:text-base">
+                      {markersLabel(CBC_BONUS_MARKER_COUNT)}: воспаление и риск анемии — в этом же заборе крови, без доплаты
+                    </p>
                   </div>
-                  <p className="mt-1 text-sm font-medium leading-relaxed text-foreground/90 sm:text-base">
-                    {markersLabel(CBC_BONUS_MARKER_COUNT)}: воспаление и риск анемии — в этом же заборе крови, без доплаты
-                  </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setCbcOpen((v) => !v)}
+                  aria-expanded={cbcOpen}
+                  className="mt-3 inline-flex w-full items-center justify-between gap-2 rounded-lg px-1 py-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary sm:mt-4 sm:text-base"
+                >
+                  {cbcOpen ? "Скрыть список показателей" : `Показать все ${markersLabel(CBC_BONUS_MARKER_COUNT)}`}
+                  <ChevronDown
+                    className={`h-5 w-5 shrink-0 transition-transform duration-300 ${cbcOpen ? "rotate-180" : ""}`}
+                    aria-hidden
+                  />
+                </button>
+                {cbcOpen && (
+                  <ul className="mt-2 grid gap-x-6 gap-y-1.5 border-t border-warning/30 pt-3 sm:grid-cols-2">
+                    {CBC_BONUS_MARKERS.map((title) => (
+                      <li key={title} className="flex min-w-0 items-start gap-2 text-sm leading-snug text-foreground/90 sm:text-[15px]">
+                        <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-warning" aria-hidden />
+                        <span>{title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}
