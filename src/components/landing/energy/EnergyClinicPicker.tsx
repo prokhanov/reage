@@ -449,7 +449,9 @@ export function EnergyClinicPicker({ confirmed, onConfirm, layout = "section", h
             />
           </Suspense>
         </div>
-      </div>
+        </div>
+        </>
+      )}
     </div>
   );
 }
