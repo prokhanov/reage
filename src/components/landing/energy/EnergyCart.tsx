@@ -97,6 +97,56 @@ export function EnergyCart() {
   const [homeFloor, setHomeFloor] = useState("");
   const [homeIntercom, setHomeIntercom] = useState("");
   const [homeComment, setHomeComment] = useState("");
+  // Вошедший покупатель: поля из профиля подставляются и блокируются.
+  const [account, setAccount] = useState<{ name: string; locked: Set<string> } | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const isLocked = (k: string) => !!account?.locked.has(k);
+
+  useEffect(() => {
+    let cancelled = false;
+    const reset = () => {
+      setAccount((prev) => {
+        if (prev) {
+          if (prev.locked.has("last_name")) setLastName("");
+          if (prev.locked.has("first_name")) setFirstName("");
+          if (prev.locked.has("middle_name")) setMiddleName("");
+          if (prev.locked.has("phone")) setPhone("");
+          if (prev.locked.has("email")) setEmail("");
+        }
+        return null;
+      });
+    };
+    const load = async (userId: string, sessionEmail: string | undefined) => {
+      setAccountLoading(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, middle_name, birth_date, phone, email")
+        .eq("id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      setAccountLoading(false);
+      const locked = new Set<string>();
+      const t = (v: unknown) => String(v ?? "").trim();
+      const ln = t(data?.last_name), fn = t(data?.first_name), mn = t(data?.middle_name);
+      const em = t(data?.email) || t(sessionEmail);
+      const ph = t(data?.phone);
+      if (ln) { setLastName(ln); locked.add("last_name"); }
+      if (fn) { setFirstName(fn); locked.add("first_name"); }
+      if (mn) { setMiddleName(mn); locked.add("middle_name"); }
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { setEmail(em); locked.add("email"); }
+      if (ph && isPhoneValid(ph)) { setPhone(ph); locked.add("phone"); }
+      const bd = t(data?.birth_date).slice(0, 10);
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(bd);
+      if (m) setBirthDate((cur) => cur || `${m[3]}.${m[2]}.${m[1]}`);
+      setAccount({ name: [fn, ln].filter(Boolean).join(" ") || em, locked });
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (event === "SIGNED_OUT" || !session?.user) reset();
+      else if (event === "SIGNED_IN" || event === "INITIAL_SESSION") void load(session.user.id, session.user.email);
+    });
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, []);
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const upsellDiscount = upsellOrderId ? Math.round(itemsSum * 0.15) : 0;
@@ -535,6 +585,14 @@ export function EnergyCart() {
                 </ul>
                 <div className="mt-4 border-t border-border pt-4">
                   <div className="text-base font-semibold text-foreground">Данные для лаборатории</div>
+                  {account && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Заказ появится в вашем кабинете · <span className="font-medium text-foreground">{account.name}</span>.{" "}
+                      <button type="button" className="text-primary underline-offset-2 hover:underline" onClick={() => supabase.auth.signOut()}>
+                        Не вы? Выйти
+                      </button>
+                    </p>
+                  )}
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Фамилия</span>
@@ -543,6 +601,8 @@ export function EnergyCart() {
                         autoComplete="family-name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
+                        readOnly={isLocked("last_name")}
+                        disabled={accountLoading}
                         className="h-12"
                         aria-invalid={touched && lastName.trim().length <= 1}
                       />
@@ -554,6 +614,8 @@ export function EnergyCart() {
                         autoComplete="given-name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
+                        readOnly={isLocked("first_name")}
+                        disabled={accountLoading}
                         className="h-12"
                         aria-invalid={touched && firstName.trim().length <= 1}
                       />
@@ -565,6 +627,8 @@ export function EnergyCart() {
                         autoComplete="additional-name"
                         value={middleName}
                         onChange={(e) => setMiddleName(e.target.value)}
+                        readOnly={isLocked("middle_name")}
+                        disabled={accountLoading}
                         className="h-12"
                       />
                     </label>
@@ -583,11 +647,15 @@ export function EnergyCart() {
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-sm font-medium text-foreground">Телефон</span>
-                      <PhoneInput
-                        value={phone}
-                        onChange={setPhone}
-                        className="h-12"
-                      />
+                      {isLocked("phone") ? (
+                        <Input value={phone} readOnly className="h-12" />
+                      ) : (
+                        <PhoneInput
+                          value={phone}
+                          onChange={setPhone}
+                          className="h-12"
+                        />
+                      )}
                     </label>
                   </div>
                   <label className="mt-3 block">
@@ -601,6 +669,8 @@ export function EnergyCart() {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      readOnly={isLocked("email")}
+                      disabled={accountLoading}
                       className="h-12"
                       aria-invalid={touched && !emailValid}
                     />

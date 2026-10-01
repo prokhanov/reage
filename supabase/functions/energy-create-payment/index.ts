@@ -145,8 +145,15 @@ Deno.serve(async (req) => {
       const { data } = await admin.from("energy_orders").select("*").eq("id", upsellOrderId).eq("user_id", userId).eq("status", "paid").maybeSingle();
       sourceOrder = data;
     }
-    const emailClean = (email ?? sourceOrder?.email ?? "").trim().toLowerCase();
-    const phoneClean = (phone ?? sourceOrder?.phone ?? "").trim();
+    // Для вошедшего покупателя ФИО, телефон и email берём из профиля (в корзине они заблокированы).
+    let prof: any = null;
+    if (userId) {
+      const { data } = await admin.from("profiles").select("first_name, last_name, middle_name, phone, email").eq("id", userId).maybeSingle();
+      prof = data;
+    }
+    const pv = (k: string) => { const v = String(prof?.[k] ?? "").trim(); return v || undefined; };
+    const emailClean = (pv("email") ?? email ?? sourceOrder?.email ?? "").trim().toLowerCase();
+    const phoneClean = (pv("phone") ?? phone ?? sourceOrder?.phone ?? "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
       return json({ error: "Укажите корректный email" }, 400);
     }
@@ -163,9 +170,9 @@ Deno.serve(async (req) => {
       return json({ error: "Выберите клинику для сдачи анализов" }, 400);
     }
 
-    const lastNameClean = (lastName ?? sourceOrder?.last_name ?? "").trim().slice(0, 100);
-    const firstNameClean = (firstName ?? sourceOrder?.first_name ?? "").trim().slice(0, 100);
-    const middleNameClean = (middleName ?? sourceOrder?.middle_name ?? "").trim().slice(0, 100);
+    const lastNameClean = (pv("last_name") ?? lastName ?? sourceOrder?.last_name ?? "").trim().slice(0, 100);
+    const firstNameClean = (pv("first_name") ?? firstName ?? sourceOrder?.first_name ?? "").trim().slice(0, 100);
+    const middleNameClean = (pv("middle_name") ?? middleName ?? sourceOrder?.middle_name ?? "").trim().slice(0, 100);
     const birthDateClean = (birthDate ?? sourceOrder?.birth_date ?? "").trim();
     if (lastNameClean.length < 2 || firstNameClean.length < 2) {
       return json({ error: "Укажите фамилию и имя" }, 400);
