@@ -195,7 +195,7 @@ function NurseCallForm() {
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <p className="text-sm text-muted-foreground">
-        Заказать медсестру на дом — быстро перезвоним и согласуем удобные день и время.
+        Быстро перезвоним и согласуем удобные день и время.
       </p>
     </form>
   );
