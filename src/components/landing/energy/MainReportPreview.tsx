@@ -135,7 +135,6 @@ export function MainReportPreview({ id }: { id?: string }) {
             <div className="pointer-events-none absolute inset-x-8 -bottom-4 -z-20 h-full rounded-2xl border border-border/50 bg-muted/40" />
             <div className="flex items-center justify-between gap-3 border-b border-border/70 px-3 py-3 sm:px-4">
               <p className="text-[11px] font-semibold uppercase text-muted-foreground sm:text-xs">Фрагмент персонального отчёта</p>
-              <p className="shrink-0 text-[11px] tabular-nums text-muted-foreground sm:text-xs">1 из 116 показателей</p>
             </div>
             <div className="relative lg:hidden">
               <button
