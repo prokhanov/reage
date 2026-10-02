@@ -87,6 +87,7 @@ Deno.serve(async (req) => {
       upsellOrderId,
       consultationOnly,
       reportOfferId,
+      leadToken,
     } = body as {
       ymClientId?: string | null;
       bundle?: string;
@@ -105,6 +106,7 @@ Deno.serve(async (req) => {
       upsellOrderId?: string | null;
       consultationOnly?: boolean;
       reportOfferId?: string | null;
+      leadToken?: string | null;
     };
 
     // Корзина может содержать несколько чекапов; старый формат с одним bundle поддерживаем.
@@ -420,6 +422,25 @@ Deno.serve(async (req) => {
         await admin.from("energy_orders").delete().eq("id", order.id).eq("status", "pending");
         return json({ error: "Промокод уже используется или истёк" }, 409);
       }
+    }
+
+    // Связываем незавершённую корзину гостя с заказом (фоново, ошибки не мешают оплате).
+    try {
+      let leadId: string | null = null;
+      if (typeof leadToken === "string" && leadToken.length >= 16 && leadToken.length <= 100) {
+        const hash = createHash("sha256").update(leadToken).digest("hex");
+        const { data: l } = await admin.from("checkup_cart_leads").select("id").eq("token_hash", hash).eq("status", "incomplete").maybeSingle();
+        leadId = l?.id ?? null;
+      }
+      if (!leadId && (emailClean || phoneClean)) {
+        const since = new Date(Date.now() - 7 * 864e5).toISOString();
+        const ors = [emailClean ? `email.eq.${String(emailClean).toLowerCase()}` : null, phoneClean ? `phone.eq.${phoneClean}` : null].filter(Boolean).join(",");
+        const { data: l } = await admin.from("checkup_cart_leads").select("id").eq("status", "incomplete").gte("updated_at", since).or(ors).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        leadId = l?.id ?? null;
+      }
+      if (leadId) await admin.from("checkup_cart_leads").update({ status: "checkout", order_id: order.id, updated_at: new Date().toISOString() }).eq("id", leadId);
+    } catch (e) {
+      console.error("lead link failed", e);
     }
 
     const invId = Number(order.inv_id);

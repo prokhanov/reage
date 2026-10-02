@@ -23,6 +23,7 @@ import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import { EnergyClinicPicker } from "./EnergyClinicPicker";
 import { useEnergyOrder } from "./EnergyOrderContext";
 import { getYmClientId } from "@/lib/yandexMetrika";
+import { useCartLeadAutosave, getCartLeadToken } from "@/hooks/useCartLeadAutosave";
 
 const CBC_BONUS_PRICE = 990;
 // Доплата за выезд медсестры на дом. Должна совпадать с сервером (energy-create-payment).
@@ -306,6 +307,25 @@ export function EnergyCart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartOpen, phoneValid, emailValid]);
 
+  // Тихое сохранение незавершённой корзины гостя (только без входа).
+  useCartLeadAutosave(
+    {
+      email: email.trim(),
+      phone: normalizePhone(phone),
+      lastName: lastName.trim(),
+      firstName: firstName.trim(),
+      middleName: middleName.trim(),
+      birthDate: birthIso,
+      bundles: items.map((item) => item.bundle),
+      clinicTitle: isHome ? "Выезд на дом" : clinic?.title ?? null,
+      clinicAddress: isHome ? homeAddressFull : clinic ? clinic.address_short || clinic.full_address : null,
+      locationType: isHome ? "home" : "clinic",
+      promoCode: appliedPromo?.code ?? manualOffer?.code ?? null,
+      amount: total,
+    },
+    !account && !accountLoading && items.length > 0,
+  );
+
   const handlePay = async () => {
     setTouched(true);
     if (!canPay || paying) return;
@@ -326,6 +346,7 @@ export function EnergyCart() {
           promoCode: appliedPromo?.code ?? manualOffer?.code,
           reportOfferId,
           upsellOrderId,
+          leadToken: account ? null : getCartLeadToken(),
           consultation: consult && !consultHidden,
           locationType: isHome ? "home" : "clinic",
           homeAddress: isHome ? homeAddressFull : null,

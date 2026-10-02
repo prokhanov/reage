@@ -13,6 +13,7 @@ import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { CHECKUPS, money } from "@/data/checkups";
 
 const STATUS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  incomplete: { label: "Не окончен", variant: "outline" },
   paid: { label: "Оплачен", variant: "default" },
   pending: { label: "Не оплачен", variant: "secondary" },
   failed: { label: "Ошибка", variant: "destructive" },
@@ -37,13 +38,36 @@ export function CheckupOrdersTab() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-checkup-orders"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("energy_orders")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return data ?? [];
+      const [ordersRes, leadsRes] = await Promise.all([
+        supabase.from("energy_orders").select("*").order("created_at", { ascending: false }).limit(500),
+        supabase.from("checkup_cart_leads").select("*").is("order_id", null).eq("status", "incomplete")
+          .order("updated_at", { ascending: false }).limit(500),
+      ]);
+      if (ordersRes.error) throw ordersRes.error;
+      const leads = (leadsRes.data ?? []).map((l) => ({
+        id: `lead-${l.id}`,
+        inv_id: "—",
+        is_test: false,
+        created_at: l.updated_at,
+        last_name: l.last_name,
+        first_name: l.first_name,
+        middle_name: l.middle_name,
+        birth_date: l.birth_date,
+        email: l.email,
+        phone: l.phone,
+        bundles: l.bundles,
+        bundle: l.bundles?.[0] ?? "",
+        clinic_title: l.clinic_title,
+        clinic_address: l.clinic_address,
+        paid_amount: null,
+        out_sum: l.amount ?? 0,
+        promo_code: l.promo_code,
+        status: "incomplete",
+        paid_at: null,
+        lead_page: l.page,
+      }));
+      const orders = (ordersRes.data ?? []).map((o) => ({ ...o, lead_page: null as string | null }));
+      return [...leads, ...orders].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
     },
   });
 
@@ -111,7 +135,7 @@ export function CheckupOrdersTab() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{fmtDate(o.created_at)}</TableCell>
                       <TableCell className="min-w-[180px]">
-                        <div>{fio || "—"}</div>
+                        <div>{fio || (o.status === "incomplete" ? <span className="text-muted-foreground">ФИО не указано</span> : "—")}</div>
                         {o.birth_date && (
                           <div className="text-xs text-muted-foreground">д.р. {fmtDate(o.birth_date, false)}</div>
                         )}
@@ -133,6 +157,7 @@ export function CheckupOrdersTab() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant={st.variant}>{st.label}</Badge>
+                        {o.lead_page && <div className="text-xs text-muted-foreground mt-1">{o.lead_page}</div>}
                         {o.paid_at && <div className="text-xs text-muted-foreground mt-1">{fmtDate(o.paid_at)}</div>}
                       </TableCell>
                     </TableRow>
