@@ -167,8 +167,8 @@ export function MainReportPreview({ id }: { id?: string }) {
               <Block id="deficits" title="Дефициты и дисфункции">
                 <div className="space-y-3">
                   {DEFICITS.map((s) => (
-                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-attention/30 bg-status-attention/5 px-5 py-4 sm:px-6">
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-attention/15 text-status-attention">
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-warning/30 bg-status-warning/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-warning/15 text-status-warning">
                         <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
                       </span>
                       <div>
