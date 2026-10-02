@@ -87,7 +87,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
 
   return (
     <section id={id} className="scroll-mt-16 border-b hairline bg-gradient-monitoring py-14 text-primary-foreground md:py-20">
-      <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
+      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div>
             <h2 className="font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
