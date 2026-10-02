@@ -40,7 +40,7 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
               className="flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-shadow hover:shadow-md sm:p-7"
             >
               <h3 className="font-sans text-base font-semibold text-foreground">{item.label}</h3>
-              <p className="mt-3 font-display text-3xl leading-[1.05] text-primary sm:text-[1.95rem]">{item.value}</p>
+              <p className="mt-3 font-display text-[1.45rem] leading-[1.05] text-primary sm:text-[1.6rem]">{item.value}</p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">{item.text}</p>
             </article>
           ))}
