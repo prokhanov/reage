@@ -262,7 +262,7 @@ export function useBreakpoint(): Breakpoint {
 
 /* ===================== ARTBOARD ===================== */
 
-export function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
+export function Artboard({ bp, isDark, plain = false }: { bp: Breakpoint; isDark: boolean; plain?: boolean }) {
   const ab = ARTBOARDS[bp];
   const layout = LAYOUTS[bp];
 
@@ -305,9 +305,13 @@ export function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
             height: ab.man.height,
             objectPosition: ab.man.objectPosition,
             animationDelay: "0.2s",
-            WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
-            maskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
-            transform: "translateY(-24px)",
+            ...(plain
+              ? {}
+              : {
+                  WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
+                  maskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
+                  transform: "translateY(-24px)",
+                }),
           }}
         />
         {(Object.keys(layout) as WidgetId[]).map((id) => {
