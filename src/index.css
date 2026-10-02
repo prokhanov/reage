@@ -218,6 +218,56 @@ All colors MUST be HSL.
     --hero-glass-bg-alpha: 0.45;
     --hero-glass-blur: 30px;
   }
+
+  /* Isolated palette experiment for /main_new. */
+  .main-new-palette {
+    --background: 210 22.2% 96.5%;
+    --foreground: 210 28.6% 16.5%;
+    --surface: 210 47.4% 92.5%;
+    --surface-foreground: 210 28.6% 16.5%;
+
+    --card: 210 22.2% 96.5%;
+    --card-foreground: 210 28.6% 16.5%;
+    --popover: 210 22.2% 96.5%;
+    --popover-foreground: 210 28.6% 16.5%;
+
+    --primary: 209.7 49.2% 36.3%;
+    --primary-foreground: 210 22.2% 96.5%;
+    --primary-hover: 209.7 49.2% 31%;
+    --primary-glow: 209.7 49.2% 50%;
+
+    --secondary: 210 47.4% 92.5%;
+    --secondary-foreground: 210 28.6% 16.5%;
+    --secondary-hover: 210 38% 88%;
+    --secondary-glow: 210 30% 82%;
+
+    --accent: 209.7 49.2% 36.3%;
+    --accent-foreground: 210 22.2% 96.5%;
+    --accent-glow: 209.7 42% 58%;
+
+    --muted: 210 47.4% 92.5%;
+    --muted-foreground: 210 18% 42%;
+    --border: 210 28% 86%;
+    --border-strong: 210 22% 69%;
+    --input: 210 22% 76%;
+    --ring: 209.7 49.2% 36.3%;
+
+    --info: 209.7 49.2% 36.3%;
+    --info-foreground: 210 22.2% 96.5%;
+    --info-soft: 210 47.4% 92.5%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%);
+    --gradient-secondary: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--surface)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--surface)) 100%);
+
+    --shadow-sm: 0 1px 2px hsl(var(--foreground) / 0.05);
+    --shadow-md: 0 8px 24px -16px hsl(var(--foreground) / 0.2);
+    --shadow-lg: 0 18px 48px -28px hsl(var(--foreground) / 0.28);
+    --shadow-xl: 0 28px 64px -36px hsl(var(--foreground) / 0.32);
+    --shadow-card: 0 12px 36px -24px hsl(var(--foreground) / 0.22);
+    --shadow-overlay: 0 24px 72px -28px hsl(var(--foreground) / 0.35);
+  }
 }
 
 @layer base {

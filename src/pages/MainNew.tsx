@@ -137,6 +137,11 @@ function MainNewContent() {
   }, [setTheme]);
 
   useEffect(() => {
+    document.body.classList.add("main-new-palette");
+    return () => document.body.classList.remove("main-new-palette");
+  }, []);
+
+  useEffect(() => {
     const ids = navItems.map((i) => i.href.replace("#", ""));
     const observer = new IntersectionObserver(
       (entries) => {
@@ -168,7 +173,7 @@ function MainNewContent() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+    <div className="main-new-palette min-h-screen overflow-x-clip bg-background text-foreground">
       <PageMeta
         title="ReAge — анализы, которые наконец понятны"
         description="ReAge переводит результаты анализов на понятный язык и помогает увидеть полную картину здоровья."
