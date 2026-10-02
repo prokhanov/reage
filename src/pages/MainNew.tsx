@@ -287,7 +287,6 @@ function MainNewContent() {
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
         <MainProgramVsCheckup id="program-vs-checkup" />
-        <EnergyExpertResult demoReport id="result" />
         <WhereToTestSection />
         <EnergyHowItWorks id="how-it-works" />
         <ComparisonSection hidePrice />
