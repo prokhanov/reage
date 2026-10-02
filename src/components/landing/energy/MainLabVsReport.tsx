@@ -1,42 +1,76 @@
-import {
-  Archive,
-  Check,
-  ClipboardList,
-  Gauge,
-  MessagesSquare,
-  Stethoscope,
-  Waypoints,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-
-type Row = {
-  icon: LucideIcon;
-  label: string;
-  lab: string;
-  reage: string;
+type Item = {
+  lead: string;
+  text: string;
 };
 
-const ROWS: Row[] = [
-  { icon: Gauge, label: "Норма", lab: "«В норме» ≠ «всё хорошо»", reage: "Видно, где показатель уже съезжает" },
-  { icon: Waypoints, label: "Взаимосвязи", lab: "Каждая цифра сама по себе", reage: "Показатели читаются вместе, видны скрытые связи" },
-  { icon: ClipboardList, label: "Приоритеты", lab: "15 одинаково тревожных звёздочек", reage: "3 главных шага: что важно сейчас" },
-  { icon: Stethoscope, label: "Действия", lab: "«Обратитесь к врачу»", reage: "План: питание, сон, нагрузка, вопросы врачу" },
-  { icon: MessagesSquare, label: "Язык", lab: "Термины, которые надо гуглить", reage: "Человеческим языком, без гугления" },
-  { icon: Archive, label: "Хранение", lab: "Бланки теряются в почте", reage: "Всё в одном кабинете" },
+const LAB_ITEMS: Item[] = [
+  {
+    lead: "Норма для «среднего человека».",
+    text: "В референс попадают и люди с заболеваниями, поэтому «в норме» не значит «хорошо».",
+  },
+  {
+    lead: "Каждый показатель отдельно.",
+    text: "Нормальный гемоглобин не скажет, что запасы железа на исходе.",
+  },
+  {
+    lead: "Таблица без выводов.",
+    text: "Что делать с отклонениями — непонятно.",
+  },
+  {
+    lead: "Каждый раз с нуля.",
+    text: "Прошлые бланки лежат в почте и ни с чем не сравниваются.",
+  },
 ];
 
-function Marker({ ok }: { ok: boolean }) {
+const REAGE_ITEMS: Item[] = [
+  {
+    lead: "Оптимальный диапазон.",
+    text: "Видно, где показатель формально в норме, но уже требует внимания.",
+  },
+  {
+    lead: "Связи между показателями.",
+    text: "Ферритин, гемоглобин и витамин D считаются вместе, а не по отдельности.",
+  },
+  {
+    lead: "План действий.",
+    text: "Что изменить в питании и образе жизни, что обсудить с врачом.",
+  },
+  {
+    lead: "История.",
+    text: "Каждая новая сдача сравнивается с предыдущими.",
+  },
+];
+
+function Card({
+  title,
+  items,
+  tone,
+}: {
+  title: string;
+  items: Item[];
+  tone: "lab" | "reage";
+}) {
   return (
-    <span
-      className={cn(
-        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-        ok ? "bg-success/15 text-success" : "bg-destructive/10 text-destructive",
-      )}
+    <div
+      className={
+        tone === "reage"
+          ? "rounded-2xl bg-primary/10 p-7 sm:p-9 lg:p-10"
+          : "rounded-2xl border border-border/70 bg-card p-7 sm:p-9 lg:p-10"
+      }
     >
-      {ok ? <Check className="h-3 w-3" strokeWidth={2.5} /> : <X className="h-3 w-3" strokeWidth={2.5} />}
-    </span>
+      <p className="text-[0.95rem] font-semibold text-foreground/70">{title}</p>
+      <div className="mt-6 space-y-5">
+        {items.map((item) => (
+          <p
+            key={item.lead}
+            className="text-[15px] leading-relaxed text-muted-foreground sm:text-base"
+          >
+            <span className="font-semibold text-foreground">{item.lead}</span>{" "}
+            {item.text}
+          </p>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -48,56 +82,9 @@ export function MainLabVsReport({ id }: { id?: string }) {
           Лаборатория даёт цифры. ReAge объясняет, что с&nbsp;ними делать
         </h2>
 
-        <div className="mt-8 overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm md:mt-10">
-          {/* Шапка таблицы */}
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
-            <div className="hidden md:block" />
-            <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4 text-sm font-semibold text-muted-foreground md:border-b-0 md:px-6 md:py-5">
-              <X className="h-4 w-4 text-destructive" strokeWidth={2.5} />
-              Бланк из лаборатории
-            </div>
-            <div className="hidden items-center gap-2 border-b border-border/60 px-6 py-5 text-sm font-semibold text-primary md:flex">
-              <Check className="h-4 w-4" strokeWidth={2.5} />
-              Отчёт ReAge
-            </div>
-          </div>
-
-          {/* Строки */}
-          <div className="divide-y divide-border/60">
-            {ROWS.map((r) => {
-              const Icon = r.icon;
-              return (
-                <div
-                  key={r.label}
-                  className="grid grid-cols-1 gap-y-3 px-5 py-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)] md:items-center md:gap-x-4 md:px-6 md:py-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
-                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-                    </span>
-                    <span className="text-[15px] font-semibold text-foreground">{r.label}</span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 md:items-center">
-                    <Marker ok={false} />
-                    <p className="text-[15px] leading-snug text-muted-foreground">{r.lab}</p>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 md:items-center">
-                    <span className="hidden md:flex">
-                      <Marker ok />
-                    </span>
-                    <p className="text-[15px] font-medium leading-snug text-foreground">
-                      <span className="mr-2.5 inline-flex align-middle md:hidden">
-                        <Marker ok />
-                      </span>
-                      {r.reage}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="mt-8 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-2 md:gap-6">
+          <Card title="Бланк из лаборатории" items={LAB_ITEMS} tone="lab" />
+          <Card title="Отчёт ReAge" items={REAGE_ITEMS} tone="reage" />
         </div>
       </div>
     </section>
