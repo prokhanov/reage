@@ -43,7 +43,7 @@ export function MainDoctorBlock({ id }: { id?: string }) {
               <img
                 src={doctorPhoto}
                 alt={doctor.name}
-                className="h-72 w-full object-cover object-top sm:h-96 md:h-[24rem] lg:h-[26rem]"
+                className="h-56 w-full object-cover object-top sm:h-64 md:h-[19rem] lg:h-[21rem]"
                 loading="lazy"
               />
               <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-foreground backdrop-blur-sm md:hidden">
