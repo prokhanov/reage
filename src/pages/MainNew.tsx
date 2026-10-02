@@ -278,7 +278,9 @@ function MainNewContent() {
               </p>
             </div>
 
-            <HeroVisual />
+            <div className="hidden lg:block">
+              <HeroVisual />
+            </div>
           </div>
         </section>
 
