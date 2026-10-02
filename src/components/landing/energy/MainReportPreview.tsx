@@ -17,8 +17,8 @@ const SECTIONS = [
 ] as const;
 
 const REPORT_STATS = [
-  { value: "60", label: "страниц" },
-  { value: "116", label: "показателей с разбором" },
+  { value: "50+", label: "страниц" },
+  { value: "110+", label: "показателей с разбором" },
   { value: "5", label: "систем организма" },
   { value: "1", label: "план действий на всё" },
 ] as const;
