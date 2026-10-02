@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   ArrowRight,
+  Check,
   Menu,
   ShoppingCart,
   X,
@@ -222,19 +223,15 @@ function MainNewContent() {
               <h1 className="font-display mt-4 max-w-[720px] text-balance text-[clamp(2.25rem,3.6vw,3.25rem)] leading-[1.1] text-foreground">
                 Сервис контроля здоровья с&nbsp;понятными разборами и&nbsp;планом действий
               </h1>
-              <p className="mt-4 max-w-[620px] text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Сдаёте кровь в лаборатории или дома — мы сравниваем результаты с оптимумом, объясняем отклонения и показываем динамику от сдачи к сдаче.
-              </p>
-
-              <ul className="mt-6 grid w-full max-w-[620px] gap-2.5 text-left sm:grid-cols-2 sm:gap-x-6">
+              <ul className="mt-5 grid w-full max-w-[620px] gap-2.5 text-left sm:grid-cols-2 sm:gap-x-6">
                 {[
                   "Сдача анализов в лаборатории или с выездом на дом",
                   "Все результаты и понятный отчет — в одном кабинете",
                   "Персональные рекомендации и план следующих шагов",
                   "История показателей и динамика при повторных сдачах",
                 ].map((t) => (
-                  <li key={t} className="flex items-start gap-2.5 text-[15px] leading-snug text-foreground">
-                    <span className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                  <li key={t} className="flex items-start gap-2 text-[15px] leading-snug text-foreground">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden />
                     <span>{t}</span>
                   </li>
                 ))}
