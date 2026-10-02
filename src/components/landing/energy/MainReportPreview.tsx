@@ -32,8 +32,26 @@ function Block({ id, title, children }: { id: string; title: string; children: R
   );
 }
 
-const SUMMARY_TEXT =
-  "Начнём с хорошего: главные системы — углеводный обмен, антиоксидантная защита и щитовидная железа — работают стабильно и слаженно. Глюкоза и инсулин в идеальных значениях, клетки получают энергию без сбоев, а щитовидка вырабатывает гормоны в нужном ритме. Это важная новость: усталость, с которой вы пришли, точно не от них.\n\nНо картина не полностью благополучная. Белковый обмен проседает: альбумин ниже оптимальной зоны, а ведь из белка строятся ферменты, иммунные клетки и само настроение. Одновременно иммунитет работает по аллергическому типу — повышены эозинофилы, и вероятная причина кроется в реакции на продукты питания.\n\nЭти два изменения связаны между собой. Нехватка белка ослабляет пищеварение, недорасщеплённая еда провоцирует иммунный ответ — отсюда вздутие и дискомфорт после еды, а вслед за ними усталость и медленное восстановление.\n\nВ этом отчёте мы разбираем цепочку целиком: что именно запустило дисбаланс, как показатели влияют друг на друга и какие шаги — питание, коррекция образа жизни, поддержка ферментов — вернут систему в равновесие. Хорошая новость в том, что ситуация полностью обратима.";
+const SUMMARY_PARAGRAPHS = [
+  { lead: "Начнём с хорошего:", text: "главные системы — углеводный обмен, антиоксидантная защита и щитовидная железа — работают стабильно и слаженно. Усталость, с которой вы пришли, точно не от них." },
+  { lead: "Но картина не полностью благополучная.", text: "Альбумин ниже оптимальной зоны — организму не хватает белка. Одновременно повышены эозинофилы: иммунитет работает по аллергическому типу, и вероятная причина — реакция на продукты." },
+  { lead: "Эти два изменения связаны между собой.", text: "Нехватка белка ослабляет пищеварение — отсюда вздутие после еды, а вслед за ним усталость и медленное восстановление." },
+  { lead: "В этом отчёте мы разбираем цепочку целиком:", text: "что запустило дисбаланс и какие шаги — питание, коррекция образа жизни, поддержка ферментов — вернут систему в равновесие. Ситуация полностью обратима." },
+];
+
+const SUMMARY_BIO_AGE = { value: "38,9", passport: 38, diff: "+0,9 года к паспорту" };
+const SUMMARY_HEALTH_INDEX = { value: 68, label: "Умеренно" };
+
+const SUMMARY_SYSTEMS = [
+  { name: "Энергия и восстановление", score: 96 },
+  { name: "Эндокринная и стрессовая", score: 83 },
+  { name: "Воспалительная и иммунная", score: 76 },
+  { name: "Метаболизм и детоксикация", score: 69 },
+  { name: "Сердечно-сосудистая", score: 62 },
+];
+
+const systemBarColor = (score: number) =>
+  score >= 85 ? "bg-status-optimal" : score >= 70 ? "bg-status-acceptable" : "bg-status-risk";
 
 const STRENGTHS = [
   { lead: "Идеальный углеводный обмен", text: "Глюкоза, инсулин и гликированный гемоглобин — в оптимальных значениях. Клетки стабильно получают энергию, признаков инсулинорезистентности нет." },
@@ -185,8 +203,78 @@ export function MainReportPreview({ id }: { id?: string }) {
               className="h-[min(560px,65vh)] space-y-10 overflow-y-auto overscroll-auto bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px] lg:overscroll-contain"
             >
               <Block id="summary" title="Общее резюме">
-                <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
-                  <p className="whitespace-pre-line text-[15px] leading-relaxed text-foreground/90">{SUMMARY_TEXT}</p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.9fr]">
+                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Биологический возраст</p>
+                    <p className="mt-2 font-display text-[2.5rem] leading-none text-foreground">{SUMMARY_BIO_AGE.value}</p>
+                    <div className="mt-5">
+                      <div className="relative h-1.5 rounded-full bg-muted">
+                        <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-foreground" style={{ left: "54.5%" }} />
+                      </div>
+                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                        <span>моложе</span>
+                        <span>паспорт {SUMMARY_BIO_AGE.passport}</span>
+                        <span>старше</span>
+                      </div>
+                    </div>
+                    <span className="mt-4 inline-flex rounded-full bg-status-risk/15 px-3 py-1 text-sm font-medium text-status-risk">
+                      {SUMMARY_BIO_AGE.diff}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col rounded-2xl border border-border/70 bg-card px-5 py-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Индекс здоровья</p>
+                    <div className="relative mx-auto mt-3 h-24 w-24">
+                      <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
+                        <circle cx="44" cy="44" r="38" fill="none" strokeWidth="9" className="stroke-muted" />
+                        <circle
+                          cx="44"
+                          cy="44"
+                          r="38"
+                          fill="none"
+                          strokeWidth="9"
+                          strokeLinecap="round"
+                          strokeDasharray="162.4 238.8"
+                          className="text-status-acceptable"
+                          stroke="currentColor"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="font-display text-3xl leading-none text-foreground">{SUMMARY_HEALTH_INDEX.value}</span>
+                        <span className="mt-1 text-xs text-muted-foreground">из 100</span>
+                      </div>
+                    </div>
+                    <span className="mx-auto mt-auto inline-flex rounded-full bg-status-acceptable/15 px-3 py-1 text-sm font-medium text-status-acceptable">
+                      {SUMMARY_HEALTH_INDEX.label}
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:col-span-2 lg:col-span-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Рейтинг 5 систем организма</p>
+                    <div className="mt-4 space-y-3.5">
+                      {SUMMARY_SYSTEMS.map((s) => (
+                        <div key={s.name}>
+                          <div className="flex items-baseline justify-between gap-3">
+                            <p className="text-[15px] leading-snug text-foreground">{s.name}</p>
+                            <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">{s.score}</p>
+                          </div>
+                          <div className="mt-1.5 h-1.5 rounded-full bg-muted">
+                            <div className={cn("h-full rounded-full", systemBarColor(s.score))} style={{ width: `${s.score}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
+                  <div className="space-y-4">
+                    {SUMMARY_PARAGRAPHS.map((p) => (
+                      <p key={p.lead} className="text-[15px] leading-relaxed text-muted-foreground">
+                        <strong className="font-semibold text-foreground">{p.lead}</strong> {p.text}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </Block>
 
