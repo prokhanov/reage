@@ -97,19 +97,19 @@ export function MainMonitoringSection({ id }: { id?: string }) {
               Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-5 py-4">
-                <p className="font-semibold text-primary-foreground">{f.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/70">{f.text}</p>
+              <div key={f.title} className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-3.5 py-3 sm:px-5 sm:py-4">
+                <p className="text-sm font-semibold text-primary-foreground sm:text-base">{f.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-primary-foreground/70 sm:mt-1.5 sm:text-sm">{f.text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible lg:px-0 lg:pb-0">
           {isLoading ? (
-            [0, 1, 2].map((i) => <Skeleton key={i} className="h-[440px] rounded-3xl" />)
+            [0, 1, 2].map((i) => <Skeleton key={i} className="h-[440px] w-[85%] shrink-0 rounded-3xl sm:w-[60%] lg:w-auto" />)
           ) : cards.length === 0 ? (
             <p className="col-span-full py-12 text-center text-muted-foreground">Программы временно недоступны.</p>
           ) : (
@@ -117,7 +117,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
               <div
                 key={c.id}
                 className={cn(
-                  "flex flex-col rounded-3xl border bg-card p-6 sm:p-7",
+                  "flex w-[85%] shrink-0 snap-center flex-col rounded-3xl border bg-card p-6 sm:w-[60%] sm:p-7 lg:w-auto",
                   c.isPopular ? "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/40" : "border-border/70",
                 )}
               >
