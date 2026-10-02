@@ -1,6 +1,6 @@
 import { usePartnerPrice } from "@/components/PartnerPrice";
 import { useState } from "react";
-import { Award, ChevronDown, Clock, FileText, Gift, Heart, MessageCircle, ShoppingCart, Stethoscope, Wallet } from "lucide-react";
+import { Award, ChevronDown, Clock, FileText, Gift, Heart, MessageCircle, ArrowRight, Stethoscope, Wallet } from "lucide-react";
 
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Button } from "@/components/ui/button";
@@ -306,7 +306,7 @@ export function EnergyExpertResult({
           </div>
 
           <Button
-            className="mt-4 h-auto min-h-12 w-full gap-2 whitespace-normal px-3 text-sm sm:text-base"
+            className="mt-4 h-auto min-h-[52px] w-full gap-2 whitespace-normal px-4 text-base sm:min-h-12"
             size="lg"
             onClick={() => {
               reachGoal(`${checkup.slug.replace(/-/g, "_")}_example_report_open`);
@@ -374,10 +374,10 @@ export function EnergyExpertResult({
               <Button
                 size="lg"
                 onClick={addToCart}
-                className="h-12 w-full text-base sm:w-auto sm:px-8"
+                className="h-[52px] w-full gap-2 text-base sm:h-12 sm:w-auto"
               >
-                <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
                 Купить — {money(pp(checkup.price))}
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
               </Button>
             </div>
           )}

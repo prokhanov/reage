@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import { PartnerPrice, usePartnerPrice } from "@/components/PartnerPrice";
 import { useEffect, useState } from "react";
 
@@ -85,10 +86,11 @@ export function EnergyStickyCta({
         <Button
           size="lg"
           onClick={onAddToCart}
-          className="ml-auto h-12 flex-1 text-base"
+          className="ml-auto h-12 flex-1 gap-2 text-base"
           tabIndex={visible ? 0 : -1}
         >
           Купить — {money(pp(price))}
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </Button>
       </div>
     </div>
