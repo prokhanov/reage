@@ -91,7 +91,7 @@ export function SupportChatWidget() {
   const [heroHidden, setHeroHidden] = useState(false);
   useEffect(() => {
     const check = () => {
-      const onMain = window.location.pathname === "/main";
+      const onMain = window.location.pathname === "/";
       setHeroHidden(onMain && window.innerWidth >= 1024 && window.scrollY < window.innerHeight * 0.6);
     };
     check();
