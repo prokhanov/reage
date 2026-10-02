@@ -39,14 +39,14 @@ export function MainDoctorBlock({ id }: { id?: string }) {
 
         <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 lg:grid-cols-2 lg:gap-6">
           {/* Left card — doctor */}
-          <div className="flex flex-col gap-5 rounded-2xl border border-border/70 bg-card p-6 shadow-sm sm:flex-row sm:gap-6 sm:p-7">
+          <div className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm sm:flex-row">
             <img
               src={doctorPhoto}
               alt={doctor.name}
-              className="h-36 w-28 shrink-0 rounded-xl object-cover object-top"
+              className="h-56 w-full shrink-0 object-cover object-top sm:h-auto sm:w-48"
               loading="lazy"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 p-5 sm:p-6">
               <p className="font-display text-2xl leading-tight text-foreground">{doctor.name}</p>
               {subtitle && (
                 <p className="mt-1.5 text-[15px] text-muted-foreground">{subtitle}</p>
