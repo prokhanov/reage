@@ -142,6 +142,44 @@ export function MainReportPreview({ id }: { id?: string }) {
               ref={scrollRef}
               className="h-[560px] space-y-10 overflow-y-auto overscroll-contain rounded-2xl bg-muted/40 p-4 sm:p-6 lg:h-[620px]"
             >
+              <Block id="summary" title="Общее резюме">
+                <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
+                  <p className="text-[15px] leading-relaxed text-foreground/90">{SUMMARY_TEXT}</p>
+                </div>
+              </Block>
+
+              <Block id="strengths" title="Сильные стороны организма">
+                <div className="space-y-3">
+                  {STRENGTHS.map((s) => (
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-optimal/30 bg-status-optimal/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-optimal/15 text-status-optimal">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                      </span>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Block>
+
+              <Block id="deficits" title="Дефициты и дисфункции">
+                <div className="space-y-3">
+                  {DEFICITS.map((s) => (
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-attention/30 bg-status-attention/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-attention/15 text-status-attention">
+                        <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </span>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Block>
+
               <Block id="markers" title="Расшифровка показателей">
                 <div className="space-y-3">
                   {MARKERS.map((m, i) => (
