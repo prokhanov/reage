@@ -1,47 +1,42 @@
-import { Check, X } from "lucide-react";
+import {
+  Archive,
+  Check,
+  ClipboardList,
+  Gauge,
+  MessagesSquare,
+  Stethoscope,
+  Waypoints,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ROWS = [
-  { label: "Норма", lab: "«В норме» ≠ «всё хорошо»", reage: "Видно, где показатель уже съезжает" },
-  { label: "Взаимосвязи", lab: "Каждая цифра сама по себе", reage: "Показатели читаются вместе, видны скрытые связи" },
-  { label: "Приоритеты", lab: "15 одинаково тревожных звёздочек", reage: "3 главных шага: что важно сейчас" },
-  { label: "Действия", lab: "«Обратитесь к врачу»", reage: "План: питание, сон, нагрузка, вопросы врачу" },
-  { label: "Язык", lab: "Термины, которые надо гуглить", reage: "Человеческим языком, без гугления" },
-  { label: "Хранение", lab: "Бланки теряются в почте", reage: "Всё в одном кабинете" },
+type Row = {
+  icon: LucideIcon;
+  label: string;
+  lab: string;
+  reage: string;
+};
+
+const ROWS: Row[] = [
+  { icon: Gauge, label: "Норма", lab: "«В норме» ≠ «всё хорошо»", reage: "Видно, где показатель уже съезжает" },
+  { icon: Waypoints, label: "Взаимосвязи", lab: "Каждая цифра сама по себе", reage: "Показатели читаются вместе, видны скрытые связи" },
+  { icon: ClipboardList, label: "Приоритеты", lab: "15 одинаково тревожных звёздочек", reage: "3 главных шага: что важно сейчас" },
+  { icon: Stethoscope, label: "Действия", lab: "«Обратитесь к врачу»", reage: "План: питание, сон, нагрузка, вопросы врачу" },
+  { icon: MessagesSquare, label: "Язык", lab: "Термины, которые надо гуглить", reage: "Человеческим языком, без гугления" },
+  { icon: Archive, label: "Хранение", lab: "Бланки теряются в почте", reage: "Всё в одном кабинете" },
 ];
 
-function Column({ reage }: { reage: boolean }) {
+function Marker({ ok }: { ok: boolean }) {
   return (
-    <div
+    <span
       className={cn(
-        "rounded-2xl p-6 shadow-sm sm:p-8",
-        reage ? "border border-primary/15 bg-primary/[0.07]" : "border border-border/80 bg-card",
+        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
+        ok ? "bg-success/15 text-success" : "bg-destructive/10 text-destructive",
       )}
     >
-      <p className={cn("text-sm font-semibold", reage ? "text-primary" : "text-muted-foreground")}>
-        {reage ? "Отчёт ReAge" : "Бланк из лаборатории"}
-      </p>
-      <ul className="mt-5 divide-y divide-border/60">
-        {ROWS.map((r) => (
-          <li key={r.label} className="flex gap-3 py-3.5 first:pt-0 last:pb-0">
-            <span
-              className={cn(
-                "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-                reage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
-              )}
-            >
-              {reage ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">{r.label}</p>
-              <p className={cn("mt-0.5 text-[15px] leading-snug", reage ? "font-medium text-foreground" : "text-foreground/80")}>
-                {reage ? r.reage : r.lab}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+      {ok ? <Check className="h-3 w-3" strokeWidth={2.5} /> : <X className="h-3 w-3" strokeWidth={2.5} />}
+    </span>
   );
 }
 
@@ -52,9 +47,57 @@ export function MainLabVsReport({ id }: { id?: string }) {
         <h2 className="font-display max-w-[760px] text-balance text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
           Лаборатория даёт цифры. ReAge объясняет, что с&nbsp;ними делать
         </h2>
-        <div className="mt-8 grid gap-4 md:mt-10 md:grid-cols-2 md:gap-6">
-          <Column reage={false} />
-          <Column reage />
+
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm md:mt-10">
+          {/* Шапка таблицы */}
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
+            <div className="hidden md:block" />
+            <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4 text-sm font-semibold text-muted-foreground md:border-b-0 md:px-6 md:py-5">
+              <X className="h-4 w-4 text-destructive" strokeWidth={2.5} />
+              Бланк из лаборатории
+            </div>
+            <div className="hidden items-center gap-2 border-b border-border/60 px-6 py-5 text-sm font-semibold text-primary md:flex">
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+              Отчёт ReAge
+            </div>
+          </div>
+
+          {/* Строки */}
+          <div className="divide-y divide-border/60">
+            {ROWS.map((r) => {
+              const Icon = r.icon;
+              return (
+                <div
+                  key={r.label}
+                  className="grid grid-cols-1 gap-y-3 px-5 py-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)] md:items-center md:gap-x-4 md:px-6 md:py-5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                    </span>
+                    <span className="text-[15px] font-semibold text-foreground">{r.label}</span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 md:items-center">
+                    <Marker ok={false} />
+                    <p className="text-[15px] leading-snug text-muted-foreground">{r.lab}</p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 md:items-center">
+                    <span className="hidden md:flex">
+                      <Marker ok />
+                    </span>
+                    <p className="text-[15px] font-medium leading-snug text-foreground">
+                      <span className="mr-2.5 inline-flex align-middle md:hidden">
+                        <Marker ok />
+                      </span>
+                      {r.reage}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
