@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 
 import { PageMeta } from "@/components/PageMeta";
 import { Footer } from "@/components/landing/CTASection";
+import { CheckupFactsBlock } from "@/components/landing/energy/CheckupFactsBlock";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHeader } from "@/components/landing/energy/EnergyHeader";
@@ -78,6 +79,9 @@ export function CheckupContent({
         <EnergyIncluded checkup={checkup} />
         <EnergyWhereToTest />
         <EnergyExpertResult showBuyCta />
+        {checkup.facts ? (
+          <CheckupFactsBlock facts={checkup.facts} price={checkup.price} inCart={inCart} onAddToCart={handleAddToCart} />
+        ) : null}
         <EnergyPriceCompare />
         <EnergyOtherCheckups currentSlug={checkup.slug} />
       </main>
