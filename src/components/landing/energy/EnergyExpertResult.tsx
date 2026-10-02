@@ -20,7 +20,7 @@ import expertDoctor from "@/assets/energy/reage-doctor.webp";
  * Демо-карточки биомаркеров для лендинга: та же шкала и та же логика статусов,
  * что и в персональном отчёте. Диапазоны совпадают со справочником ReAge.
  */
-interface DemoMarker {
+export interface DemoMarker {
   code: string;
   name: string;
   value: number;
@@ -36,7 +36,7 @@ interface DemoMarker {
   feeling?: string[];
 }
 
-const markers: DemoMarker[] = [
+export const markers: DemoMarker[] = [
   {
     code: "FERR",
     name: "Ферритин",
@@ -124,7 +124,7 @@ const statusBgMap: Record<string, string> = {
   optimal: "bg-status-optimal/5 border-status-optimal/15",
 };
 
-const demoPrescriptions: PrescriptionCardData[] = [
+export const demoPrescriptions: PrescriptionCardData[] = [
   {
     id: "demo-iron",
     prescription: "Железо",
@@ -151,16 +151,22 @@ const demoPrescriptions: PrescriptionCardData[] = [
   },
 ];
 
-function MarkerCard({
+export function MarkerCard({
   marker,
   defaultOpen,
   description,
+  open: controlledOpen,
+  onToggle,
 }: {
   marker: DemoMarker;
   defaultOpen: boolean;
   description: string;
+  open?: boolean;
+  onToggle?: () => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [innerOpen, setInnerOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? innerOpen;
+  const setOpen = (fn: (v: boolean) => boolean) => (onToggle ? onToggle() : setInnerOpen(fn));
   const status = getBiomarkerStatus(marker.value, marker.biomarker, 40, "female");
   const key = status.status as keyof typeof statusColorMap;
 
@@ -196,7 +202,13 @@ function MarkerCard({
 
       </button>
 
-      {open && (
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+       <div className="overflow-hidden">
         <div className="space-y-3 px-4 pb-4">
           <BiomarkerScale
             biomarker={marker.biomarker}
@@ -225,7 +237,8 @@ function MarkerCard({
             )}
           </div>
         </div>
-      )}
+       </div>
+      </div>
     </div>
   );
 }
