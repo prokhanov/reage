@@ -233,7 +233,7 @@ export function MainProgramVsCheckup({ id }: { id?: string }) {
         {/* ===== Bottom note (desktop) ===== */}
         <div className="mt-8 hidden items-center justify-between gap-6 md:flex">
           <p className="max-w-2xl text-[15px] leading-relaxed text-primary-foreground/80">
-            <span className="font-semibold text-primary-foreground">Уже прошли чекап?</span> Передайте на программу —
+            <span className="font-semibold text-primary-foreground">Уже прошли наш чекап?</span> Передайте на программу —
             стоимость чекапа зачтём, а его результаты станут первой точкой на графиках.
           </p>
           <ProgramCta />
