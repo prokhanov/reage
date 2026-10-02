@@ -185,15 +185,15 @@ export function MainMonitoringSection({ id }: { id?: string }) {
         </div>
 
         <div className="mt-6 text-center">
-          <Button variant="link" onClick={() => setCompareOpen(true)}>
+          <Button variant="link" className="text-primary-foreground" onClick={() => setCompareOpen(true)}>
             Сравнить программы по показателям
           </Button>
         </div>
         <BiomarkerComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} />
 
-        <div className="mt-6 rounded-2xl border border-border/70 bg-card px-6 py-5">
-          <p className="font-semibold text-foreground">Почему программа дороже, чем несколько чекапов</p>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="mt-6 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-5">
+          <p className="font-semibold text-primary-foreground">Почему программа дороже, чем несколько чекапов</p>
+          <p className="mt-2 text-[15px] leading-relaxed text-primary-foreground/70">
             Сверх анализов в программу входят сравнение всех сдач года, пересмотр плана после каждой сдачи,
             консультации врача и напоминания о пересдаче. Вы платите не за пробирки, а за то, что результаты
             складываются в историю и превращаются в понятные решения.
