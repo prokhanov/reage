@@ -13,7 +13,6 @@ import { PageMeta } from "@/components/PageMeta";
 import { Artboard, useBreakpoint } from "@/components/landing/HeroPortrait";
 import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
-import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
