@@ -57,7 +57,7 @@ function HeroVisual() {
   const bp = useBreakpoint();
   return (
     <div className="flex h-[460px] w-full items-end justify-center sm:h-[520px] lg:h-full lg:min-h-[560px]">
-      <Artboard bp={bp} isDark={false} />
+      <Artboard bp={bp} isDark={false} plain />
     </div>
   );
 }
