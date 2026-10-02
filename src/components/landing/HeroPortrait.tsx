@@ -211,6 +211,16 @@ const ARTBOARDS: Record<
   },
 };
 
+// Раскладка карточек для тестовой главной /main: выше по фото, группа центрирована.
+const LAYOUTS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Layout>>> = {
+  desktop: {
+    bioAge:         { top: 100, left: 92,  width: 216, rotate: -2 },
+    biomarkers:     { top: 94,  left: 316, width: 236, rotate: 2 },
+    recommendations:{ top: 252, left: 312, width: 244, rotate: -2 },
+    systems:        { top: 258, left: 48,  width: 252, rotate: 1 },
+  },
+};
+
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
     bioAge:         { top: 138, left: -15, width: 170, rotate: -2 },
@@ -262,9 +272,9 @@ export function useBreakpoint(): Breakpoint {
 
 /* ===================== ARTBOARD ===================== */
 
-export function Artboard({ bp, isDark, plain = false }: { bp: Breakpoint; isDark: boolean; plain?: boolean }) {
+export function Artboard({ bp, isDark, plain = false, layoutVariant }: { bp: Breakpoint; isDark: boolean; plain?: boolean; layoutVariant?: "mainNew" }) {
   const ab = ARTBOARDS[bp];
-  const layout = LAYOUTS[bp];
+  const layout: Layout = { ...LAYOUTS[bp], ...(layoutVariant === "mainNew" ? LAYOUTS_MAIN_NEW[bp] ?? {} : {}) };
 
   const zMap: Record<WidgetId, number> = {
     bioAge: 20,
