@@ -183,11 +183,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
 
                   {isOpen && (
                     <div className="px-4 pb-5 pl-[2.6rem] sm:px-6 sm:pl-[3.1rem]">
-                      <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
-                        {count} {markerWord(count)}
-                        {c.cbcBonusEnabled ? " + ОАК" : ""}
-                      </div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">Что входит</div>
+                      <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Что входит</div>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {c.markers.map((m) => (
                           <span key={m.title} className="rounded-full bg-muted px-3 py-1 text-sm text-foreground">
@@ -214,7 +210,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
                           to={c.href}
                           className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                         >
-                          Подробнее <ArrowRight className="h-4 w-4" />
+                          Подробнее о чекапе <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
