@@ -58,6 +58,11 @@ function scrollToAnchor(href: string) {
   }
 }
 
+const floatTextStyle: React.CSSProperties = {
+  textShadow:
+    "0 1px 10px rgba(255,255,255,0.95), 0 0 3px rgba(255,255,255,0.9)",
+};
+
 function HeroVisual() {
   return (
     <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-muted sm:h-[460px] lg:h-full lg:min-h-[560px]">
