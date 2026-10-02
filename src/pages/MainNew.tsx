@@ -58,7 +58,7 @@ function scrollToAnchor(href: string) {
   }
 }
 
-const floatTextStyle: React.CSSProperties = {
+const floatTextStyle: CSSProperties = {
   textShadow:
     "0 1px 10px rgba(255,255,255,0.95), 0 0 3px rgba(255,255,255,0.9)",
 };
