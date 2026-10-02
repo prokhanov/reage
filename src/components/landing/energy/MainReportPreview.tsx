@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
@@ -59,6 +59,8 @@ function Row({ lead, text }: { lead: string; text: string }) {
 export function MainReportPreview({ id }: { id?: string }) {
   const [opened, setOpened] = useState<Set<number>>(() => new Set([0]));
   const [active, setActive] = useState<string>(SECTIONS[0].id);
+  const [tocOpen, setTocOpen] = useState(false);
+  const activeIndex = Math.max(0, SECTIONS.findIndex((s) => s.id === active));
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,9 +132,56 @@ export function MainReportPreview({ id }: { id?: string }) {
               <p className="text-[11px] font-semibold uppercase text-muted-foreground sm:text-xs">Фрагмент персонального отчёта</p>
               <p className="shrink-0 text-[11px] tabular-nums text-muted-foreground sm:text-xs">1 из 116 показателей</p>
             </div>
+            <div className="relative lg:hidden">
+              <button
+                type="button"
+                onClick={() => setTocOpen((v) => !v)}
+                aria-expanded={tocOpen}
+                className="flex w-full items-center gap-3 border-b border-border/70 bg-card px-3 py-3 text-left sm:px-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Содержание · {activeIndex + 1} из {SECTIONS.length}
+                  </p>
+                  <p className="truncate text-base font-semibold text-foreground">{SECTIONS[activeIndex].label}</p>
+                  <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      style={{ width: `${((activeIndex + 1) / SECTIONS.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <ChevronDown className={cn("h-5 w-5 shrink-0 text-muted-foreground transition-transform", tocOpen && "rotate-180")} />
+              </button>
+              <ul
+                className={cn(
+                  "absolute inset-x-0 top-full z-20 origin-top space-y-1 border-b border-border/70 bg-card p-2 shadow-lg transition-all duration-300",
+                  tocOpen ? "visible scale-y-100 opacity-100" : "invisible scale-y-95 opacity-0",
+                )}
+              >
+                {SECTIONS.map((s, i) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTocOpen(false);
+                        goTo(s.id);
+                      }}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-base",
+                        active === s.id ? "bg-primary/10 text-primary" : "text-muted-foreground",
+                      )}
+                    >
+                      <span>{s.label}</span>
+                      <span className="ml-3 text-sm tabular-nums opacity-60">0{i + 1}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <div
               ref={scrollRef}
-              className="h-[560px] space-y-10 overflow-y-auto overscroll-contain bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px]"
+              className="h-[min(560px,65vh)] space-y-10 overflow-y-auto overscroll-auto bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px] lg:overscroll-contain"
             >
               <Block id="summary" title="Общее резюме">
                 <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
@@ -224,11 +273,12 @@ export function MainReportPreview({ id }: { id?: string }) {
                 </div>
               </Block>
             </div>
+            <p className="px-3 pt-2 text-center text-xs text-muted-foreground lg:hidden">↕ Листайте отчёт</p>
             <div className="pointer-events-none absolute inset-x-2 bottom-2 h-10 rounded-b-xl bg-gradient-to-t from-card to-transparent sm:inset-x-3 sm:bottom-3" />
           </div>
 
           <aside className="space-y-3 lg:sticky lg:top-24">
-            <nav className="rounded-2xl border border-border/70 bg-card p-3 sm:p-4" aria-label="Оглавление отчёта">
+            <nav className="hidden rounded-2xl border border-border/70 bg-card p-3 sm:p-4 lg:block" aria-label="Оглавление отчёта">
               <h3 className="px-2 pb-4 font-display text-2xl text-foreground">Что внутри отчёта</h3>
               <ul className="space-y-2">
                 {SECTIONS.map((s, i) => (
