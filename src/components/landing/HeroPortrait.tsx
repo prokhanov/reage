@@ -214,10 +214,10 @@ const ARTBOARDS: Record<
 // Раскладка карточек для тестовой главной /main: выше по фото, группа центрирована.
 const LAYOUTS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Layout>>> = {
   desktop: {
-    bioAge:         { top: 36,  left: 92,  width: 216, rotate: -2 },
-    biomarkers:     { top: 30,  left: 316, width: 236, rotate: 2 },
-    recommendations:{ top: 188, left: 312, width: 244, rotate: -2 },
-    systems:        { top: 194, left: 48,  width: 252, rotate: 1 },
+    bioAge:         { top: 100, left: 92,  width: 216, rotate: -2 },
+    biomarkers:     { top: 94,  left: 316, width: 236, rotate: 2 },
+    recommendations:{ top: 252, left: 312, width: 244, rotate: -2 },
+    systems:        { top: 258, left: 48,  width: 252, rotate: 1 },
   },
 };
 
