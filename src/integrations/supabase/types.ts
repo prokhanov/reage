@@ -596,6 +596,86 @@ export type Database = {
           },
         ]
       }
+      checkup_cart_leads: {
+        Row: {
+          amount: number | null
+          birth_date: string | null
+          bundles: string[]
+          clinic_address: string | null
+          clinic_title: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          location_type: string | null
+          middle_name: string | null
+          order_id: string | null
+          page: string | null
+          phone: string | null
+          promo_code: string | null
+          status: string
+          token_hash: string
+          updated_at: string
+          utm: Json | null
+          ym_client_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          birth_date?: string | null
+          bundles?: string[]
+          clinic_address?: string | null
+          clinic_title?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          location_type?: string | null
+          middle_name?: string | null
+          order_id?: string | null
+          page?: string | null
+          phone?: string | null
+          promo_code?: string | null
+          status?: string
+          token_hash: string
+          updated_at?: string
+          utm?: Json | null
+          ym_client_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          birth_date?: string | null
+          bundles?: string[]
+          clinic_address?: string | null
+          clinic_title?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          location_type?: string | null
+          middle_name?: string | null
+          order_id?: string | null
+          page?: string | null
+          phone?: string | null
+          promo_code?: string | null
+          status?: string
+          token_hash?: string
+          updated_at?: string
+          utm?: Json | null
+          ym_client_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkup_cart_leads_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "energy_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkup_doctor_settings: {
         Row: {
           consultation_enabled: boolean

@@ -197,6 +197,13 @@
       "when": 1790859013830,
       "tag": "0027_fix_report_offer_owner_check",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790932871373,
+      "tag": "0028_checkup_cart_leads",
+      "breakpoints": true
     }
   ]
 }
