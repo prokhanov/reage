@@ -1,322 +1,238 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, TriangleAlert, ChevronRight } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { MarkerCard, markers as MARKERS } from "@/components/landing/energy/EnergyExpertResult";
-
-const RESUME =
-  "В ходе исследования показателей ваших анализов было выявлено несколько важных закономерностей. Углеводный обмен и функция щитовидной железы находятся в отличном состоянии — это надёжный фундамент энергии и обмена веществ. Вместе с тем обнаружены дисбалансы, требующие внимания: снижение альбумина указывает на недостаточное поступление или усвоение белка, а повышенные эозинофилы — на аллергический фон, который может незаметно истощать ресурсы организма.";
-
-const STRENGTHS = [
-  "Идеальный углеводный обмен",
-  "Высокая эффективность работы митохондрий",
-  "Надёжная антиоксидантная защита",
-  "Низкий риск системного воспаления",
-];
-
-const DEFICITS = [
-  "Дефицит белка и нарушение его усвоения",
-  "Аллергический тип иммунного ответа",
-  "Пограничный уровень жирорастворимых витаминов",
-  "Сниженный тестостерон",
-  "Нагрузка на печёночные ферменты",
-];
-
-const LIFESTYLE = [
-  {
-    title: "Питание",
-    text: "Увеличьте долю полноценного белка до 1,2–1,5 г на кг веса в день: яйца, рыба, творог, бобовые. Распределите белок равномерно между приёмами пищи — это поддержит уровень альбумина.",
-  },
-  {
-    title: "Сон",
-    text: "Отбой до 23:00 и 7,5–8 часов сна. Именно в глубокой фазе сна восстанавливаются митохондрии и нормализуется гормональный фон.",
-  },
-  {
-    title: "Нагрузка",
-    text: "2–3 силовые тренировки в неделю и ежедневная ходьба 7–8 тысяч шагов. Силовая нагрузка — главный естественный стимулятор тестостерона.",
-  },
-];
-
-const RECOMMENDATIONS = [
-  {
-    title: "Железо (бисглицинат)",
-    dose: "25 мг в день, во время еды",
-    duration: "3 месяца, затем контроль ферритина",
-    note: "Не сочетать с кальцием и чаем — интервал не менее 2 часов.",
-  },
-  {
-    title: "Витамин D3",
-    dose: "4000 МЕ в день, утром с жирной пищей",
-    duration: "Постоянно, контроль 25(OH)D через 3 месяца",
-    note: "Целевой уровень — 40–60 нг/мл.",
-  },
-];
-
-const SPECIALISTS = [
-  {
-    title: "Эндокринолог",
-    text: "Обсудить уровень тестостерона и стратегию его восстановления без медикаментов.",
-  },
-  {
-    title: "Аллерголог-иммунолог",
-    text: "Повышенные эозинофилы и IgM — повод выяснить, на что реагирует иммунная система.",
-  },
-];
+import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
+import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 
 const SECTIONS = [
-  { id: "resume", label: "Общее резюме" },
+  { id: "summary", label: "Общее резюме" },
   { id: "strengths", label: "Сильные стороны организма" },
   { id: "deficits", label: "Дефициты и дисфункции" },
   { id: "markers", label: "Расшифровка показателей" },
   { id: "lifestyle", label: "Коррекция образа жизни" },
-  { id: "recommendations", label: "Рекомендации" },
-  { id: "specialists", label: "Специалисты" },
+  { id: "recs", label: "Рекомендации" },
+  { id: "doctors", label: "Специалисты" },
 ] as const;
+
+function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <div id={`report-${id}`} data-section={id} className="scroll-mt-4">
+      <h3 className="mb-4 font-display text-2xl text-foreground">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+const SUMMARY_TEXT =
+  "В ходе исследования показателей ваших анализов было выявлено, что углеводный обмен, антиоксидантная защита и функция щитовидной железы находятся в стабильном и оптимальном состоянии.\n\nНо, в то же время, обнаружены несколько значимых дисбалансов, которые могут быть связаны с жалобами на усталость, боли и пищеварительный дискомфорт.\n\nВ частности, отмечается нарушение белкового обмена, о чём свидетельствует сниженный уровень альбумина (32,1 г/л), а также повышенная активность иммунной системы по аллергическому типу, что отражается в увеличении уровня эозинофилов (6,02 %). В совокупности эти изменения могут влиять на гормональный фон и снижать общий ресурс организма.";
+
+const STRENGTHS = [
+  { lead: "Эффективный углеводный обмен", text: "Показатели глюкозы (4.72 ммоль/л), гликированного гемоглобина (5.05 %) и инсулина (3.1 мкМЕ/мл) находятся в оптимальных значениях, что говорит о стабильном обеспечении клеток энергией и отсутствии инсулинорезистентности." },
+  { lead: "Высокая антиоксидантная защита", text: "Уровень коэнзима Q10 (2330 нг/мл) находится на верхней границе нормы, а общий антиоксидантный статус (1.85 ммоль/л) оптимален, что обеспечивает надёжную защиту клеток от оксидативного стресса." },
+  { lead: "Сбалансированная работа щитовидной железы", text: "Все ключевые гормоны (ТТГ 1.28 мМЕ/л, fT4 11.13 пмоль/л, fT3 5.33 пмоль/л) и отсутствие антител указывают на здоровую функцию железы, исключая её как причину усталости." },
+  { lead: "Низкий риск системного воспаления и атеросклероза", text: "Уровень С-реактивного белка (0.01 мг/л) и индекс атерогенности (0.58) находятся на крайне низком уровне, что свидетельствует о здоровье сосудов и отсутствии хронического системного воспаления." },
+];
+
+const DEFICITS = [
+  { lead: "Нарушение белкового обмена", text: "Уровень альбумина (32.1 г/л при норме 35–52 г/л) значительно снижен. Это указывает на дефицит основного «строительного материала» в организме, что напрямую влияет на уровень энергии, транспортную функцию крови и способность к восстановлению." },
+  { lead: "Активность иммунной системы по аллергическому типу", text: "Повышенный уровень эозинофилов (6.02 % при норме до 5 %) является маркером аллергической реакции, которая, вероятно, связана с пищеварением и может быть причиной Ваших жалоб на вздутие, диарею и боли." },
+  { lead: "Ослабление первичного иммунного ответа", text: "Сниженный уровень иммуноглобулина M (0.26 г/л при норме 0.4–2.3 г/л) говорит о потенциальном снижении способности организма быстро реагировать на новые инфекции." },
+  { lead: "Дефицит тестостерона", text: "Уровень общего тестостерона (0.16 нмоль/л) находится ниже нормы, что является одной из прямых причин усталости, снижения выносливости и перепадов настроения." },
+  { lead: "Пониженная функция печеночных ферментов", text: "Уровни АЛТ (3.8 Ед/л) и АСТ (8.2 Ед/л) ниже референсных значений. Это может указывать на дефицит белка и витамина B6, необходимых для их синтеза." },
+];
+
+function Row({ lead, text }: { lead: string; text: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card px-5 py-4 sm:px-6">
+      <p className="font-semibold text-foreground">{lead}</p>
+      <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{text}</p>
+    </div>
+  );
+}
 
 export function MainReportPreview({ id }: { id?: string }) {
   const [opened, setOpened] = useState<Set<number>>(() => new Set([0]));
-  const [active, setActive] = useState<string>("resume");
+  const [active, setActive] = useState<string>(SECTIONS[0].id);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const markerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const toggle = (i: number) =>
-    setOpened((prev) => {
-      const n = new Set(prev);
-      n.has(i) ? n.delete(i) : n.add(i);
-      return n;
-    });
-
-  // Подсветка активного раздела в оглавлении по скроллу
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
-    const observer = new IntersectionObserver(
+    const onScroll = () => {
+      const top = root.getBoundingClientRect().top;
+      let current: string = SECTIONS[0].id;
+      root.querySelectorAll<HTMLElement>("[data-section]").forEach((el) => {
+        if (el.getBoundingClientRect().top - top < 80) current = el.dataset.section!;
+      });
+      if (root.scrollTop + root.clientHeight >= root.scrollHeight - 4) current = SECTIONS[SECTIONS.length - 1].id;
+      setActive(current);
+    };
+    root.addEventListener("scroll", onScroll, { passive: true });
+    const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) setActive(e.target.id.replace("report-section-", ""));
-        }
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const i = Number((e.target as HTMLElement).dataset.marker);
+          setOpened((prev) => (prev.has(i) ? prev : new Set(prev).add(i)));
+        });
       },
-      { root, rootMargin: "-20% 0px -60% 0px" },
+      { root, rootMargin: "0px 0px -35% 0px", threshold: 0.6 },
     );
-    for (const s of SECTIONS) {
-      const el = sectionRefs.current[s.id];
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
+    root.querySelectorAll("[data-marker]").forEach((el) => io.observe(el));
+    return () => {
+      root.removeEventListener("scroll", onScroll);
+      io.disconnect();
+    };
   }, []);
 
-  // Авто-раскрытие карточек показателей при прокрутке
-  useEffect(() => {
+  const goTo = (sid: string) => {
     const root = scrollRef.current;
-    if (!root) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          const idx = Number((e.target as HTMLElement).dataset.markerIndex);
-          if (Number.isNaN(idx)) continue;
-          setOpened((prev) => {
-            if (prev.has(idx)) return prev;
-            const n = new Set(prev);
-            n.add(idx);
-            return n;
-          });
-        }
-      },
-      { root, rootMargin: "-35% 0px -35% 0px" },
-    );
-    markerRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  const scrollTo = (sid: string) => {
-    sectionRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = root?.querySelector<HTMLElement>(`#report-${sid}`);
+    if (!root || !el) return;
+    root.scrollTo({ top: el.offsetTop - root.offsetTop, behavior: "smooth" });
   };
 
   return (
     <section id={id} className="border-b hairline py-14 md:py-20">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
-        <div className="max-w-3xl">
-          <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
-            Так выглядит отчёт ReAge
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Каждый показатель разобран так, как ниже: значение, оптимум, что это значит для вас и что делать дальше.
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
+              Так выглядит отчёт
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+              По каждому показателю — значение, оптимальный диапазон, что это значит для вас и что делать дальше.
+            </p>
+          </div>
+          <Link
+            to="/example-report"
+            className="shrink-0 font-semibold text-primary underline decoration-dotted underline-offset-4"
+          >
+            Открыть полный пример →
+          </Link>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:mt-10 lg:grid-cols-[1fr_22rem] lg:gap-8">
-          {/* Окно отчёта с внутренним скроллом */}
-          <div
-            ref={scrollRef}
-            className="max-h-[34rem] overflow-y-auto rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
-          >
-            <div className="space-y-8">
-              <div
-                id="report-section-resume"
-                ref={(el) => (sectionRefs.current.resume = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Общее резюме</h3>
-                <p className="text-[15px] leading-relaxed text-muted-foreground">{RESUME}</p>
-              </div>
+        <div className="mt-8 grid grid-cols-1 gap-6 md:mt-10 lg:grid-cols-[1fr_17rem] lg:gap-10">
+          {/* Оглавление: на мобиле — чипы сверху, на десктопе — справа */}
+          <nav className="order-first -mx-4 overflow-x-auto px-4 lg:order-last lg:mx-0 lg:px-0">
+            <ul className="flex gap-2 lg:sticky lg:top-24 lg:flex-col lg:gap-1">
+              {SECTIONS.map((s, i) => (
+                <li key={s.id} className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => goTo(s.id)}
+                    className={cn(
+                      "flex w-full items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors lg:rounded-xl lg:border-0 lg:border-l-2 lg:px-4 lg:py-3 lg:text-[15px]",
+                      active === s.id
+                        ? "border-primary bg-primary/10 font-semibold text-primary"
+                        : "border-border/70 text-muted-foreground hover:text-foreground lg:border-border",
+                    )}
+                  >
+                    <span className="hidden text-xs tabular-nums opacity-60 lg:inline">0{i + 1}</span>
+                    {s.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-              <div
-                id="report-section-strengths"
-                ref={(el) => (sectionRefs.current.strengths = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Сильные стороны организма</h3>
-                <ul className="space-y-2">
+          <div className="relative">
+            <div
+              ref={scrollRef}
+              className="h-[560px] space-y-10 overflow-y-auto overscroll-contain rounded-2xl bg-muted/40 p-4 sm:p-6 lg:h-[620px]"
+            >
+              <Block id="summary" title="Общее резюме">
+                <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
+                  <p className="whitespace-pre-line text-[15px] leading-relaxed text-foreground/90">{SUMMARY_TEXT}</p>
+                </div>
+              </Block>
+
+              <Block id="strengths" title="Сильные стороны организма">
+                <div className="space-y-3">
                   {STRENGTHS.map((s) => (
-                    <li
-                      key={s}
-                      className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3"
-                    >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-                        <Check className="h-3 w-3" strokeWidth={3} />
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-optimal/30 bg-status-optimal/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-optimal/15 text-status-optimal">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
                       </span>
-                      <span className="text-[15px] text-foreground">{s}</span>
-                    </li>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
                   ))}
-                </ul>
-              </div>
+                </div>
+              </Block>
 
-              <div
-                id="report-section-deficits"
-                ref={(el) => (sectionRefs.current.deficits = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Дефициты и дисфункции</h3>
-                <ul className="space-y-2">
+              <Block id="deficits" title="Дефициты и дисфункции">
+                <div className="space-y-3">
                   {DEFICITS.map((s) => (
-                    <li
-                      key={s}
-                      className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3"
-                    >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
-                        <TriangleAlert className="h-3 w-3" strokeWidth={2.5} />
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-warning/30 bg-status-warning/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-warning/15 text-status-warning">
+                        <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
                       </span>
-                      <span className="text-[15px] text-foreground">{s}</span>
-                    </li>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
                   ))}
-                </ul>
-              </div>
+                </div>
+              </Block>
 
-              <div
-                id="report-section-markers"
-                ref={(el) => (sectionRefs.current.markers = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-1 font-display text-2xl text-foreground">Расшифровка показателей</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Карточки раскрываются сами по мере прокрутки — или нажмите на карточку.
-                </p>
+              <Block id="markers" title="Расшифровка показателей">
                 <div className="space-y-3">
                   {MARKERS.map((m, i) => (
                     <div
                       key={m.code}
-                      data-marker-index={i}
-                      ref={(el) => (markerRefs.current[i] = el)}
+                      data-marker={i}
+                      className={cn(
+                        "transition-all duration-700 ease-out",
+                        opened.has(i) ? "translate-y-0 opacity-100" : "translate-y-3 opacity-80",
+                      )}
                     >
                       <MarkerCard
                         marker={m}
                         defaultOpen={false}
                         description={m.fallbackDescription}
                         open={opened.has(i)}
-                        onToggle={() => toggle(i)}
+                        onToggle={() =>
+                          setOpened((prev) => {
+                            const n = new Set(prev);
+                            n.has(i) ? n.delete(i) : n.add(i);
+                            return n;
+                          })
+                        }
                       />
                     </div>
                   ))}
                 </div>
-              </div>
+              </Block>
 
-              <div
-                id="report-section-lifestyle"
-                ref={(el) => (sectionRefs.current.lifestyle = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Коррекция образа жизни</h3>
+              <Block id="lifestyle" title="Коррекция образа жизни">
                 <div className="space-y-3">
-                  {LIFESTYLE.map((l) => (
-                    <div key={l.title} className="rounded-2xl border border-border/70 bg-card px-5 py-4">
-                      <p className="mb-1 font-semibold text-foreground">{l.title}</p>
-                      <p className="text-[15px] leading-relaxed text-muted-foreground">{l.text}</p>
-                    </div>
+                  <Row lead="Питание" text="Красное мясо, печень или бобовые 3–4 раза в неделю, вместе с продуктами, богатыми витамином C. Чай и кофе — не раньше чем через час после еды." />
+                  <Row lead="Сон" text="7–8 часов, отбой до 23:30. При дефиците железа восстановление после нагрузки идёт медленнее." />
+                  <Row lead="Нагрузка" text="Умеренное кардио 3 раза в неделю, без изнуряющих тренировок до восстановления запасов железа." />
+                </div>
+              </Block>
+
+              <Block id="recs" title="Рекомендации">
+                <div className="space-y-3">
+                  {demoPrescriptions.map((p, i) => (
+                    <PrescriptionCard key={p.id} prescription={p} index={i} />
                   ))}
                 </div>
-              </div>
+              </Block>
 
-              <div
-                id="report-section-recommendations"
-                ref={(el) => (sectionRefs.current.recommendations = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Рекомендации</h3>
+              <Block id="doctors" title="Специалисты">
                 <div className="space-y-3">
-                  {RECOMMENDATIONS.map((r) => (
-                    <div key={r.title} className="rounded-2xl border border-border/70 bg-card px-5 py-4">
-                      <p className="font-semibold text-foreground">{r.title}</p>
-                      <p className="mt-1 text-[15px] text-foreground">{r.dose}</p>
-                      <p className="text-sm text-muted-foreground">{r.duration}</p>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.note}</p>
-                    </div>
-                  ))}
+                  <Row lead="Терапевт" text="Обсудить причины низкого ферритина и план восполнения железа." />
+                  <Row lead="Гинеколог" text="При обильных менструациях — оценить возможную причину потери железа." />
                 </div>
-              </div>
-
-              <div
-                id="report-section-specialists"
-                ref={(el) => (sectionRefs.current.specialists = el)}
-                className="scroll-mt-4"
-              >
-                <h3 className="mb-3 font-display text-2xl text-foreground">Специалисты</h3>
-                <div className="space-y-3">
-                  {SPECIALISTS.map((s) => (
-                    <div key={s.title} className="rounded-2xl border border-border/70 bg-card px-5 py-4">
-                      <p className="mb-1 font-semibold text-foreground">{s.title}</p>
-                      <p className="text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </Block>
             </div>
-          </div>
-
-          {/* Оглавление */}
-          <div className="flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-3xl border border-border/70 bg-card p-5 sm:p-6">
-              <h3 className="mb-3 font-display text-2xl text-foreground">Что внутри отчёта</h3>
-              <ul>
-                {SECTIONS.map((s) => (
-                  <li key={s.id} className="border-b border-border/60 last:border-b-0">
-                    <button
-                      type="button"
-                      onClick={() => scrollTo(s.id)}
-                      className={cn(
-                        "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left text-[15px] transition-colors",
-                        active === s.id
-                          ? "bg-primary/10 font-semibold text-foreground"
-                          : "text-foreground hover:bg-muted/60",
-                      )}
-                    >
-                      <span>{s.label}</span>
-                      <ChevronRight
-                        className={cn(
-                          "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                          active === s.id && "translate-x-0.5 text-primary",
-                        )}
-                      />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Button asChild size="lg" className="w-full">
-              <Link to="/example-report">Открыть полный пример отчёта</Link>
-            </Button>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 rounded-b-2xl bg-gradient-to-t from-background/80 to-transparent" />
           </div>
         </div>
       </div>
