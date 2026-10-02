@@ -78,7 +78,7 @@ function HeroVisual() {
         style={{ objectPosition: "center 20%" }}
       />
 
-      <div className="absolute left-3 top-[32%] w-[148px] p-3 sm:left-[2%] sm:w-[180px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute left-[3%] top-[5%] w-[148px] p-3 sm:left-[3%] sm:w-[180px] sm:p-4" style={floatTextStyle}>
         <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">Биовозраст</span>
           <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
@@ -89,7 +89,7 @@ function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute right-3 top-[20%] w-[154px] p-3 sm:right-[1%] sm:w-[190px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute right-[3%] top-[5%] w-[154px] p-3 sm:right-[2%] sm:w-[190px] sm:p-4" style={floatTextStyle}>
         <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
           <FlaskConical className="h-3.5 w-3.5 text-primary" />
           Биомаркеры
@@ -101,7 +101,7 @@ function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute bottom-[12%] left-3 w-[162px] p-3 sm:left-[5%] sm:w-[200px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute bottom-[14%] left-[3%] w-[162px] p-3 sm:left-[4%] sm:w-[200px] sm:p-4" style={floatTextStyle}>
         <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
           <HeartPulse className="h-3.5 w-3.5 text-success" />
           Системы организма
@@ -114,7 +114,7 @@ function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute bottom-[5%] right-3 w-[150px] p-3 sm:right-[2%] sm:w-[184px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute bottom-[6%] right-[3%] w-[150px] p-3 sm:right-[3%] sm:w-[184px] sm:p-4" style={floatTextStyle}>
         <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
           <Activity className="h-3.5 w-3.5 text-primary" />
           Индекс здоровья
