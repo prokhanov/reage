@@ -21,7 +21,6 @@ import { MainLabVsReport } from "@/components/landing/energy/MainLabVsReport";
 import { MainReportPreview } from "@/components/landing/energy/MainReportPreview";
 import { MainDoctorBlock } from "@/components/landing/energy/MainDoctorBlock";
 import { MainMonitoringSection } from "@/components/landing/energy/MainMonitoringSection";
-import { MainProgramVsCheckup } from "@/components/landing/energy/MainProgramVsCheckup";
 import {
   EnergyOrderProvider,
   useEnergyOrder,
@@ -287,7 +286,6 @@ function MainNewContent() {
         <MainDoctorBlock />
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
-        <MainProgramVsCheckup id="program-vs-checkup" />
         <WhereToTestSection />
         <MainQuestionCta id="questions" />
       </main>
