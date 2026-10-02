@@ -37,13 +37,13 @@ export function MainDoctorBlock({ id }: { id?: string }) {
         </p>
 
         <div className="mt-8 rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5 md:mt-10 md:p-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,42%)_minmax(0,1fr)] md:gap-7">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,32%)_minmax(0,1fr)] md:gap-7">
             {/* Photo — on mobile full width with overlay badge, on desktop flush left */}
             <div className="relative overflow-hidden rounded-2xl">
               <img
                 src={doctorPhoto}
                 alt={doctor.name}
-                className="h-56 w-full object-cover object-top sm:h-64 md:h-[19rem] lg:h-[21rem]"
+                className="h-44 w-full object-cover object-top sm:h-48 md:h-56 lg:h-64"
                 loading="lazy"
               />
               <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-foreground backdrop-blur-sm md:hidden">
