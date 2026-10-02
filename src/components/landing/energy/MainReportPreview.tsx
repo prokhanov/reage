@@ -16,12 +16,6 @@ const SECTIONS = [
   { id: "doctors", label: "Специалисты" },
 ] as const;
 
-const REPORT_STATS = [
-  { value: "50+", label: "страниц" },
-  { value: "110+", label: "показателей с разбором" },
-  { value: "5", label: "систем организма" },
-  { value: "1", label: "план действий на всё" },
-] as const;
 
 function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -134,14 +128,6 @@ export function MainReportPreview({ id }: { id?: string }) {
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3 md:mt-10">
-          {REPORT_STATS.map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-border/70 bg-card px-4 py-4 sm:px-5 sm:py-5">
-              <p className="font-display text-2xl leading-none text-foreground sm:text-3xl">{stat.value}</p>
-              <p className="mt-2 text-xs leading-snug text-muted-foreground sm:text-sm">{stat.label}</p>
-            </div>
-          ))}
-        </div>
 
         <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-6">
           <div className="relative rounded-2xl border border-border/70 bg-card p-2 shadow-sm sm:p-3">
