@@ -11,6 +11,13 @@ const FEEDBACK_SCHEMA = z.object({
   utm: z.record(z.string().max(500).nullable()).optional(),
 })
 
+// Callback request from the landing page: phone only, no name/email/message.
+const CALLBACK_SCHEMA = z.object({
+  type: z.literal('callback'),
+  phone: z.string().trim().min(5, 'Укажите телефон').max(32, 'Телефон слишком длинный'),
+  utm: z.record(z.string().max(500).nullable()).optional(),
+})
+
 async function sendTelegramFeedbackNotification(
   supabase: ReturnType<typeof createClient>,
   supabaseUrl: string,
@@ -101,7 +108,9 @@ Deno.serve(async (req) => {
     })
   }
 
-  const parsed = FEEDBACK_SCHEMA.safeParse(body)
+  const rawType = (body as { type?: string } | null)?.type
+  const isCallback = rawType === 'callback'
+  const parsed = isCallback ? CALLBACK_SCHEMA.safeParse(body) : FEEDBACK_SCHEMA.safeParse(body)
   if (!parsed.success) {
     return new Response(JSON.stringify({ error: parsed.error.flatten().fieldErrors }), {
       status: 400,
@@ -109,7 +118,10 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { name, email, message, type } = parsed.data
+  const name = isCallback ? 'Запрос обратного звонка (лендинг)' : parsed.data.name
+  const email = isCallback ? '' : parsed.data.email
+  const message = isCallback ? 'Прошу перезвонить и подобрать чек-ап или программу.' : parsed.data.message
+  const type = parsed.data.type
   const utm = parsed.data.utm ?? null
   const phone = parsed.data.phone?.trim() || undefined
 
