@@ -228,7 +228,6 @@ function MainNewContent() {
                 {[
                   {
                     dark: false,
-                    eyebrow: "Есть конкретный вопрос",
                     title: "Разовый чекап",
                     price: "от 4 990 ₽",
                     text: "Усталость, щитовидка, железо, витамины или полная проверка · отчёт за 1–2 дня",
@@ -236,7 +235,6 @@ function MainNewContent() {
                   },
                   {
                     dark: true,
-                    eyebrow: "Хочу следить системно",
                     title: YEARLY_MONITORING_LABEL,
                     price: "от 52 990 ₽/год",
                     text: "2–4 сдачи в год · сравнение с прошлыми результатами · консультация врача",
@@ -251,12 +249,11 @@ function MainNewContent() {
                     <div
                       key={c.title}
                       className={cn(
-                        "grid grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl p-5 text-left shadow-sm",
+                        "grid grid-rows-[auto_auto_1fr_auto] rounded-2xl p-5 text-left shadow-sm",
                         c.dark ? "bg-primary" : "border border-border/80 bg-card",
                       )}
                     >
-                      <p className={cn("text-xs", c.dark ? "text-primary-foreground/70" : "text-muted-foreground")}>{c.eyebrow}</p>
-                      <p className={cn("font-display mt-1.5 whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
+                      <p className={cn("font-display whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
                       <p className={cn("font-display mt-2 whitespace-nowrap text-lg font-bold xl:text-xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.price}</p>
                       <p className={cn("mt-2 text-[13px] leading-snug", c.dark ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.text}</p>
                       {c.dark ? (
