@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, AlertTriangle, ChevronDown } from "lucide-react";
+import { Check, AlertTriangle, ChevronDown, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
@@ -385,11 +385,11 @@ export function MainReportPreview({ id }: { id?: string }) {
               </ul>
             </nav>
 
-            <Button asChild className="h-12 w-full">
-              <Link to="/example-report">Открыть полный пример</Link>
-            </Button>
-            <Button asChild variant="outline" className="h-12 w-full">
-              <Link to="/demo-report">Открыть демо-кабинет</Link>
+            <Button asChild className="h-auto min-h-[52px] w-full gap-2 whitespace-normal px-4 text-base sm:min-h-12" size="lg">
+              <Link to="/example-report">
+                <FileText className="h-4 w-4 shrink-0" aria-hidden />
+                Посмотреть пример отчёта
+              </Link>
             </Button>
             <p className="px-1 text-sm leading-snug text-muted-foreground">
               В тематических чекапах отчёт короче — только по выбранным показателям.
