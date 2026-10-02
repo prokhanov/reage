@@ -1,101 +1,111 @@
-import { ArrowUpRight } from "lucide-react";
+import { Clock, CreditCard, Hand, Heart, MessageSquare, UserRound } from "lucide-react";
 import { useCheckupSettings } from "@/hooks/useCheckupSettings";
 import doctorPhoto from "@/assets/energy/reage-doctor.webp";
 
-const STEPS = [
-  { n: 1, title: "До встречи", text: "Изучает отчёт и прошлые сдачи" },
-  { n: 2, title: "Консультация", text: "Онлайн, 40 минут: отклонения и ваши вопросы" },
-  { n: 3, title: "После", text: "Итоги в кабинете, план на следующую сдачу" },
-] as const;
-
-const EXPERIENCE_LINE =
-  "Опыт в кардиологии, сердечно-сосудистой хирургии и амбулаторной медицине";
-
 const GMC_URL = "https://www.gmc-uk.org/registration-and-licensing";
 
-function formatPrice(value: number) {
-  return `${value.toLocaleString("ru-RU")} ₽`;
-}
+const ABOUT_LINE =
+  "Врач с более чем 7-летним клиническим опытом в терапии, кардиологии, сердечно-сосудистой хирургии и амбулаторной медицине. Зарегистрирована в General Medical Council (GMC), Великобритания. Помогает разобраться в результатах анализов и оценить их в контексте общего состояния здоровья.";
 
 export function MainDoctorBlock({ id }: { id?: string }) {
   const { doctor } = useCheckupSettings();
 
-  const cardio = doctor.credentials.find((c) => /кардиолог/i.test(c));
-  const experience = doctor.credentials.find((c) => /стаж/i.test(c));
-  const specialtyLine = doctor.specialty.replace(/^Врач-/, "");
-  const subtitle = [
-    [specialtyLine, cardio?.toLowerCase()].filter(Boolean).join(", "),
-    experience ? experience.charAt(0).toLowerCase() + experience.slice(1) : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const therapist = doctor.credentials.find((c) => /терапевт/i.test(c)) ?? "Врач-терапевт";
+  const cardio = doctor.credentials.find((c) => /кардиолог/i.test(c)) ?? "Кардиолог";
+  const gmc = doctor.credentials.find((c) => /gmc/i.test(c)) ?? "GMC, Великобритания";
+  const experience = doctor.credentials.find((c) => /стаж/i.test(c)) ?? "Стаж 8+ лет";
+
+  const pills = [
+    { icon: Hand, label: therapist, href: undefined as string | undefined },
+    { icon: Heart, label: cardio, href: undefined },
+    { icon: UserRound, label: gmc, href: GMC_URL },
+    { icon: Clock, label: experience, href: undefined },
+  ];
 
   return (
     <section id={id} className="border-b hairline py-14 md:py-20">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
-        <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
-          Врач, который видит всю историю
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Врач ReAge
+        </p>
+        <h2 className="mt-3 font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
+          Разберитесь в анализах вместе с врачом
         </h2>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          Терапевт и кардиолог. Смотрит не на отдельные цифры, а на организм целиком
+          — и подробно расскажет, что делать дальше.
+        </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-5 md:mt-10 lg:grid-cols-2 lg:gap-6">
-          {/* Left card — doctor */}
-          <div className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm sm:flex-row">
-            <img
-              src={doctorPhoto}
-              alt={doctor.name}
-              className="h-56 w-full shrink-0 object-cover object-top sm:h-auto sm:w-48"
-              loading="lazy"
-            />
-            <div className="min-w-0 p-5 sm:p-6">
-              <p className="font-display text-2xl leading-tight text-foreground">{doctor.name}</p>
-              {subtitle && (
-                <p className="mt-1.5 text-[15px] text-muted-foreground">{subtitle}</p>
-              )}
-              <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-                {EXPERIENCE_LINE}
+        <div className="mt-8 rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5 md:mt-10 md:p-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,42%)_minmax(0,1fr)] md:gap-7">
+            {/* Photo — on mobile full width with overlay badge, on desktop flush left */}
+            <div className="relative overflow-hidden rounded-2xl">
+              <img
+                src={doctorPhoto}
+                alt={doctor.name}
+                className="h-72 w-full object-cover object-top sm:h-96 md:h-[24rem] lg:h-[26rem]"
+                loading="lazy"
+              />
+              <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-foreground backdrop-blur-sm md:hidden">
+                Эксперт ReAge
+              </span>
+            </div>
+
+            {/* Info */}
+            <div className="min-w-0">
+              <span className="hidden items-center rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-foreground md:inline-flex">
+                Эксперт ReAge
+              </span>
+              <h3 className="mt-3 font-display text-2xl leading-tight text-foreground sm:text-3xl">
+                Д-р {doctor.name}
+              </h3>
+
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
+                {pills.map(({ icon: Icon, label, href }) => {
+                  const content = (
+                    <>
+                      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0 truncate">{label}</span>
+                    </>
+                  );
+                  const cls =
+                    "inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm text-foreground transition-colors sm:px-4";
+                  return href ? (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${cls} hover:text-primary`}
+                      title="Регистрация GMC, Великобритания"
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <span key={label} className={cls}>
+                      {content}
+                    </span>
+                  );
+                })}
+              </div>
+
+              <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+                {ABOUT_LINE}
               </p>
-              <a
-                href={GMC_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-foreground underline decoration-dotted decoration-1 underline-offset-4 transition-colors hover:text-primary"
-              >
-                Регистрация GMC, Великобритания
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
 
-          {/* Right card — steps + pills */}
-          <div className="flex flex-col rounded-2xl border border-border/70 bg-card p-6 shadow-sm sm:p-7">
-            <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-3">
-              {STEPS.map((step) => (
-                <div key={step.n}>
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
-                      {step.n}
-                    </span>
-                    <p className="font-semibold text-foreground">{step.title}</p>
-                  </div>
-                  <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+              <div className="mt-5 rounded-2xl bg-muted/60 p-4 sm:p-5">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <p className="text-[15px] leading-relaxed text-foreground">
+                    Консультация по желанию. Врач подробно расскажет по итогам анализов.
+                  </p>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 border-t border-border/60 pt-5">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
-                  Годовые программы —&nbsp;
-                  <span className="font-semibold text-foreground">2–4 консультации входят</span>
-                </span>
-                {doctor.consultation_enabled && (
-                  <span className="inline-flex items-center rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
-                    К чекапу —&nbsp;
-                    <span className="font-semibold text-foreground">
-                      от {formatPrice(doctor.consultation_price)}
-                    </span>
-                  </span>
-                )}
+                <div className="mt-3 flex items-start gap-3">
+                  <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <p className="text-[15px] leading-relaxed text-foreground">
+                    Услуга оплачивается отдельно.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
