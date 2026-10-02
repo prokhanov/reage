@@ -37,11 +37,11 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
           {facts.items.map((item) => (
             <article
               key={item.label}
-              className="flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-shadow hover:shadow-md sm:p-7"
+              className="flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6"
             >
-              <h3 className="font-sans text-base font-semibold text-foreground">{item.label}</h3>
-              <p className="mt-3 font-display text-4xl leading-[1.05] text-primary sm:text-[2.6rem]">{item.value}</p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">{item.text}</p>
+              <h3 className="font-sans text-[0.95rem] font-semibold leading-snug text-foreground">{item.label}</h3>
+              <p className="mt-2 font-display text-[2rem] leading-[1.05] text-primary sm:text-[2.3rem]">{item.value}</p>
+              <p className="mt-2 text-sm leading-snug text-muted-foreground sm:text-[0.9rem]">{item.text}</p>
             </article>
           ))}
         </div>
