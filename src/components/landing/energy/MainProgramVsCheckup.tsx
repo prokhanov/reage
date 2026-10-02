@@ -130,7 +130,7 @@ export function MainProgramVsCheckup({ id }: { id?: string }) {
   const visibleRowsMobile = open ? ROWS : ROWS.slice(0, COLLAPSED_MOBILE);
 
   return (
-    <section id={id} className="scroll-mt-16 border-b hairline bg-gradient-monitoring py-14 text-primary-foreground md:py-20">
+    <section id={id} className="scroll-mt-16 border-b hairline bg-gradient-monitoring-green py-14 text-primary-foreground md:py-20">
       <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
           <h2 className="font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
