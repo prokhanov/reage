@@ -84,7 +84,6 @@ export function MainCallbackCta({ id }: { id?: string }) {
                     value={phone}
                     onChange={setPhone}
                     placeholder="+7 (999) 123-45-67"
-                    disabled={status === "loading"}
                   />
                   <Button
                     type="submit"
