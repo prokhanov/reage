@@ -72,6 +72,7 @@ export function MainReportPreview({ id }: { id?: string }) {
   const [opened, setOpened] = useState<Set<number>>(() => new Set([0]));
   const [active, setActive] = useState<string>(SECTIONS[0].id);
   const [tocOpen, setTocOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const activeIndex = Math.max(0, SECTIONS.findIndex((s) => s.id === active));
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -394,6 +395,7 @@ export function MainReportPreview({ id }: { id?: string }) {
           </aside>
         </div>
       </div>
+      <ExampleReportDialog open={reportDialogOpen} onOpenChange={setReportDialogOpen} />
     </section>
   );
 }
