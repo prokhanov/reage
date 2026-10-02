@@ -19,6 +19,7 @@ import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
 import { MainLabVsReport } from "@/components/landing/energy/MainLabVsReport";
 import { MainReportPreview } from "@/components/landing/energy/MainReportPreview";
+import { MainDoctorBlock } from "@/components/landing/energy/MainDoctorBlock";
 import { MainMonitoringSection } from "@/components/landing/energy/MainMonitoringSection";
 import { MainProgramVsCheckup } from "@/components/landing/energy/MainProgramVsCheckup";
 import {
