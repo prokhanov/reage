@@ -13,7 +13,7 @@ const SECTIONS = [
   { id: "markers", label: "Расшифровка показателей" },
   { id: "lifestyle", label: "Коррекция образа жизни" },
   { id: "recs", label: "Рекомендации" },
-  { id: "doctors", label: "Специалисты" },
+
 ] as const;
 
 
@@ -349,12 +349,6 @@ export function MainReportPreview({ id }: { id?: string }) {
                 </div>
               </Block>
 
-              <Block id="doctors" title="Специалисты">
-                <div className="space-y-3">
-                  <Row lead="Терапевт" text="Обсудить причины низкого ферритина и план восполнения железа." />
-                  <Row lead="Гинеколог" text="При обильных менструациях — оценить возможную причину потери железа." />
-                </div>
-              </Block>
             </div>
             <p className="px-3 pt-2 text-center text-xs text-muted-foreground lg:hidden">↕ Листайте отчёт</p>
             <div className="pointer-events-none absolute inset-x-2 bottom-2 h-10 rounded-b-xl bg-gradient-to-t from-card to-transparent sm:inset-x-3 sm:bottom-3" />
