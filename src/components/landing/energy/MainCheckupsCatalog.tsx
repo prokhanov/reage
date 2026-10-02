@@ -137,8 +137,8 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
 
         <div className="mt-6 text-sm font-medium text-muted-foreground lg:hidden">Или выберите по самочувствию</div>
 
-        <div className="lg:sticky lg:top-20 lg:z-20 lg:bg-background lg:py-3">
-          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:bg-muted/30 lg:px-0 lg:py-1">
+        <div className="lg:sticky lg:top-20 lg:z-20 lg:bg-background">
+          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:bg-muted/30 lg:px-0 lg:py-3">
           {FILTERS.map((f) => {
             const on = filter === f.id;
             return (
