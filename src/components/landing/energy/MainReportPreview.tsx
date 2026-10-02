@@ -108,7 +108,8 @@ export function MainReportPreview({ id }: { id?: string }) {
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
         <div className="max-w-4xl">
           <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
-            Отчёт полного чекапа — 60 страниц о вашем организме
+            Отчёт после полного чекапа — 
+            50+ страниц о вас
           </h2>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             По каждому показателю — значение, оптимальный диапазон, что это значит для вас и что делать дальше.
