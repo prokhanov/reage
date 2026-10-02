@@ -96,7 +96,9 @@ export function MainReportPreview({ id }: { id?: string }) {
     if (!root || !el) return;
     setOpened(new Set([0, 1, 2]));
     setActive(sid);
-    root.scrollTo({ top: el.offsetTop - root.offsetTop, behavior: "smooth" });
+    window.setTimeout(() => {
+      root.scrollTo({ top: el.offsetTop - root.offsetTop, behavior: "smooth" });
+    }, 350);
   };
 
   return (
