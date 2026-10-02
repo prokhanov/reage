@@ -60,7 +60,7 @@ function scrollToAnchor(href: string) {
 
 const floatTextStyle: CSSProperties = {
   textShadow:
-    "0 1px 10px rgba(255,255,255,0.95), 0 0 3px rgba(255,255,255,0.9)",
+    "0 0 2px rgba(255,255,255,1), 0 0 6px rgba(255,255,255,0.95), 0 1px 16px rgba(255,255,255,0.9)",
 };
 
 function HeroVisual() {
