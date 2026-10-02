@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 
 const SECTIONS = [
+  { id: "summary", label: "Общее резюме" },
+  { id: "strengths", label: "Сильные стороны организма" },
+  { id: "deficits", label: "Дефициты и дисфункции" },
   { id: "markers", label: "Расшифровка показателей" },
   { id: "lifestyle", label: "Коррекция образа жизни" },
   { id: "recs", label: "Рекомендации" },
