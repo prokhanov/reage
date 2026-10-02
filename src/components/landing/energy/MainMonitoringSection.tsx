@@ -200,7 +200,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
         </div>
 
         <div className="mt-6 text-center">
-          <Button variant="link" className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
+          <Button variant="link" onClick={() => setCompareOpen(true)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
             Сравнить программы по показателям
           </Button>
         </div>
