@@ -229,8 +229,8 @@ export function MainReportPreview({ id }: { id?: string }) {
 
           <aside className="space-y-3 lg:sticky lg:top-24">
             <nav className="rounded-2xl border border-border/70 bg-card p-3 sm:p-4" aria-label="Оглавление отчёта">
-              <h3 className="px-2 pb-3 font-display text-xl text-foreground">Что внутри отчёта</h3>
-              <ul className="space-y-1">
+              <h3 className="px-2 pb-4 font-display text-2xl text-foreground">Что внутри отчёта</h3>
+              <ul className="space-y-2">
                 {SECTIONS.map((s, i) => (
                   <li key={s.id}>
                     <Button
@@ -238,14 +238,14 @@ export function MainReportPreview({ id }: { id?: string }) {
                       variant="ghost"
                       onClick={() => goTo(s.id)}
                       className={cn(
-                        "h-auto w-full justify-between whitespace-normal rounded-lg px-2.5 py-2.5 text-left text-sm font-normal",
+                        "h-auto w-full justify-between whitespace-normal rounded-lg px-2.5 py-3 text-left text-base font-normal",
                         active === s.id
                           ? "bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       <span>{s.label}</span>
-                      <span className="ml-3 shrink-0 text-xs tabular-nums opacity-60">0{i + 1}</span>
+                      <span className="ml-3 shrink-0 text-sm tabular-nums opacity-60">0{i + 1}</span>
                     </Button>
                   </li>
                 ))}
@@ -255,6 +255,12 @@ export function MainReportPreview({ id }: { id?: string }) {
             <Button asChild className="h-12 w-full">
               <Link to="/example-report">Открыть полный пример</Link>
             </Button>
+            <Button asChild variant="outline" className="h-12 w-full">
+              <Link to="/demo-report">Открыть демо-кабинет</Link>
+            </Button>
+            <p className="px-1 text-sm leading-snug text-muted-foreground">
+              В тематических чекапах отчёт короче — только по выбранным показателям.
+            </p>
           </aside>
         </div>
       </div>
