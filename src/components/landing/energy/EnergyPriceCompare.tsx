@@ -13,7 +13,6 @@ import {
   Info,
   Pill,
   Plus,
-  ShoppingCart,
   Sun,
   X,
 } from "lucide-react";
