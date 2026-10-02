@@ -134,7 +134,7 @@ export function MainProgramVsCheckup({ id }: { id?: string }) {
       <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
           <h2 className="font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
-            Чем программа отличается от чекапа
+            Чем годовая программа отличается от разового чекапа
           </h2>
           <p className="max-w-xl self-center text-base leading-relaxed text-primary-foreground/75 md:text-lg">
             Чекап отвечает на вопрос «что сейчас». Программа — «что меняется и помогает ли то, что вы делаете».
