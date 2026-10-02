@@ -29,7 +29,7 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
               {inCart ? "В корзине" : facts.ctaLabel}
               {!inCart ? <ArrowRight className="h-4 w-4" aria-hidden /> : null}
             </Button>
-            <span className="shrink-0 font-display text-2xl text-foreground sm:text-3xl">{formatPrice(price)}</span>
+            <span className="shrink-0 font-display font-bold text-2xl text-foreground sm:text-3xl">{formatPrice(price)}</span>
           </div>
         </div>
 
