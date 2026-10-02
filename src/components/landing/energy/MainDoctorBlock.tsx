@@ -48,7 +48,7 @@ export function MainDoctorBlock({ id }: { id?: string }) {
   return (
     <section id={id} className="border-b hairline py-14 md:py-20">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start lg:gap-10">
           {/* Doctor card */}
           <div className="rounded-3xl bg-muted/50 p-5 sm:p-6 lg:self-start">
             <img
