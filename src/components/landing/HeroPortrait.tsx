@@ -272,9 +272,9 @@ export function useBreakpoint(): Breakpoint {
 
 /* ===================== ARTBOARD ===================== */
 
-export function Artboard({ bp, isDark, plain = false }: { bp: Breakpoint; isDark: boolean; plain?: boolean }) {
+export function Artboard({ bp, isDark, plain = false, layoutVariant }: { bp: Breakpoint; isDark: boolean; plain?: boolean; layoutVariant?: "mainNew" }) {
   const ab = ARTBOARDS[bp];
-  const layout = LAYOUTS[bp];
+  const layout: Layout = { ...LAYOUTS[bp], ...(layoutVariant === "mainNew" ? LAYOUTS_MAIN_NEW[bp] ?? {} : {}) };
 
   const zMap: Record<WidgetId, number> = {
     bioAge: 20,
