@@ -279,7 +279,7 @@ function MainNewContent() {
               </p>
             </div>
 
-            <div className="hidden xl:block">
+            <div className="hidden md:block">
               <HeroVisual />
             </div>
           </div>
