@@ -87,6 +87,25 @@ function MessageText({ text }: { text: string }) {
 
 export function SupportChatWidget() {
   const [launcherOpen, setLauncherOpen] = useState(false);
+  // On the test homepage (/main), keep the launcher off the desktop hero; show after scroll.
+  const [heroHidden, setHeroHidden] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const onMain = window.location.pathname === "/main";
+      setHeroHidden(onMain && window.innerWidth >= 1024 && window.scrollY < window.innerHeight * 0.6);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    window.addEventListener("popstate", check);
+    const t = window.setInterval(check, 1000);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+      window.removeEventListener("popstate", check);
+      window.clearInterval(t);
+    };
+  }, []);
   const [chatOpen, setChatOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [loaded, setLoaded] = useState(false);

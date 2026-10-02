@@ -65,7 +65,7 @@ function scrollToAnchor(href: string) {
 
 function HeroVisual() {
   return (
-    <div className="relative mx-auto h-[390px] w-full max-w-[520px] overflow-hidden sm:h-[500px] lg:h-[590px] lg:max-w-[610px]">
+    <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-muted sm:h-[460px] lg:h-full lg:min-h-[560px]">
       <SmartPicture
         avif={heroPeopleAvif}
         src={heroPeople}
@@ -74,60 +74,41 @@ function HeroVisual() {
         height={1600}
         fetchpriority="high"
         decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full object-contain object-bottom"
-        style={{
-          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 90%, transparent 100%)",
-          maskImage: "linear-gradient(to bottom, black 0%, black 90%, transparent 100%)",
-        }}
-      />
-      <div
-        className="absolute -left-[16%] -top-[10%] h-[120%] w-[34%] rounded-[100%] bg-background"
-        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        style={{ objectPosition: "center 20%" }}
       />
 
-      <div className="absolute left-0 top-[32%] w-[148px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:left-[2%] sm:w-[180px] sm:p-4">
+      <div className="absolute left-5 top-6 hidden w-[190px] rounded-lg border border-border/70 bg-card/90 p-4 shadow-lg backdrop-blur-md lg:block">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">Биовозраст</span>
+          <span className="text-xs font-medium uppercase text-muted-foreground">Биовозраст</span>
           <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
         </div>
         <div className="mt-2 flex items-end gap-1.5">
-          <span className="font-display text-3xl leading-none text-foreground sm:text-4xl">34,2</span>
-          <span className="pb-0.5 text-[10px] text-muted-foreground sm:text-xs">года</span>
+          <span className="font-display text-4xl leading-none text-foreground">34,2</span>
+          <span className="pb-0.5 text-xs text-muted-foreground">года</span>
         </div>
       </div>
 
-      <div className="absolute right-0 top-[20%] w-[154px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:right-[1%] sm:w-[190px] sm:p-4">
-        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
+      <div className="absolute bottom-6 right-5 hidden w-[220px] rounded-lg border border-border/70 bg-card/90 p-4 shadow-lg backdrop-blur-md lg:block">
+        <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
           <FlaskConical className="h-3.5 w-3.5 text-primary" />
-          Биомаркеры
+          Ферритин · 3 сдачи
         </div>
-        <div className="space-y-2 text-[11px] sm:text-xs">
-          <div className="flex items-center justify-between"><span>Витамин D</span><strong>62</strong></div>
-          <div className="flex items-center justify-between"><span>Ферритин</span><strong>38</strong></div>
-          <div className="flex items-center justify-between"><span>HbA1c</span><strong className="text-warning">5,8%</strong></div>
+        <div className="flex h-14 items-end gap-3">
+          {[
+            { v: 18, h: "35%", c: "bg-warning" },
+            { v: 29, h: "60%", c: "bg-warning/70" },
+            { v: 46, h: "92%", c: "bg-success" },
+          ].map((b, i) => (
+            <div key={i} className="flex flex-1 flex-col items-center gap-1">
+              <span className="text-[11px] font-semibold text-foreground">{b.v}</span>
+              <div className={cn("w-full rounded-sm", b.c)} style={{ height: b.h }} />
+            </div>
+          ))}
         </div>
-      </div>
-
-      <div className="absolute bottom-[12%] left-[2%] w-[162px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:left-[5%] sm:w-[200px] sm:p-4">
-        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
-          <HeartPulse className="h-3.5 w-3.5 text-success" />
-          Системы организма
+        <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
+          <span>Янв</span><span>Май</span><span>Сен</span>
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Сердце</span><strong>92%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[92%] rounded-full bg-success" /></div>
-          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Метаболизм</span><strong>78%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[5%] right-0 w-[150px] rounded-lg border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur-md sm:right-[2%] sm:w-[184px] sm:p-4">
-        <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-muted-foreground sm:text-xs">
-          <Activity className="h-3.5 w-3.5 text-primary" />
-          Индекс здоровья
-        </div>
-        <div className="font-display text-3xl leading-none text-foreground sm:text-4xl">84%</div>
-        <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs">Хороший результат</p>
       </div>
     </div>
   );
@@ -279,77 +260,76 @@ function MainNewContent() {
       </header>
 
       <main>
-        <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
-          <div className="mx-auto grid w-full max-w-[72rem] items-center gap-5 px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:min-h-[640px] lg:grid-cols-[48%_52%] lg:gap-0 lg:pb-20 lg:pt-24 xl:min-h-[700px]">
-            <div className="mx-auto flex w-full max-w-md flex-col items-center text-center lg:mx-0 lg:items-start lg:pr-8 lg:text-left">
+        <section className="relative overflow-hidden border-b hairline bg-background">
+          <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pb-8 pt-8 sm:px-6 sm:pt-10 lg:min-h-[min(calc(100vh-4rem),836px)] lg:grid-cols-[7fr_5fr] lg:items-stretch lg:gap-10 lg:py-10">
+            <div className="flex w-full flex-col items-center justify-center text-center lg:items-start lg:text-left">
               <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium text-muted-foreground">
                 Москва · Московская область · Санкт-Петербург
               </p>
-              <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.12] text-foreground sm:text-[2.6rem] xl:text-[3.2rem]">
+              <h1 className="font-display mt-4 max-w-[720px] text-balance text-[clamp(2.25rem,3.6vw,3.25rem)] leading-[1.1] text-foreground">
                 Сервис контроля здоровья с&nbsp;понятными разборами и&nbsp;планом действий
               </h1>
-              <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-5 sm:text-lg xl:text-xl">
-                Сдаёте кровь в лаборатории или дома — мы переводим результаты в понятный отчёт и говорим, что делать дальше.
+              <p className="mt-4 max-w-[620px] text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Сдаёте кровь в лаборатории или дома — мы сравниваем результаты с оптимумом, объясняем отклонения и показываем динамику от сдачи к сдаче.
               </p>
 
-              <ul className="mt-5 space-y-2.5 text-left sm:mt-6">
-                {heroBullets.map((b) => (
-                  <li key={b} className="flex items-start gap-2.5 text-sm leading-snug text-foreground/90 sm:text-[0.95rem]">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" strokeWidth={2.5} />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2">
-                <div className="flex flex-col rounded-2xl border border-border/80 bg-card p-4 text-left shadow-sm sm:p-5">
-                  <p className="text-xs text-muted-foreground">Есть конкретный вопрос</p>
-                  <p className="font-display mt-1.5 text-xl leading-tight text-foreground sm:text-2xl">Разовый чекап</p>
-                  <p className="font-display mt-2 text-lg font-bold text-foreground sm:text-xl">
-                    от 4 990 ₽
-                  </p>
-                  <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
-                    Усталость, щитовидка, железо, витамины или полная проверка · отчёт за 1–2 дня
-                  </p>
-                  <button
-                    type="button"
-                    onClick={scrollToCheckups}
-                    className="group mt-4 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-foreground transition-colors hover:text-primary"
-                  >
-                    Подобрать чекап
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                </div>
-
-                <div className="flex flex-col rounded-2xl bg-primary p-4 text-left shadow-sm sm:p-5">
-                  <p className="text-xs text-primary-foreground/70">Хочу следить системно</p>
-                  <p className="font-display mt-1.5 text-xl leading-tight text-primary-foreground sm:text-2xl">
-                    Годовой мониторинг
-                  </p>
-                  <p className="font-display mt-2 text-lg font-bold text-primary-foreground sm:text-xl">
-                    от 52 990 ₽/год
-                  </p>
-                  <p className="mt-2 text-[13px] leading-snug text-primary-foreground/80">
-                    2–4 сдачи в год · сравнение с прошлыми результатами · консультация врача
-                  </p>
-                  <Link
-                    to="/monitoring"
-                    className="group mt-4 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-80"
-                  >
-                    Сравнить программы
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
+              <div className="mt-7 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-[680px]">
+                {[
+                  {
+                    dark: false,
+                    eyebrow: "Есть конкретный вопрос",
+                    title: "Разовый чекап",
+                    price: "от 4 990 ₽",
+                    text: "Усталость, щитовидка, железо, витамины или полная проверка · отчёт за 1–2 дня",
+                    cta: "Подобрать чекап",
+                  },
+                  {
+                    dark: true,
+                    eyebrow: "Хочу следить системно",
+                    title: YEARLY_MONITORING_LABEL,
+                    price: "от 52 990 ₽/год",
+                    text: "2–4 сдачи в год · сравнение с прошлыми результатами · консультация врача",
+                    cta: "Сравнить программы",
+                  },
+                ].map((c) => {
+                  const ctaCls = cn(
+                    "group mt-4 inline-flex items-center gap-1.5 self-start whitespace-nowrap text-sm font-semibold transition-colors",
+                    c.dark ? "text-primary-foreground hover:opacity-80" : "text-foreground hover:text-primary",
+                  );
+                  return (
+                    <div
+                      key={c.title}
+                      className={cn(
+                        "grid grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl p-5 text-left shadow-sm",
+                        c.dark ? "bg-primary" : "border border-border/80 bg-card",
+                      )}
+                    >
+                      <p className={cn("text-xs", c.dark ? "text-primary-foreground/70" : "text-muted-foreground")}>{c.eyebrow}</p>
+                      <p className={cn("font-display mt-1.5 whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
+                      <p className={cn("font-display mt-2 whitespace-nowrap text-lg font-bold xl:text-xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.price}</p>
+                      <p className={cn("mt-2 text-[13px] leading-snug", c.dark ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.text}</p>
+                      {c.dark ? (
+                        <Link to="/monitoring" className={ctaCls}>
+                          {c.cta}
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                      ) : (
+                        <button type="button" onClick={scrollToCheckups} className={ctaCls}>
+                          {c.cta}
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
-              <p className="mt-5 text-sm text-muted-foreground sm:mt-6">
+              <p className="mt-5 text-sm text-muted-foreground">
                 100+ биомаркеров · Биологический возраст · Дашборды и тренды
               </p>
             </div>
 
-            <div className="mt-7 flex items-end justify-center sm:mt-9 lg:mt-0 lg:self-stretch">
-              <HeroVisual />
-            </div>
+            <HeroVisual />
           </div>
         </section>
 
