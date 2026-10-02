@@ -231,7 +231,13 @@ export function SupportChatWidget() {
   return (
     <>
       {!chatOpen && (
-        <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
+        <div
+          ref={launcherRef}
+          className={cn(
+            "fixed bottom-5 right-4 z-50 transition-opacity duration-300 sm:right-5",
+            heroHidden && !launcherOpen && "pointer-events-none opacity-0",
+          )}
+        >
           {launcherOpen && (
             <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 max-h-[calc(100vh-8rem)] w-[min(22rem,calc(100vw-2rem))] origin-bottom-right animate-enter overflow-y-auto rounded-3xl border border-border/70 bg-card px-2 pb-2 pt-5 shadow-xl">
               <p className="px-3 text-lg font-semibold tracking-tight text-foreground">Как с нами связаться?</p>
