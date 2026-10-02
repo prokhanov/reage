@@ -32,7 +32,7 @@ export function EnergyIncluded({ checkup = ENERGY_CHECKUP }: Props) {
                Биомаркеры
             </h3>
             <div className="shrink-0 text-base font-semibold text-muted-foreground">
-              {checkup.markers.length} показателей{checkup.cbcBonusEnabled ? ` + ${markersLabel(CBC_BONUS_MARKER_COUNT)} ОАК в подарок` : ""}
+              {markersLabel(checkup.markers.length)}{checkup.cbcBonusEnabled ? ` + ${markersLabel(CBC_BONUS_MARKER_COUNT)} ОАК в подарок` : ""}
             </div>
           </div>
           <ul className="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2 sm:p-8 sm:gap-y-6 md:gap-x-12 md:gap-y-7">
