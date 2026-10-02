@@ -60,6 +60,7 @@ export function clearCheckupCart() {
   writeClinic(null);
   localStorage.removeItem(UPSELL_ORDER_KEY);
   localStorage.removeItem(REPORT_OFFER_KEY);
+  localStorage.removeItem("reage:checkup:lead-token");
 }
 
 interface EnergyOrderValue {
