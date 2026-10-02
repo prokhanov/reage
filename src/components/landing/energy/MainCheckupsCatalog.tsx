@@ -75,7 +75,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
     : markersOf(FULL_CHECKUP.slug)?.length ?? FULL_CHECKUP.markers.length;
 
   const fullCard = (
-    <div className="rounded-[1.75rem] bg-primary p-6 text-primary-foreground sm:p-7 lg:sticky lg:top-24">
+    <div className="rounded-[1.75rem] bg-primary p-6 text-primary-foreground sm:p-7">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/70">
         Все 5 систем · кровь и моча
       </div>
@@ -137,7 +137,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
 
         <div className="mt-6 text-sm font-medium text-muted-foreground lg:hidden">Или выберите по самочувствию</div>
 
-        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-16 lg:z-20 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:bg-muted lg:px-0 lg:py-3">
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-20 lg:z-20 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:bg-background/95 lg:backdrop-blur lg:px-0 lg:py-3">
           {FILTERS.map((f) => {
             const on = filter === f.id;
             return (
@@ -159,7 +159,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
-          <div className="lg:order-2">{fullCard}</div>
+          <div className="lg:order-2 lg:sticky lg:top-40 lg:self-start">{fullCard}</div>
 
           <div className="overflow-hidden rounded-[1.75rem] border border-border bg-card lg:order-1">
             {visible.map((c) => {
