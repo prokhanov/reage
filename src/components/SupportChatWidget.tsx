@@ -87,6 +87,25 @@ function MessageText({ text }: { text: string }) {
 
 export function SupportChatWidget() {
   const [launcherOpen, setLauncherOpen] = useState(false);
+  // On the test homepage (/main), keep the launcher off the desktop hero; show after scroll.
+  const [heroHidden, setHeroHidden] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const onMain = window.location.pathname === "/main";
+      setHeroHidden(onMain && window.innerWidth >= 1024 && window.scrollY < window.innerHeight * 0.6);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    window.addEventListener("popstate", check);
+    const t = window.setInterval(check, 1000);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+      window.removeEventListener("popstate", check);
+      window.clearInterval(t);
+    };
+  }, []);
   const [chatOpen, setChatOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -231,7 +250,13 @@ export function SupportChatWidget() {
   return (
     <>
       {!chatOpen && (
-        <div ref={launcherRef} className="fixed bottom-5 right-4 z-50 sm:right-5">
+        <div
+          ref={launcherRef}
+          className={cn(
+            "fixed bottom-5 right-4 z-50 transition-opacity duration-300 sm:right-5",
+            heroHidden && !launcherOpen && "pointer-events-none opacity-0",
+          )}
+        >
           {launcherOpen && (
             <div className="support-chat-menu absolute bottom-[calc(100%+1rem)] right-0 max-h-[calc(100vh-8rem)] w-[min(22rem,calc(100vw-2rem))] origin-bottom-right animate-enter overflow-y-auto rounded-3xl border border-border/70 bg-card px-2 pb-2 pt-5 shadow-xl">
               <p className="px-3 text-lg font-semibold tracking-tight text-foreground">Как с нами связаться?</p>
