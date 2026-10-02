@@ -323,7 +323,7 @@ export function EnergyCart() {
       promoCode: appliedPromo?.code ?? manualOffer?.code ?? null,
       amount: total,
     },
-    !account && !accountLoading && items.length > 0,
+    !account && !accountLoading,
   );
 
   const handlePay = async () => {
