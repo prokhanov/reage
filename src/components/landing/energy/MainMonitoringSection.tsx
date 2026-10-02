@@ -83,26 +83,26 @@ export function MainMonitoringSection({ id }: { id?: string }) {
   );
 
   return (
-    <section id={id} className="scroll-mt-16 border-b hairline py-14 md:py-20">
+    <section id={id} className="scroll-mt-16 border-b hairline bg-primary py-14 text-primary-foreground md:py-20">
       <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Годовой мониторинг</p>
-            <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-foreground md:text-[2.6rem]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">Годовой мониторинг</p>
+            <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
               Один анализ — снимок.
               <br />
               Мониторинг — история
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/75 md:text-lg">
               Ферритин 12 в октябре не говорит, помогли ли изменения. Ферритин 12 → 28 → 41 за полгода — говорит.
               Мониторинг показывает, что работает, а что пора менять.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl border border-border/70 bg-card px-5 py-4">
-                <p className="font-semibold text-foreground">{f.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.text}</p>
+              <div key={f.title} className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-5 py-4">
+                <p className="font-semibold text-primary-foreground">{f.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/70">{f.text}</p>
               </div>
             ))}
           </div>
@@ -185,15 +185,15 @@ export function MainMonitoringSection({ id }: { id?: string }) {
         </div>
 
         <div className="mt-6 text-center">
-          <Button variant="link" onClick={() => setCompareOpen(true)}>
+          <Button variant="link" className="text-primary-foreground" onClick={() => setCompareOpen(true)}>
             Сравнить программы по показателям
           </Button>
         </div>
         <BiomarkerComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} />
 
-        <div className="mt-6 rounded-2xl border border-border/70 bg-card px-6 py-5">
-          <p className="font-semibold text-foreground">Почему программа дороже, чем несколько чекапов</p>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="mt-6 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-5">
+          <p className="font-semibold text-primary-foreground">Почему программа дороже, чем несколько чекапов</p>
+          <p className="mt-2 text-[15px] leading-relaxed text-primary-foreground/70">
             Сверх анализов в программу входят сравнение всех сдач года, пересмотр плана после каждой сдачи,
             консультации врача и напоминания о пересдаче. Вы платите не за пробирки, а за то, что результаты
             складываются в историю и превращаются в понятные решения.
