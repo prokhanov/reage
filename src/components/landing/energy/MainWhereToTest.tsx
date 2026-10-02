@@ -3,7 +3,7 @@ import { EnergyClinicPicker } from "./EnergyClinicPicker";
 export function MainWhereToTest({ id }: { id?: string }) {
   return (
     <section id={id} className="overflow-x-hidden border-b hairline">
-      <div className="mx-auto w-full max-w-[72rem] px-4 py-14 md:px-6 md:py-16">
+      <div className="mx-auto w-full max-w-[80rem] px-4 py-14 md:px-6 md:py-16">
         <EnergyClinicPicker
           confirmed={null}
           onConfirm={() => {}}

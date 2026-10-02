@@ -10,7 +10,7 @@ export function MainQuestionCta({ id }: { id?: string }) {
     <>
       <section id={id} className="relative overflow-hidden border-t border-border/40 bg-background py-14 md:py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent" />
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto w-full max-w-[80rem] px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
               <MessageSquare className="h-3.5 w-3.5" />

@@ -137,7 +137,7 @@ export function MainCheckupsSection({ title = "Разовые чекапы" }: {
 
   return (
     <section id="checkups" className="border-b hairline bg-muted/30">
-      <div className="mx-auto w-full max-w-[72rem] px-4 py-14 sm:px-6 sm:py-16 lg:py-20">
+      <div className="mx-auto w-full max-w-[80rem] px-4 py-14 sm:px-6 sm:py-16 lg:py-20">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4 md:mb-10">
           <div>
             <h2 className="font-display text-[1.9rem] leading-tight text-foreground md:text-4xl">
