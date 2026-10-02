@@ -281,7 +281,7 @@ export function MainCheckupsSection({ title = "Разовые чекапы" }: {
           </div>
 
           {/* Пилюли */}
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="-mx-5 mt-4 flex items-center gap-3 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
 
             {currentFilters.map((f) => {
               const on = active === f.id;
@@ -291,7 +291,7 @@ export function MainCheckupsSection({ title = "Разовые чекапы" }: {
                   type="button"
                   aria-pressed={on}
                   onClick={() => toggleFilter(f.id)}
-                  className={`rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
+                  className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2.5 text-sm transition-colors duration-200 ${
                     on
                       ? "bg-foreground text-background"
                       : "bg-muted text-foreground hover:bg-muted/70"
