@@ -129,7 +129,7 @@ export function MainReportPreview({ id }: { id?: string }) {
         </div>
 
 
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-6">
+        <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-6 md:mt-10">
           <div className="relative rounded-2xl border border-border/70 bg-card p-2 shadow-sm sm:p-3">
             <div className="pointer-events-none absolute inset-x-5 -bottom-2 -z-10 h-full rounded-2xl border border-border/60 bg-muted/60" />
             <div className="pointer-events-none absolute inset-x-8 -bottom-4 -z-20 h-full rounded-2xl border border-border/50 bg-muted/40" />
