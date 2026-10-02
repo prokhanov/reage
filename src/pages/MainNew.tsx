@@ -14,7 +14,7 @@ import { Artboard, useBreakpoint } from "@/components/landing/HeroPortrait";
 import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
-import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
+import { MainCheckupsCatalog } from "@/components/landing/energy/MainCheckupsCatalog";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
@@ -285,7 +285,7 @@ function MainNewContent() {
         <MainLabVsReport id="lab-vs-report" />
         <MainReportPreview id="report-preview" />
         <MainDoctorBlock />
-        <MainCheckupsSection />
+        <MainCheckupsCatalog />
         <MainMonitoringSection id="monitoring" />
         <WhereToTestSection />
         <AppFeaturesSection containerClassName="mx-auto w-full max-w-[80rem] px-4 sm:px-6" />
