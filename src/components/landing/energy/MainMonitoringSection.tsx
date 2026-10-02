@@ -189,7 +189,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
                 <Button
                   size="lg"
                   variant={c.isPopular ? "default" : "outline"}
-                  className="mt-6 w-full"
+                  className={`mt-6 w-full ${c.isPopular ? "" : "text-foreground hover:text-foreground"}`}
                   onClick={requestRegister}
                 >
                   Выбрать {c.name}
