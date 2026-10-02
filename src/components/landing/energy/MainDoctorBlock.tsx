@@ -50,19 +50,20 @@ export function MainDoctorBlock({ id }: { id?: string }) {
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start lg:gap-10">
           {/* Doctor card */}
-          <div className="rounded-3xl bg-muted/50 p-5 sm:p-6 lg:self-start">
+          <div className="rounded-3xl bg-muted/50 p-5 sm:p-6 lg:self-start md:grid md:grid-cols-[240px_minmax(0,1fr)] md:items-center md:gap-6 lg:block">
             <img
               src={doctorPhoto}
               alt={doctor.name}
-              className="w-full max-w-[300px] aspect-[4/3] object-cover object-[50%_20%] rounded-2xl md:aspect-[4/5] md:object-[50%_15%] md:rounded-[20px]"
+              className="w-full max-w-[300px] aspect-[4/3] object-cover object-[50%_20%] rounded-2xl md:w-[240px] md:max-w-none md:aspect-[4/5] md:object-[50%_15%] md:rounded-[18px] lg:w-full lg:max-w-[300px] lg:rounded-[20px]"
               loading="lazy"
             />
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h3 className="font-display text-2xl leading-tight text-foreground">
+            <div className="min-w-0">
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 md:mt-0 md:flex-col md:items-start lg:mt-5 lg:flex-row lg:items-center">
+              <h3 className="font-display text-2xl leading-tight md:text-[28px] lg:text-2xl text-foreground">
                 Д-р {doctor.name}
               </h3>
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-foreground">
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-foreground md:order-first lg:order-none">
                 Эксперт ReAge
               </span>
             </div>
@@ -90,9 +91,10 @@ export function MainDoctorBlock({ id }: { id?: string }) {
               })}
             </div>
 
-            <p className="mt-5 text-[15px] leading-relaxed text-muted-foreground">
+            <p className="mt-5 text-[15px] leading-relaxed text-muted-foreground md:mt-4 md:text-sm lg:mt-5 lg:text-[15px]">
               {ABOUT_LINE}
             </p>
+            </div>
           </div>
 
           {/* Content */}
@@ -105,7 +107,7 @@ export function MainDoctorBlock({ id }: { id?: string }) {
               разово — после чекапа, весь год — в годовой программе.
             </p>
 
-            <ul className="mt-7 space-y-5">
+            <ul className="mt-7 space-y-5 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-4 md:space-y-0 lg:block lg:space-y-5">
               {DOCTOR_STEPS.map((step) => (
                 <li key={step.title} className="flex items-start gap-3.5">
                   <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
@@ -123,7 +125,7 @@ export function MainDoctorBlock({ id }: { id?: string }) {
               ))}
             </ul>
 
-            <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-2">
               <div className="rounded-2xl bg-muted/60 p-5">
                 <p className="text-sm text-muted-foreground">Разовый чекап</p>
                 <p className="mt-1.5 text-lg font-semibold text-foreground">Отчёт от врача</p>
