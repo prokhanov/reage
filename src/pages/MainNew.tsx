@@ -1,21 +1,16 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
-  Activity,
   ArrowRight,
-  FlaskConical,
-  HeartPulse,
   Menu,
   ShoppingCart,
   X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
-import heroPeople from "@/assets/landing-v2/hero-couple-v9.webp?url";
 import { PageMeta } from "@/components/PageMeta";
-import { SmartPicture } from "@/components/landing/SmartPicture";
+import { Artboard, useBreakpoint } from "@/components/landing/HeroPortrait";
 import { Footer } from "@/components/landing/CTASection";
 import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
@@ -58,69 +53,11 @@ function scrollToAnchor(href: string) {
   }
 }
 
-const floatTextStyle: CSSProperties = {
-  textShadow:
-    "0 0 2px rgba(255,255,255,1), 0 0 6px rgba(255,255,255,0.95), 0 1px 16px rgba(255,255,255,0.9)",
-};
-
 function HeroVisual() {
+  const bp = useBreakpoint();
   return (
-    <div className="relative h-[380px] w-full sm:h-[460px] lg:h-full lg:min-h-[560px]">
-      <SmartPicture
-        avif={heroPeopleAvif}
-        src={heroPeople}
-        alt="Пара изучает персональный отчёт ReAge"
-        width={1600}
-        height={1600}
-        fetchpriority="high"
-        decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full object-contain object-bottom"
-      />
-
-      <div className="absolute left-0 top-[8%] w-[148px] p-3 sm:left-[3%] sm:w-[180px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">Биовозраст</span>
-          <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
-        </div>
-        <div className="mt-2 flex items-end gap-1.5">
-          <span className="font-display text-3xl leading-none text-foreground sm:text-4xl">34,2</span>
-          <span className="pb-0.5 text-[10px] text-foreground/80 sm:text-xs">года</span>
-        </div>
-      </div>
-
-      <div className="absolute right-0 top-[18%] w-[154px] p-3 sm:right-[2%] sm:w-[190px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
-        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
-          <FlaskConical className="h-3.5 w-3.5 text-primary" />
-          Биомаркеры
-        </div>
-        <div className="space-y-2 text-[11px] sm:text-xs">
-          <div className="flex items-center justify-between"><span>Витамин D</span><strong>62</strong></div>
-          <div className="flex items-center justify-between"><span>Ферритин</span><strong>38</strong></div>
-          <div className="flex items-center justify-between"><span>HbA1c</span><strong className="text-warning">5,8%</strong></div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[22%] left-0 w-[162px] p-3 sm:left-[4%] sm:w-[200px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
-        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
-          <HeartPulse className="h-3.5 w-3.5 text-success" />
-          Системы организма
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Сердце</span><strong>92%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[92%] rounded-full bg-success" /></div>
-          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Метаболизм</span><strong>78%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[6%] right-0 w-[150px] p-3 sm:right-[3%] sm:w-[184px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
-        <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
-          <Activity className="h-3.5 w-3.5 text-primary" />
-          Индекс здоровья
-        </div>
-        <div className="font-display text-3xl leading-none text-foreground sm:text-4xl">84%</div>
-        <p className="mt-1 text-[10px] text-foreground/80 sm:text-xs">Хороший результат</p>
-      </div>
+    <div className="flex h-[460px] w-full items-end justify-center sm:h-[520px] lg:h-full lg:min-h-[560px]">
+      <Artboard bp={bp} isDark={false} />
     </div>
   );
 }
