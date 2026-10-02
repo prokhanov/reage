@@ -19,7 +19,7 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
       <div className="mx-auto grid w-full max-w-[72rem] items-center gap-10 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{facts.eyebrow}</p>
-          <h2 className="mt-4 text-balance font-display text-[2rem] leading-[1.5] text-foreground sm:text-4xl sm:leading-[1.45] lg:text-[2.75rem] lg:leading-[1.4]">
+          <h2 className="mt-4 text-balance font-display text-[2rem] leading-[1.35] text-foreground sm:text-4xl sm:leading-[1.3] lg:text-[2.75rem] lg:leading-[1.28]">
             {facts.title}
           </h2>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">{facts.text}</p>
