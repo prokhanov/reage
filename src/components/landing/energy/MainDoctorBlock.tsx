@@ -50,15 +50,13 @@ export function MainDoctorBlock({ id }: { id?: string }) {
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
           {/* Doctor card */}
-          <div className="rounded-3xl bg-muted/50 p-5 sm:p-6">
-            <div className="overflow-hidden rounded-2xl">
-              <img
-                src={doctorPhoto}
-                alt={doctor.name}
-                className="aspect-[4/3] w-full object-cover object-top"
-                loading="lazy"
-              />
-            </div>
+          <div className="rounded-3xl bg-muted/50 p-5 sm:p-6 lg:self-start">
+            <img
+              src={doctorPhoto}
+              alt={doctor.name}
+              className="w-full max-w-[300px] aspect-[4/3] object-cover object-[50%_20%] rounded-2xl md:aspect-[4/5] md:object-[50%_15%] md:rounded-[20px]"
+              loading="lazy"
+            />
 
             <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
               <h3 className="font-display text-2xl leading-tight text-foreground">
