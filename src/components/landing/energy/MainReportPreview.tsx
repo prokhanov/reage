@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 
 const SECTIONS = [
+  { id: "summary", label: "Общее резюме" },
+  { id: "strengths", label: "Сильные стороны организма" },
+  { id: "deficits", label: "Дефициты и дисфункции" },
   { id: "markers", label: "Расшифровка показателей" },
   { id: "lifestyle", label: "Коррекция образа жизни" },
   { id: "recs", label: "Рекомендации" },
@@ -19,6 +23,24 @@ function Block({ id, title, children }: { id: string; title: string; children: R
     </div>
   );
 }
+
+const SUMMARY_TEXT =
+  "Углеводный обмен, антиоксидантная защита и функция щитовидной железы — в стабильном и оптимальном состоянии. При этом выявлены несколько значимых дисбалансов, которые могут быть связаны с усталостью и пищеварительным дискомфортом: нарушение белкового обмена (альбумин 32,1 г/л) и повышенная активность иммунной системы по аллергическому типу (эозинофилы 6,02 %).";
+
+const STRENGTHS = [
+  { lead: "Эффективный углеводный обмен", text: "Глюкоза 4,72 ммоль/л, гликированный гемоглобин 5,05 % и инсулин 3,1 мкМЕ/л в оптимальных значениях — клетки стабильно обеспечены энергией, инсулинорезистентности нет." },
+  { lead: "Высокая антиоксидантная защита", text: "Коэнзим Q10 2330 нг/мл на верхней границе нормы, общий антиоксидантный статус 1,85 ммоль/л оптимален — клетки надёжно защищены от оксидативного стресса." },
+  { lead: "Сбалансированная работа щитовидной железы", text: "ТТГ 1,28 мМЕ/л, Т4 свободный 11,13 пмоль/л, Т3 свободный 5,33 пмоль/л и отсутствие антител — железа работает здорово и не является причиной усталости." },
+  { lead: "Низкий риск воспаления и атеросклероза", text: "С-реактивный белок 0,01 мг/л и индекс атерогенности 0,58 на крайне низком уровне — сосуды здоровы, хронического системного воспаления нет." },
+];
+
+const DEFICITS = [
+  { lead: "Нарушение белкового обмена", text: "Альбумин 32,1 г/л при норме 35–52 г/л значительно снижен — дефицит основного «строительного материала» влияет на энергию, транспортную функцию крови и восстановление." },
+  { lead: "Иммунная активность по аллергическому типу", text: "Эозинофилы 6,02 % при норме до 5 % — маркер аллергической реакции, вероятно связанной с пищеварением: вздутие, диарея, боли." },
+  { lead: "Ослабление первичного иммунного ответа", text: "Иммуноглобулин M 0,26 г/л при норме 0,4–2,3 г/л — организму сложнее быстро реагировать на новые инфекции." },
+  { lead: "Дефицит тестостерона", text: "Общий тестостерон 0,16 нмоль/л ниже нормы — одна из прямых причин усталости, снижения выносливости и перепадов настроения." },
+  { lead: "Пониженные печёночные ферменты", text: "АЛТ 3,8 Ед/л и АСТ 8,2 Ед/л ниже референса — возможный дефицит белка и витамина B6, необходимых для их синтеза." },
+];
 
 function Row({ lead, text }: { lead: string; text: string }) {
   return (
@@ -120,6 +142,44 @@ export function MainReportPreview({ id }: { id?: string }) {
               ref={scrollRef}
               className="h-[560px] space-y-10 overflow-y-auto overscroll-contain rounded-2xl bg-muted/40 p-4 sm:p-6 lg:h-[620px]"
             >
+              <Block id="summary" title="Общее резюме">
+                <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
+                  <p className="text-[15px] leading-relaxed text-foreground/90">{SUMMARY_TEXT}</p>
+                </div>
+              </Block>
+
+              <Block id="strengths" title="Сильные стороны организма">
+                <div className="space-y-3">
+                  {STRENGTHS.map((s) => (
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-optimal/30 bg-status-optimal/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-optimal/15 text-status-optimal">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                      </span>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Block>
+
+              <Block id="deficits" title="Дефициты и дисфункции">
+                <div className="space-y-3">
+                  {DEFICITS.map((s) => (
+                    <div key={s.lead} className="flex gap-3.5 rounded-2xl border border-status-warning/30 bg-status-warning/5 px-5 py-4 sm:px-6">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-status-warning/15 text-status-warning">
+                        <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </span>
+                      <div>
+                        <p className="font-semibold text-foreground">{s.lead}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{s.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Block>
+
               <Block id="markers" title="Расшифровка показателей">
                 <div className="space-y-3">
                   {MARKERS.map((m, i) => (
