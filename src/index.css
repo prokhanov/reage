@@ -221,7 +221,7 @@ All colors MUST be HSL.
 
   /* Isolated palette experiment for /main_new. */
   .main-new-palette {
-    --background: 210 22.2% 96.5%;
+    --background: 45 33% 97%;
     --foreground: 210 28.6% 16.5%;
     --surface: 210 47.4% 92.5%;
     --surface-foreground: 210 28.6% 16.5%;
