@@ -146,9 +146,8 @@ const App = () => (
           <PartnerOfferBanner />
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/main" element={<MainNew />} />
-            <Route path="/main_new" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<MainNew />} />
+            <Route path="/main_new" element={<Index />} />
             <Route path="/monitoring" element={<Index />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/energy" element={<Navigate to="/checkup/energy" replace />} />
@@ -164,7 +163,7 @@ const App = () => (
               path="/example-report"
               element={
                 <>
-                  <Index />
+                  <MainNew />
                   <ExampleReport />
                 </>
               }
