@@ -222,39 +222,39 @@ All colors MUST be HSL.
   /* Isolated palette experiment for /main_new. */
   .main-new-palette {
     --background: 45 33% 97%;
-    --foreground: 210 28.6% 16.5%;
-    --surface: 210 47.4% 92.5%;
-    --surface-foreground: 210 28.6% 16.5%;
+    --foreground: 200 35.3% 13.3%;
+    --surface: 192.6 42.2% 91.2%;
+    --surface-foreground: 200 35.3% 13.3%;
 
-    --card: 210 22.2% 96.5%;
-    --card-foreground: 210 28.6% 16.5%;
-    --popover: 210 22.2% 96.5%;
-    --popover-foreground: 210 28.6% 16.5%;
+    --card: 200 30% 96.5%;
+    --card-foreground: 200 35.3% 13.3%;
+    --popover: 200 30% 96.5%;
+    --popover-foreground: 200 35.3% 13.3%;
 
-    --primary: 209.7 49.2% 36.3%;
-    --primary-foreground: 210 22.2% 96.5%;
-    --primary-hover: 209.7 49.2% 31%;
-    --primary-glow: 209.7 49.2% 50%;
+    --primary: 195.5 52.5% 34.7%;
+    --primary-foreground: 200 30% 96.5%;
+    --primary-hover: 195.5 52.5% 28.5%;
+    --primary-glow: 195.5 52.5% 46%;
 
-    --secondary: 210 47.4% 92.5%;
-    --secondary-foreground: 210 28.6% 16.5%;
-    --secondary-hover: 210 38% 88%;
-    --secondary-glow: 210 30% 82%;
+    --secondary: 192.6 42.2% 91.2%;
+    --secondary-foreground: 200 35.3% 13.3%;
+    --secondary-hover: 192.6 38% 86.5%;
+    --secondary-glow: 192.6 34% 82%;
 
-    --accent: 209.7 49.2% 36.3%;
-    --accent-foreground: 210 22.2% 96.5%;
-    --accent-glow: 209.7 42% 58%;
+    --accent: 195.5 52.5% 34.7%;
+    --accent-foreground: 200 30% 96.5%;
+    --accent-glow: 195.5 44% 54%;
 
-    --muted: 210 47.4% 92.5%;
-    --muted-foreground: 210 18% 42%;
-    --border: 210 28% 86%;
-    --border-strong: 210 22% 69%;
-    --input: 210 22% 76%;
-    --ring: 209.7 49.2% 36.3%;
+    --muted: 192.6 42.2% 91.2%;
+    --muted-foreground: 200 16% 42%;
+    --border: 200 26% 86%;
+    --border-strong: 200 20% 69%;
+    --input: 200 20% 76%;
+    --ring: 195.5 52.5% 34.7%;
 
-    --info: 209.7 49.2% 36.3%;
-    --info-foreground: 210 22.2% 96.5%;
-    --info-soft: 210 47.4% 92.5%;
+    --info: 195.5 52.5% 34.7%;
+    --info-foreground: 200 30% 96.5%;
+    --info-soft: 192.6 42.2% 91.2%;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%);
     --gradient-secondary: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--surface)) 100%);
