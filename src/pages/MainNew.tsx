@@ -104,6 +104,10 @@ function MainNewContent() {
     document.getElementById("checkups")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const scrollToMonitoring = () => {
+    document.getElementById("monitoring")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleNavClick = (href: string) => {
     setMobileOpen(false);
     setTimeout(() => scrollToAnchor(href), 150);
@@ -269,17 +273,14 @@ function MainNewContent() {
                       <p className={cn("font-display whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
                       <p className={cn("font-display mt-2 whitespace-nowrap text-lg font-bold xl:text-xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.price}</p>
                       <p className={cn("mt-2 text-[13px] leading-snug", c.dark ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.text}</p>
-                      {c.dark ? (
-                        <Link to="/monitoring" className={ctaCls}>
-                          {c.cta}
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                        </Link>
-                      ) : (
-                        <button type="button" onClick={scrollToCheckups} className={ctaCls}>
-                          {c.cta}
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={c.dark ? scrollToMonitoring : scrollToCheckups}
+                        className={ctaCls}
+                      >
+                        {c.cta}
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </button>
                     </div>
                   );
                 })}
