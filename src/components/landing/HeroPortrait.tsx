@@ -221,6 +221,14 @@ const LAYOUTS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Layout>>> = {
   },
 };
 
+// Артборд для /main: выше — люди подняты, низ блока обрезан по краю фото.
+const ARTBOARDS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Artboard>>> = {
+  desktop: {
+    height: 780,
+    man: { left: 0, bottom: 0, width: 560, height: 780, objectPosition: "50% 100%" },
+  },
+};
+
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
     bioAge:         { top: 138, left: -15, width: 170, rotate: -2 },
