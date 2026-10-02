@@ -158,6 +158,9 @@ const LandingV2 = () => {
         <Block>
           <ConsultationCtaBlock />
         </Block>
+        <Block>
+          <EnergyExpertResult demoReport id="result" />
+        </Block>
 
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
         <Block>
