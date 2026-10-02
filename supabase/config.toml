@@ -61,3 +61,6 @@ project_id = "ilxgodhosirhhkffqryw"
 
 [functions.support-email-digest]
 verify_jwt = false
+
+[functions.abandoned-carts-digest]
+verify_jwt = false

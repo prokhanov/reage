@@ -34,6 +34,8 @@ export interface CartLeadPayload {
   locationType: "clinic" | "home";
   promoCode?: string | null;
   amount: number;
+  consult?: boolean;
+  consultPrice?: number | null;
 }
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());

@@ -25,6 +25,7 @@ const EVENTS: EventDef[] = [
   { key: "booking_status_changed", label: "Заявки и запись на анализы", description: "Заявка «Перезвоните мне», изменение статуса записи на анализы" },
   { key: "lifestyle_quiz_lead", label: "Тест скрытых рисков", description: "Когда посетитель лендинга проходит тест и оставляет контакты" },
   { key: "checkup_paid", label: "Оплата чекапа", description: "Когда посетитель оплачивает чекап на странице /checkup/*" },
+  { key: "abandoned_digest", label: "Брошенные корзины (ежедневно)", description: "Сводка незавершённых корзин за сутки каждый день в 9:00 МСК" },
 ];
 
 const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
