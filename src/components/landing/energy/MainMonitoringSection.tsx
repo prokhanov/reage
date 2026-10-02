@@ -88,8 +88,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
       <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">Годовой мониторинг</p>
-            <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
+            <h2 className="font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
               Один анализ — снимок.
               <br />
               Мониторинг — история
