@@ -79,7 +79,7 @@ export function MainLabVsReport({ id }: { id?: string }) {
     <section id={id} className="border-b hairline bg-muted/40 py-14 md:py-20">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
         <h2 className="font-display max-w-[760px] text-balance text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
-          Лаборатория даёт цифры. ReAge объясняет, что с&nbsp;ними делать
+          Лаборатория даёт бланк. Мы показывам, что&nbsp;происходит со здоровьем.
         </h2>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-2 md:gap-6">
