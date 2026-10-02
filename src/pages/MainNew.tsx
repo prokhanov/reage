@@ -104,6 +104,10 @@ function MainNewContent() {
     document.getElementById("checkups")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const scrollToMonitoring = () => {
+    document.getElementById("monitoring")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleNavClick = (href: string) => {
     setMobileOpen(false);
     setTimeout(() => scrollToAnchor(href), 150);
