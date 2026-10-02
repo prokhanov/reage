@@ -120,7 +120,9 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
           Одна сдача крови и отчёт за 1–2 дня. Выберите по самочувствию — или сразу полный.
         </p>
 
-        <div className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+        <div className="mt-6 text-sm font-medium text-muted-foreground lg:hidden">Или выберите по самочувствию</div>
+
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:px-0">
           {FILTERS.map((f) => {
             const on = filter === f.id;
             return (
@@ -159,7 +161,13 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[c.accent] ?? "bg-muted-foreground"}`} />
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold text-foreground">{c.name}</span>
-                      <span className="block truncate text-sm text-muted-foreground">{c.tag}</span>
+                      <span className="block text-sm text-muted-foreground">
+                        {c.tag}
+                        <span className="sm:hidden">
+                          {" "}· {count} {markerWord(count)}
+                          {c.cbcBonusEnabled ? " + ОАК" : ""}
+                        </span>
+                      </span>
                     </span>
                     <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:block">
                       {count} {markerWord(count)}
