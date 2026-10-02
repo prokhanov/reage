@@ -24,8 +24,8 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
           </h2>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">{facts.text}</p>
           <div className="mt-8 flex items-center gap-5 sm:gap-6">
-            <Button size="lg" className="h-14 flex-1 gap-2 rounded-xl px-5 text-base sm:flex-none sm:px-7" onClick={onAddToCart}>
-              {inCart ? <Check className="h-5 w-5" aria-hidden /> : null}
+            <Button size="lg" className="h-[52px] flex-1 gap-2 text-base sm:h-12 sm:flex-none" onClick={onAddToCart}>
+              {inCart ? <Check className="h-4 w-4" aria-hidden /> : null}
               {inCart ? "В корзине" : facts.ctaLabel}
               {!inCart ? <ArrowRight className="h-4 w-4" aria-hidden /> : null}
             </Button>

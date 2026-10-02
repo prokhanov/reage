@@ -183,11 +183,11 @@ export function EnergyPriceCompare() {
 
           <Button
             onClick={addToCart}
-            className="mt-5 h-[76px] w-full rounded-2xl text-xl font-semibold"
+            size="lg"
+            className="mt-5 h-[52px] w-full gap-2 text-base sm:h-12"
           >
-            <ShoppingCart className="h-6 w-6 shrink-0" aria-hidden />
             Пройти чекап за {money(pp(checkup.price))}
-            <ArrowRight className="h-6 w-6 shrink-0" aria-hidden />
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </Button>
         </div>
 
@@ -365,11 +365,11 @@ export function EnergyPriceCompare() {
             </div>
             <Button
               onClick={addToCart}
-              className="mt-6 h-[88px] w-full rounded-2xl bg-primary-foreground text-xl font-semibold text-primary hover:bg-primary-foreground/90 md:text-2xl"
+              size="lg"
+              className="mt-6 h-[52px] w-full gap-2 text-base sm:h-12 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             >
-              <ShoppingCart className="h-7 w-7 shrink-0" aria-hidden />
               Пройти чекап за {money(pp(checkup.price))}
-              <ArrowRight className="h-7 w-7 shrink-0" aria-hidden />
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
             </Button>
           </div>
         </div>
