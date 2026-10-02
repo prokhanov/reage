@@ -344,7 +344,7 @@ export function EnergyPriceCompare() {
               Итого по отдельности
               <Info className="h-4 w-4" />
             </div>
-            <div className="mt-1.5 text-4xl font-semibold tabular-nums tracking-tight text-muted-foreground line-through md:text-5xl">
+            <div className="mt-1.5 font-display text-4xl tabular-nums text-muted-foreground line-through md:text-5xl">
               {money(separate)}
             </div>
           </div>
