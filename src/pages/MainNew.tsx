@@ -218,7 +218,7 @@ function MainNewContent() {
           <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pb-0 pt-8 sm:px-6 sm:pt-10 lg:min-h-[min(calc(100vh-4rem),836px)] lg:grid-cols-[7fr_5fr] lg:items-stretch lg:gap-10 lg:pb-0 lg:pt-10">
             <div className="order-2 flex w-full flex-col items-center justify-center pb-8 text-center md:order-2 lg:order-1 lg:items-start lg:pb-10 lg:text-left">
               <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium text-muted-foreground">
-                Москва · Московская область · Санкт-Петербург
+                Москва · Санкт-Петербург
               </p>
               <h1 className="font-display mt-4 max-w-[720px] text-balance text-[clamp(2.25rem,3.6vw,3.25rem)] leading-[1.1] text-foreground">
                 Сервис контроля здоровья с&nbsp;понятными разборами и&nbsp;планом действий
