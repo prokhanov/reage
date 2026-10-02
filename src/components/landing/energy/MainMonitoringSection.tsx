@@ -12,6 +12,7 @@ import { useRegisterGuard } from "@/components/RegisterGuard";
 import { planToCard, type BiomarkerRow } from "@/components/landing/PricingSection";
 import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
 import { YandexSplitBadge } from "@/components/landing/YandexSplitBadge";
+import { ProgramDiffTable } from "@/components/landing/energy/ProgramDiffTable";
 
 const FEATURES = [
   { title: "Сравнение сдач", text: "Каждый показатель на графике по всем сдачам года" },
