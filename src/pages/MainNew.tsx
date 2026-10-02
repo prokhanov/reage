@@ -209,8 +209,8 @@ function MainNewContent() {
 
       <main>
         <section className="relative overflow-hidden border-b hairline bg-background">
-          <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pb-8 pt-8 sm:px-6 sm:pt-10 lg:min-h-[min(calc(100vh-4rem),836px)] lg:grid-cols-[7fr_5fr] lg:items-stretch lg:gap-10 lg:py-10">
-            <div className="flex w-full flex-col items-center justify-center text-center lg:items-start lg:text-left">
+          <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pb-0 pt-8 sm:px-6 sm:pt-10 lg:min-h-[min(calc(100vh-4rem),836px)] lg:grid-cols-[7fr_5fr] lg:items-stretch lg:gap-10 lg:pb-0 lg:pt-10">
+            <div className="flex w-full flex-col items-center justify-center pb-8 text-center lg:items-start lg:pb-10 lg:text-left">
               <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium text-muted-foreground">
                 Москва · Московская область · Санкт-Петербург
               </p>
