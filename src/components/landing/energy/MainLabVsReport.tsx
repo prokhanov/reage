@@ -93,8 +93,8 @@ export function MainLabVsReport({ id }: { id?: string }) {
         </h2>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-2 md:gap-6">
-          <Card title="Бланк из лаборатории" items={LAB_ITEMS} tone="lab" />
-          <Card title="Отчёт ReAge" items={REAGE_ITEMS} tone="reage" />
+          <Card title="Чекапы в лаборатории" items={LAB_ITEMS} tone="lab" />
+          <Card title="Чекапы ReAge" items={REAGE_ITEMS} tone="reage" />
         </div>
       </div>
     </section>
