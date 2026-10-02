@@ -2,8 +2,10 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
+  Activity,
   ArrowRight,
   FlaskConical,
+  HeartPulse,
   Menu,
   ShoppingCart,
   X,
