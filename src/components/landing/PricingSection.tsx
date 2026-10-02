@@ -48,7 +48,7 @@ const HormoneMoleculeIcon = makeIcon(
   </>
 );
 
-interface BiomarkerCategory {
+export interface BiomarkerCategory {
   icon: LucideIcon;
   name: string;
   markers: string[];
@@ -268,14 +268,14 @@ function extractCount(features: string[], keywords: string[]): string | null {
   return null;
 }
 
-interface BiomarkerRow {
+export interface BiomarkerRow {
   id: string;
   name: string;
   category: string;
   display_order: number;
 }
 
-function planToCard(
+export function planToCard(
   plan: PlanWithPricing,
   index: number,
   allBiomarkers: BiomarkerRow[],
