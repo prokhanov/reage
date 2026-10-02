@@ -1,11 +1,9 @@
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
-  Activity,
   ArrowRight,
-  Check,
   FlaskConical,
-  HeartPulse,
   Menu,
   ShoppingCart,
   X,
@@ -47,11 +45,6 @@ const navItems = [
   { label: "Вопросы", href: "#questions" },
 ];
 
-const heroBullets = [
-  "Сравниваем с оптимальными значениями, а не только с нормой бланка",
-  "Объясняем, что значат отклонения и что делать дальше",
-  "Каждая следующая сдача — сравнение с предыдущей",
-];
 
 const YEARLY_MONITORING_LABEL = "Годовой мониторинг";
 
