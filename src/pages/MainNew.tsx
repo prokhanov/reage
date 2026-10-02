@@ -284,6 +284,7 @@ function MainNewContent() {
         <EnergyHowItWorks id="how-it-works" />
         <MainLabVsReport id="lab-vs-report" />
         <MainReportPreview id="report-preview" />
+        <MainDoctorBlock />
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
         <MainProgramVsCheckup id="program-vs-checkup" />
