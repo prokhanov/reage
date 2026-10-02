@@ -204,12 +204,12 @@ export function MainMonitoringSection({ id }: { id?: string }) {
           <Button variant="link" onClick={() => setCompareOpen(true)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
             Сравнить программы по показателям
           </Button>
-          <Button variant="link" onClick={() => setDiffOpen((v) => !v)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
+          <Button variant="link" onClick={() => setDiffOpen(true)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
             Отличие разовых чекапов от годовой программы
           </Button>
         </div>
         <BiomarkerComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} />
-        {diffOpen && <ProgramDiffTable />}
+        <ProgramDiffDialog open={diffOpen} onOpenChange={setDiffOpen} />
       </div>
     </section>
   );
