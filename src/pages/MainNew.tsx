@@ -65,7 +65,7 @@ const floatTextStyle: CSSProperties = {
 
 function HeroVisual() {
   return (
-    <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-muted sm:h-[460px] lg:h-full lg:min-h-[560px]">
+    <div className="relative h-[380px] w-full sm:h-[460px] lg:h-full lg:min-h-[560px]">
       <SmartPicture
         avif={heroPeopleAvif}
         src={heroPeople}
@@ -74,11 +74,10 @@ function HeroVisual() {
         height={1600}
         fetchpriority="high"
         decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: "center 20%" }}
+        className="pointer-events-none absolute inset-0 h-full w-full object-contain object-bottom"
       />
 
-      <div className="absolute left-[3%] top-[5%] w-[148px] p-3 sm:left-[3%] sm:w-[180px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute left-0 top-[8%] w-[148px] p-3 sm:left-[3%] sm:w-[180px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">Биовозраст</span>
           <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
@@ -89,7 +88,7 @@ function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute right-[3%] top-[5%] w-[154px] p-3 sm:right-[2%] sm:w-[190px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute right-0 top-[18%] w-[154px] p-3 sm:right-[2%] sm:w-[190px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
         <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
           <FlaskConical className="h-3.5 w-3.5 text-primary" />
           Биомаркеры
@@ -101,20 +100,20 @@ function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute bottom-[14%] left-[3%] w-[162px] p-3 sm:left-[4%] sm:w-[200px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute bottom-[22%] left-0 w-[162px] p-3 sm:left-[4%] sm:w-[200px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
         <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
           <HeartPulse className="h-3.5 w-3.5 text-success" />
           Системы организма
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Сердце</span><strong>92%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/60"><div className="h-full w-[92%] rounded-full bg-success" /></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[92%] rounded-full bg-success" /></div>
           <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Метаболизм</span><strong>78%</strong></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/60"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
         </div>
       </div>
 
-      <div className="absolute bottom-[6%] right-[3%] w-[150px] p-3 sm:right-[3%] sm:w-[184px] sm:p-4" style={floatTextStyle}>
+      <div className="absolute bottom-[6%] right-0 w-[150px] p-3 sm:right-[3%] sm:w-[184px] sm:p-4 z-10 rounded-xl border border-border/70 bg-card shadow-lg">
         <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
           <Activity className="h-3.5 w-3.5 text-primary" />
           Индекс здоровья
