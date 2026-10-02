@@ -288,7 +288,6 @@ function MainNewContent() {
         <MainMonitoringSection id="monitoring" />
         <MainProgramVsCheckup id="program-vs-checkup" />
         <WhereToTestSection />
-        <ComparisonSection hidePrice />
         <MainQuestionCta id="questions" />
       </main>
 
