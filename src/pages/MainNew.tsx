@@ -281,13 +281,13 @@ function MainNewContent() {
           </div>
         </section>
 
+        <EnergyHowItWorks id="how-it-works" />
         <MainLabVsReport id="lab-vs-report" />
         <MainReportPreview id="report-preview" />
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
         <MainProgramVsCheckup id="program-vs-checkup" />
         <WhereToTestSection />
-        <EnergyHowItWorks id="how-it-works" />
         <ComparisonSection hidePrice />
         <MainQuestionCta id="questions" />
       </main>
