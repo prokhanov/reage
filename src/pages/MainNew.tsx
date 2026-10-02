@@ -289,6 +289,7 @@ function MainNewContent() {
         <MainMonitoringSection id="monitoring" />
         <WhereToTestSection />
         <AppFeaturesSection containerClassName="mx-auto w-full max-w-[80rem] px-4 sm:px-6" />
+        <FAQSection id="faq" containerClassName="mx-auto w-full max-w-[80rem] px-4 sm:px-6" />
         <MainQuestionCta id="questions" />
       </main>
 

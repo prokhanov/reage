@@ -113,7 +113,7 @@ export function FAQSection({
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
-      <section id="questions" className="relative py-6 md:py-8 overflow-hidden scroll-mt-20">
+      <section id={id} className="relative py-6 md:py-8 overflow-hidden scroll-mt-20">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       
@@ -121,7 +121,7 @@ export function FAQSection({
       <div className="absolute top-1/2 -left-48 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute top-1/2 -right-48 w-96 h-96 bg-accent/5 rounded-full blur-[150px]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[72rem] px-4 sm:px-6">
+      <div className={`relative z-10 ${containerClassName}`}>
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           
