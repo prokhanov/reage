@@ -16,7 +16,7 @@ import { EnergyCart } from "@/components/landing/energy/EnergyCart";
 import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
-import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
+import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
 import { MainLabVsReport } from "@/components/landing/energy/MainLabVsReport";
 import { MainReportPreview } from "@/components/landing/energy/MainReportPreview";
@@ -289,7 +289,7 @@ function MainNewContent() {
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
         <EnergyExpertResult demoReport id="result" />
-        <MainWhereToTest id="labs" />
+        <WhereToTestSection />
         <EnergyHowItWorks id="how-it-works" />
         <ComparisonSection hidePrice />
         <MainQuestionCta id="questions" />
