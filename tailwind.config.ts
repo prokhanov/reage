@@ -88,7 +88,6 @@ export default {
         'gradient-secondary': 'var(--gradient-secondary)',
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-monitoring': 'var(--gradient-monitoring)',
-        'gradient-monitoring-green': 'var(--gradient-monitoring-green)',
         'gradient-dark': 'var(--gradient-dark)',
       },
       boxShadow: {
