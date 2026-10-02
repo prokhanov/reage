@@ -43,7 +43,7 @@ const navItems = [
   { label: "Как это работает", href: "#how-it-works" },
   { label: "Пример отчёта", href: "#report-preview" },
   { label: "Чекапы", href: "#checkups" },
-  { label: "Годовой мониторинг", href: "#monitoring" },
+  { label: "Мониторинг", href: "#monitoring" },
   { label: "Где сдать", href: "#labs" },
   { label: "Вопросы", href: "#faq" },
 ];
