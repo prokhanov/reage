@@ -273,11 +273,12 @@ export function MainReportPreview({ id }: { id?: string }) {
                 </div>
               </Block>
             </div>
+            <p className="px-3 pt-2 text-center text-xs text-muted-foreground lg:hidden">↕ Листайте отчёт</p>
             <div className="pointer-events-none absolute inset-x-2 bottom-2 h-10 rounded-b-xl bg-gradient-to-t from-card to-transparent sm:inset-x-3 sm:bottom-3" />
           </div>
 
           <aside className="space-y-3 lg:sticky lg:top-24">
-            <nav className="rounded-2xl border border-border/70 bg-card p-3 sm:p-4" aria-label="Оглавление отчёта">
+            <nav className="hidden rounded-2xl border border-border/70 bg-card p-3 sm:p-4 lg:block" aria-label="Оглавление отчёта">
               <h3 className="px-2 pb-4 font-display text-2xl text-foreground">Что внутри отчёта</h3>
               <ul className="space-y-2">
                 {SECTIONS.map((s, i) => (
