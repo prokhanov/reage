@@ -222,7 +222,7 @@ const LAYOUTS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Layout>>> = {
 };
 
 // Артборд для /main: выше — люди подняты, низ блока обрезан по краю фото.
-const ARTBOARDS_MAIN_NEW: Partial<Record<Breakpoint, Partial<Artboard>>> = {
+const ARTBOARDS_MAIN_NEW: Partial<Record<Breakpoint, Partial<(typeof ARTBOARDS)[Breakpoint]>>> = {
   desktop: {
     height: 780,
     man: { left: 0, bottom: 0, width: 560, height: 780, objectPosition: "50% 100%" },
@@ -281,7 +281,7 @@ export function useBreakpoint(): Breakpoint {
 /* ===================== ARTBOARD ===================== */
 
 export function Artboard({ bp, isDark, plain = false, layoutVariant }: { bp: Breakpoint; isDark: boolean; plain?: boolean; layoutVariant?: "mainNew" }) {
-  const ab = ARTBOARDS[bp];
+  const ab = { ...ARTBOARDS[bp], ...(layoutVariant === "mainNew" ? ARTBOARDS_MAIN_NEW[bp] ?? {} : {}) };
   const layout: Layout = { ...LAYOUTS[bp], ...(layoutVariant === "mainNew" ? LAYOUTS_MAIN_NEW[bp] ?? {} : {}) };
 
   const zMap: Record<WidgetId, number> = {
