@@ -249,7 +249,7 @@ function MainNewContent() {
                     <div
                       key={c.title}
                       className={cn(
-                        "grid grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl p-5 text-left shadow-sm",
+                        "grid grid-rows-[auto_auto_1fr_auto] rounded-2xl p-5 text-left shadow-sm",
                         c.dark ? "bg-primary" : "border border-border/80 bg-card",
                       )}
                     >
