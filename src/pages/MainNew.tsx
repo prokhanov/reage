@@ -227,6 +227,20 @@ function MainNewContent() {
                 Сдаёте кровь в лаборатории или дома — мы сравниваем результаты с оптимумом, объясняем отклонения и показываем динамику от сдачи к сдаче.
               </p>
 
+              <ul className="mt-6 grid w-full max-w-[620px] gap-2.5 text-left sm:grid-cols-2 sm:gap-x-6">
+                {[
+                  "Сдача анализов в лаборатории или с выездом на дом",
+                  "Все результаты и понятный отчет — в одном кабинете",
+                  "Персональные рекомендации и план следующих шагов",
+                  "История показателей и динамика при повторных сдачах",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2.5 text-[15px] leading-snug text-foreground">
+                    <span className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+
               <div className="mt-7 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-[680px]">
                 {[
                   {
