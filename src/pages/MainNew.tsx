@@ -19,6 +19,7 @@ import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSec
 import { MainWhereToTest } from "@/components/landing/energy/MainWhereToTest";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
 import { MainLabVsReport } from "@/components/landing/energy/MainLabVsReport";
+import { MainReportPreview } from "@/components/landing/energy/MainReportPreview";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import {
   EnergyOrderProvider,
@@ -283,6 +284,7 @@ function MainNewContent() {
         </section>
 
         <MainLabVsReport id="lab-vs-report" />
+        <MainReportPreview id="report-preview" />
         <MainCheckupsSection />
         <EnergyExpertResult demoReport id="result" />
         <MainWhereToTest id="labs" />
