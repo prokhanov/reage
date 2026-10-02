@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Activity,
-  ArrowDown,
+  ArrowRight,
+  Check,
   FlaskConical,
   HeartPulse,
   Menu,
@@ -44,6 +45,12 @@ const navItems = [
   { label: "Где сдать", href: "#labs" },
   { label: "Как это работает", href: "#how-it-works" },
   { label: "Вопросы", href: "#questions" },
+];
+
+const heroBullets = [
+  "Сравниваем с оптимальными значениями, а не только с нормой бланка",
+  "Объясняем, что значат отклонения и что делать дальше",
+  "Каждая следующая сдача — сравнение с предыдущей",
 ];
 
 const YEARLY_MONITORING_LABEL = "Годовой мониторинг";
@@ -275,19 +282,69 @@ function MainNewContent() {
         <section className="relative overflow-hidden border-b hairline bg-background lg:min-h-[640px] xl:min-h-[700px]">
           <div className="mx-auto grid w-full max-w-[72rem] items-center gap-5 px-4 pb-2 pt-8 sm:px-6 sm:pt-12 lg:min-h-[640px] lg:grid-cols-[48%_52%] lg:gap-0 lg:pb-20 lg:pt-24 xl:min-h-[700px]">
             <div className="mx-auto flex w-full max-w-md flex-col items-center text-center lg:mx-0 lg:items-start lg:pr-8 lg:text-left">
-              <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium uppercase text-muted-foreground">
-                Персональный контроль здоровья
+              <p className="inline-flex items-center rounded-full bg-muted px-4 py-1.5 text-xs font-medium text-muted-foreground">
+                Москва · Московская область · Санкт-Петербург
               </p>
-              <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.1] text-foreground sm:text-[2.75rem] xl:text-[3.4rem]">
-                Анализы, которые наконец понятны
+              <h1 className="font-display mt-4 text-balance text-[2.1rem] leading-[1.12] text-foreground sm:text-[2.6rem] xl:text-[3.2rem]">
+                Сервис контроля здоровья с&nbsp;понятными разборами и&nbsp;планом действий
               </h1>
-              <p className="mt-3 max-w-md text-lg leading-relaxed text-muted-foreground sm:mt-4 xl:text-xl">
-                ReAge переводит результаты анализов на человеческий язык, давая полную картину и конкретные рекомендации.
+              <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-5 sm:text-lg xl:text-xl">
+                Сдаёте кровь в лаборатории или дома — мы переводим результаты в понятный отчёт и говорим, что делать дальше.
               </p>
-              <Button id="main-new-hero-cta" size="lg" onClick={scrollToCheckups} className="mt-6 h-[52px] w-full gap-2 text-base sm:mt-8 sm:h-12 sm:w-auto">
-                Выбрать чекап
-                <ArrowDown className="h-4 w-4" />
-              </Button>
+
+              <ul className="mt-5 space-y-2.5 text-left sm:mt-6">
+                {heroBullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2.5 text-sm leading-snug text-foreground/90 sm:text-[0.95rem]">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" strokeWidth={2.5} />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2">
+                <div className="flex flex-col rounded-2xl border border-border/80 bg-card p-4 text-left shadow-sm sm:p-5">
+                  <p className="text-xs text-muted-foreground">Есть конкретный вопрос</p>
+                  <p className="font-display mt-1.5 text-xl leading-tight text-foreground sm:text-2xl">Разовый чекап</p>
+                  <p className="font-display mt-2 text-lg font-bold text-foreground sm:text-xl">
+                    от 4 990 ₽
+                  </p>
+                  <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+                    Усталость, щитовидка, железо, витамины или полная проверка · отчёт за 1–2 дня
+                  </p>
+                  <button
+                    type="button"
+                    onClick={scrollToCheckups}
+                    className="group mt-4 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-foreground transition-colors hover:text-primary"
+                  >
+                    Подобрать чекап
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </div>
+
+                <div className="flex flex-col rounded-2xl bg-primary p-4 text-left shadow-sm sm:p-5">
+                  <p className="text-xs text-primary-foreground/70">Хочу следить системно</p>
+                  <p className="font-display mt-1.5 text-xl leading-tight text-primary-foreground sm:text-2xl">
+                    Годовой мониторинг
+                  </p>
+                  <p className="font-display mt-2 text-lg font-bold text-primary-foreground sm:text-xl">
+                    от 52 990 ₽/год
+                  </p>
+                  <p className="mt-2 text-[13px] leading-snug text-primary-foreground/80">
+                    2–4 сдачи в год · сравнение с прошлыми результатами · консультация врача
+                  </p>
+                  <Link
+                    to="/monitoring"
+                    className="group mt-4 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-80"
+                  >
+                    Сравнить программы
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+              </div>
+
+              <p className="mt-5 text-sm text-muted-foreground sm:mt-6">
+                100+ биомаркеров · Биологический возраст · Дашборды и тренды
+              </p>
             </div>
 
             <div className="mt-7 flex items-end justify-center sm:mt-9 lg:mt-0 lg:self-stretch">
