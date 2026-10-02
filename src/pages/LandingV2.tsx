@@ -14,6 +14,7 @@ import {
 import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
+import { EnergyExpertResult } from "@/components/landing/energy/EnergyExpertResult";
 import { copyToClipboard } from "@/lib/copyToClipboard";
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 
@@ -156,6 +157,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <ConsultationCtaBlock />
+        </Block>
+        <Block>
+          <EnergyExpertResult demoReport id="result" />
         </Block>
 
         {/* Скрыто по просьбе — блок в «черновиках», не удалять
