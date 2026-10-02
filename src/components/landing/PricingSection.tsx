@@ -115,7 +115,7 @@ function PricingCard({ name, price, period, description, biomarkers, biomarkersL
           <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
 
           <div className="flex items-baseline justify-center gap-1">
-            <span className={`font-display font-normal text-2xl sm:text-3xl md:text-4xl lg:text-5xl whitespace-nowrap ${isPopular ? "text-foreground" : "text-foreground"}`}>
+            <span className={`font-display font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl whitespace-nowrap ${isPopular ? "text-foreground" : "text-foreground"}`}>
               {price}
             </span>
             {period && <span className="text-muted-foreground whitespace-nowrap">/{period}</span>}

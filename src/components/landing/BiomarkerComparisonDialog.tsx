@@ -420,7 +420,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                 <div className="text-center mb-4 pt-2">
                   <h3 className="text-xl font-bold text-foreground mb-4">{STARTER_CARD.name}</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="font-display text-3xl md:text-4xl text-foreground">{STARTER_CARD.price}</span>
+                    <span className="font-display font-bold text-3xl md:text-4xl text-foreground">{STARTER_CARD.price}</span>
                   </div>
                   <div className="mt-3 flex justify-center">
                     <YandexSplitBadge amount={calculateSplitPayment(9990)} payments={4} />

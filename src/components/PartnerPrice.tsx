@@ -15,9 +15,9 @@ export function usePartnerPrice() {
 export function PartnerPrice({ price, prefix = "" }: { price: number; prefix?: string }) {
   const { data: offer } = usePartnerOffer();
   const next = applyPartnerDiscount(price, offer);
-  if (next === price) return <span className="whitespace-nowrap font-display font-normal">{prefix}{fmt(price)}</span>;
+  if (next === price) return <span className="whitespace-nowrap font-display font-bold">{prefix}{fmt(price)}</span>;
   return (
-    <span className="inline-flex flex-col items-start font-display font-normal leading-none">
+    <span className="inline-flex flex-col items-start font-display font-bold leading-none">
       <span className="mb-1 whitespace-nowrap text-[0.55em] font-medium line-through opacity-60">
         {prefix}{fmt(price)}
       </span>
