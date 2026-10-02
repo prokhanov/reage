@@ -11,6 +11,7 @@ import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { planToCard, type BiomarkerRow } from "@/components/landing/PricingSection";
 import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
+import { YandexSplitBadge } from "@/components/landing/YandexSplitBadge";
 
 const FEATURES = [
   { title: "Сравнение сдач", text: "Каждый показатель на графике по всем сдачам года" },
@@ -132,9 +133,9 @@ export function MainMonitoringSection({ id }: { id?: string }) {
                   <span className="font-display text-3xl font-semibold text-foreground sm:text-4xl">{c.price}</span>
                   <span className="ml-1 text-muted-foreground">/ {c.period}</span>
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Сплит: 4 × {c.splitBadge.amount.toLocaleString("ru-RU")} ₽ без переплаты
-                </p>
+                <div className="mt-3">
+                  <YandexSplitBadge amount={c.splitBadge.amount} payments={c.splitBadge.payments} />
+                </div>
 
                 <div className="mt-4 border-t border-border/60">
                   <Row label="Сдач крови в год">{c.analyses}</Row>
@@ -169,7 +170,24 @@ export function MainMonitoringSection({ id }: { id?: string }) {
                   <Row label="Консультаций">{c.consultations}</Row>
                 </div>
 
-                <p className="mt-4 flex-1 text-[15px] leading-relaxed text-foreground/85">{SHORT_WHO[c.key]}</p>
+                {c.who || c.gain ? (
+                  <div className="mt-5 flex-1 space-y-3 rounded-2xl border border-border/40 bg-muted/30 p-4">
+                    {c.who && (
+                      <div>
+                        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-primary">Кому подойдёт</div>
+                        <p className="text-sm leading-relaxed text-foreground/90">{c.who}</p>
+                      </div>
+                    )}
+                    {c.gain && (
+                      <div>
+                        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-primary">Что даст</div>
+                        <p className="text-sm leading-relaxed text-foreground/90">{c.gain}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-4 flex-1 text-[15px] leading-relaxed text-foreground/85">{SHORT_WHO[c.key]}</p>
+                )}
 
                 <Button
                   size="lg"
