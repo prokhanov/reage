@@ -47,7 +47,7 @@ export function MainCallbackCta({ id }: { id?: string }) {
   return (
     <section id={id} className="relative py-6 md:py-10">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
-        <div className="rounded-3xl border border-border/60 bg-muted/40 p-6 sm:p-10 md:p-12">
+        <div className="rounded-3xl border border-primary/15 bg-primary/5 p-6 sm:p-10 md:p-12">
           {status === "success" ? (
             <div className="flex flex-col items-center gap-4 py-6 text-center md:flex-row md:justify-center md:gap-5 md:text-left">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10">
