@@ -9,7 +9,7 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import heroPeopleAvif from "@/assets/landing-v2/hero-couple-v9.webp?format=avif&quality=68&url";
 import heroPeople from "@/assets/landing-v2/hero-couple-v9.webp?url";
@@ -129,20 +129,12 @@ function HeroVisual() {
 function MainNewContent() {
   const { count, openCart } = useEnergyOrder();
   const { setTheme } = useTheme();
-  const { pathname } = useLocation();
-  const useTestPalette = pathname === "/main_new";
   const [activeHref, setActiveHref] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setTheme("light");
   }, [setTheme]);
-
-  useEffect(() => {
-    if (!useTestPalette) return;
-    document.body.classList.add("main-new-palette");
-    return () => document.body.classList.remove("main-new-palette");
-  }, [useTestPalette]);
 
   useEffect(() => {
     const ids = navItems.map((i) => i.href.replace("#", ""));
@@ -176,7 +168,7 @@ function MainNewContent() {
   };
 
   return (
-    <div className={`${useTestPalette ? "main-new-palette " : ""}min-h-screen overflow-x-clip bg-background text-foreground`}>
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
       <PageMeta
         title="ReAge — анализы, которые наконец понятны"
         description="ReAge переводит результаты анализов на понятный язык и помогает увидеть полную картину здоровья."
