@@ -242,7 +242,7 @@ function MainNewContent() {
                   },
                 ].map((c) => {
                   const ctaCls = cn(
-                    "group mt-4 inline-flex items-center gap-1.5 self-start whitespace-nowrap text-sm font-semibold transition-colors",
+                    "group mt-4 inline-flex items-center gap-1.5 self-start whitespace-nowrap text-sm font-semibold underline decoration-dotted decoration-1 underline-offset-4 transition-colors",
                     c.dark ? "text-primary-foreground hover:opacity-80" : "text-foreground hover:text-primary",
                   );
                   return (
