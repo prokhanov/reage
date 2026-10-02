@@ -23,13 +23,13 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
             {facts.title}
           </h2>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">{facts.text}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-            <Button size="lg" className="h-14 gap-2 rounded-xl px-7 text-base" onClick={onAddToCart}>
+          <div className="mt-8 flex items-center gap-5 sm:gap-6">
+            <Button size="lg" className="h-14 flex-1 gap-2 rounded-xl px-5 text-base sm:flex-none sm:px-7" onClick={onAddToCart}>
               {inCart ? <Check className="h-5 w-5" aria-hidden /> : null}
               {inCart ? "В корзине" : facts.ctaLabel}
               {!inCart ? <ArrowRight className="h-4 w-4" aria-hidden /> : null}
             </Button>
-            <span className="font-display text-3xl text-foreground">{formatPrice(price)}</span>
+            <span className="shrink-0 font-display text-2xl text-foreground sm:text-3xl">{formatPrice(price)}</span>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ export function CheckupFactsBlock({ facts, price, inCart, onAddToCart }: Props) 
               key={item.label}
               className="flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-shadow hover:shadow-md sm:p-7"
             >
-              <h3 className="text-base font-semibold text-foreground">{item.label}</h3>
+              <h3 className="font-sans text-base font-semibold text-foreground">{item.label}</h3>
               <p className="mt-3 font-display text-4xl leading-[1.05] text-primary sm:text-[2.6rem]">{item.value}</p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">{item.text}</p>
             </article>
