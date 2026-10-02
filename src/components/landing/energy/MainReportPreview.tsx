@@ -1,63 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-type Tone = "bad" | "warn" | "ok";
-
-type Marker = {
-  name: string;
-  value: string;
-  status: string;
-  tone: Tone;
-  marker: number; // 0..100 позиция значения на шкале
-  optimal: [number, number]; // зелёная зона, %
-  range: string;
-  about: string;
-  feel: string;
-  next: string;
-};
-
-const MARKERS: Marker[] = [
-  {
-    name: "Ферритин",
-    value: "12 нг/мл",
-    status: "значительно ниже оптимума",
-    tone: "bad",
-    marker: 11,
-    optimal: [45, 80],
-    range: "Оптимальный диапазон 45–80 нг/мл · лабораторная норма начинается от [значение лаборатории]",
-    about:
-      "Ферритин показывает запасы железа. Значение формально может попадать в лабораторную норму, но запасы почти исчерпаны: гемоглобин пока держится за счёт резервов.",
-    feel: "Утренняя разбитость, зябкость, выпадение волос, падение выносливости.",
-    next: "скорректировать питание, обсудить с врачом восполнение железа, пересдать через 8–12 недель.",
-  },
-  {
-    name: "Витамин D",
-    value: "24 нг/мл",
-    status: "ниже оптимума",
-    tone: "warn",
-    marker: 30,
-    optimal: [50, 80],
-    range: "Оптимальный диапазон 40–60 нг/мл · лабораторная норма начинается от [значение лаборатории]",
-    about:
-      "Витамин D влияет на иммунитет, настроение, мышцы и усвоение кальция. Уровень ниже оптимума часто встречается осенью и зимой.",
-    feel: "Частые простуды, сниженное настроение, мышечная слабость.",
-    next: "обсудить с врачом дозировку витамина D, пересдать через 8–12 недель.",
-  },
-  {
-    name: "Гемоглобин",
-    value: "138 г/л",
-    status: "в оптимуме",
-    tone: "ok",
-    marker: 62,
-    optimal: [45, 80],
-    range: "Оптимальный диапазон 130–150 г/л",
-    about:
-      "Гемоглобин переносит кислород. Сейчас он в оптимуме, но при низком ферритине его стоит контролировать в динамике.",
-    feel: "Жалоб, связанных с этим показателем, обычно нет.",
-    next: "контролировать вместе с ферритином при следующей сдаче.",
-  },
-];
+import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
+import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 
 const SECTIONS = [
   { id: "markers", label: "Расшифровка показателей" },
@@ -65,59 +10,6 @@ const SECTIONS = [
   { id: "recs", label: "Рекомендации" },
   { id: "doctors", label: "Специалисты" },
 ] as const;
-
-const toneBadge: Record<Tone, string> = {
-  bad: "bg-destructive/10 text-destructive",
-  warn: "bg-warning/15 text-warning-foreground",
-  ok: "bg-muted text-foreground/70",
-};
-
-function MarkerCard({ m, open, onToggle }: { m: Marker; open: boolean; onToggle: () => void }) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border transition-colors",
-        open && m.tone === "bad" ? "border-destructive/15 bg-destructive/[0.04]" : "border-border/70 bg-card",
-      )}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left sm:px-6 sm:py-5"
-      >
-        <span className="font-semibold text-foreground">{m.name}</span>
-        <span className="flex items-center gap-3">
-          <span className="font-semibold text-foreground">{m.value}</span>
-          <span className={cn("rounded-md px-2.5 py-1 text-xs font-medium sm:text-sm", toneBadge[m.tone])}>
-            {m.status}
-          </span>
-        </span>
-      </button>
-      {open && (
-        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-          <div className="relative h-2 rounded-full bg-muted">
-            <div
-              className="absolute inset-y-0 rounded-full bg-primary/50"
-              style={{ left: `${m.optimal[0]}%`, width: `${m.optimal[1] - m.optimal[0]}%` }}
-            />
-            <div
-              className="absolute -top-1 h-4 w-1 rounded-full bg-foreground"
-              style={{ left: `${m.marker}%` }}
-            />
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground sm:text-sm">{m.range}</p>
-          <p className="mt-4 text-[15px] leading-relaxed text-foreground sm:text-base">{m.about}</p>
-          <p className="mt-4 text-sm font-semibold text-foreground">Как это может ощущаться</p>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-foreground/80 sm:text-base">{m.feel}</p>
-          <div className="mt-4 rounded-xl bg-card px-4 py-3 text-sm leading-relaxed text-foreground sm:text-[15px]">
-            <span className="font-semibold">Что делать дальше:</span> {m.next}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -138,7 +30,7 @@ function Row({ lead, text }: { lead: string; text: string }) {
 }
 
 export function MainReportPreview({ id }: { id?: string }) {
-  const [openMarker, setOpenMarker] = useState(0);
+  const [opened, setOpened] = useState<Set<number>>(() => new Set([0]));
   const [active, setActive] = useState<string>(SECTIONS[0].id);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -155,7 +47,21 @@ export function MainReportPreview({ id }: { id?: string }) {
       setActive(current);
     };
     root.addEventListener("scroll", onScroll, { passive: true });
-    return () => root.removeEventListener("scroll", onScroll);
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const i = Number((e.target as HTMLElement).dataset.marker);
+          setOpened((prev) => (prev.has(i) ? prev : new Set(prev).add(i)));
+        });
+      },
+      { root, rootMargin: "0px 0px -35% 0px", threshold: 0.6 },
+    );
+    root.querySelectorAll("[data-marker]").forEach((el) => io.observe(el));
+    return () => {
+      root.removeEventListener("scroll", onScroll);
+      io.disconnect();
+    };
   }, []);
 
   const goTo = (sid: string) => {
@@ -217,12 +123,28 @@ export function MainReportPreview({ id }: { id?: string }) {
               <Block id="markers" title="Расшифровка показателей">
                 <div className="space-y-3">
                   {MARKERS.map((m, i) => (
-                    <MarkerCard
-                      key={m.name}
-                      m={m}
-                      open={openMarker === i}
-                      onToggle={() => setOpenMarker(openMarker === i ? -1 : i)}
-                    />
+                    <div
+                      key={m.code}
+                      data-marker={i}
+                      className={cn(
+                        "transition-all duration-700 ease-out",
+                        opened.has(i) ? "translate-y-0 opacity-100" : "translate-y-3 opacity-80",
+                      )}
+                    >
+                      <MarkerCard
+                        marker={m}
+                        defaultOpen={false}
+                        description={m.fallbackDescription}
+                        open={opened.has(i)}
+                        onToggle={() =>
+                          setOpened((prev) => {
+                            const n = new Set(prev);
+                            n.has(i) ? n.delete(i) : n.add(i);
+                            return n;
+                          })
+                        }
+                      />
+                    </div>
                   ))}
                 </div>
               </Block>
@@ -237,8 +159,9 @@ export function MainReportPreview({ id }: { id?: string }) {
 
               <Block id="recs" title="Рекомендации">
                 <div className="space-y-3">
-                  <Row lead="Обсудить с врачом" text="Восполнение железа и витамина D: форма, дозировка и длительность подбираются врачом." />
-                  <Row lead="Контроль" text="Пересдать ферритин, витамин D и общий анализ крови через 8–12 недель и сравнить с текущими результатами." />
+                  {demoPrescriptions.map((p, i) => (
+                    <PrescriptionCard key={p.id} prescription={p} index={i} />
+                  ))}
                 </div>
               </Block>
 
