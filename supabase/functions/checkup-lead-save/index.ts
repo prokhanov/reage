@@ -63,6 +63,8 @@ Deno.serve(async (req) => {
       location_type: body.locationType === "home" ? "home" : "clinic",
       promo_code: s(body.promoCode, 40),
       amount: Number.isFinite(amount) && amount >= 0 && amount < 10_000_000 ? amount : null,
+      consult: body.consult === true,
+      consult_price: body.consult === true && Number.isFinite(Number(body.consultPrice)) && Number(body.consultPrice) >= 0 && Number(body.consultPrice) < 1_000_000 ? Number(body.consultPrice) : null,
       page: s(body.page, 300),
       utm,
       ym_client_id: typeof body.ymClientId === "string" && /^\d{1,32}$/.test(body.ymClientId) ? body.ymClientId : null,

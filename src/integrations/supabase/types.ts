@@ -603,6 +603,8 @@ export type Database = {
           bundles: string[]
           clinic_address: string | null
           clinic_title: string | null
+          consult: boolean
+          consult_price: number | null
           created_at: string
           email: string | null
           first_name: string | null
@@ -626,6 +628,8 @@ export type Database = {
           bundles?: string[]
           clinic_address?: string | null
           clinic_title?: string | null
+          consult?: boolean
+          consult_price?: number | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -649,6 +653,8 @@ export type Database = {
           bundles?: string[]
           clinic_address?: string | null
           clinic_title?: string | null
+          consult?: boolean
+          consult_price?: number | null
           created_at?: string
           email?: string | null
           first_name?: string | null

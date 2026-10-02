@@ -322,6 +322,8 @@ export function EnergyCart() {
       locationType: isHome ? "home" : "clinic",
       promoCode: appliedPromo?.code ?? manualOffer?.code ?? null,
       amount: total,
+      consult: consult && !consultHidden,
+      consultPrice: consult && !consultHidden ? CONSULT_PRICE : null,
     },
     !account && !accountLoading,
   );
