@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Activity,
-  ArrowDown,
+  ArrowRight,
+  Check,
   FlaskConical,
   HeartPulse,
   Menu,
