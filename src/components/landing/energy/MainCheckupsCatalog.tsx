@@ -120,7 +120,9 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
           Одна сдача крови и отчёт за 1–2 дня. Выберите по самочувствию — или сразу полный.
         </p>
 
-        <div className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+        <div className="mt-6 text-sm font-medium text-muted-foreground lg:hidden">Или выберите по самочувствию</div>
+
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:px-0">
           {FILTERS.map((f) => {
             const on = filter === f.id;
             return (
@@ -159,7 +161,13 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[c.accent] ?? "bg-muted-foreground"}`} />
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold text-foreground">{c.name}</span>
-                      <span className="block truncate text-sm text-muted-foreground">{c.tag}</span>
+                      <span className="block text-sm text-muted-foreground">
+                        {c.tag}
+                        <span className="sm:hidden">
+                          {" "}· {count} {markerWord(count)}
+                          {c.cbcBonusEnabled ? " + ОАК" : ""}
+                        </span>
+                      </span>
                     </span>
                     <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:block">
                       {count} {markerWord(count)}
@@ -175,11 +183,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
 
                   {isOpen && (
                     <div className="px-4 pb-5 pl-[2.6rem] sm:px-6 sm:pl-[3.1rem]">
-                      <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
-                        {count} {markerWord(count)}
-                        {c.cbcBonusEnabled ? " + ОАК" : ""}
-                      </div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">Что входит</div>
+                      <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Что входит</div>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {c.markers.map((m) => (
                           <span key={m.title} className="rounded-full bg-muted px-3 py-1 text-sm text-foreground">
@@ -206,7 +210,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
                           to={c.href}
                           className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                         >
-                          Подробнее <ArrowRight className="h-4 w-4" />
+                          Подробнее о чекапе <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
