@@ -241,7 +241,7 @@ function renderWidget(id: WidgetId) {
   }
 }
 
-function useBreakpoint(): Breakpoint {
+export function useBreakpoint(): Breakpoint {
   const [bp, setBp] = useState<Breakpoint>(() => {
     if (typeof window === "undefined") return "desktop";
     const w = window.innerWidth;
@@ -262,7 +262,7 @@ function useBreakpoint(): Breakpoint {
 
 /* ===================== ARTBOARD ===================== */
 
-function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
+export function Artboard({ bp, isDark }: { bp: Breakpoint; isDark: boolean }) {
   const ab = ARTBOARDS[bp];
   const layout = LAYOUTS[bp];
 
