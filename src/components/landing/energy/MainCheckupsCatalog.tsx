@@ -157,6 +157,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
               </button>
             );
           })}
+          </div>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
