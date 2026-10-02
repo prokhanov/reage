@@ -240,7 +240,7 @@ export function MainReportPreview({ id }: { id?: string }) {
                       className={cn(
                         "h-auto w-full justify-between whitespace-normal rounded-lg px-2.5 py-3 text-left text-base font-normal",
                         active === s.id
-                          ? "bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary"
+                          ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
