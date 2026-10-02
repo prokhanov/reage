@@ -28,6 +28,21 @@ const FILTERS: { id: string; label: string; slugs: string[] | null }[] = [
   { id: "liver", label: "Отёки и питание", slugs: ["liver", "kidney", "metabolic"] },
 ];
 
+const FOR_WHOM: Record<string, string> = {
+  energy: "Усталость, разбитость, нет сил",
+  thyroid: "Вес, сон, перепады настроения",
+  iron: "Выпадение волос, бледность, слабость",
+  "cardio-risk": "Давление, холестерин, наследственность",
+  metabolic: "Лишний вес, сахар, тяга к сладкому",
+  liver: "Тяжесть после еды, приём лекарств",
+  kidney: "Отёки, давление, анализы мочи",
+  base: "Первый чекап или ежегодный контроль",
+  vitamins: "Сниженный иммунитет, мало солнца",
+  "female-hormones": "Настроение, вес, кожа и волосы",
+  "male-hormones": "Сила, либидо, набор массы",
+  hair: "Выпадение, ломкость, тусклые волосы",
+};
+
 const DOT: Record<string, string> = {
   primary: "bg-primary",
   accent: "bg-accent",
@@ -122,7 +137,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
 
         <div className="mt-6 text-sm font-medium text-muted-foreground lg:hidden">Или выберите по самочувствию</div>
 
-        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:px-0">
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-16 lg:z-20 lg:mx-0 lg:mt-6 lg:flex-wrap lg:overflow-visible lg:bg-muted lg:px-0 lg:py-3">
           {FILTERS.map((f) => {
             const on = filter === f.id;
             return (
@@ -162,7 +177,7 @@ export function MainCheckupsCatalog({ title = "Разовые чекапы" }: {
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold text-foreground">{c.name}</span>
                       <span className="block text-sm text-muted-foreground">
-                        {c.tag}
+                        {FOR_WHOM[c.slug] ?? c.tag}
                         <span className="sm:hidden">
                           {" "}· {count} {markerWord(count)}
                           {c.cbcBonusEnabled ? " + ОАК" : ""}
