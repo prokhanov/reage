@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useTheme } from "next-themes";
 import {
+  Activity,
   ArrowRight,
   FlaskConical,
+  HeartPulse,
   Menu,
   ShoppingCart,
   X,
@@ -56,6 +58,11 @@ function scrollToAnchor(href: string) {
   }
 }
 
+const floatTextStyle: CSSProperties = {
+  textShadow:
+    "0 0 2px rgba(255,255,255,1), 0 0 6px rgba(255,255,255,0.95), 0 1px 16px rgba(255,255,255,0.9)",
+};
+
 function HeroVisual() {
   return (
     <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-muted sm:h-[460px] lg:h-full lg:min-h-[560px]">
@@ -71,37 +78,49 @@ function HeroVisual() {
         style={{ objectPosition: "center 20%" }}
       />
 
-      <div className="absolute left-5 top-6 hidden w-[190px] rounded-lg border border-border/70 bg-card/90 p-4 shadow-lg backdrop-blur-md lg:block">
+      <div className="absolute left-[3%] top-[5%] w-[148px] p-3 sm:left-[3%] sm:w-[180px] sm:p-4" style={floatTextStyle}>
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium uppercase text-muted-foreground">Биовозраст</span>
+          <span className="text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">Биовозраст</span>
           <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">−3,8</span>
         </div>
         <div className="mt-2 flex items-end gap-1.5">
-          <span className="font-display text-4xl leading-none text-foreground">34,2</span>
-          <span className="pb-0.5 text-xs text-muted-foreground">года</span>
+          <span className="font-display text-3xl leading-none text-foreground sm:text-4xl">34,2</span>
+          <span className="pb-0.5 text-[10px] text-foreground/80 sm:text-xs">года</span>
         </div>
       </div>
 
-      <div className="absolute bottom-6 right-5 hidden w-[220px] rounded-lg border border-border/70 bg-card/90 p-4 shadow-lg backdrop-blur-md lg:block">
-        <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+      <div className="absolute right-[3%] top-[5%] w-[154px] p-3 sm:right-[2%] sm:w-[190px] sm:p-4" style={floatTextStyle}>
+        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
           <FlaskConical className="h-3.5 w-3.5 text-primary" />
-          Ферритин · 3 сдачи
+          Биомаркеры
         </div>
-        <div className="flex items-end gap-3">
-          {[
-            { v: 18, h: 14, c: "bg-warning" },
-            { v: 29, h: 24, c: "bg-warning/70" },
-            { v: 46, h: 38, c: "bg-success" },
-          ].map((b, i) => (
-            <div key={i} className="flex flex-1 flex-col items-center gap-1">
-              <span className="text-[11px] font-semibold text-foreground">{b.v}</span>
-              <div className={cn("w-full rounded-sm", b.c)} style={{ height: b.h }} />
-            </div>
-          ))}
+        <div className="space-y-2 text-[11px] sm:text-xs">
+          <div className="flex items-center justify-between"><span>Витамин D</span><strong>62</strong></div>
+          <div className="flex items-center justify-between"><span>Ферритин</span><strong>38</strong></div>
+          <div className="flex items-center justify-between"><span>HbA1c</span><strong className="text-warning">5,8%</strong></div>
         </div>
-        <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
-          <span>Янв</span><span>Май</span><span>Сен</span>
+      </div>
+
+      <div className="absolute bottom-[14%] left-[3%] w-[162px] p-3 sm:left-[4%] sm:w-[200px] sm:p-4" style={floatTextStyle}>
+        <div className="mb-2 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
+          <HeartPulse className="h-3.5 w-3.5 text-success" />
+          Системы организма
         </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Сердце</span><strong>92%</strong></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/60"><div className="h-full w-[92%] rounded-full bg-success" /></div>
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs"><span className="flex-1">Метаболизм</span><strong>78%</strong></div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/60"><div className="h-full w-[78%] rounded-full bg-warning" /></div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-[6%] right-[3%] w-[150px] p-3 sm:right-[3%] sm:w-[184px] sm:p-4" style={floatTextStyle}>
+        <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase text-foreground/80 sm:text-xs">
+          <Activity className="h-3.5 w-3.5 text-primary" />
+          Индекс здоровья
+        </div>
+        <div className="font-display text-3xl leading-none text-foreground sm:text-4xl">84%</div>
+        <p className="mt-1 text-[10px] text-foreground/80 sm:text-xs">Хороший результат</p>
       </div>
     </div>
   );
