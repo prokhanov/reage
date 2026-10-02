@@ -87,11 +87,11 @@ function HeroVisual() {
           <FlaskConical className="h-3.5 w-3.5 text-primary" />
           Ферритин · 3 сдачи
         </div>
-        <div className="flex h-14 items-end gap-3">
+        <div className="flex items-end gap-3">
           {[
-            { v: 18, h: "35%", c: "bg-warning" },
-            { v: 29, h: "60%", c: "bg-warning/70" },
-            { v: 46, h: "92%", c: "bg-success" },
+            { v: 18, h: 14, c: "bg-warning" },
+            { v: 29, h: 24, c: "bg-warning/70" },
+            { v: 46, h: 38, c: "bg-success" },
           ].map((b, i) => (
             <div key={i} className="flex flex-1 flex-col items-center gap-1">
               <span className="text-[11px] font-semibold text-foreground">{b.v}</span>
