@@ -253,8 +253,7 @@ function MainNewContent() {
                         c.dark ? "bg-primary" : "border border-border/80 bg-card",
                       )}
                     >
-                      <p className={cn("text-xs", c.dark ? "text-primary-foreground/70" : "text-muted-foreground")}>{c.eyebrow}</p>
-                      <p className={cn("font-display mt-1.5 whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
+                      <p className={cn("font-display whitespace-nowrap text-xl leading-tight xl:text-2xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.title}</p>
                       <p className={cn("font-display mt-2 whitespace-nowrap text-lg font-bold xl:text-xl", c.dark ? "text-primary-foreground" : "text-foreground")}>{c.price}</p>
                       <p className={cn("mt-2 text-[13px] leading-snug", c.dark ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.text}</p>
                       {c.dark ? (
