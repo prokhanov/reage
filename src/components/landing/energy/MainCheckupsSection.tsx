@@ -94,7 +94,7 @@ function CheckupCard({ c }: { c: (typeof CHECKUPS)[number] }) {
   );
 }
 
-export function MainCheckupsSection({ title = "Выберите чекап" }: { title?: string }) {
+export function MainCheckupsSection({ title = "Разовые чекапы" }: { title?: string }) {
   const { priceOf, isActive } = useCheckupSettings();
   const { resolve, groupsOf, variantsFor } = useResolvedCheckups();
   // В карточке на главной показываем состав максимального варианта (самый дорогой)
