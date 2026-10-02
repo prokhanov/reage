@@ -47,6 +47,12 @@ const navItems = [
   { label: "Вопросы", href: "#questions" },
 ];
 
+const heroBullets = [
+  "Сравниваем с оптимальными значениями, а не только с нормой бланка",
+  "Объясняем, что значат отклонения и что делать дальше",
+  "Каждая следующая сдача — сравнение с предыдущей",
+];
+
 const YEARLY_MONITORING_LABEL = "Годовой мониторинг";
 
 function scrollToAnchor(href: string) {
