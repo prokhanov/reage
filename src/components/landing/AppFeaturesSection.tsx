@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,10 +32,17 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import dashboardMockV9Avif from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=avif&quality=68&url";
-import dashboardMockV9Webp from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=webp&quality=78&url";
-import dashboardMockV9 from "@/assets/landing-v2/dashboard-mock-light-v9.png?url";
-import { SmartPicture } from "@/components/landing/SmartPicture";
+import appScreenDashboard from "@/assets/landing/app-screen-dashboard.png";
+import appScreenAnalyses from "@/assets/landing/app-screen-analyses.png";
+import appScreenTrends from "@/assets/landing/app-screen-trends.png";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 type SectionKey =
   | "dashboard"
