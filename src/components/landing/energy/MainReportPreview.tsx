@@ -4,6 +4,7 @@ import { Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkerCard, markers as MARKERS, demoPrescriptions } from "@/components/landing/energy/EnergyExpertResult";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
+import { Button } from "@/components/ui/button";
 
 const SECTIONS = [
   { id: "summary", label: "Общее резюме" },
@@ -13,6 +14,13 @@ const SECTIONS = [
   { id: "lifestyle", label: "Коррекция образа жизни" },
   { id: "recs", label: "Рекомендации" },
   { id: "doctors", label: "Специалисты" },
+] as const;
+
+const REPORT_STATS = [
+  { value: "60", label: "страниц" },
+  { value: "116", label: "показателей с разбором" },
+  { value: "5", label: "систем организма" },
+  { value: "1", label: "план действий на всё" },
 ] as const;
 
 function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -96,51 +104,35 @@ export function MainReportPreview({ id }: { id?: string }) {
   return (
     <section id={id} className="border-b hairline py-14 md:py-20">
       <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-3xl">
-            <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
-              Так выглядит отчёт
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-              По каждому показателю — значение, оптимальный диапазон, что это значит для вас и что делать дальше.
-            </p>
-          </div>
-          <Link
-            to="/example-report"
-            className="shrink-0 font-semibold text-primary underline decoration-dotted underline-offset-4"
-          >
-            Открыть полный пример →
-          </Link>
+        <div className="max-w-4xl">
+          <h2 className="font-display text-3xl leading-[1.15] text-foreground sm:text-4xl md:text-[2.75rem]">
+            Отчёт полного чекапа — 60 страниц о вашем организме
+          </h2>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            По каждому показателю — значение, оптимальный диапазон, что это значит для вас и что делать дальше.
+          </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:mt-10 lg:grid-cols-[1fr_17rem] lg:gap-10">
-          {/* Оглавление: на мобиле — чипы сверху, на десктопе — справа */}
-          <nav className="order-first -mx-4 overflow-x-auto px-4 lg:order-last lg:mx-0 lg:px-0">
-            <ul className="flex gap-2 lg:sticky lg:top-24 lg:flex-col lg:gap-1">
-              {SECTIONS.map((s, i) => (
-                <li key={s.id} className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => goTo(s.id)}
-                    className={cn(
-                      "flex w-full items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors lg:rounded-xl lg:border-0 lg:border-l-2 lg:px-4 lg:py-3 lg:text-[15px]",
-                      active === s.id
-                        ? "border-primary bg-primary/10 font-semibold text-primary"
-                        : "border-border/70 text-muted-foreground hover:text-foreground lg:border-border",
-                    )}
-                  >
-                    <span className="hidden text-xs tabular-nums opacity-60 lg:inline">0{i + 1}</span>
-                    {s.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        <div className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3 md:mt-10">
+          {REPORT_STATS.map((stat) => (
+            <div key={stat.label} className="rounded-2xl border border-border/70 bg-card px-4 py-4 sm:px-5 sm:py-5">
+              <p className="font-display text-2xl leading-none text-foreground sm:text-3xl">{stat.value}</p>
+              <p className="mt-2 text-xs leading-snug text-muted-foreground sm:text-sm">{stat.label}</p>
+            </div>
+          ))}
+        </div>
 
-          <div className="relative">
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-6">
+          <div className="relative rounded-2xl border border-border/70 bg-card p-2 shadow-sm sm:p-3">
+            <div className="pointer-events-none absolute inset-x-5 -bottom-2 -z-10 h-full rounded-2xl border border-border/60 bg-muted/60" />
+            <div className="pointer-events-none absolute inset-x-8 -bottom-4 -z-20 h-full rounded-2xl border border-border/50 bg-muted/40" />
+            <div className="flex items-center justify-between gap-3 border-b border-border/70 px-3 py-3 sm:px-4">
+              <p className="text-[11px] font-semibold uppercase text-muted-foreground sm:text-xs">Фрагмент персонального отчёта</p>
+              <p className="shrink-0 text-[11px] tabular-nums text-muted-foreground sm:text-xs">1 из 116 показателей</p>
+            </div>
             <div
               ref={scrollRef}
-              className="h-[560px] space-y-10 overflow-y-auto overscroll-contain rounded-2xl bg-muted/40 p-4 sm:p-6 lg:h-[620px]"
+              className="h-[560px] space-y-10 overflow-y-auto overscroll-contain bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px]"
             >
               <Block id="summary" title="Общее резюме">
                 <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:px-6">
@@ -232,8 +224,38 @@ export function MainReportPreview({ id }: { id?: string }) {
                 </div>
               </Block>
             </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 rounded-b-2xl bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 h-10 rounded-b-xl bg-gradient-to-t from-card to-transparent sm:inset-x-3 sm:bottom-3" />
           </div>
+
+          <aside className="space-y-3 lg:sticky lg:top-24">
+            <nav className="rounded-2xl border border-border/70 bg-card p-3 sm:p-4" aria-label="Оглавление отчёта">
+              <h3 className="px-2 pb-3 font-display text-xl text-foreground">Что внутри отчёта</h3>
+              <ul className="space-y-1">
+                {SECTIONS.map((s, i) => (
+                  <li key={s.id}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => goTo(s.id)}
+                      className={cn(
+                        "h-auto w-full justify-between whitespace-normal rounded-lg px-2.5 py-2.5 text-left text-sm font-normal",
+                        active === s.id
+                          ? "bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <span>{s.label}</span>
+                      <span className="ml-3 shrink-0 text-xs tabular-nums opacity-60">0{i + 1}</span>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <Button asChild className="h-12 w-full">
+              <Link to="/example-report">Открыть полный пример</Link>
+            </Button>
+          </aside>
         </div>
       </div>
     </section>
