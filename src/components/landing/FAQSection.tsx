@@ -54,7 +54,13 @@ function FAQItem({ question, answer, isOpen, onToggle, delay }: FAQItemProps) {
   );
 }
 
-export function FAQSection() {
+export function FAQSection({
+  id = "questions",
+  containerClassName = "mx-auto w-full max-w-[72rem] px-4 sm:px-6",
+}: {
+  id?: string;
+  containerClassName?: string;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
