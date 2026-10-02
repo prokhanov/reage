@@ -200,7 +200,7 @@ export function MainReportPreview({ id }: { id?: string }) {
             </div>
             <div
               ref={scrollRef}
-              className="h-[min(560px,65vh)] space-y-10 overflow-y-auto overscroll-auto bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px] lg:overscroll-contain"
+              className="h-[min(560px,65vh)] space-y-10 overflow-y-auto overscroll-auto bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[min(620px,70vh)]"
             >
               <Block id="summary" title="Общее резюме">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
