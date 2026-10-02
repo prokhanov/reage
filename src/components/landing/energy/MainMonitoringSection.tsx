@@ -92,8 +92,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
               Программы годового мониторинга
             </h2>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/75 md:text-lg">
-              Ферритин 12 в октябре не говорит, помогли ли изменения. Ферритин 12 → 28 → 41 за полгода — говорит.
-              Мониторинг показывает, что работает, а что пора менять.
+              Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
