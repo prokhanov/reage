@@ -228,7 +228,6 @@ function MainNewContent() {
                 {[
                   {
                     dark: false,
-                    eyebrow: "Есть конкретный вопрос",
                     title: "Разовый чекап",
                     price: "от 4 990 ₽",
                     text: "Усталость, щитовидка, железо, витамины или полная проверка · отчёт за 1–2 дня",
@@ -236,7 +235,6 @@ function MainNewContent() {
                   },
                   {
                     dark: true,
-                    eyebrow: "Хочу следить системно",
                     title: YEARLY_MONITORING_LABEL,
                     price: "от 52 990 ₽/год",
                     text: "2–4 сдачи в год · сравнение с прошлыми результатами · консультация врача",
