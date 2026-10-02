@@ -89,9 +89,7 @@ export function MainMonitoringSection({ id }: { id?: string }) {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div>
             <h2 className="font-display text-[1.9rem] leading-tight text-primary-foreground md:text-[2.6rem]">
-              Один анализ — снимок.
-              <br />
-              Мониторинг — история
+              Программы годового мониторинга
             </h2>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/75 md:text-lg">
               Ферритин 12 в октябре не говорит, помогли ли изменения. Ферритин 12 → 28 → 41 за полгода — говорит.
