@@ -31,6 +31,7 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  html { scroll-padding-top: 5.5rem; }
   :root {
     /* ReAge editorial-clinical system, adapted from Consilium. */
     --font-display: "Fraunces", ui-serif, Georgia, serif;

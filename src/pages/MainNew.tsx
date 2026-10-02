@@ -40,11 +40,12 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { FULL_CHECKUP } from "@/data/fullCheckup";
 
 const navItems = [
-  { label: "Чекапы", href: "#checkups" },
-  { label: "Пример результата", href: "#result" },
-  { label: "Где сдать", href: "#labs" },
   { label: "Как это работает", href: "#how-it-works" },
-  { label: "Вопросы", href: "#questions" },
+  { label: "Пример отчёта", href: "#report-preview" },
+  { label: "Чекапы", href: "#checkups" },
+  { label: "Годовой мониторинг", href: "#monitoring" },
+  { label: "Где сдать", href: "#labs" },
+  { label: "Вопросы", href: "#faq" },
 ];
 
 
