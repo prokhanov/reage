@@ -203,12 +203,21 @@ export function MainReportPreview({ id }: { id?: string }) {
               className="h-[min(560px,65vh)] space-y-10 overflow-y-auto overscroll-auto bg-muted/30 p-3 pb-12 sm:p-5 sm:pb-14 lg:h-[620px] lg:overscroll-contain"
             >
               <Block id="summary" title="Общее резюме">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.9fr]">
-                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Биологический возраст</p>
-                    <p className="mt-2 font-display text-[2.5rem] leading-none text-foreground">{SUMMARY_BIO_AGE.value}</p>
-                    <div className="mt-5">
-                      <div className="relative h-1.5 rounded-full bg-muted">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
+                  <div className="flex flex-col gap-3">
+                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Биологический возраст</p>
+                      <span className="shrink-0 rounded-full bg-status-risk/15 px-2.5 py-1 text-xs font-medium text-status-risk">
+                        +0,9 к паспорту
+                      </span>
+                    </div>
+                    <p className="mt-1 font-display text-[2.25rem] leading-none text-foreground">
+                      {SUMMARY_BIO_AGE.value} <span className="text-base text-muted-foreground">лет</span>
+                    </p>
+                    <div className="mt-4">
+                      <div className="relative h-1.5 rounded-full bg-gradient-to-r from-status-optimal via-status-acceptable to-status-risk">
+                        <div className="absolute top-1/2 h-1 w-0.5 -translate-y-1/2 bg-card" style={{ left: "50%" }} />
                         <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-foreground" style={{ left: "54.5%" }} />
                       </div>
                       <div className="mt-2 flex justify-between text-xs text-muted-foreground">
@@ -217,14 +226,10 @@ export function MainReportPreview({ id }: { id?: string }) {
                         <span>старше</span>
                       </div>
                     </div>
-                    <span className="mt-4 inline-flex rounded-full bg-status-risk/15 px-3 py-1 text-sm font-medium text-status-risk">
-                      {SUMMARY_BIO_AGE.diff}
-                    </span>
                   </div>
 
-                  <div className="flex flex-col rounded-2xl border border-border/70 bg-card px-5 py-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Индекс здоровья</p>
-                    <div className="relative mx-auto mt-3 h-24 w-24">
+                  <div className="flex flex-1 items-center gap-5 rounded-2xl border border-border/70 bg-card px-5 py-4">
+                    <div className="relative h-20 w-20 shrink-0">
                       <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
                         <circle cx="44" cy="44" r="38" fill="none" strokeWidth="9" className="stroke-muted" />
                         <circle
@@ -239,17 +244,21 @@ export function MainReportPreview({ id }: { id?: string }) {
                           stroke="currentColor"
                         />
                       </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="font-display text-3xl leading-none text-foreground">{SUMMARY_HEALTH_INDEX.value}</span>
-                        <span className="mt-1 text-xs text-muted-foreground">из 100</span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="font-display text-2xl leading-none text-foreground">{SUMMARY_HEALTH_INDEX.value}</span>
                       </div>
                     </div>
-                    <span className="mx-auto mt-auto inline-flex rounded-full bg-status-acceptable/15 px-3 py-1 text-sm font-medium text-status-acceptable">
-                      {SUMMARY_HEALTH_INDEX.label}
-                    </span>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Индекс здоровья</p>
+                      <p className="mt-2 text-sm text-foreground">{SUMMARY_HEALTH_INDEX.value} из 100</p>
+                      <span className="mt-2 inline-flex rounded-full bg-status-acceptable/15 px-3 py-1 text-xs font-medium text-status-acceptable">
+                        {SUMMARY_HEALTH_INDEX.label}
+                      </span>
+                    </div>
+                  </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-5 sm:col-span-2 lg:col-span-1">
+                  <div className="rounded-2xl border border-border/70 bg-card px-5 py-5">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Рейтинг 5 систем организма</p>
                     <div className="mt-4 space-y-3.5">
                       {SUMMARY_SYSTEMS.map((s) => (
