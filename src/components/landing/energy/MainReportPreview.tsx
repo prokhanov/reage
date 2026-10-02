@@ -95,6 +95,7 @@ export function MainReportPreview({ id }: { id?: string }) {
     const root = scrollRef.current;
     const el = root?.querySelector<HTMLElement>(`#report-${sid}`);
     if (!root || !el) return;
+    setActive(sid);
     root.scrollTo({ top: el.offsetTop - root.offsetTop, behavior: "smooth" });
   };
 
