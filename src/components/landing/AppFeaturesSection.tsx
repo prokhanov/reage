@@ -467,7 +467,11 @@ const widgetMap: Record<SectionKey, () => JSX.Element> = {
   recommendations: RecommendationsWidgets,
 };
 
-export function AppFeaturesSection() {
+export function AppFeaturesSection({
+  containerClassName,
+}: {
+  containerClassName?: string;
+}) {
   const { requestRegister } = useRegisterGuard();
   const [active, setActive] = useState<SectionKey>("dashboard");
   const feature = appFeatures[active];
@@ -479,7 +483,7 @@ export function AppFeaturesSection() {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
 
-      <div className="mx-auto w-full max-w-[72rem] px-4 sm:px-6">
+      <div className={containerClassName ?? "mx-auto w-full max-w-[72rem] px-4 sm:px-6"}>
         <div className="text-center mb-10 md:mb-14 animate-fade-in">
           <h2 className="font-display text-[1.9rem] font-semibold md:text-4xl mb-6 leading-tight">
             <span className="text-foreground">Полный контроль в вашем</span>

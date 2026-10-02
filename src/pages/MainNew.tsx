@@ -17,6 +17,7 @@ import { EnergyHowItWorks } from "@/components/landing/energy/EnergyHowItWorks";
 import { MainCheckupsSection } from "@/components/landing/energy/MainCheckupsSection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { MainQuestionCta } from "@/components/landing/energy/MainQuestionCta";
+import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { MainLabVsReport } from "@/components/landing/energy/MainLabVsReport";
 import { MainReportPreview } from "@/components/landing/energy/MainReportPreview";
 import { MainDoctorBlock } from "@/components/landing/energy/MainDoctorBlock";
@@ -287,6 +288,7 @@ function MainNewContent() {
         <MainCheckupsSection />
         <MainMonitoringSection id="monitoring" />
         <WhereToTestSection />
+        <AppFeaturesSection containerClassName="mx-auto w-full max-w-[80rem] px-4 sm:px-6" />
         <MainQuestionCta id="questions" />
       </main>
 
