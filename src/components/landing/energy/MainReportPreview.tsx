@@ -65,10 +65,9 @@ export function MainReportPreview({ id }: { id?: string }) {
     const root = scrollRef.current;
     if (!root) return;
     const onScroll = () => {
-      const top = root.getBoundingClientRect().top;
       let current: string = SECTIONS[0].id;
       root.querySelectorAll<HTMLElement>("[data-section]").forEach((el) => {
-        if (el.getBoundingClientRect().top - top < 80) current = el.dataset.section!;
+        if (el.offsetTop - root.offsetTop <= root.scrollTop + 80) current = el.dataset.section!;
       });
       if (root.scrollTop + root.clientHeight >= root.scrollHeight - 4) current = SECTIONS[SECTIONS.length - 1].id;
       setActive(current);
