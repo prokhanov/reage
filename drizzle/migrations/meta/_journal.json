@@ -211,6 +211,13 @@
       "when": 1790942103714,
       "tag": "0029_cart_leads_consult",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790942187052,
+      "tag": "0030_telegram_log_service_grant",
+      "breakpoints": true
     }
   ]
 }
