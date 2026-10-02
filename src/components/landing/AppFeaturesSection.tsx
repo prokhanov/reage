@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,17 +32,10 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import appScreenDashboard from "@/assets/landing/app-screen-dashboard.png";
-import appScreenAnalyses from "@/assets/landing/app-screen-analyses.png";
-import appScreenTrends from "@/assets/landing/app-screen-trends.png";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
+import dashboardMockV9Avif from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=avif&quality=68&url";
+import dashboardMockV9Webp from "@/assets/landing-v2/dashboard-mock-light-v9.png?format=webp&quality=78&url";
+import dashboardMockV9 from "@/assets/landing-v2/dashboard-mock-light-v9.png?url";
+import { SmartPicture } from "@/components/landing/SmartPicture";
 
 type SectionKey =
   | "dashboard"
@@ -164,94 +157,20 @@ const order: SectionKey[] = [
 
 /* =================== WIDGETS =================== */
 
-const cabinetScreens = [
-  {
-    src: appScreenDashboard,
-    alt: "Контрольная панель ReAge — биологический возраст, индекс здоровья и рейтинг систем",
-    label: "Моё здоровье",
-  },
-  {
-    src: appScreenAnalyses,
-    alt: "История анализов ReAge — динамика показателей по каждому исследованию",
-    label: "Анализы",
-  },
-  {
-    src: appScreenTrends,
-    alt: "Тренды ReAge — динамика биологического возраста и индекса здоровья",
-    label: "Тренды",
-  },
-];
-
 function DashboardWidgets() {
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    if (!api) return;
-    const onSelect = () => setCurrent(api.selectedScrollSnap());
-    api.on("select", onSelect);
-    onSelect();
-    return () => {
-      api.off("select", onSelect);
-    };
-  }, [api]);
-
-  useEffect(() => {
-    if (!api || paused) return;
-    const timer = window.setInterval(() => api.scrollNext(), 5000);
-    return () => window.clearInterval(timer);
-  }, [api, paused]);
-
   return (
-    <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <Carousel
-        setApi={setApi}
-        opts={{ loop: true, align: "center" }}
-        className="w-full"
-      >
-        <CarouselContent>
-          {cabinetScreens.map((screen, i) => (
-            <CarouselItem key={screen.label}>
-              <div className={`${glass} p-2 sm:p-3 overflow-hidden`}>
-                <img
-                  src={screen.src}
-                  alt={screen.alt}
-                  width={1600}
-                  height={1000}
-                  className="w-full h-auto rounded-xl block"
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                />
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="hidden sm:flex -left-4 lg:-left-12" />
-        <CarouselNext className="hidden sm:flex -right-4 lg:-right-12" />
-      </Carousel>
-
-      <div className="mt-4 flex items-center justify-center gap-2">
-        {cabinetScreens.map((screen, i) => (
-          <button
-            key={screen.label}
-            type="button"
-            onClick={() => api?.scrollTo(i)}
-            aria-label={screen.label}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              current === i
-                ? "w-8 bg-primary"
-                : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-            }`}
-          />
-        ))}
-      </div>
-      <div className="mt-2 text-center text-sm text-muted-foreground">
-        {cabinetScreens[current]?.label}
-      </div>
+    <div className={`${glass} p-2 sm:p-3 overflow-hidden`}>
+      <SmartPicture
+        avif={dashboardMockV9Avif}
+        webp={dashboardMockV9Webp}
+        src={dashboardMockV9}
+        alt="Контрольная панель ReAge — биологический возраст, индекс здоровья и рейтинг систем"
+        width={1600}
+        height={1000}
+        className="w-full h-auto rounded-xl block"
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 }
