@@ -45,6 +45,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function MainMonitoringSection({ id }: { id?: string }) {
   const [compareOpen, setCompareOpen] = useState(false);
+  const [diffOpen, setDiffOpen] = useState(false);
   const { requestRegister } = useRegisterGuard();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
@@ -199,21 +200,16 @@ export function MainMonitoringSection({ id }: { id?: string }) {
           )}
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 flex flex-col items-center gap-2 text-center">
           <Button variant="link" onClick={() => setCompareOpen(true)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
             Сравнить программы по показателям
           </Button>
+          <Button variant="link" onClick={() => setDiffOpen((v) => !v)} className="text-primary-foreground underline decoration-dotted underline-offset-4 hover:no-underline">
+            Отличие разовых чекапов от годовой программы
+          </Button>
         </div>
         <BiomarkerComparisonDialog open={compareOpen} onOpenChange={setCompareOpen} />
-
-        <div className="mt-6 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-5">
-          <p className="font-semibold text-primary-foreground">Почему программа дороже, чем несколько чекапов</p>
-          <p className="mt-2 text-[15px] leading-relaxed text-primary-foreground/70">
-            Сверх анализов в программу входят сравнение всех сдач года, пересмотр плана после каждой сдачи,
-            консультации врача и напоминания о пересдаче. Вы платите не за пробирки, а за то, что результаты
-            складываются в историю и превращаются в понятные решения.
-          </p>
-        </div>
+        {diffOpen && <ProgramDiffTable />}
       </div>
     </section>
   );
