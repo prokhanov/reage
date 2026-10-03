@@ -41,6 +41,8 @@ import {
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { PromoCodeFormDialog } from "@/components/admin/promo/PromoCodeFormDialog";
 import { GeneratePromoBatchDialog } from "@/components/admin/promo/GeneratePromoBatchDialog";
+import { useCheckupOptions } from "@/components/admin/promo/PromoTargetPicker";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import {
   PromoCode,
   PromoCodeFilters,
@@ -77,7 +79,7 @@ function formatDate(d: string | null): string {
   });
 }
 
-function describeTargets(c: any, planNames: Map<string, string> = PLAN_NAMES, checkupNames: Map<string, string> = CHECKUP_NAMES): string {
+function describeTargets(c: any, planNames: Map<string, string>, checkupNames: Map<string, string>): string {
   if (c.scope === "everything") return "Все услуги";
   const parts: string[] = [];
   if (c.scope !== "checkups") {
@@ -92,10 +94,12 @@ function describeTargets(c: any, planNames: Map<string, string> = PLAN_NAMES, ch
   }
   return parts.join(" · ");
 }
-let PLAN_NAMES = new Map<string, string>();
-let CHECKUP_NAMES = new Map<string, string>();
 
 export default function PromoCodes() {
+  const { data: allPlans } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
+  const checkupOptions = useCheckupOptions();
+  const planNames = useMemo(() => new Map((allPlans ?? []).map((p) => [p.id, p.display_name])), [allPlans]);
+  const checkupNames = useMemo(() => new Map(checkupOptions.map((c) => [c.slug, c.name])), [checkupOptions]);
   const [activeTab, setActiveTab] = useState("codes");
   const [search, setSearch] = useState("");
   const [batchFilter, setBatchFilter] = useState<string>("all");
@@ -360,7 +364,7 @@ export default function PromoCodes() {
                             <TableCell>
                               {c.report_offer
                                 ? <span className="text-xs">Только «{c.report_offer.checkup}»</span>
-                                : <span className="text-xs">{describeTargets(c)}</span>}
+                                : <span className="text-xs">{describeTargets(c, planNames, checkupNames)}</span>}
                             </TableCell>
                             <TableCell>
                               {c.used_count}
