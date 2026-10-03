@@ -85,6 +85,8 @@ export function EnergyCart() {
     value: number;
     partner: boolean;
     hideConsultation: boolean;
+    allowedCheckups?: string[] | null;
+    allServices?: boolean;
   } | null>(null);
   const [consult, setConsult] = useState(false);
   const [partnerHidesConsult, setPartnerHidesConsult] = useState(false);
@@ -186,16 +188,10 @@ export function EnergyCart() {
 
   const itemsSum = items.reduce((sum, item) => sum + item.price, 0);
   const upsellDiscount = upsellOrderId ? Math.round(itemsSum * 0.15) : 0;
-  const promoDiscount = !appliedPromo
-    ? 0
-    : appliedPromo.type === "fixed"
-      ? Math.min(appliedPromo.value, itemsSum)
-      : Math.round((itemsSum * appliedPromo.value) / 100);
   const activeOffer = reportOffer ?? manualOffer;
   const offerDiscount = activeOffer && items.some((item) => item.slug === activeOffer.advertised_checkup_slug)
     ? Math.min(Number(activeOffer.discount_amount), itemsSum)
     : 0;
-  const discount = Math.max(upsellDiscount, promoDiscount, offerDiscount);
   const { data: partnerOffer } = usePartnerOffer();
   const consultHidden =
     appliedPromo?.hideConsultation === true || partnerHidesConsult || partnerOffer?.hide_consultation === true;
@@ -211,6 +207,20 @@ export function EnergyCart() {
     .filter(Boolean)
     .join(", ");
   const homeValid = homeAddress.trim().length >= 5;
+  // База скидки промокода: только подходящие чекапы; «на все услуги» — плюс консультация и выезд.
+  const promoBase = !appliedPromo
+    ? 0
+    : appliedPromo.allServices
+      ? itemsSum + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0)
+      : appliedPromo.allowedCheckups
+        ? items.filter((item) => appliedPromo.allowedCheckups!.includes(item.slug)).reduce((sum, item) => sum + item.price, 0)
+        : itemsSum;
+  const promoDiscount = !appliedPromo || promoBase <= 0
+    ? 0
+    : appliedPromo.type === "fixed"
+      ? Math.min(appliedPromo.value, promoBase)
+      : Math.round((promoBase * appliedPromo.value) / 100);
+  const discount = Math.min(Math.max(upsellDiscount, promoDiscount, offerDiscount), Math.max(0, itemsSum + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0) - 1));
   // Доплаты (выезд, консультация) и скидка считаем только когда выбран основной продукт — чекап.
   const total = items.length > 0
     ? itemsSum - discount + (consult ? CONSULT_PRICE : 0) + (isHome ? HOME_VISIT_PRICE : 0)
@@ -280,7 +290,14 @@ export function EnergyCart() {
       value: Number(r.discount_value) || 0,
       partner: r.partner === true,
       hideConsultation: r.hide_consultation === true,
+      allowedCheckups: Array.isArray(r.allowed_checkups) ? (r.allowed_checkups as string[]) : null,
+      allServices: r.all_services === true,
     };
+    if (next.allowedCheckups && !items.some((item) => next.allowedCheckups!.includes(item.slug))) {
+      setAppliedPromo(null);
+      if (!opts.silent) notify.error("Промокод не подходит к корзине", "Код действует только на отдельные чекапы — их нет в корзине.");
+      return;
+    }
     if (next.hideConsultation) setConsult(false);
     // «Без консультации» действует независимо от размера скидки.
     setPartnerHidesConsult(next.partner && next.hideConsultation);
