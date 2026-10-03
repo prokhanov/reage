@@ -2835,6 +2835,35 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_checkups: {
+        Row: {
+          checkup_slug: string
+          created_at: string
+          id: string
+          promo_code_id: string
+        }
+        Insert: {
+          checkup_slug: string
+          created_at?: string
+          id?: string
+          promo_code_id: string
+        }
+        Update: {
+          checkup_slug?: string
+          created_at?: string
+          id?: string
+          promo_code_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_checkups_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promo_code_plans: {
         Row: {
           created_at: string
@@ -2982,6 +3011,7 @@ export type Database = {
           applies_to: Database["public"]["Enums"]["promo_applies_to"]
           batch_id: string | null
           bound_user_id: string | null
+          checkups_applies_to: string
           code: string
           created_at: string
           created_by: string | null
@@ -3002,6 +3032,7 @@ export type Database = {
           applies_to?: Database["public"]["Enums"]["promo_applies_to"]
           batch_id?: string | null
           bound_user_id?: string | null
+          checkups_applies_to?: string
           code: string
           created_at?: string
           created_by?: string | null
@@ -3022,6 +3053,7 @@ export type Database = {
           applies_to?: Database["public"]["Enums"]["promo_applies_to"]
           batch_id?: string | null
           bound_user_id?: string | null
+          checkups_applies_to?: string
           code?: string
           created_at?: string
           created_by?: string | null
