@@ -25,7 +25,7 @@ export interface PromoCode {
   batch?: { id: string; name: string } | null;
   scope?: string;
   checkups_applies_to?: string;
-  plan_links?: { plan_id: string; pricing_id: string | null }[];
+  plan_links?: { plan_id: string; pricing_id?: string | null }[];
   checkup_links?: { checkup_slug: string }[];
   /** Если код создан баннером в отчёте пациента. */
   report_offer?: { checkup: string; patient: string | null; used: boolean } | null;
