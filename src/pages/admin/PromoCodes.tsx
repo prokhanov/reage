@@ -41,6 +41,8 @@ import {
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { PromoCodeFormDialog } from "@/components/admin/promo/PromoCodeFormDialog";
 import { GeneratePromoBatchDialog } from "@/components/admin/promo/GeneratePromoBatchDialog";
+import { useCheckupOptions } from "@/components/admin/promo/PromoTargetPicker";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import {
   PromoCode,
   PromoCodeFilters,
@@ -77,7 +79,27 @@ function formatDate(d: string | null): string {
   });
 }
 
+function describeTargets(c: any, planNames: Map<string, string>, checkupNames: Map<string, string>): string {
+  if (c.scope === "everything") return "Все услуги";
+  const parts: string[] = [];
+  if (c.scope !== "checkups") {
+    parts.push(c.applies_to === "specific"
+      ? `Тарифы: ${(c.plan_links ?? []).map((l: any) => planNames.get(l.plan_id) ?? "—").join(", ") || "—"}`
+      : "Все тарифы");
+  }
+  if (c.scope !== "subscriptions") {
+    parts.push(c.checkups_applies_to === "specific"
+      ? `Чекапы: ${(c.checkup_links ?? []).map((l: any) => checkupNames.get(l.checkup_slug) ?? l.checkup_slug).join(", ") || "—"}`
+      : "Все чекапы");
+  }
+  return parts.join(" · ");
+}
+
 export default function PromoCodes() {
+  const { data: allPlans } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
+  const checkupOptions = useCheckupOptions();
+  const planNames = useMemo(() => new Map((allPlans ?? []).map((p) => [p.id, p.display_name])), [allPlans]);
+  const checkupNames = useMemo(() => new Map(checkupOptions.map((c) => [c.slug, c.name])), [checkupOptions]);
   const [activeTab, setActiveTab] = useState("codes");
   const [search, setSearch] = useState("");
   const [batchFilter, setBatchFilter] = useState<string>("all");
@@ -342,9 +364,7 @@ export default function PromoCodes() {
                             <TableCell>
                               {c.report_offer
                                 ? <span className="text-xs">Только «{c.report_offer.checkup}»</span>
-                                : c.scope === "checkups"
-                                  ? "Чекапы"
-                                  : c.applies_to === "all_plans" ? "Все тарифы" : "Выбранные"}
+                                : <span className="text-xs">{describeTargets(c, planNames, checkupNames)}</span>}
                             </TableCell>
                             <TableCell>
                               {c.used_count}

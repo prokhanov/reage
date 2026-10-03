@@ -11,3 +11,4 @@
 - Store report-banner offers separately in `report_checkup_offers`; authorize, reserve, and redeem them server-side so one patient/SKU/usage cannot affect ordinary promo codes or partner attribution.
 - Guest cart drafts live in `checkup_cart_leads` (saved silently via `checkup-lead-save`, linked to `energy_orders` on checkout, marked paid by trigger) — keeps orders, metrics and partners free of drafts.
 - Optional per-checkup "facts" sections are data (`facts` field on the checkup in `src/data/checkups.ts`) rendered by one shared component, so other checkups get the block by adding data, not code.
+- Promo code targeting: `promo_codes.scope` (`all`|`subscriptions`|`checkups`|`everything`) + `applies_to`/`promo_code_plans` for plans and `checkups_applies_to`/`promo_code_checkups` for checkups; checkout discounts only eligible items, and only `everything` discounts consultation/home visit — so one code model serves every service.

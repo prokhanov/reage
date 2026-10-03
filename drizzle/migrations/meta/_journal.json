@@ -218,6 +218,13 @@
       "when": 1790942187052,
       "tag": "0030_telegram_log_service_grant",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791022691277,
+      "tag": "0031_promo_codes_checkup_targets",
+      "breakpoints": true
     }
   ]
 }
