@@ -21,11 +21,10 @@ import {
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import {
   PromoCode,
-  PromoAppliesTo,
   PromoDiscountType,
   usePromoMutations,
 } from "@/hooks/usePromoCodes";
-import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { PromoTargetPicker, PromoTargets, DEFAULT_TARGETS, targetsFromPromo, targetsToPayload, targetsError } from "./PromoTargetPicker";
 import { usePromoSettings } from "@/hooks/usePromoSettings";
 
 interface Props {
@@ -46,15 +45,13 @@ function genCode(prefix: string, len = 8): string {
 export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
   const isEdit = !!promoCode;
   const { createPromoCode, updatePromoCode } = usePromoMutations();
-  const { data: plans } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
   const { data: settings } = usePromoSettings();
   const defaultPrefix = settings?.default_prefix ?? "PROMO";
 
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<PromoDiscountType>("percent");
   const [discountValue, setDiscountValue] = useState("10");
-  const [appliesTo, setAppliesTo] = useState<PromoAppliesTo>("all_plans");
-  const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
+  const [targets, setTargets] = useState<PromoTargets>(DEFAULT_TARGETS);
   const [maxUses, setMaxUses] = useState<string>("");
   const [onePerUser, setOnePerUser] = useState(true);
   const [startsAt, setStartsAt] = useState("");
@@ -67,7 +64,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
       setCode(promoCode.code);
       setDiscountType(promoCode.discount_type);
       setDiscountValue(String(promoCode.discount_value));
-      setAppliesTo(promoCode.applies_to);
+      setTargets(targetsFromPromo(promoCode));
       setMaxUses(promoCode.max_uses != null ? String(promoCode.max_uses) : "");
       setOnePerUser(promoCode.one_per_user);
       setStartsAt(promoCode.starts_at ? promoCode.starts_at.slice(0, 16) : "");
@@ -78,8 +75,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
       setCode(genCode(defaultPrefix));
       setDiscountType("percent");
       setDiscountValue("10");
-      setAppliesTo("all_plans");
-      setSelectedPlans([]);
+      setTargets(DEFAULT_TARGETS);
       setMaxUses("");
       setOnePerUser(true);
       setStartsAt("");
@@ -91,18 +87,18 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (targetError) return;
     const payload = {
       code: code.trim().toUpperCase(),
       discount_type: discountType,
       discount_value: Number(discountValue) || 0,
-      applies_to: appliesTo,
+      ...targetsToPayload(targets),
       max_uses: maxUses ? Number(maxUses) : null,
       one_per_user: onePerUser,
       starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
       is_active: isActive,
       notes: notes || null,
-      plan_links: selectedPlans.map((id) => ({ plan_id: id })),
     };
     if (isEdit && promoCode) {
       await updatePromoCode.mutateAsync({ id: promoCode.id, ...payload });
@@ -112,11 +108,12 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
     onOpenChange(false);
   };
 
+  const targetError = targetsError(targets, discountType);
   const pending = createPromoCode.isPending || updatePromoCode.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Редактировать промокод" : "Создать промокод"}</DialogTitle>
           <DialogDescription>
@@ -168,38 +165,8 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Область действия</Label>
-            <Select value={appliesTo} onValueChange={(v) => setAppliesTo(v as PromoAppliesTo)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all_plans">Все тарифы</SelectItem>
-                <SelectItem value="specific">Конкретные тарифы</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {appliesTo === "specific" && (
-            <div className="space-y-2 rounded-md border p-3">
-              <Label>Выберите тарифы</Label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {(plans ?? []).map((p) => (
-                  <label key={p.id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={selectedPlans.includes(p.id)}
-                      onChange={(e) => {
-                        setSelectedPlans((prev) =>
-                          e.target.checked ? [...prev, p.id] : prev.filter((x) => x !== p.id),
-                        );
-                      }}
-                    />
-                    {p.display_name}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+          <PromoTargetPicker value={targets} onChange={setTargets} />
+          {targetError && <p className="text-sm text-destructive">{targetError}</p>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -245,7 +212,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Отмена
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || !!targetError}>
               {pending && <ButtonSpinner className="mr-2" />}
               {isEdit ? "Сохранить" : "Создать"}
             </Button>
