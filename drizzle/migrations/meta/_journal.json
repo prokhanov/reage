@@ -225,6 +225,13 @@
       "when": 1791022691277,
       "tag": "0031_promo_codes_checkup_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791023117060,
+      "tag": "0032_promo_scope_everything",
+      "breakpoints": true
     }
   ]
 }

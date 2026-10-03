@@ -167,10 +167,10 @@ export function PromoTargetPicker({ value, onChange }: { value: PromoTargets; on
         <div className="space-y-3">
           <div className="space-y-3 rounded-lg border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2 text-sm font-medium">
                 <Switch checked={value.plansOn} onCheckedChange={(v) => set({ plansOn: v })} />
                 Годовые тарифы
-              </label>
+              </div>
               {value.plansOn && (
                 <Segment
                   value={value.plansAll ? "all" : "some"}
@@ -192,10 +192,10 @@ export function PromoTargetPicker({ value, onChange }: { value: PromoTargets; on
 
           <div className="space-y-3 rounded-lg border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2 text-sm font-medium">
                 <Switch checked={value.checkupsOn} onCheckedChange={(v) => set({ checkupsOn: v })} />
                 Разовые чекапы
-              </label>
+              </div>
               {value.checkupsOn && (
                 <Segment
                   value={value.checkupsAll ? "all" : "some"}
