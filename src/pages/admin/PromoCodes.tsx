@@ -77,6 +77,24 @@ function formatDate(d: string | null): string {
   });
 }
 
+function describeTargets(c: any, planNames: Map<string, string> = PLAN_NAMES, checkupNames: Map<string, string> = CHECKUP_NAMES): string {
+  if (c.scope === "everything") return "Все услуги";
+  const parts: string[] = [];
+  if (c.scope !== "checkups") {
+    parts.push(c.applies_to === "specific"
+      ? `Тарифы: ${(c.plan_links ?? []).map((l: any) => planNames.get(l.plan_id) ?? "—").join(", ") || "—"}`
+      : "Все тарифы");
+  }
+  if (c.scope !== "subscriptions") {
+    parts.push(c.checkups_applies_to === "specific"
+      ? `Чекапы: ${(c.checkup_links ?? []).map((l: any) => checkupNames.get(l.checkup_slug) ?? l.checkup_slug).join(", ") || "—"}`
+      : "Все чекапы");
+  }
+  return parts.join(" · ");
+}
+let PLAN_NAMES = new Map<string, string>();
+let CHECKUP_NAMES = new Map<string, string>();
+
 export default function PromoCodes() {
   const [activeTab, setActiveTab] = useState("codes");
   const [search, setSearch] = useState("");
@@ -342,9 +360,7 @@ export default function PromoCodes() {
                             <TableCell>
                               {c.report_offer
                                 ? <span className="text-xs">Только «{c.report_offer.checkup}»</span>
-                                : c.scope === "checkups"
-                                  ? "Чекапы"
-                                  : c.applies_to === "all_plans" ? "Все тарифы" : "Выбранные"}
+                                : <span className="text-xs">{describeTargets(c)}</span>}
                             </TableCell>
                             <TableCell>
                               {c.used_count}
