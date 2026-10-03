@@ -282,18 +282,31 @@ Deno.serve(async (req) => {
     let ordinaryPromoDiscount = 0;
     let ordinaryPromoCode: string | null = null;
     let codeOfferId: string | null = null;
+    let promoEligibleIdx: number[] | null = null;
+    let promoAllServices = false;
     if (code) {
       const { data: promoRes } = await admin.rpc("checkup_promo_preview", {
         p_code: code, p_phone: null, p_email: emailClean,
       });
-      const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string; report_offer?: boolean; offer_id?: string } | null;
+      const r = promoRes as { success: boolean; error?: string; discount_type?: string; discount_value?: number; code?: string; report_offer?: boolean; offer_id?: string; allowed_checkups?: string[] | null; all_services?: boolean } | null;
       if (r?.report_offer && r.offer_id) {
         codeOfferId = r.offer_id;
       } else if (!partner) {
         if (!r?.success) return json({ error: r?.error ?? "Промокод не найден" }, 400);
+        // База скидки: только подходящие чекапы; «на все услуги» — также консультация и выезд.
+        const allowed = Array.isArray(r.allowed_checkups) ? r.allowed_checkups : null;
+        if (allowed) {
+          promoEligibleIdx = uniqueBundles.map((slug, i) => (allowed.includes(slug) ? i : -1)).filter((i) => i >= 0);
+          if (promoEligibleIdx.length === 0) return json({ error: "Промокод действует только на отдельные чекапы — их нет в корзине" }, 400);
+        }
+        promoAllServices = r.all_services === true;
+        const base = promoAllServices
+          ? original
+          : promoEligibleIdx ? promoEligibleIdx.reduce((sum, i) => sum + items[i].price, 0) : itemsSum;
         ordinaryPromoDiscount = r.discount_type === "fixed"
-          ? Math.min(Number(r.discount_value), itemsSum)
-          : Math.round((itemsSum * Number(r.discount_value)) / 100);
+          ? Math.min(Number(r.discount_value), base)
+          : Math.round((base * Number(r.discount_value)) / 100);
+        ordinaryPromoDiscount = Math.min(ordinaryPromoDiscount, original - 1);
         ordinaryPromoCode = r.code ?? code;
       }
     }
@@ -357,11 +370,19 @@ Deno.serve(async (req) => {
 
     const discountShares = items.map((item, index) => {
       if (winner.kind === "report") return uniqueBundles[index] === reportOffer?.advertised_checkup_slug ? discount : 0;
-      if (itemsSum <= 0) return 0;
-      if (index === items.length - 1) {
-        return discount - items.slice(0, -1).reduce((sum, prior) => sum + Math.round((discount * prior.price) / itemsSum), 0);
+      // Какие позиции участвуют в скидке и какая её часть приходится на чекапы.
+      const idx = winner.kind === "promo" && promoEligibleIdx ? promoEligibleIdx : items.map((_, i) => i);
+      if (!idx.includes(index)) return 0;
+      const base = idx.reduce((sum, i) => sum + items[i].price, 0);
+      if (base <= 0) return 0;
+      const itemsPart = winner.kind === "promo" && promoAllServices
+        ? Math.min(base, Math.round((discount * itemsSum) / original))
+        : Math.min(discount, base);
+      const last = idx[idx.length - 1];
+      if (index === last) {
+        return itemsPart - idx.filter((i) => i !== last).reduce((sum, i) => sum + Math.round((itemsPart * items[i].price) / base), 0);
       }
-      return Math.round((discount * item.price) / itemsSum);
+      return Math.round((itemsPart * item.price) / base);
     });
     const lineItems = items.map((item, index) => ({
       slug: uniqueBundles[index],
