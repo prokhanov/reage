@@ -247,7 +247,7 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
               <Button type="button" variant="outline" onClick={() => handleClose(false)}>
                 Отмена
               </Button>
-              <Button type="submit" disabled={generateBatch.isPending}>
+              <Button type="submit" disabled={generateBatch.isPending || !!targetError}>
                 {generateBatch.isPending && <ButtonSpinner className="mr-2" />}
                 Сгенерировать
               </Button>

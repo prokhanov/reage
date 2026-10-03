@@ -78,6 +78,9 @@ Deno.serve(async (req) => {
       expires_at = null,
       is_active = true,
       notes = null,
+      scope = "all",
+      checkups_applies_to = "all",
+      checkup_slugs = [],
     } = body as Record<string, any>;
 
     if (!discount_type || !["percent", "fixed", "free_period"].includes(discount_type)) {
@@ -86,6 +89,9 @@ Deno.serve(async (req) => {
     const dVal = Number(discount_value);
     if (!Number.isFinite(dVal) || dVal < 0) {
       return json({ error: "Некорректное значение скидки" }, 400);
+    }
+    if (!["all", "subscriptions", "checkups", "everything"].includes(scope)) {
+      return json({ error: "Некорректная область действия" }, 400);
     }
     const n = Math.max(1, Math.min(5000, Number(count) || 1));
     const sufLen = Math.max(4, Math.min(12, Number(suffix_length) || 6));
@@ -136,6 +142,8 @@ Deno.serve(async (req) => {
       expires_at,
       is_active: !!is_active,
       notes,
+      scope,
+      checkups_applies_to: checkups_applies_to === "specific" ? "specific" : "all",
       created_by: userId,
     }));
 
@@ -187,6 +195,15 @@ Deno.serve(async (req) => {
         for (let i = 0; i < links.length; i += 500) {
           await admin.from("promo_code_plans").insert(links.slice(i, i + 500));
         }
+      }
+    }
+
+    if (checkups_applies_to === "specific" && Array.isArray(checkup_slugs) && checkup_slugs.length > 0) {
+      const links = inserted.flatMap((p) =>
+        checkup_slugs.filter((x: unknown) => typeof x === "string" && x).map((slug: string) => ({ promo_code_id: p.id, checkup_slug: slug })),
+      );
+      for (let i = 0; i < links.length; i += 500) {
+        await admin.from("promo_code_checkups").insert(links.slice(i, i + 500));
       }
     }
 
