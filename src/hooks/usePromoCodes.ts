@@ -24,6 +24,9 @@ export interface PromoCode {
   updated_at: string;
   batch?: { id: string; name: string } | null;
   scope?: string;
+  checkups_applies_to?: string;
+  plan_links?: { plan_id: string; pricing_id: string | null }[];
+  checkup_links?: { checkup_slug: string }[];
   /** Если код создан баннером в отчёте пациента. */
   report_offer?: { checkup: string; patient: string | null; used: boolean } | null;
 }
@@ -61,7 +64,7 @@ export function usePromoCodes(filters: PromoCodeFilters = {}) {
     queryFn: async () => {
       let q = supabase
         .from("promo_codes")
-        .select("*, batch:promo_code_batches(id, name), offers:report_checkup_offers(advertised_checkup_name, user_id, used_at)")
+        .select("*, batch:promo_code_batches(id, name), plan_links:promo_code_plans(plan_id, pricing_id), checkup_links:promo_code_checkups(checkup_slug), offers:report_checkup_offers(advertised_checkup_name, user_id, used_at)")
         .order("created_at", { ascending: false })
         .limit(2000);
 
@@ -174,24 +177,30 @@ export function usePromoMutations() {
     queryClient.invalidateQueries({ queryKey: ["promo-redemptions"] });
   };
 
-  const createPromoCode = useMutation({
-    mutationFn: async (input: Partial<PromoCode> & { plan_links?: { plan_id: string; pricing_id?: string | null }[] }) => {
-      const { plan_links, ...row } = input;
-      const { data, error } = await supabase
-        .from("promo_codes")
-        .insert(row as any)
-        .select()
-        .single();
+  type LinkInput = { plan_links?: { plan_id: string; pricing_id?: string | null }[]; checkup_slugs?: string[] };
+  const writeLinks = async (id: string, input: LinkInput & { applies_to?: string; checkups_applies_to?: string }) => {
+    await supabase.from("promo_code_plans").delete().eq("promo_code_id", id);
+    await supabase.from("promo_code_checkups" as any).delete().eq("promo_code_id", id);
+    if (input.applies_to === "specific" && input.plan_links?.length) {
+      const { error } = await supabase.from("promo_code_plans").insert(
+        input.plan_links.map((l) => ({ promo_code_id: id, plan_id: l.plan_id, pricing_id: l.pricing_id ?? null })),
+      );
       if (error) throw error;
-      if (input.applies_to === "specific" && plan_links && plan_links.length > 0) {
-        await supabase.from("promo_code_plans").insert(
-          plan_links.map((l) => ({
-            promo_code_id: data.id,
-            plan_id: l.plan_id,
-            pricing_id: l.pricing_id ?? null,
-          })),
-        );
-      }
+    }
+    if (input.checkups_applies_to === "specific" && input.checkup_slugs?.length) {
+      const { error } = await supabase.from("promo_code_checkups" as any).insert(
+        input.checkup_slugs.map((slug) => ({ promo_code_id: id, checkup_slug: slug })) as any,
+      );
+      if (error) throw error;
+    }
+  };
+
+  const createPromoCode = useMutation({
+    mutationFn: async (input: Partial<PromoCode> & LinkInput) => {
+      const { plan_links, checkup_slugs, checkup_links: _c, report_offer: _r, batch: _b, ...row } = input as any;
+      const { data, error } = await supabase.from("promo_codes").insert(row as any).select().single();
+      if (error) throw error;
+      await writeLinks(data.id, { ...row, plan_links, checkup_slugs });
       return data;
     },
     onSuccess: () => {
@@ -203,21 +212,11 @@ export function usePromoMutations() {
   });
 
   const updatePromoCode = useMutation({
-    mutationFn: async ({ id, plan_links, ...row }: Partial<PromoCode> & { id: string; plan_links?: { plan_id: string; pricing_id?: string | null }[] }) => {
+    mutationFn: async (input: Partial<PromoCode> & LinkInput & { id: string }) => {
+      const { id, plan_links, checkup_slugs, checkup_links: _c, report_offer: _r, batch: _b, ...row } = input as any;
       const { error } = await supabase.from("promo_codes").update(row as any).eq("id", id);
       if (error) throw error;
-      if (row.applies_to !== undefined) {
-        await supabase.from("promo_code_plans").delete().eq("promo_code_id", id);
-        if (row.applies_to === "specific" && plan_links && plan_links.length > 0) {
-          await supabase.from("promo_code_plans").insert(
-            plan_links.map((l) => ({
-              promo_code_id: id,
-              plan_id: l.plan_id,
-              pricing_id: l.pricing_id ?? null,
-            })),
-          );
-        }
-      }
+      if (row.applies_to !== undefined) await writeLinks(id, { ...row, plan_links, checkup_slugs });
     },
     onSuccess: () => {
       invalidate();
